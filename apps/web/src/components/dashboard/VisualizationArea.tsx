@@ -281,13 +281,23 @@ function IntelligentAnalyticsCard({ result }: { result: any }) {
     <Card>
       <CardHeader>
         <CardTitle>Intelligent Analysis</CardTitle>
+        <p className="text-sm text-gray-500 mt-1">
+          AI-powered breakdown of trip feasibility, rest opportunity value, and time costs
+        </p>
+        <div className="mt-3 p-3 bg-gray-50 rounded-md text-xs text-gray-600 space-y-1">
+          <p className="font-medium">Quick Guide:</p>
+          <p><span className="font-semibold">Feasibility:</span> Can driver complete trips? (Green=Yes, Red=No)</p>
+          <p><span className="font-semibold">Opportunity Score:</span> How valuable is rest? (0-30=Poor, 31-60=Moderate, 61-100=Excellent)</p>
+          <p><span className="font-semibold">Cost:</span> How much extra time needed? (Lower=Better deal)</p>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Feasibility Analysis */}
           {feasibility_analysis && (
             <div className="border rounded-lg p-4">
-              <h4 className="font-semibold mb-3 text-sm">Trip Feasibility</h4>
+              <h4 className="font-semibold mb-1 text-sm">Trip Feasibility</h4>
+              <p className="text-xs text-gray-500 mb-3">Can driver complete upcoming trips with current hours?</p>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div
@@ -302,8 +312,9 @@ function IntelligentAnalyticsCard({ result }: { result: any }) {
 
                 {!feasibility_analysis.feasible && feasibility_analysis.limiting_factor && (
                   <div className="text-xs text-gray-600 mt-2">
-                    <p className="font-medium">Limiting Factor:</p>
-                    <p className="capitalize">{feasibility_analysis.limiting_factor.replace('_', ' ')}</p>
+                    <p className="font-medium">
+                      Limiting Factor: <span className="capitalize font-semibold text-red-600">{feasibility_analysis.limiting_factor.replace('_', ' ')}</span>
+                    </p>
                     <p className="mt-1">
                       Shortfall: <span className="font-semibold">{feasibility_analysis.shortfall_hours.toFixed(1)}h</span>
                     </p>
@@ -339,7 +350,8 @@ function IntelligentAnalyticsCard({ result }: { result: any }) {
           {/* Opportunity Analysis */}
           {opportunity_analysis && (
             <div className="border rounded-lg p-4">
-              <h4 className="font-semibold mb-3 text-sm">Opportunity Score</h4>
+              <h4 className="font-semibold mb-1 text-sm">Opportunity Score</h4>
+              <p className="text-xs text-gray-500 mb-3">How valuable is taking rest right now? (0=poor, 100=excellent)</p>
               <div className="space-y-3">
                 {/* Overall Score */}
                 <div className="text-center">
@@ -357,16 +369,17 @@ function IntelligentAnalyticsCard({ result }: { result: any }) {
 
                 {/* Breakdown */}
                 <div className="text-xs text-gray-600 space-y-1 pt-2 border-t">
+                  <p className="font-medium mb-2">Score Breakdown:</p>
                   <div className="flex justify-between">
-                    <span>Dock time:</span>
+                    <span title="How long is dock time? (longer = more points)">📦 Dock availability:</span>
                     <span className="font-medium">{opportunity_analysis.dock_score.toFixed(0)}/30</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Hours gainable:</span>
+                    <span title="How many hours would driver gain? (more = more points)">⏱️ Hours gain potential:</span>
                     <span className="font-medium">{opportunity_analysis.hours_score.toFixed(0)}/30</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Criticality:</span>
+                    <span title="How badly does driver need rest? (closer to limits = more points)">⚠️ Need for rest:</span>
                     <span className="font-medium">{opportunity_analysis.criticality_score.toFixed(0)}/40</span>
                   </div>
                 </div>
@@ -386,7 +399,8 @@ function IntelligentAnalyticsCard({ result }: { result: any }) {
           {/* Cost Analysis */}
           {cost_analysis && (
             <div className="border rounded-lg p-4">
-              <h4 className="font-semibold mb-3 text-sm">Rest Extension Cost</h4>
+              <h4 className="font-semibold mb-1 text-sm">Rest Extension Cost</h4>
+              <p className="text-xs text-gray-500 mb-3">How much extra time is needed to extend dock to full rest?</p>
               <div className="space-y-3">
                 <div className="text-xs text-gray-600 space-y-2">
                   <div>
