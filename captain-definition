@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 2,
+  "dockerfileLines": [
+    "FROM node:20-alpine AS frontend-builder",
+    "WORKDIR /app",
+    "COPY apps/web/package*.json ./web/",
+    "RUN cd web && npm ci --only=production",
+    "COPY apps/web ./web",
+    "RUN cd web && npm run build",
+    "",
+    "FROM python:3.11-slim",
+    "RUN apt-get update && apt-get install -y curl nodejs npm && rm -rf /var/lib/apt/lists/*",
+    "RUN pip install uv supervisor",
+    "",
+    "WORKDIR /app",
+    "COPY apps/backend ./backend",
+    "RUN cd backend && uv sync",
+    "",
+    "COPY --from=frontend-builder /app/web/.next ./web/.next",
+    "COPY --from=frontend-builder /app/web/package*.json ./web/",
+    "COPY --from=frontend-builder /app/web/public ./web/public",
+    "COPY apps/web/next.config.ts ./web/",
+    "RUN cd web && npm ci --only=production",
+    "",
+    "COPY deploy/supervisord.conf /etc/supervisor/conf.d/supervisord.conf",
+    "",
+    "EXPOSE 3000 8000",
+    "",
+    "CMD [\"/usr/local/bin/supervisord\", \"-c\", \"/etc/supervisor/conf.d/supervisord.conf\"]"
+  ]
+}
