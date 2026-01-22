@@ -113,26 +113,26 @@ function RecommendationCard({ result }: { result: any }) {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Recommendation</CardTitle>
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <CardTitle className="text-base sm:text-lg">Recommendation</CardTitle>
         {result.confidence !== undefined && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Confidence:</span>
+            <span className="text-xs sm:text-sm text-gray-500">Confidence:</span>
             <div className="flex items-center gap-2">
-              <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="w-16 sm:w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className={`h-full ${getConfidenceColor(result.confidence)}`}
                   style={{ width: `${result.confidence}%` }}
                 />
               </div>
-              <span className="text-sm font-semibold">{result.confidence}%</span>
+              <span className="text-xs sm:text-sm font-semibold">{result.confidence}%</span>
             </div>
           </div>
         )}
       </CardHeader>
       <CardContent>
         <div
-          className={`border-2 rounded-lg p-6 ${getRecommendationColor(
+          className={`border-2 rounded-lg p-4 sm:p-6 ${getRecommendationColor(
             result.recommendation
           )}`}
         >
@@ -140,11 +140,11 @@ function RecommendationCard({ result }: { result: any }) {
             <div className="flex-1">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold mb-2">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2">
                     {getRecommendationLabel(result.recommendation)}
                   </h3>
                   {result.driver_can_decline !== undefined && (
-                    <p className="text-sm opacity-75 mb-3">
+                    <p className="text-xs sm:text-sm opacity-75 mb-3">
                       {result.driver_can_decline ? "Optional - Driver can decline" : "Mandatory - Compliance required"}
                     </p>
                   )}
@@ -152,7 +152,7 @@ function RecommendationCard({ result }: { result: any }) {
               </div>
 
               {result.recommended_duration_hours && (
-                <p className="text-lg font-semibold mb-4">
+                <p className="text-base sm:text-lg font-semibold mb-4">
                   Duration: {formatHours(result.recommended_duration_hours)}
                 </p>
               )}
@@ -202,14 +202,14 @@ function ComplianceCard({ result }: { result: any }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Compliance Status</CardTitle>
+        <CardTitle className="text-base sm:text-lg">Compliance Status</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="font-medium">Overall Status:</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span className="font-medium text-sm sm:text-base">Overall Status:</span>
             <span
-              className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              className={`px-3 py-1 rounded-full text-xs sm:text-sm font-semibold text-center ${
                 result.is_compliant
                   ? "bg-gray-900 text-white"
                   : "bg-white text-gray-900 border border-gray-300"
@@ -280,11 +280,11 @@ function IntelligentAnalyticsCard({ result }: { result: any }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Intelligent Analysis</CardTitle>
-        <p className="text-sm text-gray-500 mt-1">
+        <CardTitle className="text-base sm:text-lg">Intelligent Analysis</CardTitle>
+        <p className="text-xs sm:text-sm text-gray-500 mt-1">
           AI-powered breakdown of trip feasibility, rest opportunity value, and time costs
         </p>
-        <div className="mt-3 p-3 bg-gray-50 rounded-md text-xs text-gray-600 space-y-1">
+        <div className="mt-3 p-2 sm:p-3 bg-gray-50 rounded-md text-xs text-gray-600 space-y-1">
           <p className="font-medium">Quick Guide:</p>
           <p><span className="font-semibold">Feasibility:</span> Can driver complete trips? (Green=Yes, Red=No)</p>
           <p><span className="font-semibold">Opportunity Score:</span> How valuable is rest? (0-30=Poor, 31-60=Moderate, 61-100=Excellent)</p>
@@ -292,7 +292,7 @@ function IntelligentAnalyticsCard({ result }: { result: any }) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Feasibility Analysis */}
           {feasibility_analysis && (
             <div className="border rounded-lg p-4">
@@ -448,24 +448,24 @@ function BeforeAfterCard({ result }: { result: any }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Before/After Comparison</CardTitle>
+        <CardTitle className="text-base sm:text-lg">Before/After Comparison</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {/* Before */}
-          <div className="border rounded-lg p-4">
-            <h4 className="font-semibold mb-4 text-sm text-gray-500">Current Status</h4>
-            <div className="space-y-3">
+          <div className="border rounded-lg p-3 sm:p-4">
+            <h4 className="font-semibold mb-3 sm:mb-4 text-xs sm:text-sm text-gray-500">Current Status</h4>
+            <div className="space-y-2 sm:space-y-3">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Drive Hours</p>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">
                   {result.hours_remaining_to_drive.toFixed(1)}h
                 </div>
                 <p className="text-xs text-gray-500">remaining</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">On-Duty Hours</p>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">
                   {result.hours_remaining_on_duty.toFixed(1)}h
                 </div>
                 <p className="text-xs text-gray-500">remaining</p>
@@ -474,14 +474,14 @@ function BeforeAfterCard({ result }: { result: any }) {
           </div>
 
           {/* After */}
-          <div className="border rounded-lg p-4 bg-green-50">
-            <h4 className="font-semibold mb-4 text-sm text-green-700">After Rest</h4>
-            <div className="space-y-3">
+          <div className="border rounded-lg p-3 sm:p-4 bg-green-50">
+            <h4 className="font-semibold mb-3 sm:mb-4 text-xs sm:text-sm text-green-700">After Rest</h4>
+            <div className="space-y-2 sm:space-y-3">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Drive Hours</p>
-                <div className="text-2xl font-bold text-green-700 flex items-center gap-2">
-                  {result.hours_after_rest_drive.toFixed(1)}h
-                  <span className="text-sm text-green-600">
+                <div className="text-xl sm:text-2xl font-bold text-green-700 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <span>{result.hours_after_rest_drive.toFixed(1)}h</span>
+                  <span className="text-xs sm:text-sm text-green-600">
                     (+{(result.hours_after_rest_drive - result.hours_remaining_to_drive).toFixed(1)}h)
                   </span>
                 </div>
@@ -489,9 +489,9 @@ function BeforeAfterCard({ result }: { result: any }) {
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">On-Duty Hours</p>
-                <div className="text-2xl font-bold text-green-700 flex items-center gap-2">
-                  {result.hours_after_rest_duty.toFixed(1)}h
-                  <span className="text-sm text-green-600">
+                <div className="text-xl sm:text-2xl font-bold text-green-700 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <span>{result.hours_after_rest_duty.toFixed(1)}h</span>
+                  <span className="text-xs sm:text-sm text-green-600">
                     (+{(result.hours_after_rest_duty - result.hours_remaining_on_duty).toFixed(1)}h)
                   </span>
                 </div>

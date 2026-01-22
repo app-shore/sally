@@ -151,7 +151,13 @@ interface SectionProps {
 }
 
 function Section({ title, children, defaultOpen = true }: SectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  // On mobile (< 1024px), default to closed; on desktop, use defaultOpen prop
+  const [isOpen, setIsOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024 ? defaultOpen : false;
+    }
+    return defaultOpen;
+  });
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -227,17 +233,17 @@ export function ControlPanel({ formData, setFormData, onRunEngine, isRunning = f
   };
 
   return (
-    <div className="h-full p-4">
-      <Card className="border-0 shadow-none">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-lg font-semibold">
+    <div className="h-full p-3 sm:p-4">
+      <Card className="border-0 shadow-none lg:shadow-sm lg:border">
+        <CardHeader className="px-0 pt-0 lg:px-6 lg:pt-6">
+          <CardTitle className="text-base sm:text-lg font-semibold">
             Engine Parameters
           </CardTitle>
           <p className="text-xs text-gray-500">
             Configure driver and trip details
           </p>
         </CardHeader>
-        <CardContent className="space-y-4 px-0">
+        <CardContent className="space-y-4 px-0 lg:px-6">
           {/* Driver Status Section */}
           <Section title="Driver Status">
             <FieldWithSource
@@ -343,18 +349,18 @@ export function ControlPanel({ formData, setFormData, onRunEngine, isRunning = f
           <Separator className="my-4" />
 
           {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
             <Button
               onClick={onRunEngine}
               disabled={isRunning}
-              className="flex-1 bg-gray-900 hover:bg-gray-800"
+              className="flex-1 bg-gray-900 hover:bg-gray-800 w-full"
             >
               {isRunning ? "Running..." : "Run Engine"}
             </Button>
             <Button
               onClick={handleClear}
               variant="outline"
-              className="border-gray-300"
+              className="border-gray-300 w-full sm:w-auto"
             >
               Clear
             </Button>

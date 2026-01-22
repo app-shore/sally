@@ -65,23 +65,36 @@ export default function DashboardPage() {
     <div className="flex h-screen flex-col bg-gray-50">
       <TopNavigation currentPage={currentPage} onNavigate={handleNavigate} />
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Resizable Sidebar - only show on engine page */}
+      <div className="flex flex-1 overflow-hidden flex-col lg:flex-row">
+        {/* Desktop Resizable Sidebar - only show on engine page for desktop */}
         {currentPage === "engine" && (
-          <ResizableSidebar defaultWidth={340} minWidth={300} maxWidth={700}>
-            <ControlPanel
-              formData={formData}
-              setFormData={setFormData}
-              onRunEngine={handleRunEngine}
-              isRunning={isPending}
-            />
-          </ResizableSidebar>
+          <div className="hidden lg:block">
+            <ResizableSidebar defaultWidth={340} minWidth={300} maxWidth={700}>
+              <ControlPanel
+                formData={formData}
+                setFormData={setFormData}
+                onRunEngine={handleRunEngine}
+                isRunning={isPending}
+              />
+            </ResizableSidebar>
+          </div>
         )}
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
           {currentPage === "engine" ? (
-            <VisualizationArea />
+            <>
+              {/* Mobile Control Panel - show as card on mobile */}
+              <div className="lg:hidden mb-4">
+                <ControlPanel
+                  formData={formData}
+                  setFormData={setFormData}
+                  onRunEngine={handleRunEngine}
+                  isRunning={isPending}
+                />
+              </div>
+              <VisualizationArea />
+            </>
           ) : (
             <HistoryView history={history} />
           )}

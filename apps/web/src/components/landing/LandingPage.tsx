@@ -13,25 +13,25 @@ export function LandingPage({ onGetStarted, onViewHistory }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
-      <div className="mx-auto max-w-6xl px-6 py-16">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12 md:py-16">
         <div className="text-center">
-          <h1 className="mb-4 text-5xl font-bold tracking-tight text-gray-900">
+          <h1 className="mb-3 sm:mb-4 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
             REST-OS
           </h1>
-          <p className="mb-2 text-xl text-gray-600">
+          <p className="mb-2 text-base sm:text-lg md:text-xl text-gray-600">
             Rest Optimization System for Truck Drivers
           </p>
-          <p className="mx-auto mb-12 max-w-2xl text-gray-500">
+          <p className="mx-auto mb-8 sm:mb-12 max-w-2xl text-sm sm:text-base text-gray-500 px-4">
             Intelligent rest recommendations that ensure HOS compliance while
             maximizing operational efficiency and driver well-being.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4">
             <Button
               onClick={onGetStarted}
               size="lg"
-              className="gap-2 bg-gray-900 px-8 hover:bg-gray-800"
+              className="gap-2 bg-gray-900 px-6 sm:px-8 hover:bg-gray-800 w-full sm:w-auto"
             >
               Get Started
               <ArrowRight className="h-5 w-5" />
@@ -40,7 +40,7 @@ export function LandingPage({ onGetStarted, onViewHistory }: LandingPageProps) {
               onClick={onViewHistory}
               size="lg"
               variant="outline"
-              className="gap-2 px-8"
+              className="gap-2 px-6 sm:px-8 w-full sm:w-auto"
             >
               View History
             </Button>
@@ -48,7 +48,7 @@ export function LandingPage({ onGetStarted, onViewHistory }: LandingPageProps) {
         </div>
 
         {/* Features Grid */}
-        <div className="mt-20 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 sm:mt-16 md:mt-20 grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           <FeatureCard
             icon={<Shield className="h-6 w-6" />}
             title="HOS Compliance"
@@ -82,11 +82,11 @@ export function LandingPage({ onGetStarted, onViewHistory }: LandingPageProps) {
         </div>
 
         {/* How It Works */}
-        <div className="mt-20">
-          <h2 className="mb-10 text-center text-3xl font-bold text-gray-900">
+        <div className="mt-12 sm:mt-16 md:mt-20">
+          <h2 className="mb-6 sm:mb-8 md:mb-10 text-center text-2xl sm:text-3xl font-bold text-gray-900">
             How It Works
           </h2>
-          <div className="grid gap-8 md:grid-cols-3">
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-3">
             <Step
               number="1"
               title="Input Parameters"
@@ -106,13 +106,13 @@ export function LandingPage({ onGetStarted, onViewHistory }: LandingPageProps) {
         </div>
 
         {/* Use Cases */}
-        <div className="mt-20">
+        <div className="mt-12 sm:mt-16 md:mt-20">
           <Card className="border-gray-200 bg-white">
-            <CardContent className="p-8">
-              <h2 className="mb-6 text-2xl font-bold text-gray-900">
+            <CardContent className="p-4 sm:p-6 md:p-8">
+              <h2 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-bold text-gray-900">
                 Who Benefits from REST-OS?
               </h2>
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
                 <UseCase
                   title="Fleet Managers"
                   description="Optimize driver schedules, reduce compliance violations, and improve operational efficiency across your fleet."

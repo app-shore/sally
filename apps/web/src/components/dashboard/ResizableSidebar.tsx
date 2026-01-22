@@ -48,17 +48,17 @@ export function ResizableSidebar({
   }, [isResizing, minWidth, maxWidth]);
 
   return (
-    <div className="relative flex">
+    <div className="relative flex h-full">
       <div
         ref={sidebarRef}
-        className={`relative bg-white border-r border-gray-200 transition-all duration-300 ${
+        className={`relative bg-white border-r border-gray-200 transition-all duration-300 flex flex-col ${
           isCollapsed ? "w-0 border-r-0" : ""
         }`}
         style={{ width: isCollapsed ? 0 : width }}
       >
         {/* Sidebar Content */}
         <div
-          className={`h-full overflow-y-auto ${isCollapsed ? "hidden" : ""}`}
+          className={`flex-1 overflow-y-auto overflow-x-hidden ${isCollapsed ? "hidden" : ""}`}
         >
           {children}
         </div>
