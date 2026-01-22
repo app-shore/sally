@@ -1,6 +1,9 @@
 # REST-OS Deployment Guide
 
-Two deployment options: **Docker Compose** (for sharing/local) and **CapRover** (for production).
+Three deployment options:
+1. **Docker Compose** - Local development & testing
+2. **Vercel + CapRover** - Production (Recommended) - Frontend on Vercel, Backend on CapRover
+3. **CapRover Full-Stack** - Legacy option (both frontend and backend on CapRover)
 
 ---
 
@@ -63,9 +66,169 @@ npm run docker:down
 
 ---
 
-## Option 2: CapRover (Production on Digital Ocean) 🚀
+## Option 2: Vercel + CapRover (Production - Recommended) 🚀
 
-**Best for:** Production deployment with HTTPS and custom domain
+**Best for:** Production deployment with optimal performance and cost
+
+**Architecture:**
+- 🎨 **Frontend:** Vercel (Free tier, edge network, automatic HTTPS)
+- ⚙️ **Backend:** CapRover on Digital Ocean ($6-12/month)
+- 🗄️ **Databases:** PostgreSQL & Redis on CapRover
+
+**Benefits:**
+- ✅ Frontend on Vercel's global CDN (faster worldwide)
+- ✅ Free frontend hosting (Vercel free tier)
+- ✅ Smaller backend Docker image (~200MB vs 2GB)
+- ✅ Faster deployments (no frontend build on server)
+- ✅ Auto-deploy on git push (for both)
+
+### Step 1: Deploy Backend to CapRover
+
+#### 1.1: Set Up Databases (One-Time)
+
+In CapRover dashboard:
+
+1. **Apps** → **One-Click Apps/Databases**
+2. Deploy **PostgreSQL**:
+   - App Name: `rest-os-db`
+   - Set password (remember it!)
+3. Deploy **Redis**:
+   - App Name: `rest-os-cache`
+
+#### 1.2: Deploy Backend API
+
+```bash
+# Login to CapRover
+caprover login
+
+# Deploy backend (builds on your CapRover server)
+caprover deploy -a rest-os-api
+```
+
+**When prompted:**
+1. "Select your CapRover machine": Choose your server
+2. "Branch to deploy": Press Enter (uses current branch)
+
+#### 1.3: Configure Backend Environment Variables
+
+In CapRover dashboard → **Apps** → **rest-os-api** → **App Configs** → **Environment Variables**:
+
+```bash
+DATABASE_URL=postgresql+asyncpg://postgres:YOUR_DB_PASSWORD@srv-captain--rest-os-db:5432/postgres
+REDIS_URL=redis://srv-captain--rest-os-cache:6379/0
+ENVIRONMENT=production
+LOG_LEVEL=INFO
+CORS_ORIGINS=https://your-app.vercel.app,https://rest-os.your-domain.com
+```
+
+**Important:**
+- Replace `YOUR_DB_PASSWORD` with PostgreSQL password from Step 1.1
+- Replace `your-app.vercel.app` with your actual Vercel domain (add after deploying frontend)
+- You can add multiple CORS origins separated by commas
+
+Click **Save & Update**.
+
+#### 1.4: Enable HTTPS & Custom Domain (Optional)
+
+In **rest-os-api** app settings:
+
+1. **HTTP Settings** → **Enable HTTPS** ✓
+2. **Connect New Domain**:
+   - Domain: `api.your-domain.com`
+   - Enable **HTTPS** ✓
+   - Enable **Force HTTPS** ✓
+
+#### 1.5: Run Database Migrations
+
+In CapRover Dashboard → Apps → rest-os-api → Deployment → Execute Command:
+
+```bash
+cd /app/backend && uv run alembic upgrade head
+```
+
+Click **Execute**.
+
+#### 1.6: Get Your Backend URL
+
+Your backend API is now available at:
+- With custom domain: `https://api.your-domain.com`
+- Without custom domain: `https://rest-os-api.captain.your-domain.com`
+
+### Step 2: Deploy Frontend to Vercel
+
+#### 2.1: Push to GitHub
+
+```bash
+git push origin main
+```
+
+#### 2.2: Import to Vercel
+
+1. Go to [vercel.com](https://vercel.com) and sign in
+2. Click **Add New** → **Project**
+3. Import your `rest-os` repository
+4. Configure:
+   - **Framework Preset:** Next.js
+   - **Root Directory:** `apps/web`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `.next`
+
+#### 2.3: Add Environment Variable
+
+In Vercel project settings → **Environment Variables**:
+
+```
+NEXT_PUBLIC_API_URL=https://api.your-domain.com
+```
+
+(Use your backend URL from Step 1.6)
+
+#### 2.4: Deploy
+
+Click **Deploy**. Vercel will build and deploy your frontend.
+
+Your app will be live at: `https://your-app.vercel.app`
+
+#### 2.5: Update Backend CORS (Important!)
+
+Go back to CapRover and update the `CORS_ORIGINS` environment variable to include your Vercel URL:
+
+```bash
+CORS_ORIGINS=https://your-app.vercel.app
+```
+
+### Step 3: Custom Domain (Optional)
+
+#### Frontend Domain (Vercel)
+1. In Vercel: Settings → Domains
+2. Add your domain: `rest-os.your-domain.com`
+3. Follow Vercel's DNS instructions
+
+#### Backend Domain (CapRover)
+Already done in Step 1.4!
+
+### Updating Your App
+
+**Backend updates:**
+```bash
+git add .
+git commit -m "Update backend"
+git push
+caprover deploy -a rest-os-api
+```
+
+**Frontend updates:**
+```bash
+git add .
+git commit -m "Update frontend"
+git push  # Vercel auto-deploys!
+```
+
+---
+
+## Option 3: CapRover Full-Stack (Legacy)
+
+**Best for:** If you don't want to use Vercel
 
 ### Prerequisites
 
@@ -326,24 +489,31 @@ caprover deploy
 
 ## Deployment Comparison
 
-| Feature | Docker Compose | CapRover (Server Build) | CapRover (Local Build) |
-|---------|---------------|------------------------|------------------------|
-| **Setup Time** | 2 minutes | 15 minutes | 15 minutes + Docker |
-| **Build Speed** | Fast | Slow (on small droplet) | Fast (local machine) |
-| **Server Load** | N/A | ⚠️ High during build | ✅ None |
-| **Best For** | Local/Testing | Large droplets | Small droplets ($6-12) |
+| Feature | Docker Compose | Vercel + CapRover | CapRover Full-Stack |
+|---------|---------------|-------------------|---------------------|
+| **Setup Time** | 2 minutes | 20 minutes | 20 minutes |
+| **Build Speed** | Fast | Fast (parallel) | Slow (sequential) |
+| **Image Size** | N/A | ~200MB | ~2GB |
+| **Frontend CDN** | ❌ No | ✅ Yes (Global) | ❌ No |
+| **Backend Location** | Local | CapRover | CapRover |
 | **Database** | ✅ Included | ⚠️ Setup required | ⚠️ Setup required |
-| **HTTPS** | ❌ No | ✅ Yes | ✅ Yes |
+| **HTTPS** | ❌ No | ✅ Yes (Auto) | ✅ Yes |
 | **Custom Domain** | ❌ No | ✅ Yes | ✅ Yes |
 | **Hot Reload** | ✅ Yes | ❌ No | ❌ No |
-| **Cost** | Free | $6-12/month | $6-12/month |
-| **Public Access** | ❌ Local only | ✅ Internet | ✅ Internet |
+| **Cost** | Free | **$6-12/month** | $6-12/month |
+| **Best For** | Local/Testing | **Production** | Small projects |
+| **Frontend Performance** | Good | **Excellent** | Good |
+| **Deploy Complexity** | Low | Medium | Low |
 
-### Build Method Recommendations
+### Recommendation: Use Vercel + CapRover
 
-- **$6 Droplet (1GB RAM):** Use local build - server builds may OOM
-- **$12 Droplet (2GB RAM):** Either works, local is faster
-- **$24+ Droplet (4GB+ RAM):** Server build is fine, simpler workflow
+The Vercel + CapRover split is the best option because:
+- ✅ Smaller Docker image (200MB vs 2GB)
+- ✅ Faster builds (frontend and backend build in parallel)
+- ✅ Better frontend performance (Vercel's global CDN)
+- ✅ Free frontend hosting (Vercel free tier)
+- ✅ Works great on $6 droplets
+- ✅ Auto-deploy from git for both services
 
 ---
 
