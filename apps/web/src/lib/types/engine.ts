@@ -26,6 +26,30 @@ export interface HOSCheckResult {
   rest_required: boolean;
 }
 
+export interface FeasibilityAnalysis {
+  feasible: boolean;
+  limiting_factor?: string;
+  shortfall_hours: number;
+  total_drive_needed: number;
+  total_on_duty_needed: number;
+  drive_margin: number;
+  duty_margin: number;
+}
+
+export interface OpportunityAnalysis {
+  score: number;
+  dock_score: number;
+  hours_score: number;
+  criticality_score: number;
+  hours_gainable: number;
+}
+
+export interface CostAnalysis {
+  dock_time_available: number;
+  full_rest_extension_hours: number;
+  partial_rest_extension_hours: number;
+}
+
 export interface OptimizationResult {
   recommendation: RestRecommendation;
   recommended_duration_hours: number | null;
@@ -35,6 +59,13 @@ export interface OptimizationResult {
   hours_remaining_to_drive: number;
   hours_remaining_on_duty: number;
   post_load_drive_feasible: boolean;
+  confidence?: number;
+  driver_can_decline?: boolean;
+  hours_after_rest_drive?: number;
+  hours_after_rest_duty?: number;
+  feasibility_analysis?: FeasibilityAnalysis;
+  opportunity_analysis?: OpportunityAnalysis;
+  cost_analysis?: CostAnalysis;
 }
 
 export interface PredictionResult {

@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, DonutChart, ProgressBar } from "@tremor/react";
 import { useEngineStore } from "@/lib/store/engineStore";
-import { formatHours, formatDateTime } from "@/lib/utils";
+import { formatHours } from "@/lib/utils";
 import type { RestRecommendation } from "@/lib/types/engine";
 
 export function VisualizationArea() {
-  const { latestResult, isLoading, error, history } = useEngineStore();
+  const { latestResult, isLoading, error } = useEngineStore();
 
   if (isLoading) {
     return (
@@ -70,7 +70,7 @@ export function VisualizationArea() {
       )}
 
       {/* Metrics Visualization */}
-      {/* <MetricsCard result={latestResult} /> */}
+      {/* MetricsCard component commented out */}
 
     </div>
   );
@@ -444,7 +444,6 @@ function IntelligentAnalyticsCard({ result }: { result: any }) {
 }
 
 function BeforeAfterCard({ result }: { result: any }) {
-  const { latestInput } = useEngineStore();
 
   return (
     <Card>
@@ -506,6 +505,8 @@ function BeforeAfterCard({ result }: { result: any }) {
   );
 }
 
+// Unused function - kept for future reference
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MetricsCard({ result }: { result: any }) {
   // Extract hours from input (from engine store)
   const { latestInput } = useEngineStore();
