@@ -72,6 +72,14 @@ npm run docker:down
 - ✅ CapRover installed on Digital Ocean
 - ✅ Domain name pointed to your server
 - ✅ CapRover CLI: `npm install -g caprover`
+- ✅ Docker Desktop (for local build method)
+
+### Deployment Methods
+
+You can deploy to CapRover in two ways:
+
+**Method A: Build on Server** (simpler, uses server resources)
+**Method B: Build Locally** (faster, recommended for small droplets)
 
 ### Step 1: Set Up Databases (One-Time)
 
@@ -86,18 +94,51 @@ In CapRover dashboard:
 
 ### Step 2: Deploy REST-OS
 
+#### Method A: Build on Server (Simple)
+
 ```bash
 # Login to CapRover
 caprover login
 
-# Deploy (from your rest-os directory)
-caprover deploy
+# Deploy (builds on your CapRover server)
+caprover deploy -a rest-os
 ```
 
 **When prompted:**
 1. "Select your CapRover machine": Choose your server
-2. "Enter the app name": Type `rest-os` (it will create it automatically)
-3. "Branch to deploy": Press Enter (uses current branch)
+2. "Branch to deploy": Press Enter (uses current branch)
+
+⚠️ **Note:** This uses your droplet's CPU/RAM to build. Can be slow on small droplets.
+
+#### Method B: Build Locally (Recommended)
+
+```bash
+# Login to CapRover
+caprover login
+
+# Build and deploy locally (faster, less server load)
+./deploy-local.sh
+```
+
+**Benefits:**
+- ✅ Builds on your machine (faster)
+- ✅ No load on production server
+- ✅ Test locally before deploying
+- ✅ Better for $6-12/month droplets
+
+**Or manual steps:**
+```bash
+# Build the image
+docker build -t rest-os:latest .
+
+# Test locally (optional)
+docker run -p 3000:3000 -p 8000:8000 rest-os:latest
+
+# Save and deploy to 'rest-os' app
+docker save rest-os:latest -o /tmp/rest-os.tar
+caprover deploy -a rest-os -t /tmp/rest-os.tar
+rm /tmp/rest-os.tar
+```
 
 ### Step 3: Configure Environment Variables
 
@@ -160,11 +201,20 @@ exit
 
 When you make changes:
 
+**Method A (Build on Server):**
 ```bash
 git add .
 git commit -m "Update description"
 git push
-caprover deploy
+caprover deploy -a rest-os
+```
+
+**Method B (Build Locally - Faster):**
+```bash
+git add .
+git commit -m "Update description"
+git push
+./deploy-local.sh
 ```
 
 ### Useful CapRover Commands
@@ -276,16 +326,24 @@ caprover deploy
 
 ## Deployment Comparison
 
-| Feature | Docker Compose | CapRover |
-|---------|---------------|----------|
-| **Setup Time** | 2 minutes | 15 minutes |
-| **Best For** | Local/Testing | Production |
-| **Database** | ✅ Included | ⚠️ Setup required |
-| **HTTPS** | ❌ No | ✅ Yes |
-| **Custom Domain** | ❌ No | ✅ Yes |
-| **Hot Reload** | ✅ Yes | ❌ No |
-| **Cost** | Free | $6-12/month |
-| **Public Access** | ❌ Local only | ✅ Internet |
+| Feature | Docker Compose | CapRover (Server Build) | CapRover (Local Build) |
+|---------|---------------|------------------------|------------------------|
+| **Setup Time** | 2 minutes | 15 minutes | 15 minutes + Docker |
+| **Build Speed** | Fast | Slow (on small droplet) | Fast (local machine) |
+| **Server Load** | N/A | ⚠️ High during build | ✅ None |
+| **Best For** | Local/Testing | Large droplets | Small droplets ($6-12) |
+| **Database** | ✅ Included | ⚠️ Setup required | ⚠️ Setup required |
+| **HTTPS** | ❌ No | ✅ Yes | ✅ Yes |
+| **Custom Domain** | ❌ No | ✅ Yes | ✅ Yes |
+| **Hot Reload** | ✅ Yes | ❌ No | ❌ No |
+| **Cost** | Free | $6-12/month | $6-12/month |
+| **Public Access** | ❌ Local only | ✅ Internet | ✅ Internet |
+
+### Build Method Recommendations
+
+- **$6 Droplet (1GB RAM):** Use local build - server builds may OOM
+- **$12 Droplet (2GB RAM):** Either works, local is faster
+- **$24+ Droplet (4GB+ RAM):** Server build is fine, simpler workflow
 
 ---
 

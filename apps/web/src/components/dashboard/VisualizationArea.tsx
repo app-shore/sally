@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, DonutChart, ProgressBar } from "@tremor/react";
 import { useEngineStore } from "@/lib/store/engineStore";
 import { formatHours, formatDateTime } from "@/lib/utils";
 import type { RestRecommendation } from "@/lib/types/engine";
@@ -58,6 +59,9 @@ export function VisualizationArea() {
       {/* Compliance Status */}
       <ComplianceCard result={latestResult} />
 
+      {/* Metrics Visualization */}
+      {/* <MetricsCard result={latestResult} /> */}
+
     </div>
   );
 }
@@ -68,13 +72,13 @@ function RecommendationCard({ result }: { result: any }) {
   const getRecommendationColor = (rec: RestRecommendation) => {
     switch (rec) {
       case "full_rest":
-        return "bg-gray-900 border-gray-900 text-white";
+        return "bg-gray-900 border-gray-700 text-white";
       case "partial_rest":
-        return "bg-gray-600 border-gray-600 text-white";
+        return "bg-gray-600 border-gray-400 text-white";
       case "no_rest":
-        return "bg-white border-gray-300 text-gray-900";
+        return "bg-white border-gray-100 text-gray-900";
       default:
-        return "bg-gray-100 border-gray-300 text-gray-900";
+        return "bg-gray-100 border-gray-100 text-gray-900";
     }
   };
 
@@ -145,6 +149,16 @@ function RecommendationCard({ result }: { result: any }) {
 }
 
 function ComplianceCard({ result }: { result: any }) {
+  const { latestInput } = useEngineStore();
+
+  // Calculate used hours - derive from remaining hours and limits
+  const driveHours = latestInput?.hours_driven ?? 0;
+  const onDutyHours = latestInput?.on_duty_time ?? 0;
+
+  // Calculate percentages
+  const drivePercentage = Math.min(100, (Number(driveHours) / 11) * 100);
+  const onDutyPercentage = Math.min(100, (Number(onDutyHours) / 14) * 100);
+
   return (
     <Card>
       <CardHeader>
@@ -163,6 +177,35 @@ function ComplianceCard({ result }: { result: any }) {
             >
               {result.is_compliant ? "Compliant" : "Non-Compliant"}
             </span>
+          </div>
+
+          {/* Progress Bars */}
+          <div className="space-y-4 pt-3 border-t">
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-sm font-medium">Drive Hours</span>
+                <span className="text-sm text-gray-600">
+                  {Number(driveHours).toFixed(1)} / 11.0 hours
+                </span>
+              </div>
+              <ProgressBar
+                value={drivePercentage}
+                color={drivePercentage > 90 ? "red" : drivePercentage > 70 ? "yellow" : "gray"}
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-sm font-medium">On-Duty Hours</span>
+                <span className="text-sm text-gray-600">
+                  {Number(onDutyHours).toFixed(1)} / 14.0 hours
+                </span>
+              </div>
+              <ProgressBar
+                value={onDutyPercentage}
+                color={onDutyPercentage > 90 ? "red" : onDutyPercentage > 70 ? "yellow" : "gray"}
+              />
+            </div>
           </div>
 
           <div className="space-y-2 pt-3 border-t">
@@ -184,6 +227,144 @@ function ComplianceCard({ result }: { result: any }) {
             <p className="text-xs text-muted-foreground">
               {result.compliance_details}
             </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MetricsCard({ result }: { result: any }) {
+  // Extract hours from input (from engine store)
+  const { latestInput } = useEngineStore();
+
+  // Calculate hours data for charts with proper type checking
+  const driveHours = typeof (latestInput as any)?.hours_driven === 'number'
+    ? (latestInput as any).hours_driven
+    : 0;
+  const onDutyHours = typeof (latestInput as any)?.on_duty_time === 'number'
+    ? (latestInput as any).on_duty_time
+    : 0;
+  const remainingDriveHours = typeof result.hours_remaining_to_drive === 'number'
+    ? result.hours_remaining_to_drive
+    : 0;
+  const remainingOnDutyHours = typeof result.hours_remaining_on_duty === 'number'
+    ? result.hours_remaining_on_duty
+    : 0;
+
+  // Bar chart data - HOS limits comparison
+  const hoursData = [
+    {
+      category: "Drive Hours",
+      "Used": driveHours,
+      "Remaining": remainingDriveHours,
+      "Limit": 11,
+    },
+    {
+      category: "On-Duty Hours",
+      "Used": onDutyHours,
+      "Remaining": remainingOnDutyHours,
+      "Limit": 14,
+    },
+  ];
+
+  // Donut chart data - Overall utilization
+  const utilizationData = [
+    {
+      name: "Hours Used",
+      value: Math.round(driveHours * 10) / 10,
+    },
+    {
+      name: "Hours Remaining",
+      value: Math.round(remainingDriveHours * 10) / 10,
+    },
+  ];
+
+  // Calculate percentages for progress bars
+  const drivePercentage = Math.min(100, (driveHours / 11) * 100);
+  const onDutyPercentage = Math.min(100, (onDutyHours / 14) * 100);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Metrics & Visualization</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {/* HOS Limits Progress Bars */}
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-sm font-medium">11-Hour Drive Limit</span>
+                <span className="text-sm text-gray-600">
+                  {driveHours.toFixed(1)} / 11.0 hours ({drivePercentage.toFixed(0)}%)
+                </span>
+              </div>
+              <ProgressBar
+                value={drivePercentage}
+                color={drivePercentage > 90 ? "red" : drivePercentage > 70 ? "yellow" : "gray"}
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-sm font-medium">14-Hour Duty Window</span>
+                <span className="text-sm text-gray-600">
+                  {onDutyHours.toFixed(1)} / 14.0 hours ({onDutyPercentage.toFixed(0)}%)
+                </span>
+              </div>
+              <ProgressBar
+                value={onDutyPercentage}
+                color={onDutyPercentage > 90 ? "red" : onDutyPercentage > 70 ? "yellow" : "gray"}
+                className="mt-2"
+              />
+            </div>
+          </div>
+
+          {/* Hours Breakdown Bar Chart */}
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Hours Breakdown</h4>
+            <BarChart
+              data={hoursData}
+              index="category"
+              categories={["Used", "Remaining"]}
+              colors={["gray", "slate"]}
+              valueFormatter={(value) => `${value.toFixed(1)}h`}
+              yAxisWidth={48}
+              showLegend={true}
+              className="h-60"
+            />
+          </div>
+
+          {/* Drive Hours Utilization Donut */}
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Drive Hours Utilization</h4>
+            <DonutChart
+              data={utilizationData}
+              category="value"
+              index="name"
+              valueFormatter={(value) => `${value.toFixed(1)}h`}
+              colors={["gray", "slate"]}
+              className="h-48"
+              showLabel={true}
+            />
+          </div>
+
+          {/* Key Metrics Summary */}
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-gray-900">
+                {remainingDriveHours.toFixed(1)}h
+              </div>
+              <div className="text-xs text-gray-600 mt-1">Hours Until Drive Limit</div>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-gray-900">
+                {remainingOnDutyHours.toFixed(1)}h
+              </div>
+              <div className="text-xs text-gray-600 mt-1">Hours Until Duty Limit</div>
+            </div>
           </div>
         </div>
       </CardContent>
