@@ -55,12 +55,46 @@ class HOSCheckResponse(BaseModel):
         }
 
 
-class OptimizationResponse(BaseModel):
-    """Response schema for rest optimization recommendation."""
+class FeasibilityAnalysisResponse(BaseModel):
+    """Feasibility analysis details."""
 
+    feasible: bool = Field(..., description="Can complete trips with current hours")
+    limiting_factor: Optional[str] = Field(None, description="Limiting constraint (drive_limit, duty_window, or None)")
+    shortfall_hours: float = Field(..., description="Hours short (0 if feasible)")
+    total_drive_needed: float = Field(..., description="Total driving hours needed for trips")
+    total_on_duty_needed: float = Field(..., description="Total on-duty hours needed for trips")
+    will_need_break: bool = Field(..., description="Whether break will be required during trips")
+    drive_margin: float = Field(..., description="Extra drive hours after completing trips")
+    duty_margin: float = Field(..., description="Extra duty hours after completing trips")
+
+
+class OpportunityAnalysisResponse(BaseModel):
+    """Rest opportunity scoring analysis."""
+
+    score: float = Field(..., description="Overall opportunity score (0-100)")
+    dock_score: float = Field(..., description="Dock time availability score")
+    hours_score: float = Field(..., description="Hours gainable score")
+    criticality_score: float = Field(..., description="Current hours criticality score")
+    dock_time_available: float = Field(..., description="Dock time available (hours)")
+    hours_gainable: float = Field(..., description="Hours driver would gain from rest")
+
+
+class CostAnalysisResponse(BaseModel):
+    """Rest extension cost analysis."""
+
+    full_rest_extension_hours: float = Field(..., description="Additional hours needed for full rest")
+    partial_rest_extension_hours: float = Field(..., description="Additional hours needed for partial rest")
+    dock_time_available: float = Field(..., description="Current dock time available (hours)")
+
+
+class OptimizationResponse(BaseModel):
+    """Response schema for intelligent rest optimization recommendation."""
+
+    # Core recommendation
     recommendation: str = Field(..., description="Rest recommendation (full_rest, partial_rest, no_rest)")
     recommended_duration_hours: Optional[float] = Field(None, description="Recommended rest duration in hours")
-    reasoning: str = Field(..., description="Explanation of the recommendation")
+    reasoning: str = Field(..., description="Detailed explanation of the recommendation")
+    confidence: int = Field(..., description="Confidence level (0-100)", ge=0, le=100)
 
     # Compliance information
     is_compliant: bool = Field(..., description="Current HOS compliance status")
@@ -70,18 +104,55 @@ class OptimizationResponse(BaseModel):
 
     # Feasibility check
     post_load_drive_feasible: bool = Field(..., description="Whether post-load drive is feasible after rest")
+    driver_can_decline: bool = Field(..., description="Whether driver can decline this recommendation")
+
+    # Enhanced analytics (optional - included when intelligent optimization used)
+    feasibility_analysis: Optional[FeasibilityAnalysisResponse] = Field(None, description="Trip feasibility analysis")
+    opportunity_analysis: Optional[OpportunityAnalysisResponse] = Field(None, description="Rest opportunity scoring")
+    cost_analysis: Optional[CostAnalysisResponse] = Field(None, description="Rest extension cost analysis")
+
+    # Before/after comparison
+    hours_after_rest_drive: Optional[float] = Field(None, description="Drive hours available after recommended rest")
+    hours_after_rest_duty: Optional[float] = Field(None, description="Duty hours available after recommended rest")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "recommendation": "full_rest",
                 "recommended_duration_hours": 10.0,
-                "reasoning": "Full 10-hour rest recommended. Dock time (12.0h) is sufficient and post-load drive demand is low (2.7h). This maximizes productive driving hours for next shift.",
+                "reasoning": "Trip not feasible with current hours. Shortfall: 0.5h (drive_limit). Extending dock time (2.0h) to full 10h rest will reset all hours and enable trip completion.",
+                "confidence": 100,
                 "is_compliant": True,
-                "compliance_details": "Within 11-hour drive limit (2.5h remaining); Within 14-hour duty window (4.0h remaining); 30-minute break not yet required (2.0h until required)",
-                "hours_remaining_to_drive": 2.5,
-                "hours_remaining_on_duty": 4.0,
+                "compliance_details": "Within 11-hour drive limit (3.0h remaining); Within 14-hour duty window (7.0h remaining); 30-minute break not yet required (2.0h until required)",
+                "hours_remaining_to_drive": 3.0,
+                "hours_remaining_on_duty": 7.0,
                 "post_load_drive_feasible": True,
+                "driver_can_decline": False,
+                "feasibility_analysis": {
+                    "feasible": False,
+                    "limiting_factor": "drive_limit",
+                    "shortfall_hours": 0.5,
+                    "total_drive_needed": 3.5,
+                    "total_on_duty_needed": 6.5,
+                    "will_need_break": False,
+                    "drive_margin": -0.5,
+                    "duty_margin": 0.5,
+                },
+                "opportunity_analysis": {
+                    "score": 62.0,
+                    "dock_score": 10.0,
+                    "hours_score": 21.8,
+                    "criticality_score": 30.0,
+                    "dock_time_available": 2.0,
+                    "hours_gainable": 8.0,
+                },
+                "cost_analysis": {
+                    "full_rest_extension_hours": 8.0,
+                    "partial_rest_extension_hours": 5.0,
+                    "dock_time_available": 2.0,
+                },
+                "hours_after_rest_drive": 11.0,
+                "hours_after_rest_duty": 14.0,
             }
         }
 

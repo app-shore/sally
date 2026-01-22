@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import {
   Collapsible,
   CollapsibleContent,
@@ -14,6 +15,84 @@ import {
 import { useEngineStore } from "@/lib/store/engineStore";
 import { ChevronDown, Database } from "lucide-react";
 import type React from "react";
+
+interface SliderFieldProps {
+  id: string;
+  name: string;
+  label: string;
+  value: string;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string;
+  futureSource?: "ELD" | "TMS";
+  description?: string;
+}
+
+function SliderField({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+  min = 0,
+  max = 24,
+  step = 0.1,
+  unit = "h",
+  futureSource,
+  description,
+}: SliderFieldProps) {
+  const numValue = parseFloat(value) || 0;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Label htmlFor={id} className="text-sm font-medium">
+            {label}
+          </Label>
+          {futureSource && (
+            <span className="flex items-center gap-1 text-xs text-gray-500">
+              <Database className="h-3 w-3" />
+              {futureSource}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            id={id}
+            name={name}
+            type="number"
+            step={step}
+            min={min}
+            max={max}
+            value={value}
+            onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+            className="h-8 w-20 text-right text-sm"
+          />
+          <span className="text-sm text-gray-500 w-6">{unit}</span>
+        </div>
+      </div>
+      {description && (
+        <p className="text-xs text-gray-500">{description}</p>
+      )}
+      <Slider
+        id={`${id}-slider`}
+        min={min}
+        max={max}
+        step={step}
+        value={[numValue]}
+        onValueChange={(values) => onChange(values[0])}
+        className="mt-2"
+      />
+      <div className="flex justify-between text-xs text-gray-400">
+        <span>{min}{unit}</span>
+        <span>{max}{unit}</span>
+      </div>
+    </div>
+  );
+}
 
 interface FieldWithSourceProps {
   id: string;
@@ -126,6 +205,13 @@ export function ControlPanel({ formData, setFormData, onRunEngine, isRunning = f
     }));
   };
 
+  const handleSliderChange = (name: string, value: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value.toString(),
+    }));
+  };
+
   const handleClear = () => {
     setFormData({
       driver_id: "",
@@ -163,38 +249,44 @@ export function ControlPanel({ formData, setFormData, onRunEngine, isRunning = f
               placeholder="DRV-001"
               futureSource="ELD"
             />
-            <FieldWithSource
+            <SliderField
               id="hours_driven"
               name="hours_driven"
-              label="Hours Driven Today"
+              label="Hours Driven"
               value={formData.hours_driven}
-              onChange={handleInputChange}
-              placeholder="8.5"
-              type="number"
-              step="0.1"
+              onChange={(val) => handleSliderChange("hours_driven", val)}
+              min={0}
+              max={11}
+              step={0.5}
+              unit="h"
               futureSource="ELD"
+              description="Hours driven in current duty period (max 11h)"
             />
-            <FieldWithSource
+            <SliderField
               id="on_duty_time"
               name="on_duty_time"
-              label="Total On-Duty Time"
+              label="On-Duty Time"
               value={formData.on_duty_time}
-              onChange={handleInputChange}
-              placeholder="10"
-              type="number"
-              step="0.1"
+              onChange={(val) => handleSliderChange("on_duty_time", val)}
+              min={0}
+              max={14}
+              step={0.5}
+              unit="h"
               futureSource="ELD"
+              description="Total on-duty time including driving (max 14h)"
             />
-            <FieldWithSource
+            <SliderField
               id="hours_since_break"
               name="hours_since_break"
-              label="Hours Since Last Break"
+              label="Since Last Break"
               value={formData.hours_since_break}
-              onChange={handleInputChange}
-              placeholder="6"
-              type="number"
-              step="0.1"
+              onChange={(val) => handleSliderChange("hours_since_break", val)}
+              min={0}
+              max={10}
+              step={0.5}
+              unit="h"
               futureSource="ELD"
+              description="Hours driven since last 30-min break (required after 8h)"
             />
           </Section>
 
@@ -211,16 +303,18 @@ export function ControlPanel({ formData, setFormData, onRunEngine, isRunning = f
               placeholder="Atlanta Distribution Center"
               futureSource="TMS"
             />
-            <FieldWithSource
+            <SliderField
               id="dock_duration_hours"
               name="dock_duration_hours"
-              label="Dock Duration (hours)"
+              label="Dock Duration"
               value={formData.dock_duration_hours}
-              onChange={handleInputChange}
-              placeholder="12"
-              type="number"
-              step="0.1"
+              onChange={(val) => handleSliderChange("dock_duration_hours", val)}
+              min={0}
+              max={12}
+              step={0.5}
+              unit="h"
               futureSource="TMS"
+              description="Expected or actual dock time (loading/unloading)"
             />
             <FieldWithSource
               id="destination"
@@ -231,16 +325,18 @@ export function ControlPanel({ formData, setFormData, onRunEngine, isRunning = f
               placeholder="Miami, FL"
               futureSource="TMS"
             />
-            <FieldWithSource
+            <SliderField
               id="remaining_distance_miles"
               name="remaining_distance_miles"
-              label="Remaining Distance (miles)"
+              label="Remaining Distance"
               value={formData.remaining_distance_miles}
-              onChange={handleInputChange}
-              placeholder="150"
-              type="number"
-              step="1"
+              onChange={(val) => handleSliderChange("remaining_distance_miles", val)}
+              min={0}
+              max={500}
+              step={10}
+              unit="mi"
               futureSource="TMS"
+              description="Distance to destination for post-load drive prediction"
             />
           </Section>
 

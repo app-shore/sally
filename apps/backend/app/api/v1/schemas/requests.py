@@ -1,7 +1,7 @@
 """Request schemas for API endpoints."""
 
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -27,8 +27,25 @@ class HOSCheckRequest(BaseModel):
         }
 
 
+class TripRequirementRequest(BaseModel):
+    """Individual trip requirement for multi-trip optimization."""
+
+    drive_time: float = Field(..., description="Hours of driving needed for this trip", ge=0, le=24)
+    dock_time: float = Field(..., description="Hours at dock (on-duty, not driving)", ge=0, le=24)
+    location: Optional[str] = Field(None, description="Destination/dock location")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "drive_time": 2.0,
+                "dock_time": 2.0,
+                "location": "Warehouse A"
+            }
+        }
+
+
 class OptimizationRequest(BaseModel):
-    """Request schema for rest optimization recommendation."""
+    """Request schema for intelligent rest optimization recommendation."""
 
     driver_id: str = Field(..., description="Driver identifier", min_length=1)
     hours_driven: float = Field(..., description="Hours driven in current duty period", ge=0, le=24)
@@ -39,10 +56,16 @@ class OptimizationRequest(BaseModel):
     dock_duration_hours: Optional[float] = Field(None, description="Expected or actual dock duration in hours", ge=0)
     dock_location: Optional[str] = Field(None, description="Dock location")
 
-    # Route information
+    # Route information (backward compatible)
     remaining_distance_miles: Optional[float] = Field(None, description="Remaining route distance in miles", ge=0)
     destination: Optional[str] = Field(None, description="Destination location")
     appointment_time: Optional[datetime] = Field(None, description="Appointment time at destination")
+
+    # Multiple trips support (new - for intelligent optimization)
+    upcoming_trips: Optional[List[TripRequirementRequest]] = Field(
+        None,
+        description="List of upcoming trips for multi-trip optimization",
+    )
 
     # Current status
     current_location: Optional[str] = Field(None, description="Current location")
@@ -51,14 +74,15 @@ class OptimizationRequest(BaseModel):
         json_schema_extra = {
             "example": {
                 "driver_id": "DRV-12345",
-                "hours_driven": 8.5,
-                "on_duty_time": 10.0,
+                "hours_driven": 8.0,
+                "on_duty_time": 7.0,
                 "hours_since_break": 6.0,
-                "dock_duration_hours": 12.0,
+                "dock_duration_hours": 2.0,
                 "dock_location": "Atlanta Distribution Center",
-                "remaining_distance_miles": 150.0,
-                "destination": "Miami, FL",
-                "appointment_time": "2026-01-23T08:00:00Z",
+                "upcoming_trips": [
+                    {"drive_time": 2.0, "dock_time": 2.0, "location": "Warehouse A"},
+                    {"drive_time": 1.5, "dock_time": 1.0, "location": "Customer B"},
+                ],
                 "current_location": "Atlanta, GA",
             }
         }

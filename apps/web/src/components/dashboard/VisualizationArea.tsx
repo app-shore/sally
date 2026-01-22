@@ -53,11 +53,21 @@ export function VisualizationArea() {
 
   return (
     <div className="space-y-4">
-      {/* Recommendation Card */}
+      {/* Recommendation Card with Confidence */}
       <RecommendationCard result={latestResult} />
+
+      {/* Intelligent Analytics (if available) */}
+      {latestResult.feasibility_analysis && (
+        <IntelligentAnalyticsCard result={latestResult} />
+      )}
 
       {/* Compliance Status */}
       <ComplianceCard result={latestResult} />
+
+      {/* Before/After Comparison (if rest recommended) */}
+      {latestResult.hours_after_rest_drive && (
+        <BeforeAfterCard result={latestResult} />
+      )}
 
       {/* Metrics Visualization */}
       {/* <MetricsCard result={latestResult} /> */}
@@ -95,10 +105,30 @@ function RecommendationCard({ result }: { result: any }) {
     }
   };
 
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 90) return "bg-green-500";
+    if (confidence >= 70) return "bg-yellow-500";
+    return "bg-orange-500";
+  };
+
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Recommendation</CardTitle>
+        {result.confidence !== undefined && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Confidence:</span>
+            <div className="flex items-center gap-2">
+              <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${getConfidenceColor(result.confidence)}`}
+                  style={{ width: `${result.confidence}%` }}
+                />
+              </div>
+              <span className="text-sm font-semibold">{result.confidence}%</span>
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <div
@@ -108,9 +138,19 @@ function RecommendationCard({ result }: { result: any }) {
         >
           <div className="flex items-start gap-3">
             <div className="flex-1">
-              <h3 className="text-2xl font-bold mb-3">
-                {getRecommendationLabel(result.recommendation)}
-              </h3>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold mb-2">
+                    {getRecommendationLabel(result.recommendation)}
+                  </h3>
+                  {result.driver_can_decline !== undefined && (
+                    <p className="text-sm opacity-75 mb-3">
+                      {result.driver_can_decline ? "Optional - Driver can decline" : "Mandatory - Compliance required"}
+                    </p>
+                  )}
+                </div>
+              </div>
+
               {result.recommended_duration_hours && (
                 <p className="text-lg font-semibold mb-4">
                   Duration: {formatHours(result.recommended_duration_hours)}
@@ -122,13 +162,13 @@ function RecommendationCard({ result }: { result: any }) {
                 onClick={() => setShowExplanation(!showExplanation)}
                 className="text-sm font-medium underline hover:no-underline mb-3"
               >
-                Why?
+                {showExplanation ? "Hide Details" : "Why?"}
               </button>
 
               {/* Explanation (collapsible) */}
               {showExplanation && (
-                <div className="mt-3 p-4 bg-gray-100 rounded-md border border-gray-200">
-                  <p className="text-sm leading-relaxed text-gray-700">{result.reasoning}</p>
+                <div className="mt-3 p-4 bg-white/10 rounded-md border border-current/20">
+                  <p className="text-sm leading-relaxed">{result.reasoning}</p>
                 </div>
               )}
 
@@ -227,6 +267,224 @@ function ComplianceCard({ result }: { result: any }) {
             <p className="text-xs text-muted-foreground">
               {result.compliance_details}
             </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function IntelligentAnalyticsCard({ result }: { result: any }) {
+  const { feasibility_analysis, opportunity_analysis, cost_analysis } = result;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Intelligent Analysis</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Feasibility Analysis */}
+          {feasibility_analysis && (
+            <div className="border rounded-lg p-4">
+              <h4 className="font-semibold mb-3 text-sm">Trip Feasibility</h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      feasibility_analysis.feasible ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  />
+                  <span className="text-sm font-medium">
+                    {feasibility_analysis.feasible ? "Feasible" : "Not Feasible"}
+                  </span>
+                </div>
+
+                {!feasibility_analysis.feasible && feasibility_analysis.limiting_factor && (
+                  <div className="text-xs text-gray-600 mt-2">
+                    <p className="font-medium">Limiting Factor:</p>
+                    <p className="capitalize">{feasibility_analysis.limiting_factor.replace('_', ' ')}</p>
+                    <p className="mt-1">
+                      Shortfall: <span className="font-semibold">{feasibility_analysis.shortfall_hours.toFixed(1)}h</span>
+                    </p>
+                  </div>
+                )}
+
+                <div className="text-xs text-gray-600 mt-3 pt-3 border-t space-y-1">
+                  <div className="flex justify-between">
+                    <span>Drive needed:</span>
+                    <span className="font-medium">{feasibility_analysis.total_drive_needed.toFixed(1)}h</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>On-duty needed:</span>
+                    <span className="font-medium">{feasibility_analysis.total_on_duty_needed.toFixed(1)}h</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Drive margin:</span>
+                    <span className={`font-medium ${feasibility_analysis.drive_margin < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {feasibility_analysis.drive_margin.toFixed(1)}h
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Duty margin:</span>
+                    <span className={`font-medium ${feasibility_analysis.duty_margin < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {feasibility_analysis.duty_margin.toFixed(1)}h
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Opportunity Analysis */}
+          {opportunity_analysis && (
+            <div className="border rounded-lg p-4">
+              <h4 className="font-semibold mb-3 text-sm">Opportunity Score</h4>
+              <div className="space-y-3">
+                {/* Overall Score */}
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-gray-900">
+                    {Math.round(opportunity_analysis.score)}
+                  </div>
+                  <div className="text-xs text-gray-500">out of 100</div>
+                  <div className="mt-2">
+                    <ProgressBar
+                      value={opportunity_analysis.score}
+                      color={opportunity_analysis.score >= 60 ? "green" : opportunity_analysis.score >= 40 ? "yellow" : "gray"}
+                    />
+                  </div>
+                </div>
+
+                {/* Breakdown */}
+                <div className="text-xs text-gray-600 space-y-1 pt-2 border-t">
+                  <div className="flex justify-between">
+                    <span>Dock time:</span>
+                    <span className="font-medium">{opportunity_analysis.dock_score.toFixed(0)}/30</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Hours gainable:</span>
+                    <span className="font-medium">{opportunity_analysis.hours_score.toFixed(0)}/30</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Criticality:</span>
+                    <span className="font-medium">{opportunity_analysis.criticality_score.toFixed(0)}/40</span>
+                  </div>
+                </div>
+
+                {opportunity_analysis.hours_gainable > 0 && (
+                  <div className="mt-3 pt-3 border-t text-center">
+                    <div className="text-sm font-semibold text-gray-900">
+                      +{opportunity_analysis.hours_gainable.toFixed(1)}h
+                    </div>
+                    <div className="text-xs text-gray-500">Hours gainable</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Cost Analysis */}
+          {cost_analysis && (
+            <div className="border rounded-lg p-4">
+              <h4 className="font-semibold mb-3 text-sm">Rest Extension Cost</h4>
+              <div className="space-y-3">
+                <div className="text-xs text-gray-600 space-y-2">
+                  <div>
+                    <p className="font-medium mb-1">Current Dock Time:</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {cost_analysis.dock_time_available.toFixed(1)}h
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t space-y-2">
+                    <div>
+                      <p className="font-medium mb-1">Full Rest (10h):</p>
+                      <p className="text-lg font-semibold text-gray-700">
+                        {cost_analysis.full_rest_extension_hours === 0 ? (
+                          <span className="text-green-600">No extension needed ✓</span>
+                        ) : (
+                          <>+{cost_analysis.full_rest_extension_hours.toFixed(1)}h needed</>
+                        )}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="font-medium mb-1">Partial Rest (7h):</p>
+                      <p className="text-lg font-semibold text-gray-700">
+                        {cost_analysis.partial_rest_extension_hours === 0 ? (
+                          <span className="text-green-600">No extension needed ✓</span>
+                        ) : (
+                          <>+{cost_analysis.partial_rest_extension_hours.toFixed(1)}h needed</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function BeforeAfterCard({ result }: { result: any }) {
+  const { latestInput } = useEngineStore();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Before/After Comparison</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-6">
+          {/* Before */}
+          <div className="border rounded-lg p-4">
+            <h4 className="font-semibold mb-4 text-sm text-gray-500">Current Status</h4>
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Drive Hours</p>
+                <div className="text-2xl font-bold text-gray-900">
+                  {result.hours_remaining_to_drive.toFixed(1)}h
+                </div>
+                <p className="text-xs text-gray-500">remaining</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">On-Duty Hours</p>
+                <div className="text-2xl font-bold text-gray-900">
+                  {result.hours_remaining_on_duty.toFixed(1)}h
+                </div>
+                <p className="text-xs text-gray-500">remaining</p>
+              </div>
+            </div>
+          </div>
+
+          {/* After */}
+          <div className="border rounded-lg p-4 bg-green-50">
+            <h4 className="font-semibold mb-4 text-sm text-green-700">After Rest</h4>
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Drive Hours</p>
+                <div className="text-2xl font-bold text-green-700 flex items-center gap-2">
+                  {result.hours_after_rest_drive.toFixed(1)}h
+                  <span className="text-sm text-green-600">
+                    (+{(result.hours_after_rest_drive - result.hours_remaining_to_drive).toFixed(1)}h)
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">available</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">On-Duty Hours</p>
+                <div className="text-2xl font-bold text-green-700 flex items-center gap-2">
+                  {result.hours_after_rest_duty.toFixed(1)}h
+                  <span className="text-sm text-green-600">
+                    (+{(result.hours_after_rest_duty - result.hours_remaining_on_duty).toFixed(1)}h)
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">available</p>
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
