@@ -59,7 +59,7 @@ For detailed setup instructions, see **[SETUP.md](./SETUP.md)**.
 
 ```bash
 # Install root dependencies
-npm install
+npm run install:all
 
 # Copy environment files
 cp apps/backend/.env.example apps/backend/.env

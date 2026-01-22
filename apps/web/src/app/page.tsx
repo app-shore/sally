@@ -68,7 +68,7 @@ export default function DashboardPage() {
       <div className="flex flex-1 overflow-hidden">
         {/* Resizable Sidebar - only show on engine page */}
         {currentPage === "engine" && (
-          <ResizableSidebar defaultWidth={340} minWidth={300} maxWidth={500}>
+          <ResizableSidebar defaultWidth={340} minWidth={300} maxWidth={700}>
             <ControlPanel
               formData={formData}
               setFormData={setFormData}

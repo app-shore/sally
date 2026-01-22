@@ -58,8 +58,6 @@ export function VisualizationArea() {
       {/* Compliance Status */}
       <ComplianceCard result={latestResult} />
 
-      {/* Execution History */}
-      {history.length > 0 && <HistoryCard history={history} />}
     </div>
   );
 }
@@ -187,36 +185,6 @@ function ComplianceCard({ result }: { result: any }) {
               {result.compliance_details}
             </p>
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function HistoryCard({ history }: { history: any[] }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Execution History</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {history.slice(0, 5).map((item, index) => (
-            <div
-              key={index}
-              className="flex justify-between items-center p-3 bg-gray-50 rounded-lg text-sm"
-            >
-              <div>
-                <span className="font-medium">{item.input.driver_id}</span>
-                <span className="text-xs text-muted-foreground ml-2">
-                  {formatDateTime(item.timestamp)}
-                </span>
-              </div>
-              <span className="text-xs font-semibold">
-                {item.result.recommendation.replace("_", " ").toUpperCase()}
-              </span>
-            </div>
-          ))}
         </div>
       </CardContent>
     </Card>

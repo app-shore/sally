@@ -48,43 +48,46 @@ export function ResizableSidebar({
   }, [isResizing, minWidth, maxWidth]);
 
   return (
-    <div
-      ref={sidebarRef}
-      className={`relative bg-white border-r border-gray-200 transition-all duration-300 ${
-        isCollapsed ? "w-0" : ""
-      }`}
-      style={{ width: isCollapsed ? 0 : width }}
-    >
-      {/* Collapse/Expand Button */}
+    <div className="relative flex">
+      <div
+        ref={sidebarRef}
+        className={`relative bg-white border-r border-gray-200 transition-all duration-300 ${
+          isCollapsed ? "w-0 border-r-0" : ""
+        }`}
+        style={{ width: isCollapsed ? 0 : width }}
+      >
+        {/* Sidebar Content */}
+        <div
+          className={`h-full overflow-y-auto ${isCollapsed ? "hidden" : ""}`}
+        >
+          {children}
+        </div>
+
+        {/* Resize Handle */}
+        {!isCollapsed && (
+          <div
+            className={`absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-gray-300 ${
+              isResizing ? "bg-gray-400" : ""
+            }`}
+            onMouseDown={() => setIsResizing(true)}
+          />
+        )}
+      </div>
+
+      {/* Collapse/Expand Button - always visible */}
       <Button
         variant="ghost"
         size="sm"
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-4 z-10 h-8 w-8 rounded-full border-2 border-gray-900 bg-white p-0 shadow-md hover:bg-gray-900 hover:text-white transition-all"
+        className="absolute top-4 z-10 h-6 w-6 rounded-full border border-gray-200 bg-white p-0 shadow-sm hover:bg-gray-50"
+        style={{ left: isCollapsed ? -4 : width - 12 }}
       >
         {isCollapsed ? (
-          <ChevronRight className="h-5 w-5 text-gray-900" />
+          <ChevronRight className="h-4 w-4" />
         ) : (
-          <ChevronLeft className="h-5 w-5 text-gray-900" />
+          <ChevronLeft className="h-4 w-4" />
         )}
       </Button>
-
-      {/* Sidebar Content */}
-      <div
-        className={`h-full overflow-y-auto ${isCollapsed ? "hidden" : ""}`}
-      >
-        {children}
-      </div>
-
-      {/* Resize Handle */}
-      {!isCollapsed && (
-        <div
-          className={`absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-gray-300 ${
-            isResizing ? "bg-gray-400" : ""
-          }`}
-          onMouseDown={() => setIsResizing(true)}
-        />
-      )}
     </div>
   );
 }
