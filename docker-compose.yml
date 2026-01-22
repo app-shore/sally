@@ -34,6 +34,7 @@ services:
       context: ./apps/backend
       dockerfile: Dockerfile
     container_name: rest-os-backend
+    working_dir: /app
     environment:
       ENVIRONMENT: development
       DEBUG: "true"
