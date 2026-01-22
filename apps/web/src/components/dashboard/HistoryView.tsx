@@ -52,8 +52,8 @@ export function HistoryView({ history }: HistoryViewProps) {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Execution History</CardTitle>
-          <p className="text-sm text-gray-500">
+          <CardTitle className="text-base sm:text-lg">Execution History</CardTitle>
+          <p className="text-xs sm:text-sm text-gray-500">
             {history.length} execution{history.length !== 1 ? "s" : ""}
           </p>
         </CardHeader>
@@ -62,12 +62,12 @@ export function HistoryView({ history }: HistoryViewProps) {
             {history.map((item, index) => (
               <div
                 key={index}
-                className="rounded-lg border border-gray-200 bg-white p-4 hover:bg-gray-50"
+                className="rounded-lg border border-gray-200 bg-white p-3 sm:p-4 hover:bg-gray-50"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1">
-                    <div className="mb-2 flex items-center gap-2">
-                      <span className="font-semibold text-gray-900">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-sm sm:text-base text-gray-900">
                         {item.input.driver_id}
                       </span>
                       <span
@@ -78,7 +78,7 @@ export function HistoryView({ history }: HistoryViewProps) {
                         {getRecommendationLabel(item.result.recommendation)}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs sm:text-sm">
                       <div>
                         <span className="text-gray-500">Hours Driven:</span>{" "}
                         <span className="font-medium">
@@ -107,7 +107,7 @@ export function HistoryView({ history }: HistoryViewProps) {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <p className="text-xs text-gray-500">
                       {formatDateTime(item.timestamp)}
                     </p>
