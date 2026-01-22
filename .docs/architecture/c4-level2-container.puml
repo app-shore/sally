@@ -1,0 +1,34 @@
+@startuml C4_Container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Container diagram for REST-OS
+
+Person(dispatcher, "Fleet Dispatcher", "Configures optimization engine and views recommendations")
+Person(operations, "Operations Manager", "Monitors system and analyzes performance")
+
+System_Boundary(restos, "REST-OS") {
+    Container(web, "Operations Dashboard", "Next.js 15, React 18, TypeScript", "Provides web UI for engine control, visualization, and monitoring")
+
+    Container(api, "Backend API", "Python 3.11, FastAPI", "Provides REST API for HOS validation, rest optimization, and predictions")
+
+    ContainerDb(db, "Database", "PostgreSQL 16", "Stores driver data, vehicle info, routes, events, and recommendation history")
+
+    ContainerDb(cache, "Cache", "Redis 7", "Caches frequently accessed data and session information")
+}
+
+System_Ext(eld, "ELD System", "Electronic Logging Device (Future)")
+System_Ext(tms, "TMS", "Transportation Management System (Future)")
+
+Rel(dispatcher, web, "Views recommendations, configures parameters", "HTTPS")
+Rel(operations, web, "Monitors performance, analyzes results", "HTTPS")
+
+Rel(web, api, "Makes API calls", "HTTPS/JSON, REST API")
+Rel(api, db, "Reads/Writes data", "PostgreSQL Protocol, Async")
+Rel(api, cache, "Reads/Writes cache", "Redis Protocol")
+
+Rel(api, eld, "Fetches HOS data", "HTTPS/REST (Future)")
+Rel(api, tms, "Retrieves route info", "HTTPS/REST (Future)")
+
+@enduml

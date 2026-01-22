@@ -1,0 +1,60 @@
+@startuml C4_Component_Backend
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Component diagram for REST-OS Backend API
+
+Container(web, "Operations Dashboard", "Next.js, React", "Web UI for engine control")
+
+Container_Boundary(api, "Backend API") {
+    Component(api_router, "API Router", "FastAPI Router", "Routes HTTP requests to appropriate endpoints")
+
+    Component(hos_endpoint, "HOS Rules Endpoint", "FastAPI Route", "Handles HOS compliance check requests")
+    Component(opt_endpoint, "Optimization Endpoint", "FastAPI Route", "Handles rest optimization requests")
+    Component(pred_endpoint, "Prediction Endpoint", "FastAPI Route", "Handles drive demand prediction requests")
+
+    Component(hos_engine, "HOS Rule Engine", "Python Service", "Validates FMCSA compliance: 11hr drive, 14hr duty, 30min break, sleeper berth splits")
+    Component(opt_engine, "Rest Optimization Engine", "Python Service", "Analyzes dock time + drive demand to recommend FULL/PARTIAL/NO REST")
+    Component(pred_engine, "Prediction Engine", "Python Service", "Estimates post-load drive demand and route requirements")
+
+    Component(driver_repo, "Driver Repository", "SQLAlchemy Repository", "Manages driver data access")
+    Component(vehicle_repo, "Vehicle Repository", "SQLAlchemy Repository", "Manages vehicle data access")
+    Component(route_repo, "Route Repository", "SQLAlchemy Repository", "Manages route data access")
+    Component(rec_repo, "Recommendation Repository", "SQLAlchemy Repository", "Manages recommendation history")
+
+    Component(middleware, "Middleware Stack", "FastAPI Middleware", "CORS, logging, error handling, request tracking")
+    Component(security, "Security Layer", "python-jose, passlib", "JWT authentication, password hashing (Future)")
+}
+
+ContainerDb(db, "Database", "PostgreSQL", "Stores all application data")
+ContainerDb(cache, "Cache", "Redis", "Caches data and sessions")
+
+Rel(web, api_router, "Makes API requests", "HTTPS/JSON")
+
+Rel(api_router, middleware, "Processes through")
+Rel(middleware, hos_endpoint, "Routes to")
+Rel(middleware, opt_endpoint, "Routes to")
+Rel(middleware, pred_endpoint, "Routes to")
+
+Rel(hos_endpoint, hos_engine, "Calls for compliance validation")
+Rel(opt_endpoint, opt_engine, "Calls for rest recommendation")
+Rel(opt_endpoint, hos_engine, "Validates compliance first")
+Rel(opt_endpoint, pred_engine, "Gets drive demand estimate")
+Rel(pred_endpoint, pred_engine, "Calls for predictions")
+
+Rel(hos_engine, driver_repo, "Fetches driver HOS status")
+Rel(opt_engine, driver_repo, "Fetches driver data")
+Rel(opt_engine, route_repo, "Fetches route information")
+Rel(opt_engine, rec_repo, "Stores recommendations")
+Rel(pred_engine, route_repo, "Fetches route data")
+
+Rel(driver_repo, db, "Reads/Writes", "PostgreSQL Protocol")
+Rel(vehicle_repo, db, "Reads/Writes", "PostgreSQL Protocol")
+Rel(route_repo, db, "Reads/Writes", "PostgreSQL Protocol")
+Rel(rec_repo, db, "Reads/Writes", "PostgreSQL Protocol")
+
+Rel(hos_engine, cache, "Caches validation results", "Redis Protocol")
+Rel(pred_engine, cache, "Caches predictions", "Redis Protocol")
+
+@enduml

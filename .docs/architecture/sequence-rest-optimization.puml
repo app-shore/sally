@@ -1,0 +1,138 @@
+@startuml Sequence_Rest_Optimization
+!theme plain
+skinparam sequenceMessageAlign center
+
+title REST-OS: Rest Optimization Flow
+
+actor "Dispatcher" as user
+participant "Dashboard\n(React)" as ui
+participant "API Client\n(React Query)" as client
+participant "FastAPI\nRouter" as router
+participant "Optimization\nEndpoint" as endpoint
+participant "Rest\nOptimization\nEngine" as opt
+participant "HOS Rule\nEngine" as hos
+participant "Prediction\nEngine" as pred
+participant "Driver\nRepository" as driver_repo
+participant "Route\nRepository" as route_repo
+participant "Recommendation\nRepository" as rec_repo
+database "PostgreSQL" as db
+database "Redis" as cache
+
+user -> ui: Fill forms with\ndriver, dock, route data
+activate ui
+
+ui -> ui: Validate input\n(Zod schemas)
+
+user -> ui: Click "Run Engine"
+
+ui -> client: runEngine(inputData)
+activate client
+
+client -> router: POST /api/v1/optimization/recommend\n{driver_id, hours_driven, dock_duration...}
+activate router
+
+router -> router: Middleware:\nCORS, logging,\nerror handling
+
+router -> endpoint: recommend_rest(input)
+activate endpoint
+
+endpoint -> driver_repo: get_by_driver_id(driver_id)
+activate driver_repo
+driver_repo -> db: SELECT * FROM drivers\nWHERE driver_id = ?
+activate db
+db --> driver_repo: Driver record
+deactivate db
+driver_repo --> endpoint: Driver object
+deactivate driver_repo
+
+endpoint -> hos: validate_compliance(\nhours_driven,\non_duty_time,\nhours_since_break)
+activate hos
+
+hos -> cache: get_cached_validation(driver_id)
+activate cache
+cache --> hos: None (cache miss)
+deactivate cache
+
+hos -> hos: Check 11hr drive limit\nCheck 14hr duty window\nCheck 30min break\nCheck rest requirement\nCalculate remaining hours
+
+hos --> endpoint: HOSComplianceResult\n{is_compliant: true,\nhours_remaining: 2.5}
+deactivate hos
+
+alt Driver NOT Compliant
+    endpoint --> router: Error: Driver not compliant
+    router --> client: 400 Bad Request
+    client --> ui: Show error message
+    ui --> user: Display compliance error
+else Driver Compliant
+    endpoint -> route_repo: get_active_route(driver_id)
+    activate route_repo
+    route_repo -> db: SELECT * FROM routes\nWHERE driver_id = ?\nAND status = 'active'
+    activate db
+    db --> route_repo: Route record
+    deactivate db
+    route_repo --> endpoint: Route object
+    deactivate route_repo
+
+    endpoint -> pred: estimate_drive_demand(\nroute_data)
+    activate pred
+
+    pred -> cache: get_cached_prediction(route_id)
+    activate cache
+    cache --> pred: None (cache miss)
+    deactivate cache
+
+    pred -> pred: Calculate:\nestimated_hours =\nremaining_miles / avg_speed\nConsider appointment times
+
+    pred -> cache: cache_prediction(route_id, result)
+    activate cache
+    cache --> pred: OK
+    deactivate cache
+
+    pred --> endpoint: PredictionResult\n{estimated_drive_hours: 3.2,\nconfidence: 0.85}
+    deactivate pred
+
+    endpoint -> opt: recommend_rest(\ninput_data,\nhos_status,\nprediction)
+    activate opt
+
+    opt -> opt: Analyze dock time:\ndock_duration >= MIN_REST_HOURS?
+
+    opt -> opt: Analyze drive demand:\nestimated_hours <= threshold?
+
+    opt -> opt: Calculate opportunity score:\nscore = f(dock_time, demand, remaining_hours)
+
+    opt -> opt: Determine rest type:\nIF dock >= 10hrs AND demand <= 3hrs\n  THEN FULL_REST\nELSE IF dock >= 7hrs\n  THEN PARTIAL_REST\nELSE NO_REST
+
+    opt -> opt: Generate reasoning:\n"Driver has 2.5hrs remaining,\ndock time 3hrs provides\nopportunity for partial rest..."
+
+    opt --> endpoint: RestOptimizationResult\n{recommendation: PARTIAL_REST,\nduration: 2.5hrs, reason: "..."}
+    deactivate opt
+
+    endpoint -> rec_repo: create_recommendation(result)
+    activate rec_repo
+    rec_repo -> db: INSERT INTO recommendations\n(driver_id, type, duration, reason...)
+    activate db
+    db --> rec_repo: Recommendation ID
+    deactivate db
+    rec_repo --> endpoint: Recommendation object
+    deactivate rec_repo
+
+    endpoint --> router: RestOptimizationResult
+    deactivate endpoint
+
+    router --> client: 200 OK\n{recommendation, compliance, metrics}
+    deactivate router
+
+    client -> client: Update React Query cache
+
+    client --> ui: Recommendation data
+    deactivate client
+
+    ui -> ui: Update Zustand store:\nsetLatestResult(data)\naddToHistory(input, result)
+
+    ui -> ui: Render visualization:\n- Color-coded card (🟡 PARTIAL)\n- Compliance checklist\n- Metrics charts\n- History table
+
+    ui --> user: Display recommendation:\n"Take 2.5hr partial rest\nReason: Opportunity to recover\nhours before final leg"
+    deactivate ui
+end
+
+@enduml

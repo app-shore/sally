@@ -1,0 +1,26 @@
+@startuml C4_Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title System Context diagram for REST-OS (Rest Optimization System)
+
+Person(dispatcher, "Fleet Dispatcher", "Monitors fleet operations and configures optimization parameters")
+Person(operations, "Operations Manager", "Reviews recommendations and validates system performance")
+Person(driver, "Truck Driver", "Receives rest recommendations (Future)")
+
+System(restos, "REST-OS", "Analyzes driver HOS status, dock time, and route data to recommend optimal rest periods for maximizing productive driving hours while maintaining FMCSA compliance")
+
+System_Ext(eld, "ELD System", "Electronic Logging Device - provides real-time driver HOS data (Future)")
+System_Ext(tms, "TMS", "Transportation Management System - provides route and appointment data (Future)")
+System_Ext(telematics, "Telematics Platform", "Provides vehicle location and status (Future)")
+
+Rel(dispatcher, restos, "Configures engine parameters, views recommendations", "HTTPS")
+Rel(operations, restos, "Monitors system performance, analyzes results", "HTTPS")
+Rel(driver, restos, "Views rest recommendations", "Mobile App (Future)")
+
+Rel(restos, eld, "Fetches driver HOS data", "REST API (Future)")
+Rel(restos, tms, "Retrieves route and appointment info", "REST API (Future)")
+Rel(restos, telematics, "Gets vehicle location data", "REST API (Future)")
+
+@enduml
