@@ -1,13 +1,19 @@
 """Driver model."""
 
 from datetime import datetime
-from typing import List
+from typing import TYPE_CHECKING, List
 
-from sqlalchemy import DateTime, Float, String
+from sqlalchemy import DateTime, Float, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.constants import DutyStatus
 from app.db.base import Base, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.event import Event
+    from app.models.recommendation import Recommendation
+    from app.models.route_plan import RoutePlan
 
 
 class Driver(Base, TimestampMixin):
@@ -35,10 +41,24 @@ class Driver(Base, TimestampMixin):
     # Metadata
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
 
+    # Route Planning (NEW)
+    current_plan_id: Mapped[int | None] = mapped_column(
+        ForeignKey("route_plans.id"), index=True
+    )  # Link to active route plan
+    current_location_lat_lon: Mapped[dict | None] = mapped_column(
+        JSON
+    )  # {"lat": float, "lon": float} for live tracking in future
+
     # Relationships
     events: Mapped[List["Event"]] = relationship("Event", back_populates="driver")
     recommendations: Mapped[List["Recommendation"]] = relationship(
         "Recommendation", back_populates="driver"
+    )
+    route_plans: Mapped[List["RoutePlan"]] = relationship(
+        "RoutePlan", back_populates="driver", foreign_keys="RoutePlan.driver_id"
+    )
+    current_plan: Mapped["RoutePlan"] = relationship(
+        "RoutePlan", foreign_keys=[current_plan_id], post_update=True
     )
 
     def __repr__(self) -> str:

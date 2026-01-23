@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import hos_rules, optimization, prediction
+from app.api.v1.endpoints import hos_rules, optimization, prediction, route_planning
 
 api_router = APIRouter()
 
@@ -10,3 +10,4 @@ api_router = APIRouter()
 api_router.include_router(hos_rules.router)
 api_router.include_router(optimization.router)
 api_router.include_router(prediction.router)
+api_router.include_router(route_planning.router)

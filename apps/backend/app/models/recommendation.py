@@ -1,11 +1,18 @@
 """Recommendation model for rest optimization history."""
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.driver import Driver
+    from app.models.route import Route
+    from app.models.route_plan import RoutePlan
+    from app.models.route_segment import RouteSegment
 
 
 class Recommendation(Base, TimestampMixin):
@@ -43,6 +50,12 @@ class Recommendation(Base, TimestampMixin):
     # Foreign Keys
     driver_id: Mapped[int] = mapped_column(ForeignKey("drivers.id"), index=True, nullable=False)
     route_id: Mapped[int | None] = mapped_column(ForeignKey("routes.id"), index=True)
+    plan_id: Mapped[int | None] = mapped_column(
+        ForeignKey("route_plans.id"), index=True
+    )  # NEW: Link to route plan
+    segment_id: Mapped[int | None] = mapped_column(
+        ForeignKey("route_segments.id"), index=True
+    )  # NEW: Link to specific segment
 
     # Relationships
     driver: Mapped["Driver"] = relationship("Driver", back_populates="recommendations")

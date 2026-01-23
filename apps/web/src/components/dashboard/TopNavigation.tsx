@@ -1,31 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { Gauge, History, Home, Menu, X } from "lucide-react";
+import { Gauge, History, Home, Menu, X, Route } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-interface TopNavigationProps {
-  currentPage: "landing" | "engine" | "history";
-  onNavigate: (page: "landing" | "engine" | "history") => void;
-}
-
-export function TopNavigation({ currentPage, onNavigate }: TopNavigationProps) {
+export function TopNavigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
-  const handleNavigate = (page: "landing" | "engine" | "history") => {
-    onNavigate(page);
-    setIsMobileMenuOpen(false);
+  // Determine active page from pathname
+  const getActivePage = () => {
+    if (pathname === '/') return 'home';
+    if (pathname === '/simulator') return 'route-planner';
+    if (pathname === '/history') return 'history';
+    if (pathname === '/rest-optimizer') return 'rest-optimizer';
+    return 'home';
   };
+
+  const activePage = getActivePage();
 
   return (
     <nav className="border-b border-gray-200 bg-white">
       <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 py-3">
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleNavigate("landing")}
-            className="text-lg sm:text-xl font-bold text-gray-900 hover:text-gray-700"
-          >
+          <Link href="/" className="text-lg sm:text-xl font-bold text-gray-900 hover:text-gray-700">
             REST-OS
-          </button>
+          </Link>
           <span className="hidden sm:inline text-xs text-gray-400">|</span>
           <p className="hidden sm:block text-xs text-gray-500">
             Rest Optimization System
@@ -34,24 +35,32 @@ export function TopNavigation({ currentPage, onNavigate }: TopNavigationProps) {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-1">
-          <NavButton
+          <NavLink
             icon={<Home className="h-4 w-4" />}
             label="Home"
-            active={currentPage === "landing"}
-            onClick={() => handleNavigate("landing")}
+            active={activePage === "home"}
+            href="/"
           />
-          <NavButton
-            icon={<Gauge className="h-4 w-4" />}
-            label="Engine"
-            active={currentPage === "engine"}
-            onClick={() => handleNavigate("engine")}
+          <NavLink
+            icon={<Route className="h-4 w-4" />}
+            label="Route Planner"
+            active={activePage === "route-planner"}
+            href="/simulator"
           />
-          <NavButton
+          <NavLink
             icon={<History className="h-4 w-4" />}
             label="History"
-            active={currentPage === "history"}
-            onClick={() => handleNavigate("history")}
+            active={activePage === "history"}
+            href="/history"
           />
+          <NavLink
+            icon={<Gauge className="h-4 w-4" />}
+            label="REST Optimizer"
+            active={activePage === "rest-optimizer"}
+            href="/rest-optimizer"
+          />
+
+
         </div>
 
         {/* Mobile Menu Button */}
@@ -72,23 +81,33 @@ export function TopNavigation({ currentPage, onNavigate }: TopNavigationProps) {
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-gray-200 bg-white">
           <div className="flex flex-col p-2 space-y-1">
-            <MobileNavButton
+            <MobileNavLink
               icon={<Home className="h-4 w-4" />}
               label="Home"
-              active={currentPage === "landing"}
-              onClick={() => handleNavigate("landing")}
+              active={activePage === "home"}
+              href="/"
+              onClick={() => setIsMobileMenuOpen(false)}
             />
-            <MobileNavButton
-              icon={<Gauge className="h-4 w-4" />}
-              label="Engine"
-              active={currentPage === "engine"}
-              onClick={() => handleNavigate("engine")}
+            <MobileNavLink
+              icon={<Route className="h-4 w-4" />}
+              label="Route Planner"
+              active={activePage === "route-planner"}
+              href="/simulator"
+              onClick={() => setIsMobileMenuOpen(false)}
             />
-            <MobileNavButton
+            <MobileNavLink
               icon={<History className="h-4 w-4" />}
               label="History"
-              active={currentPage === "history"}
-              onClick={() => handleNavigate("history")}
+              active={activePage === "history"}
+              href="/history"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <MobileNavLink
+              icon={<Gauge className="h-4 w-4" />}
+              label="REST Optimizer"
+              active={activePage === "rest-optimizer"}
+              href="/rest-optimizer"
+              onClick={() => setIsMobileMenuOpen(false)}
             />
           </div>
         </div>
@@ -97,48 +116,52 @@ export function TopNavigation({ currentPage, onNavigate }: TopNavigationProps) {
   );
 }
 
-interface NavButtonProps {
+interface NavLinkProps {
   icon: React.ReactNode;
   label: string;
   active: boolean;
-  onClick: () => void;
+  href: string;
 }
 
-function NavButton({ icon, label, active, onClick }: NavButtonProps) {
+function NavLink({ icon, label, active, href }: NavLinkProps) {
   return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-2 rounded-md px-3 lg:px-4 py-2 text-sm font-medium transition-colors ${
-        active
-          ? "bg-gray-900 text-white"
-          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-      }`}
-    >
-      {icon}
-      <span className="hidden lg:inline">{label}</span>
-    </button>
+    <Link href={href}>
+      <div
+        className={`flex items-center gap-2 rounded-md px-3 lg:px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
+          active
+            ? "bg-gray-900 text-white"
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        }`}
+      >
+        {icon}
+        <span className="hidden lg:inline">{label}</span>
+      </div>
+    </Link>
   );
 }
 
-interface MobileNavButtonProps {
+interface MobileNavLinkProps {
   icon: React.ReactNode;
   label: string;
   active: boolean;
-  onClick: () => void;
+  href: string;
+  onClick?: () => void;
 }
 
-function MobileNavButton({ icon, label, active, onClick }: MobileNavButtonProps) {
+function MobileNavLink({ icon, label, active, href, onClick }: MobileNavLinkProps) {
   return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium transition-colors w-full ${
-        active
-          ? "bg-gray-900 text-white"
-          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
+    <Link href={href} className="w-full">
+      <div
+        onClick={onClick}
+        className={`flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium transition-colors w-full cursor-pointer ${
+          active
+            ? "bg-gray-900 text-white"
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        }`}
+      >
+        {icon}
+        {label}
+      </div>
+    </Link>
   );
 }

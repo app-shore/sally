@@ -20,6 +20,7 @@
     "backend:test": "cd apps/backend && uv run pytest tests/",
     "frontend:dev": "turbo run dev --filter=@rest-os/web",
     "docker:up": "docker-compose up -d",
+    "docker:build": "docker-compose up -d --build",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "docker:restart": "docker-compose restart",

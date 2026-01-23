@@ -174,3 +174,45 @@ class PredictionEngine:
         validate_positive(avg_speed_mph, "avg_speed_mph")
 
         return distance_miles / avg_speed_mph
+
+    # NEW METHODS FOR ROUTE PLANNING
+
+    def estimate_dock_time(self, location_type: str) -> float:
+        """
+        Estimate dock time based on location type.
+
+        MVP: Uses hardcoded defaults.
+        Future: Use TMS historical data.
+
+        Args:
+            location_type: 'warehouse', 'customer', 'distribution_center', etc.
+
+        Returns:
+            Estimated dock time in hours
+        """
+        dock_times = {
+            "warehouse": 2.0,
+            "customer": 1.0,
+            "distribution_center": 3.0,
+            "truck_stop": 0.0,
+            "service_area": 0.0,
+            "fuel_station": 0.25,  # 15 minutes
+        }
+
+        return dock_times.get(location_type, 1.5)  # Default 1.5 hours
+
+    def estimate_fuel_consumption(self, distance_miles: float, mpg: float = 6.0) -> float:
+        """
+        Estimate fuel consumption for a distance.
+
+        Args:
+            distance_miles: Distance in miles
+            mpg: Miles per gallon (default 6.0 for trucks)
+
+        Returns:
+            Estimated gallons needed
+        """
+        validate_positive(distance_miles, "distance_miles")
+        validate_positive(mpg, "mpg")
+
+        return distance_miles / mpg

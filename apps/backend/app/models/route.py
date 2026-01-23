@@ -1,12 +1,17 @@
 """Route model."""
 
 from datetime import datetime
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.recommendation import Recommendation
+    from app.models.route_plan import RoutePlan
+    from app.models.vehicle import Vehicle
 
 
 class Route(Base, TimestampMixin):
@@ -39,16 +44,22 @@ class Route(Base, TimestampMixin):
     # Status
     status: Mapped[str] = mapped_column(
         String(50), default="pending", nullable=False
-    )  # pending, in_progress, at_dock, completed, cancelled
+    )  # pending, planned, in_progress, at_dock, completed, cancelled, needs_replan
     notes: Mapped[str | None] = mapped_column(Text)
 
     # Foreign Keys
     vehicle_id: Mapped[int | None] = mapped_column(ForeignKey("vehicles.id"), index=True)
+    active_plan_id: Mapped[int | None] = mapped_column(
+        ForeignKey("route_plans.id"), index=True
+    )  # Link to active route plan
 
     # Relationships
     vehicle: Mapped["Vehicle"] = relationship("Vehicle", back_populates="routes")
     recommendations: Mapped[List["Recommendation"]] = relationship(
         "Recommendation", back_populates="route"
+    )
+    route_plans: Mapped[List["RoutePlan"]] = relationship(
+        "RoutePlan", back_populates="route", foreign_keys="RoutePlan.route_id"
     )
 
     def __repr__(self) -> str:

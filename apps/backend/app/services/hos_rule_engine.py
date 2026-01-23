@@ -13,6 +13,15 @@ logger = get_logger(__name__)
 
 
 @dataclass
+class HOSState:
+    """Current HOS state for a driver."""
+
+    hours_driven: float
+    on_duty_time: float
+    hours_since_break: float
+
+
+@dataclass
 class ComplianceCheck:
     """Individual compliance check result."""
 
