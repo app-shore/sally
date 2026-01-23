@@ -666,3 +666,120 @@ def get_route_status(driver_id: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Route status retrieval failed: {str(e)}",
         )
+
+
+# ============================================================================
+# Trigger Simulation Endpoints
+# ============================================================================
+
+
+from pydantic import BaseModel
+from typing import List, Dict, Any, Optional
+from app.services.trigger_simulator import TriggerSimulator, TriggerInput
+
+
+class TriggerInputSchema(BaseModel):
+    """Schema for trigger input."""
+
+    trigger_type: str
+    segment_id: Optional[str] = None
+    data: Dict[str, Any] = {}
+
+
+class SimulationResultSchema(BaseModel):
+    """Schema for simulation result."""
+
+    previous_plan_version: int
+    new_plan_version: int
+    new_plan_id: str
+    triggers_applied: int
+    impact_summary: Dict[str, Any]
+    replan_triggered: bool
+    replan_reason: Optional[str]
+
+
+@router.post(
+    "/simulate-triggers",
+    response_model=SimulationResultSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Simulate triggers and generate new plan version",
+    description="Apply multiple triggers to a route plan and generate updated plan",
+)
+async def simulate_triggers(
+    plan_id: str,
+    triggers: List[TriggerInputSchema],
+    db: Session = Depends(get_db),
+):
+    """
+    Simulate triggers and generate new route plan version.
+
+    This endpoint:
+    1. Applies multiple triggers to an existing plan
+    2. Analyzes impact and determines if replan is needed
+    3. Generates new plan version if needed
+    4. Returns impact summary
+
+    Supported trigger types:
+    - dock_time_change: Actual dock time differs from estimate
+    - traffic_delay: Traffic delay on a segment
+    - driver_rest_request: Driver requests early rest
+    - fuel_price_spike: Fuel price change
+    - appointment_change: Customer changes time window
+    - hos_violation: HOS violation detected
+
+    Args:
+        plan_id: Route plan ID to simulate triggers on
+        triggers: List of triggers to apply
+        db: Database session
+
+    Returns:
+        Simulation result with new plan version and impact summary
+
+    Raises:
+        HTTPException: If plan not found or simulation fails
+    """
+    try:
+        logger.info(f"Trigger simulation request for plan {plan_id} with {len(triggers)} triggers")
+
+        # Convert schema to service input
+        trigger_inputs = [
+            TriggerInput(
+                trigger_type=t.trigger_type,
+                segment_id=t.segment_id,
+                data=t.data,
+            )
+            for t in triggers
+        ]
+
+        # Initialize simulator
+        simulator = TriggerSimulator(db)
+
+        # Apply triggers
+        result = await simulator.apply_triggers(plan_id, trigger_inputs)
+
+        logger.info(
+            f"Trigger simulation completed: {result.previous_plan_version} → {result.new_plan_version}"
+        )
+
+        return SimulationResultSchema(
+            previous_plan_version=result.previous_plan_version,
+            new_plan_version=result.new_plan_version,
+            new_plan_id=result.new_plan_id,
+            triggers_applied=result.triggers_applied,
+            impact_summary=result.impact_summary,
+            replan_triggered=result.replan_triggered,
+            replan_reason=result.replan_reason,
+        )
+
+    except ValueError as e:
+        logger.error(f"Trigger simulation validation error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except Exception as e:
+        logger.error(f"Trigger simulation failed: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Trigger simulation failed: {str(e)}",
+        )

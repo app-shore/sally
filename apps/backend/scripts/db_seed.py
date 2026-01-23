@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core.constants import DutyStatus
 from app.db.database import async_session_maker, init_db
-from app.models import Driver, Event, Route, Vehicle, Stop, RoutePlan, RouteSegment, RoutePlanUpdate
+from app.models import Driver, Event, Route, Vehicle, Stop, RoutePlan, RouteSegment, RoutePlanUpdate, Load, LoadStop, Scenario
 from app.utils.logger import get_logger, setup_logging
 
 setup_logging()
@@ -24,6 +24,9 @@ async def clear_database(session: AsyncSession) -> None:
     await session.execute(text("DELETE FROM route_plan_updates"))
     await session.execute(text("DELETE FROM route_segments"))
     await session.execute(text("DELETE FROM route_plans"))
+    await session.execute(text("DELETE FROM load_stops"))
+    await session.execute(text("DELETE FROM loads"))
+    await session.execute(text("DELETE FROM scenarios"))
     await session.execute(text("DELETE FROM events"))
     await session.execute(text("DELETE FROM routes"))
     await session.execute(text("DELETE FROM stops"))
@@ -51,6 +54,8 @@ async def seed_database() -> None:
             await seed_vehicles(session)
             await seed_routes(session)
             await seed_stops(session)
+            await seed_scenarios(session)  # NEW: Test scenarios
+            await seed_loads(session)  # NEW: Sample loads
             await seed_route_plans(session)  # NEW: Route planning data
             await session.commit()
 
@@ -334,6 +339,683 @@ async def seed_stops(session: AsyncSession) -> None:
     session.add_all(stops)
     await session.flush()
     logger.info("stops_seeded", count=len(stops))
+
+
+async def seed_scenarios(session: AsyncSession) -> None:
+    """Seed test scenario templates."""
+    scenarios = [
+        # Scenario 1: Fresh Driver - Plenty of Hours
+        Scenario(
+            scenario_id="SCENARIO-001",
+            name="Fresh Driver - Plenty of Hours",
+            description="Driver just started shift (1h driven). Full fuel tank (90%). Ideal for short/medium routes.",
+            category="simple",
+            driver_id="DRV-001",  # Links to specific driver
+            vehicle_id="VEH-001",  # Links to specific vehicle
+            driver_state_template={
+                "hours_driven": 1.0,
+                "on_duty_time": 1.5,
+                "hours_since_break": 1.0,
+            },
+            vehicle_state_template={
+                "fuel_capacity": 200.0,
+                "current_fuel": 180.0,
+                "mpg": 6.5,
+            },
+            stops_template=[
+                {
+                    "name": "Chicago Warehouse",
+                    "city": "Chicago",
+                    "state": "IL",
+                    "action_type": "pickup",
+                    "estimated_dock_hours": 1.5,
+                    "distance_from_previous": 0,
+                },
+                {
+                    "name": "Indianapolis Customer",
+                    "city": "Indianapolis",
+                    "state": "IN",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 0.75,
+                    "distance_from_previous": 185,
+                },
+            ],
+            expected_rest_stops=0,
+            expected_fuel_stops=0,
+            expected_violations=[],
+            is_active=True,
+            display_order=1,
+        ),
+        # Scenario 2: HOS Constrained - Near Limits
+        Scenario(
+            scenario_id="SCENARIO-002",
+            name="HOS Constrained - Near Limits",
+            description="Driver at 9h driven (needs rest soon). 75% fuel. Tests rest stop insertion for long routes.",
+            category="hos_constrained",
+            driver_id="DRV-002",  # Links to specific driver
+            vehicle_id="VEH-002",  # Links to specific vehicle
+            driver_state_template={
+                "hours_driven": 9.0,
+                "on_duty_time": 11.0,
+                "hours_since_break": 7.5,
+            },
+            vehicle_state_template={
+                "fuel_capacity": 200.0,
+                "current_fuel": 150.0,
+                "mpg": 6.5,
+            },
+            stops_template=[
+                {
+                    "name": "Chicago Warehouse",
+                    "city": "Chicago",
+                    "state": "IL",
+                    "action_type": "pickup",
+                    "estimated_dock_hours": 2.0,
+                    "distance_from_previous": 0,
+                },
+                {
+                    "name": "Indianapolis Customer",
+                    "city": "Indianapolis",
+                    "state": "IN",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 1.0,
+                    "distance_from_previous": 185,
+                },
+                {
+                    "name": "Boston Customer",
+                    "city": "Boston",
+                    "state": "MA",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 1.0,
+                    "distance_from_previous": 950,
+                },
+            ],
+            expected_rest_stops=1,
+            expected_fuel_stops=0,
+            expected_violations=[],
+            is_active=True,
+            display_order=2,
+        ),
+        # Scenario 3: Low Fuel - Needs Refuel
+        Scenario(
+            scenario_id="SCENARIO-003",
+            name="Low Fuel - Needs Refuel",
+            description="Fuel at 20% (40/200 gal). Driver mid-shift (3h driven). Tests fuel stop insertion logic.",
+            category="fuel_constrained",
+            driver_id="DRV-003",
+            vehicle_id="VEH-003",
+            driver_state_template={
+                "hours_driven": 3.0,
+                "on_duty_time": 4.0,
+                "hours_since_break": 2.5,
+            },
+            vehicle_state_template={
+                "fuel_capacity": 200.0,
+                "current_fuel": 40.0,  # 20% - low!
+                "mpg": 6.5,
+            },
+            stops_template=[
+                {
+                    "name": "Los Angeles Warehouse",
+                    "city": "Los Angeles",
+                    "state": "CA",
+                    "action_type": "pickup",
+                    "estimated_dock_hours": 1.5,
+                    "distance_from_previous": 0,
+                },
+                {
+                    "name": "Phoenix Distribution",
+                    "city": "Phoenix",
+                    "state": "AZ",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 1.0,
+                    "distance_from_previous": 375,
+                },
+                {
+                    "name": "Tucson Customer",
+                    "city": "Tucson",
+                    "state": "AZ",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 0.5,
+                    "distance_from_previous": 120,
+                },
+            ],
+            expected_rest_stops=0,
+            expected_fuel_stops=1,
+            expected_violations=[],
+            is_active=True,
+            display_order=3,
+        ),
+        # Scenario 4: Mid-Shift - Split Sleeper Candidate
+        Scenario(
+            scenario_id="SCENARIO-004",
+            name="Mid-Shift - Split Sleeper Candidate",
+            description="Driver at 6h driven, 80% fuel. Good for testing 7/3 or 8/2 split sleeper optimization.",
+            category="complex",
+            driver_id="DRV-004",
+            vehicle_id="VEH-004",
+            driver_state_template={
+                "hours_driven": 6.0,
+                "on_duty_time": 8.0,
+                "hours_since_break": 5.5,
+            },
+            vehicle_state_template={
+                "fuel_capacity": 200.0,
+                "current_fuel": 160.0,
+                "mpg": 6.5,
+            },
+            stops_template=[
+                {
+                    "name": "Chicago Warehouse",
+                    "city": "Chicago",
+                    "state": "IL",
+                    "action_type": "pickup",
+                    "estimated_dock_hours": 2.0,
+                    "distance_from_previous": 0,
+                },
+                {
+                    "name": "Indianapolis Customer",
+                    "city": "Indianapolis",
+                    "state": "IN",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 4.0,  # Long dock - split opportunity!
+                    "distance_from_previous": 185,
+                },
+                {
+                    "name": "Columbus Customer",
+                    "city": "Columbus",
+                    "state": "OH",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 1.0,
+                    "distance_from_previous": 175,
+                },
+                {
+                    "name": "Pittsburgh Customer",
+                    "city": "Pittsburgh",
+                    "state": "PA",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 0.75,
+                    "distance_from_previous": 185,
+                },
+                {
+                    "name": "Boston Distribution Center",
+                    "city": "Boston",
+                    "state": "MA",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 1.0,
+                    "distance_from_previous": 565,
+                },
+            ],
+            expected_rest_stops=1,  # Partial rest at Indianapolis
+            expected_fuel_stops=0,
+            expected_violations=[],
+            is_active=True,
+            display_order=4,
+        ),
+        # Scenario 5: Mid-Day - Moderate Hours Used
+        Scenario(
+            scenario_id="SCENARIO-005",
+            name="Mid-Day - Moderate Hours Used",
+            description="Driver at 6h driven, 85% fuel. Mid-shift status, good for testing time-sensitive deliveries.",
+            category="complex",
+            driver_id="DRV-001",
+            vehicle_id="VEH-002",
+            driver_state_template={
+                "hours_driven": 6.0,
+                "on_duty_time": 7.5,
+                "hours_since_break": 5.0,
+            },
+            vehicle_state_template={
+                "fuel_capacity": 200.0,
+                "current_fuel": 170.0,
+                "mpg": 6.5,
+            },
+            stops_template=[
+                {
+                    "name": "Chicago Warehouse",
+                    "city": "Chicago",
+                    "state": "IL",
+                    "action_type": "pickup",
+                    "estimated_dock_hours": 1.0,
+                    "earliest_arrival": "06:00",
+                    "latest_arrival": "08:00",
+                    "distance_from_previous": 0,
+                },
+                {
+                    "name": "Indianapolis Customer",
+                    "city": "Indianapolis",
+                    "state": "IN",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 0.5,
+                    "earliest_arrival": "14:00",  # 2pm-4pm window
+                    "latest_arrival": "16:00",
+                    "distance_from_previous": 185,
+                },
+                {
+                    "name": "Columbus Customer",
+                    "city": "Columbus",
+                    "state": "OH",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 0.75,
+                    "distance_from_previous": 175,
+                },
+            ],
+            expected_rest_stops=0,
+            expected_fuel_stops=0,
+            expected_violations=[],
+            is_active=True,
+            display_order=5,
+        ),
+        # Scenario 6: Urban Delivery - Duty Window Concern
+        Scenario(
+            scenario_id="SCENARIO-006",
+            name="Urban Delivery - Duty Window Concern",
+            description="Driver at 4h driven, 6h on-duty. Good for routes with multiple stops and dock time.",
+            category="complex",
+            driver_id="DRV-002",
+            vehicle_id="VEH-003",
+            driver_state_template={
+                "hours_driven": 4.0,
+                "on_duty_time": 6.0,
+                "hours_since_break": 3.5,
+            },
+            vehicle_state_template={
+                "fuel_capacity": 200.0,
+                "current_fuel": 180.0,
+                "mpg": 6.5,
+            },
+            stops_template=[
+                {
+                    "name": "Chicago Warehouse",
+                    "city": "Chicago",
+                    "state": "IL",
+                    "action_type": "pickup",
+                    "estimated_dock_hours": 1.5,
+                    "distance_from_previous": 0,
+                },
+                {
+                    "name": "Stop 1",
+                    "city": "Chicago",
+                    "state": "IL",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 1.0,
+                    "distance_from_previous": 25,
+                },
+                {
+                    "name": "Stop 2",
+                    "city": "Chicago",
+                    "state": "IL",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 1.0,
+                    "distance_from_previous": 20,
+                },
+                {
+                    "name": "Stop 3",
+                    "city": "Chicago",
+                    "state": "IL",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 0.75,
+                    "distance_from_previous": 30,
+                },
+                {
+                    "name": "Stop 4",
+                    "city": "Joliet",
+                    "state": "IL",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 1.0,
+                    "distance_from_previous": 40,
+                },
+                {
+                    "name": "Stop 5",
+                    "city": "Aurora",
+                    "state": "IL",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 0.75,
+                    "distance_from_previous": 35,
+                },
+            ],
+            expected_rest_stops=0,
+            expected_fuel_stops=0,
+            expected_violations=[],
+            is_active=True,
+            display_order=6,
+        ),
+        # Scenario 7: Break Required Soon
+        Scenario(
+            scenario_id="SCENARIO-007",
+            name="Break Required Soon",
+            description="Driver at 7.5h since break (30min break required soon). 80% fuel. Tests break insertion.",
+            category="simple",
+            driver_id="DRV-003",
+            vehicle_id="VEH-001",
+            driver_state_template={
+                "hours_driven": 7.5,
+                "on_duty_time": 9.0,
+                "hours_since_break": 7.5,  # Near 8h limit!
+            },
+            vehicle_state_template={
+                "fuel_capacity": 200.0,
+                "current_fuel": 160.0,
+                "mpg": 6.5,
+            },
+            stops_template=[
+                {
+                    "name": "Chicago Warehouse",
+                    "city": "Chicago",
+                    "state": "IL",
+                    "action_type": "pickup",
+                    "estimated_dock_hours": 0.5,
+                    "distance_from_previous": 0,
+                },
+                {
+                    "name": "Milwaukee Customer",
+                    "city": "Milwaukee",
+                    "state": "WI",
+                    "action_type": "delivery",
+                    "estimated_dock_hours": 0.75,
+                    "distance_from_previous": 90,
+                },
+            ],
+            expected_rest_stops=0,
+            expected_fuel_stops=0,
+            expected_violations=[],  # Break should be inserted to prevent violation
+            is_active=True,
+            display_order=7,
+        ),
+    ]
+
+    session.add_all(scenarios)
+    await session.flush()
+    logger.info("scenarios_seeded", count=len(scenarios))
+
+
+async def seed_loads(session: AsyncSession) -> None:
+    """Seed sample load data."""
+    from sqlalchemy import select
+
+    # Get stops for references
+    result_stops = await session.execute(select(Stop))
+    stops_list = list(result_stops.scalars().all())
+
+    if not stops_list:
+        logger.warning("no_stops_found", message="Cannot seed loads without stops")
+        return
+
+    stops = {stop.stop_id: stop for stop in stops_list}
+
+    loads = [
+        # Load 1: Midwest Retail Distribution - Short Haul
+        Load(
+            load_id="LOAD-001",
+            load_number="WMT-45892",
+            status="pending",
+            weight_lbs=44500.0,
+            commodity_type="general",
+            special_requirements="Delivery appointment required - call 24h ahead",
+            customer_name="Walmart Distribution",
+            is_active=True,
+        ),
+        # Load 2: Cross-Country Refrigerated - Long Haul
+        Load(
+            load_id="LOAD-002",
+            load_number="TGT-12034",
+            status="pending",
+            weight_lbs=42000.0,
+            commodity_type="refrigerated",
+            special_requirements="Maintain 38°F - reefer unit required",
+            customer_name="Target Logistics",
+            is_active=True,
+        ),
+        # Load 3: Regional LTL - Multi-Stop
+        Load(
+            load_id="LOAD-003",
+            load_number="FDX-78234",
+            status="pending",
+            weight_lbs=28000.0,
+            commodity_type="general",
+            special_requirements="Liftgate required at final stop",
+            customer_name="FedEx Freight",
+            is_active=True,
+        ),
+        # Load 4: West Coast Distribution - Time-Sensitive
+        Load(
+            load_id="LOAD-004",
+            load_number="AMZ-99201",
+            status="pending",
+            weight_lbs=38750.0,
+            commodity_type="general",
+            special_requirements="Must deliver by 10 AM - No weekend delivery",
+            customer_name="Amazon Fulfillment",
+            is_active=True,
+        ),
+        # Load 5: Heavy Machinery - Specialized
+        Load(
+            load_id="LOAD-005",
+            load_number="CAT-55612",
+            status="pending",
+            weight_lbs=47900.0,
+            commodity_type="fragile",
+            special_requirements="Flatbed required - Tarps provided - Oversize permits needed",
+            customer_name="Caterpillar Equipment",
+            is_active=True,
+        ),
+        # Load 6: Pharmaceutical - High Value
+        Load(
+            load_id="LOAD-006",
+            load_number="CVS-44023",
+            status="pending",
+            weight_lbs=12500.0,
+            commodity_type="refrigerated",
+            special_requirements="Temperature monitoring required - High value cargo - Team driver preferred",
+            customer_name="CVS Health Supply",
+            is_active=True,
+        ),
+        # Load 7: Construction Materials - Bulk
+        Load(
+            load_id="LOAD-007",
+            load_number="HD-88451",
+            status="pending",
+            weight_lbs=45800.0,
+            commodity_type="general",
+            special_requirements="Flatbed - Secure tarps - Multiple pickup locations",
+            customer_name="Home Depot Distribution",
+            is_active=True,
+        ),
+    ]
+
+    session.add_all(loads)
+    await session.flush()
+
+    # Create load stops for each load
+    load_stops = []
+
+    # Load 1: Walmart - Chicago → Indianapolis (Short regional haul)
+    if "STOP-WH-001" in stops and "STOP-CUS-002" in stops:
+        load_stops.extend([
+            LoadStop(
+                load_id=loads[0].id,
+                stop_id=stops["STOP-WH-001"].id,
+                sequence_order=1,
+                action_type="pickup",
+                estimated_dock_hours=1.5,
+                earliest_arrival=time(6, 0),
+                latest_arrival=time(10, 0),
+            ),
+            LoadStop(
+                load_id=loads[0].id,
+                stop_id=stops["STOP-CUS-002"].id,
+                sequence_order=2,
+                action_type="delivery",
+                estimated_dock_hours=2.0,
+                earliest_arrival=time(14, 0),
+                latest_arrival=time(18, 0),
+            ),
+        ])
+
+    # Load 2: Target - LA → Phoenix → Tucson (Refrigerated multi-stop)
+    if "STOP-WH-002" in stops and "STOP-WH-003" in stops and "STOP-TS-005" in stops:
+        load_stops.extend([
+            LoadStop(
+                load_id=loads[1].id,
+                stop_id=stops["STOP-WH-002"].id,
+                sequence_order=1,
+                action_type="pickup",
+                estimated_dock_hours=2.5,
+                earliest_arrival=time(7, 0),
+                latest_arrival=time(12, 0),
+            ),
+            LoadStop(
+                load_id=loads[1].id,
+                stop_id=stops["STOP-WH-003"].id,
+                sequence_order=2,
+                action_type="delivery",
+                estimated_dock_hours=1.5,
+                earliest_arrival=time(6, 0),
+                latest_arrival=time(16, 0),
+            ),
+            LoadStop(
+                load_id=loads[1].id,
+                stop_id=stops["STOP-TS-005"].id,
+                sequence_order=3,
+                action_type="delivery",
+                estimated_dock_hours=1.0,
+                earliest_arrival=time(8, 0),
+                latest_arrival=time(18, 0),
+            ),
+        ])
+
+    # Load 3: FedEx - Chicago → Indianapolis → Boston (Multi-stop LTL)
+    if "STOP-WH-001" in stops and "STOP-CUS-002" in stops and "STOP-CUS-001" in stops:
+        load_stops.extend([
+            LoadStop(
+                load_id=loads[2].id,
+                stop_id=stops["STOP-WH-001"].id,
+                sequence_order=1,
+                action_type="pickup",
+                estimated_dock_hours=1.0,
+                earliest_arrival=time(5, 0),
+                latest_arrival=time(9, 0),
+            ),
+            LoadStop(
+                load_id=loads[2].id,
+                stop_id=stops["STOP-CUS-002"].id,
+                sequence_order=2,
+                action_type="delivery",
+                estimated_dock_hours=0.5,
+            ),
+            LoadStop(
+                load_id=loads[2].id,
+                stop_id=stops["STOP-CUS-001"].id,
+                sequence_order=3,
+                action_type="delivery",
+                estimated_dock_hours=0.75,
+                earliest_arrival=time(7, 0),
+                latest_arrival=time(17, 0),
+            ),
+        ])
+
+    # Load 4: Amazon - LA → Phoenix (Time-sensitive)
+    if "STOP-WH-002" in stops and "STOP-WH-003" in stops:
+        load_stops.extend([
+            LoadStop(
+                load_id=loads[3].id,
+                stop_id=stops["STOP-WH-002"].id,
+                sequence_order=1,
+                action_type="pickup",
+                estimated_dock_hours=1.25,
+                earliest_arrival=time(18, 0),
+                latest_arrival=time(22, 0),
+            ),
+            LoadStop(
+                load_id=loads[3].id,
+                stop_id=stops["STOP-WH-003"].id,
+                sequence_order=2,
+                action_type="delivery",
+                estimated_dock_hours=1.5,
+                earliest_arrival=time(6, 0),
+                latest_arrival=time(10, 0),  # Must deliver by 10 AM
+            ),
+        ])
+
+    # Load 5: Caterpillar - Indianapolis → Chicago (Heavy equipment backhaul)
+    if "STOP-CUS-002" in stops and "STOP-CUS-001" in stops:
+        load_stops.extend([
+            LoadStop(
+                load_id=loads[4].id,
+                stop_id=stops["STOP-CUS-002"].id,
+                sequence_order=1,
+                action_type="pickup",
+                estimated_dock_hours=3.0,  # Heavy equipment loading
+                earliest_arrival=time(8, 0),
+                latest_arrival=time(14, 0),
+            ),
+            LoadStop(
+                load_id=loads[4].id,
+                stop_id=stops["STOP-CUS-001"].id,
+                sequence_order=2,
+                action_type="delivery",
+                estimated_dock_hours=2.5,
+                earliest_arrival=time(7, 0),
+                latest_arrival=time(16, 0),
+            ),
+        ])
+
+    # Load 6: CVS - Boston → Chicago (High-value pharmaceutical)
+    if "STOP-CUS-001" in stops and "STOP-WH-001" in stops:
+        load_stops.extend([
+            LoadStop(
+                load_id=loads[5].id,
+                stop_id=stops["STOP-CUS-001"].id,
+                sequence_order=1,
+                action_type="pickup",
+                estimated_dock_hours=1.5,
+                earliest_arrival=time(6, 0),
+                latest_arrival=time(10, 0),
+            ),
+            LoadStop(
+                load_id=loads[5].id,
+                stop_id=stops["STOP-WH-001"].id,
+                sequence_order=2,
+                action_type="delivery",
+                estimated_dock_hours=1.0,
+                earliest_arrival=time(8, 0),
+                latest_arrival=time(18, 0),
+            ),
+        ])
+
+    # Load 7: Home Depot - Multi-pickup construction (Chicago area consolidation)
+    if "STOP-WH-001" in stops and "STOP-CUS-002" in stops and "STOP-WH-003" in stops:
+        load_stops.extend([
+            LoadStop(
+                load_id=loads[6].id,
+                stop_id=stops["STOP-WH-001"].id,
+                sequence_order=1,
+                action_type="pickup",
+                estimated_dock_hours=2.0,
+                earliest_arrival=time(6, 0),
+                latest_arrival=time(12, 0),
+            ),
+            LoadStop(
+                load_id=loads[6].id,
+                stop_id=stops["STOP-CUS-002"].id,
+                sequence_order=2,
+                action_type="pickup",  # Second pickup
+                estimated_dock_hours=1.5,
+            ),
+            LoadStop(
+                load_id=loads[6].id,
+                stop_id=stops["STOP-WH-003"].id,
+                sequence_order=3,
+                action_type="delivery",
+                estimated_dock_hours=2.5,
+                earliest_arrival=time(8, 0),
+                latest_arrival=time(18, 0),
+            ),
+        ])
+
+    session.add_all(load_stops)
+    await session.flush()
+    logger.info("loads_seeded", count=len(loads), load_stops=len(load_stops))
 
 
 async def seed_route_plans(session: AsyncSession) -> None:

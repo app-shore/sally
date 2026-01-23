@@ -13,9 +13,13 @@ from typing import List, Optional
 from app.config import settings
 from app.core.constants import (
     LOW_DRIVE_DEMAND_THRESHOLD,
+    MIN_DOCK_TIME_FOR_7H_SPLIT,
+    MIN_DOCK_TIME_FOR_8H_SPLIT,
     MIN_DOCK_TIME_FOR_FULL_REST,
     MIN_DOCK_TIME_FOR_PARTIAL_REST,
     RestRecommendation,
+    SLEEPER_BERTH_SPLIT_7_3_LONG,
+    SLEEPER_BERTH_SPLIT_8_2_LONG,
 )
 from app.services.hos_rule_engine import HOSRuleEngine
 from app.utils.logger import get_logger
@@ -361,16 +365,27 @@ class RestOptimizationEngine:
                     True,
                 )
             elif opportunity.score >= 40 and cost.partial_rest_extension_hours <= 3:
-                # Moderate opportunity - partial rest
-                return (
-                    RestRecommendation.PARTIAL_REST,
-                    self.sleeper_berth_split_long,
-                    f"Trip marginal. Consider {self.sleeper_berth_split_long:.0f}-hour partial rest (7/3 split). "
-                    f"Extension needed: {cost.partial_rest_extension_hours:.1f}h. "
-                    f"Provides some recovery while preserving schedule.",
-                    65,
-                    True,
-                )
+                # Moderate opportunity - determine best split type
+                if cost.dock_time_available >= MIN_DOCK_TIME_FOR_8H_SPLIT:
+                    return (
+                        RestRecommendation.PARTIAL_REST_8_2,
+                        SLEEPER_BERTH_SPLIT_8_2_LONG,
+                        f"Trip marginal. Consider 8-hour partial rest (8/2 split). "
+                        f"Extension needed: {max(0, SLEEPER_BERTH_SPLIT_8_2_LONG - cost.dock_time_available):.1f}h. "
+                        f"Provides better recovery than 7/3 split while preserving schedule.",
+                        65,
+                        True,
+                    )
+                else:
+                    return (
+                        RestRecommendation.PARTIAL_REST_7_3,
+                        SLEEPER_BERTH_SPLIT_7_3_LONG,
+                        f"Trip marginal. Consider 7-hour partial rest (7/3 split). "
+                        f"Extension needed: {cost.partial_rest_extension_hours:.1f}h. "
+                        f"Provides some recovery while preserving schedule.",
+                        65,
+                        True,
+                    )
             else:
                 # Low opportunity - proceed with caution
                 return (
@@ -479,8 +494,10 @@ class RestOptimizationEngine:
         if recommendation == RestRecommendation.FULL_REST:
             hours_after_rest_drive = self.max_drive_hours
             hours_after_rest_duty = self.max_duty_hours
-        elif recommendation == RestRecommendation.PARTIAL_REST:
-            # Simplified: partial rest recovers some hours
+        elif recommendation in (RestRecommendation.PARTIAL_REST_7_3, RestRecommendation.PARTIAL_REST_8_2):
+            # Partial rest (7/3 or 8/2 split) recovers some hours
+            # Split sleeper berth provision: the long rest period does not count against 14-hour window
+            # This is a simplification - real HOS is more complex
             hours_after_rest_drive = compliance_result.hours_remaining_to_drive + (
                 duration or 0
             ) * 0.5
@@ -582,14 +599,25 @@ class RestOptimizationEngine:
         # Scenario 2: Dock time sufficient for partial rest
         if dock_duration >= MIN_DOCK_TIME_FOR_PARTIAL_REST:
             if compliance_result.hours_remaining_to_drive < 4.0:
-                return (
-                    RestRecommendation.PARTIAL_REST,
-                    self.sleeper_berth_split_long,
-                    f"Partial rest ({self.sleeper_berth_split_long:.0f}-hour split) recommended. "
-                    f"Dock time ({dock_duration:.1f}h) allows for sleeper berth split, "
-                    f"and remaining hours are moderate ({compliance_result.hours_remaining_to_drive:.1f}h). "
-                    f"This provides some recovery while preserving schedule.",
-                )
+                # Determine best split type based on dock time available
+                if dock_duration >= MIN_DOCK_TIME_FOR_8H_SPLIT:
+                    return (
+                        RestRecommendation.PARTIAL_REST_8_2,
+                        SLEEPER_BERTH_SPLIT_8_2_LONG,
+                        f"Partial rest (8-hour 8/2 split) recommended. "
+                        f"Dock time ({dock_duration:.1f}h) allows for 8/2 sleeper berth split, "
+                        f"and remaining hours are moderate ({compliance_result.hours_remaining_to_drive:.1f}h). "
+                        f"This provides good recovery while preserving schedule.",
+                    )
+                else:
+                    return (
+                        RestRecommendation.PARTIAL_REST_7_3,
+                        SLEEPER_BERTH_SPLIT_7_3_LONG,
+                        f"Partial rest (7-hour 7/3 split) recommended. "
+                        f"Dock time ({dock_duration:.1f}h) allows for 7/3 sleeper berth split, "
+                        f"and remaining hours are moderate ({compliance_result.hours_remaining_to_drive:.1f}h). "
+                        f"This provides some recovery while preserving schedule.",
+                    )
             else:
                 return (
                     RestRecommendation.NO_REST,
@@ -634,7 +662,7 @@ class RestOptimizationEngine:
             # After full rest, driver gets full hours back
             return post_load_drive <= settings.max_drive_hours
 
-        elif recommendation == RestRecommendation.PARTIAL_REST:
+        elif recommendation in (RestRecommendation.PARTIAL_REST_7_3, RestRecommendation.PARTIAL_REST_8_2):
             # After partial rest, some hours recovered (simplified)
             recovered_hours = duration or 0
             available_hours = compliance_result.hours_remaining_to_drive + (recovered_hours * 0.5)

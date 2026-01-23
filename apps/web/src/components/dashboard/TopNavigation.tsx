@@ -12,7 +12,7 @@ export function TopNavigation() {
   // Determine active page from pathname
   const getActivePage = () => {
     if (pathname === '/') return 'home';
-    if (pathname === '/simulator') return 'route-planner';
+    if (pathname === '/route-planner') return 'route-planner';
     if (pathname === '/history') return 'history';
     if (pathname === '/rest-optimizer') return 'rest-optimizer';
     return 'home';
@@ -45,13 +45,7 @@ export function TopNavigation() {
             icon={<Route className="h-4 w-4" />}
             label="Route Planner"
             active={activePage === "route-planner"}
-            href="/simulator"
-          />
-          <NavLink
-            icon={<History className="h-4 w-4" />}
-            label="History"
-            active={activePage === "history"}
-            href="/history"
+            href="/route-planner"
           />
           <NavLink
             icon={<Gauge className="h-4 w-4" />}

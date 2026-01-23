@@ -31,7 +31,7 @@ export function LandingPage() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4">
-            <Link href="/simulator">
+            <Link href="/route-planner">
               <Button
                 size="lg"
                 className="gap-2 bg-gray-900 px-6 sm:px-8 hover:bg-gray-800 w-full sm:w-auto"

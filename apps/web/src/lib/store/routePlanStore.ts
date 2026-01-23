@@ -4,6 +4,9 @@
 
 import { create } from 'zustand';
 import type { RoutePlan, StopInput, DriverStateInput, VehicleStateInput } from '../types/routePlan';
+import type { Scenario, ScenarioListItem } from '../types/scenario';
+import type { Load, LoadListItem } from '../types/load';
+import type { TriggerInput } from '../types/trigger';
 
 interface RoutePlanStore {
   // Current route plan
@@ -13,9 +16,27 @@ interface RoutePlanStore {
 
   // Input data
   stops: StopInput[];
+  driverId: string | null;
+  vehicleId: string | null;
   driverState: DriverStateInput | null;
   vehicleState: VehicleStateInput | null;
   optimizationPriority: 'minimize_time' | 'minimize_cost' | 'balance';
+
+  // Scenarios
+  scenarios: ScenarioListItem[];
+  selectedScenario: Scenario | null;
+
+  // Loads
+  loads: LoadListItem[];
+  selectedLoad: Load | null;
+
+  // Plan versions
+  planVersions: RoutePlan[];
+  currentVersion: number;
+
+  // Simulation
+  isSimulationMode: boolean;
+  selectedTriggers: TriggerInput[];
 
   // Actions
   setCurrentPlan: (plan: RoutePlan | null) => void;
@@ -30,23 +51,55 @@ interface RoutePlanStore {
   setStops: (stops: StopInput[]) => void;
 
   // Driver/Vehicle state
+  setDriverId: (id: string) => void;
+  setVehicleId: (id: string) => void;
   setDriverState: (state: DriverStateInput) => void;
   setVehicleState: (state: VehicleStateInput) => void;
   setOptimizationPriority: (priority: 'minimize_time' | 'minimize_cost' | 'balance') => void;
+
+  // Scenarios
+  setScenarios: (scenarios: ScenarioListItem[]) => void;
+  selectScenario: (scenario: Scenario | null) => void;
+
+  // Loads
+  setLoads: (loads: LoadListItem[]) => void;
+  selectLoad: (load: Load | null) => void;
+
+  // Plan versions
+  addPlanVersion: (plan: RoutePlan) => void;
+  setCurrentVersion: (version: number) => void;
+  getPlanByVersion: (version: number) => RoutePlan | null;
+
+  // Simulation
+  enterSimulationMode: () => void;
+  exitSimulationMode: () => void;
+  addTrigger: (trigger: TriggerInput) => void;
+  removeTrigger: (index: number) => void;
+  clearTriggers: () => void;
 
   // Reset
   reset: () => void;
 }
 
-export const useRoutePlanStore = create<RoutePlanStore>((set) => ({
+export const useRoutePlanStore = create<RoutePlanStore>((set, get) => ({
   // Initial state
   currentPlan: null,
   isLoading: false,
   error: null,
   stops: [],
+  driverId: null,
+  vehicleId: null,
   driverState: null,
   vehicleState: null,
   optimizationPriority: 'minimize_time',
+  scenarios: [],
+  selectedScenario: null,
+  loads: [],
+  selectedLoad: null,
+  planVersions: [],
+  currentVersion: 1,
+  isSimulationMode: false,
+  selectedTriggers: [],
 
   // Actions
   setCurrentPlan: (plan) => set({ currentPlan: plan }),
@@ -74,9 +127,52 @@ export const useRoutePlanStore = create<RoutePlanStore>((set) => ({
   setStops: (stops) => set({ stops }),
 
   // Driver/Vehicle state
+  setDriverId: (driverId) => set({ driverId }),
+  setVehicleId: (vehicleId) => set({ vehicleId }),
   setDriverState: (driverState) => set({ driverState }),
   setVehicleState: (vehicleState) => set({ vehicleState }),
   setOptimizationPriority: (priority) => set({ optimizationPriority: priority }),
+
+  // Scenarios
+  setScenarios: (scenarios) => set({ scenarios }),
+  selectScenario: (scenario) => set({ selectedScenario: scenario }),
+
+  // Loads
+  setLoads: (loads) => set({ loads }),
+  selectLoad: (load) => set({ selectedLoad: load }),
+
+  // Plan versions
+  addPlanVersion: (plan) => set((state) => ({
+    planVersions: [...state.planVersions, plan],
+    currentPlan: plan,
+    currentVersion: plan.plan_version || state.planVersions.length + 1,
+  })),
+
+  setCurrentVersion: (version) => {
+    const plan = get().getPlanByVersion(version);
+    if (plan) {
+      set({ currentVersion: version, currentPlan: plan });
+    }
+  },
+
+  getPlanByVersion: (version) => {
+    const { planVersions } = get();
+    return planVersions.find((p) => (p.plan_version || 1) === version) || null;
+  },
+
+  // Simulation
+  enterSimulationMode: () => set({ isSimulationMode: true }),
+  exitSimulationMode: () => set({ isSimulationMode: false, selectedTriggers: [] }),
+
+  addTrigger: (trigger) => set((state) => ({
+    selectedTriggers: [...state.selectedTriggers, trigger],
+  })),
+
+  removeTrigger: (index) => set((state) => ({
+    selectedTriggers: state.selectedTriggers.filter((_, i) => i !== index),
+  })),
+
+  clearTriggers: () => set({ selectedTriggers: [] }),
 
   // Reset
   reset: () => set({
@@ -87,5 +183,13 @@ export const useRoutePlanStore = create<RoutePlanStore>((set) => ({
     driverState: null,
     vehicleState: null,
     optimizationPriority: 'minimize_time',
+    scenarios: [],
+    selectedScenario: null,
+    loads: [],
+    selectedLoad: null,
+    planVersions: [],
+    currentVersion: 1,
+    isSimulationMode: false,
+    selectedTriggers: [],
   }),
 }));

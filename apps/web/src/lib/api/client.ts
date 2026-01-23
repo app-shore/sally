@@ -38,7 +38,7 @@ export const api = {
       on_duty_time: number;
       hours_since_break: number;
     }) => {
-      const response = await fetch(`${API_BASE_URL}/api/v1/hos-rules/check`, {
+      const response = await fetch(`${API_BASE_URL}/hos-rules/check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -61,7 +61,7 @@ export const api = {
       current_location?: string;
     }) => {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/optimization/recommend`,
+        `${API_BASE_URL}/optimization/recommend`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -81,7 +81,7 @@ export const api = {
       average_speed_mph?: number;
     }) => {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/prediction/estimate`,
+        `${API_BASE_URL}/prediction/estimate`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

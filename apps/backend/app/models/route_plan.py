@@ -11,6 +11,7 @@ from app.db.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.driver import Driver
+    from app.models.load import Load
     from app.models.route import Route
     from app.models.route_plan_update import RoutePlanUpdate
     from app.models.route_segment import RouteSegment
@@ -29,6 +30,9 @@ class RoutePlan(Base, TimestampMixin):
     route_id: Mapped[int | None] = mapped_column(
         ForeignKey("routes.id"), index=True
     )  # Optional link to historical route
+    load_id: Mapped[int | None] = mapped_column(
+        ForeignKey("loads.id"), index=True
+    )  # Optional link to load
     driver_id: Mapped[int] = mapped_column(ForeignKey("drivers.id"), index=True, nullable=False)
     vehicle_id: Mapped[int] = mapped_column(ForeignKey("vehicles.id"), index=True, nullable=False)
 
@@ -76,6 +80,9 @@ class RoutePlan(Base, TimestampMixin):
     vehicle: Mapped["Vehicle"] = relationship("Vehicle", back_populates="route_plans")
     route: Mapped["Route"] = relationship(
         "Route", back_populates="route_plans", foreign_keys=[route_id]
+    )
+    load: Mapped["Load"] = relationship(
+        "Load", back_populates="route_plans", foreign_keys=[load_id]
     )
     segments: Mapped[List["RouteSegment"]] = relationship(
         "RouteSegment", back_populates="route_plan", cascade="all, delete-orphan"

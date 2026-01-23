@@ -3,6 +3,7 @@
  */
 
 import type { RoutePlan, RoutePlanningRequest, RouteUpdateRequest } from '../types/routePlan';
+import type { TriggerInput, SimulationResult } from '../types/trigger';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -33,7 +34,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
  * Optimize route with multiple stops
  */
 export async function optimizeRoute(request: RoutePlanningRequest): Promise<RoutePlan> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/route-planning/optimize`, {
+  const response = await fetch(`${API_BASE_URL}/route-planning/optimize`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ export async function optimizeRoute(request: RoutePlanningRequest): Promise<Rout
  * Update route dynamically
  */
 export async function updateRoute(request: RouteUpdateRequest): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/route-planning/update`, {
+  const response = await fetch(`${API_BASE_URL}/route-planning/update`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -63,7 +64,7 @@ export async function updateRoute(request: RouteUpdateRequest): Promise<any> {
  * Get current route status for a driver
  */
 export async function getRouteStatus(driverId: string): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/route-planning/status/${driverId}`, {
+  const response = await fetch(`${API_BASE_URL}/route-planning/status/${driverId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -71,4 +72,25 @@ export async function getRouteStatus(driverId: string): Promise<any> {
   });
 
   return handleResponse<any>(response);
+}
+
+/**
+ * Simulate triggers on a route plan
+ */
+export async function simulateTriggers(
+  planId: string,
+  triggers: TriggerInput[]
+): Promise<SimulationResult> {
+  const response = await fetch(`${API_BASE_URL}/route-planning/simulate-triggers`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      plan_id: planId,
+      triggers,
+    }),
+  });
+
+  return handleResponse<SimulationResult>(response);
 }
