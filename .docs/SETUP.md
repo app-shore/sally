@@ -1,6 +1,6 @@
 # REST-OS Setup Guide
 
-Complete setup instructions for the REST-OS (Rest Optimization System) project.
+Complete setup instructions for REST-OS (Route Planning Platform with intelligent HOS compliance).
 
 ## Table of Contents
 

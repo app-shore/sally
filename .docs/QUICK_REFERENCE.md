@@ -73,10 +73,12 @@ open output/*.png
 - Components: `apps/web/src/components/`
 
 ### Documentation
-- Index: `docs/INDEX.md`
-- Architecture: `docs/architecture/README.md`
-- Setup: `SETUP.md`
+- Master Guide: `DOCUMENTATION.md`
 - Quick Start: `QUICKSTART.md`
+- Product Specs: `.specs/README.md`
+- Architecture: `.docs/INDEX.md`
+- Setup: `.docs/SETUP.md`
+- Deployment: `.docs/DEPLOY.md`
 
 ---
 
@@ -229,12 +231,17 @@ npm install --legacy-peer-deps
 
 ## 📊 Database Schema
 
-### Tables
+### Route Planning Tables (Primary)
+- **route_plans**: Complete route plans with metadata
+- **route_segments**: Individual segments (drive, rest, fuel, dock)
+- **route_plan_updates**: Update history and versioning
+- **stops**: Stop definitions with time windows
+
+### Supporting Tables
 - **drivers**: Driver HOS status and info
 - **vehicles**: Vehicle tracking data
-- **routes**: Route/trip information
 - **events**: Event logging
-- **recommendations**: Rest recommendation history
+- **recommendations**: Rest recommendation history (legacy)
 
 ### Credentials
 - Database: `rest_os`
@@ -282,37 +289,75 @@ Defined in: `apps/backend/app/core/constants.py`
 
 ## 📝 API Endpoints
 
-### HOS Rules
+### Route Planning (Primary)
 ```bash
-POST /api/v1/hos-rules/check
+# Plan a complete route
+POST /api/v1/routes/plan
 {
-  "driver_id": "TEST-001",
+  "driver": {
+    "id": "DRV-001",
+    "hours_driven": 5.0,
+    "on_duty_time": 6.0,
+    "hours_since_break": 4.0
+  },
+  "vehicle": {
+    "id": "TRUCK-001",
+    "fuel_level_percent": 75,
+    "mpg": 6.5
+  },
+  "stops": [
+    {"id": "STOP-1", "name": "Origin", "is_origin": true},
+    {"id": "STOP-2", "name": "Customer A", "estimated_dock_hours": 2.0},
+    {"id": "STOP-3", "name": "Destination", "is_destination": true}
+  ]
+}
+
+# Update route with trigger
+POST /api/v1/routes/update
+{
+  "plan_id": "uuid",
+  "trigger_type": "DOCK_TIME_CHANGED",
+  "current_location": "Customer A",
+  "actual_dock_hours": 4.0
+}
+
+# Get route status
+GET /api/v1/routes/{plan_id}
+
+# Get monitoring status
+GET /api/v1/routes/{plan_id}/monitoring
+```
+
+### Component Endpoints (Called by Route Planner)
+```bash
+# HOS validation
+POST /api/v1/hos/validate
+{
+  "driver_id": "DRV-001",
   "hours_driven": 8.5,
   "on_duty_time": 10.0,
   "hours_since_break": 6.0
 }
-```
 
-### Optimization
-```bash
-POST /api/v1/optimization/recommend
+# REST optimization
+POST /api/v1/rest/recommend
 {
-  "driver_id": "TEST-001",
+  "driver_id": "DRV-001",
   "hours_driven": 8.5,
   "on_duty_time": 10.0,
   "dock_duration_hours": 3.0,
-  "remaining_route_miles": 150.0,
-  "destination": "Test Facility"
+  "remaining_route": {
+    "total_distance_miles": 150,
+    "estimated_drive_hours": 2.5
+  }
 }
-```
 
-### Prediction
-```bash
-POST /api/v1/prediction/estimate
+# Fuel stop finding
+POST /api/v1/fuel/find-stops
 {
-  "remaining_route_miles": 150.0,
-  "destination": "Test Facility",
-  "appointment_time": null
+  "current_location": {"lat": 34.0, "lng": -118.0},
+  "remaining_distance": 500,
+  "fuel_remaining_percent": 25
 }
 ```
 
@@ -334,21 +379,24 @@ POST /api/v1/prediction/estimate
 ## 📚 Documentation Hierarchy
 
 ```
-docs/
-├── INDEX.md                    # Master index
-├── QUICK_REFERENCE.md          # This file
-├── C4_MODEL_SUMMARY.md         # Architecture summary
+rest-os/
+├── README.md                   # Project overview
+├── QUICKSTART.md              # 5-minute guide
+├── DOCUMENTATION.md           # Master navigation
 │
-└── architecture/
-    ├── README.md               # Architecture guide
-    ├── VISUALIZATION_GUIDE.md  # How to view diagrams
-    └── *.puml                  # 9 PlantUML diagrams
-
-Root:
-├── QUICKSTART.md               # 5-minute guide
-├── SETUP.md                    # Detailed setup
-├── DEPLOYMENT_STATUS.md        # Current status
-└── IMPLEMENTATION_SUMMARY.md   # What's built
+├── .specs/                    # Product Specifications
+│   ├── README.md             # Specs index
+│   ├── blueprint.md          # Product vision
+│   ├── ROUTE_PLANNING_SPEC.md # Technical spec
+│   └── INTELLIGENT_OPTIMIZATION_FORMULA.md
+│
+└── .docs/                     # Technical Documentation
+    ├── INDEX.md              # Architecture index
+    ├── SETUP.md              # Setup guide
+    ├── DEPLOY.md             # Deployment guide
+    ├── QUICK_REFERENCE.md    # This file
+    ├── C4_MODEL_SUMMARY.md
+    └── architecture/         # 9 PlantUML diagrams
 ```
 
 ---
@@ -357,8 +405,10 @@ Root:
 
 ### Documentation
 - **Quick Start**: `QUICKSTART.md`
-- **Setup Guide**: `SETUP.md`
-- **Architecture**: `docs/architecture/README.md`
+- **Master Guide**: `DOCUMENTATION.md`
+- **Product Specs**: `.specs/README.md`
+- **Setup Guide**: `.docs/SETUP.md`
+- **Architecture**: `.docs/architecture/README.md`
 - **API Docs**: http://localhost:8000/docs
 
 ### External Resources
@@ -374,5 +424,6 @@ Root:
 
 ---
 
-**Last Updated**: 2026-01-22
+**Last Updated**: 2026-01-23
+**Product**: REST-OS Route Planning Platform
 **Quick Reference**: Keep this handy!

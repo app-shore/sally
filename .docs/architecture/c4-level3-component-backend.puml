@@ -3,58 +3,106 @@
 
 LAYOUT_WITH_LEGEND()
 
-title Component diagram for REST-OS Backend API
+title Component diagram for REST-OS Backend API (Route Planning Platform)
 
-Container(web, "Operations Dashboard", "Next.js, React", "Web UI for engine control")
+Container(web, "Operations Dashboard", "Next.js, React", "Web UI for route planning and monitoring")
 
 Container_Boundary(api, "Backend API") {
     Component(api_router, "API Router", "FastAPI Router", "Routes HTTP requests to appropriate endpoints")
 
-    Component(hos_endpoint, "HOS Rules Endpoint", "FastAPI Route", "Handles HOS compliance check requests")
-    Component(opt_endpoint, "Optimization Endpoint", "FastAPI Route", "Handles rest optimization requests")
-    Component(pred_endpoint, "Prediction Endpoint", "FastAPI Route", "Handles drive demand prediction requests")
+    ' Primary Route Planning Components
+    Component(route_endpoint, "Route Planning Endpoint", "FastAPI Route", "POST /routes/plan - Plans complete routes")
+    Component(route_update_endpoint, "Route Update Endpoint", "FastAPI Route", "POST /routes/update - Handles dynamic updates")
+    Component(route_status_endpoint, "Route Status Endpoint", "FastAPI Route", "GET /routes/{id} - Returns route status")
 
-    Component(hos_engine, "HOS Rule Engine", "Python Service", "Validates FMCSA compliance: 11hr drive, 14hr duty, 30min break, sleeper berth splits")
-    Component(opt_engine, "Rest Optimization Engine", "Python Service", "Analyzes dock time + drive demand to recommend FULL/PARTIAL/NO REST")
-    Component(pred_engine, "Prediction Engine", "Python Service", "Estimates post-load drive demand and route requirements")
+    Component(route_planner, "Route Planning Engine", "Python Service", "PRIMARY: TSP optimization, HOS simulation, rest/fuel insertion")
+    Component(monitoring_service, "Continuous Monitoring Service", "Python Background Service", "Monitors 14 trigger types every 60s")
+    Component(update_handler, "Dynamic Update Handler", "Python Service", "Decides re-plan vs ETA update")
 
-    Component(driver_repo, "Driver Repository", "SQLAlchemy Repository", "Manages driver data access")
-    Component(vehicle_repo, "Vehicle Repository", "SQLAlchemy Repository", "Manages vehicle data access")
-    Component(route_repo, "Route Repository", "SQLAlchemy Repository", "Manages route data access")
-    Component(rec_repo, "Recommendation Repository", "SQLAlchemy Repository", "Manages recommendation history")
+    ' Component Engines (Called by Route Planner)
+    Component(hos_engine, "HOS Rule Engine", "Python Service", "COMPONENT: Validates FMCSA compliance (11h drive, 14h duty, 30min break)")
+    Component(rest_engine, "REST Optimization Engine", "Python Service", "COMPONENT: Called by planner when HOS shortfall detected")
+    Component(fuel_engine, "Fuel Stop Engine", "Python Service", "COMPONENT: Finds optimal fuel stops on route")
+
+    ' Component Endpoints (Supporting)
+    Component(hos_endpoint, "HOS Validation Endpoint", "FastAPI Route", "POST /hos/validate - Component endpoint")
+    Component(rest_endpoint, "REST Optimization Endpoint", "FastAPI Route", "POST /rest/recommend - Component endpoint")
+    Component(fuel_endpoint, "Fuel Stop Endpoint", "FastAPI Route", "POST /fuel/find-stops - Component endpoint")
+
+    ' Repositories
+    Component(route_plan_repo, "Route Plan Repository", "SQLAlchemy", "Manages route plans")
+    Component(segment_repo, "Segment Repository", "SQLAlchemy", "Manages route segments")
+    Component(update_repo, "Update Repository", "SQLAlchemy", "Manages route updates")
+    Component(stop_repo, "Stop Repository", "SQLAlchemy", "Manages stops")
+    Component(driver_repo, "Driver Repository", "SQLAlchemy", "Manages driver data")
+    Component(vehicle_repo, "Vehicle Repository", "SQLAlchemy", "Manages vehicle data")
 
     Component(middleware, "Middleware Stack", "FastAPI Middleware", "CORS, logging, error handling, request tracking")
-    Component(security, "Security Layer", "python-jose, passlib", "JWT authentication, password hashing (Future)")
 }
 
-ContainerDb(db, "Database", "PostgreSQL", "Stores all application data")
-ContainerDb(cache, "Cache", "Redis", "Caches data and sessions")
+ContainerDb(db, "Database", "PostgreSQL 16", "Stores route plans, segments, updates, stops")
+ContainerDb(cache, "Cache", "Redis 7", "Caches route calculations, monitoring state")
 
+' Primary flow
 Rel(web, api_router, "Makes API requests", "HTTPS/JSON")
-
 Rel(api_router, middleware, "Processes through")
+
+' Route Planning Flow
+Rel(middleware, route_endpoint, "Routes to")
+Rel(route_endpoint, route_planner, "Calls to plan route")
+Rel(route_planner, hos_engine, "Validates compliance")
+Rel(route_planner, rest_engine, "Calls when HOS shortfall")
+Rel(route_planner, fuel_engine, "Calls when fuel low")
+Rel(route_planner, route_plan_repo, "Saves route plan")
+Rel(route_planner, segment_repo, "Saves segments")
+
+' Dynamic Update Flow
+Rel(middleware, route_update_endpoint, "Routes to")
+Rel(route_update_endpoint, update_handler, "Handles update")
+Rel(update_handler, monitoring_service, "Checks triggers")
+Rel(update_handler, route_planner, "Triggers re-plan if needed")
+Rel(update_handler, update_repo, "Logs update")
+
+' Monitoring Flow
+Rel(monitoring_service, route_plan_repo, "Fetches active routes")
+Rel(monitoring_service, driver_repo, "Checks HOS status")
+Rel(monitoring_service, update_handler, "Sends triggers")
+
+' Component Endpoints
 Rel(middleware, hos_endpoint, "Routes to")
-Rel(middleware, opt_endpoint, "Routes to")
-Rel(middleware, pred_endpoint, "Routes to")
+Rel(middleware, rest_endpoint, "Routes to")
+Rel(middleware, fuel_endpoint, "Routes to")
+Rel(hos_endpoint, hos_engine, "Calls")
+Rel(rest_endpoint, rest_engine, "Calls")
+Rel(fuel_endpoint, fuel_engine, "Calls")
 
-Rel(hos_endpoint, hos_engine, "Calls for compliance validation")
-Rel(opt_endpoint, opt_engine, "Calls for rest recommendation")
-Rel(opt_endpoint, hos_engine, "Validates compliance first")
-Rel(opt_endpoint, pred_engine, "Gets drive demand estimate")
-Rel(pred_endpoint, pred_engine, "Calls for predictions")
+' Database connections
+Rel(route_plan_repo, db, "Reads/Writes", "PostgreSQL")
+Rel(segment_repo, db, "Reads/Writes", "PostgreSQL")
+Rel(update_repo, db, "Reads/Writes", "PostgreSQL")
+Rel(stop_repo, db, "Reads/Writes", "PostgreSQL")
+Rel(driver_repo, db, "Reads/Writes", "PostgreSQL")
+Rel(vehicle_repo, db, "Reads/Writes", "PostgreSQL")
 
-Rel(hos_engine, driver_repo, "Fetches driver HOS status")
-Rel(opt_engine, driver_repo, "Fetches driver data")
-Rel(opt_engine, route_repo, "Fetches route information")
-Rel(opt_engine, rec_repo, "Stores recommendations")
-Rel(pred_engine, route_repo, "Fetches route data")
+' Cache connections
+Rel(route_planner, cache, "Caches route calculations", "Redis")
+Rel(monitoring_service, cache, "Caches monitoring state", "Redis")
 
-Rel(driver_repo, db, "Reads/Writes", "PostgreSQL Protocol")
-Rel(vehicle_repo, db, "Reads/Writes", "PostgreSQL Protocol")
-Rel(route_repo, db, "Reads/Writes", "PostgreSQL Protocol")
-Rel(rec_repo, db, "Reads/Writes", "PostgreSQL Protocol")
+note right of route_planner
+  **Route Planning Engine (Primary)**
+  1. TSP optimization (stop sequence)
+  2. HOS simulation (segment-by-segment)
+  3. Rest stop insertion (calls REST Engine)
+  4. Fuel stop insertion (calls Fuel Engine)
+  5. Feasibility validation
+end note
 
-Rel(hos_engine, cache, "Caches validation results", "Redis Protocol")
-Rel(pred_engine, cache, "Caches predictions", "Redis Protocol")
+note right of rest_engine
+  **REST Optimization Engine (Component)**
+  Called by route planner when:
+  • HOS shortfall detected
+  • At dock, evaluate rest opportunity
+  Returns: rest_type, duration, reasoning
+end note
 
 @enduml

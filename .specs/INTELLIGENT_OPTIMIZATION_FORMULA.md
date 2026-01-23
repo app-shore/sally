@@ -1,8 +1,51 @@
 # Intelligent Rest Optimization Formula
 
+## Context: Component of Route Planning System
+
+**IMPORTANT:** This REST Optimization Engine is a **component** of the larger REST-OS Route Planning Platform, not a standalone product.
+
+### How It Fits in the System
+
+```
+Route Planning Engine (Primary System)
+    ↓
+HOS Simulation (detects shortfall)
+    ↓
+REST Optimization Engine (THIS DOCUMENT) ← Called when hours insufficient
+    ↓
+Recommendation (Insert rest stop? Leverage dock? How long?)
+    ↓
+Route Planner (inserts rest segment into route)
+```
+
+### When This Engine is Called
+
+The REST Optimization Engine is invoked by the route planner when:
+1. **During initial route planning:** HOS simulation detects driver will run out of hours before completing route
+2. **During dock time:** System evaluates if dock time should be leveraged for rest
+3. **During dynamic updates:** Re-planning detects new HOS constraints
+
+### What This Engine Does
+
+Given a driver's current HOS state and remaining route requirements, it:
+- **Analyzes feasibility:** Can driver complete remaining route with current hours?
+- **Calculates opportunity:** If at dock, is this a good opportunity to rest?
+- **Recommends rest type:** FULL_REST (10h), PARTIAL_REST (7h), or NO_REST
+- **Provides reasoning:** Audit-ready explanation for compliance
+
+### Integration with Route Planner
+
+The route planner uses this engine's output to:
+- Insert rest stops at truck stops when mandatory
+- Leverage dock time for opportunistic rest
+- Decide between full rest (10h) vs partial rest (7h)
+- Generate compliance-aware route segments
+
+---
+
 ## Overview
 
-This document describes the **intelligent optimization formula** that determines whether a driver should extend their rest period during dock time. The formula considers **all HOS compliance parameters** (drive limit, duty window, break requirements) and **upcoming trip requirements** to make optimal rest recommendations.
+This document describes the **intelligent optimization formula** that determines whether a driver should extend their rest period during dock time or requires a dedicated rest stop. The formula considers **all HOS compliance parameters** (drive limit, duty window, break requirements) and **remaining route requirements** to make optimal rest recommendations.
 
 ---
 
