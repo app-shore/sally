@@ -59,22 +59,17 @@ services:
       dockerfile: ./apps/backend/Dockerfile
     container_name: rest-os-backend
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       DATABASE_URL: postgresql://rest_os_user:rest_os_password@postgres:5432/rest_os
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: http://localhost:3000,http://frontend:3000
     ports:
       - "8000:8000"
-    volumes:
-      - ./apps/backend/src:/app/src
-      - ./apps/backend/prisma:/app/prisma
-      - ./packages/shared-types:/app/node_modules/@rest-os/shared-types
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: npm run start:dev
 
   frontend:
     build:
