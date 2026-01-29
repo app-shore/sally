@@ -19,7 +19,7 @@ async function bootstrap() {
 
   // Swagger/OpenAPI documentation
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('REST-OS Backend API')
+    .setTitle('SALLY Backend API')
     .setDescription('Route Planning Platform API - Node.js/TypeScript replica')
     .setVersion('1.0.0')
     .addTag('HOS Rules', 'Hours of Service compliance validation')
@@ -37,7 +37,7 @@ async function bootstrap() {
 
   const port = 8000;
   await app.listen(port);
-  console.log(`REST-OS Backend running on port ${port}`);
+  console.log(`SALLY Backend running on port ${port}`);
   console.log(`Swagger docs: http://localhost:${port}/docs`);
 }
 

@@ -6,8 +6,8 @@ const configSchema = z.object({
   redisUrl: z.string().default('redis://localhost:6379/0'),
   corsOrigins: z.string().default('http://localhost:3000'),
   apiV1Prefix: z.string().default('/api/v1'),
-  projectName: z.string().default('REST-OS Backend'),
-  secretKey: z.string().default('rest-os-development-secret-key-minimum-32-chars'),
+  projectName: z.string().default('SALLY Backend'),
+  secretKey: z.string().default('sally-development-secret-key-minimum-32-chars'),
 
   // HOS Constants
   maxDriveHours: z.number().default(11.0),
@@ -24,7 +24,7 @@ export type Configuration = z.infer<typeof configSchema>;
 export default (): Configuration => {
   const raw = {
     environment: process.env.NODE_ENV,
-    databaseUrl: process.env.DATABASE_URL || 'postgresql://rest_os_user:rest_os_password@localhost:5432/rest_os',
+    databaseUrl: process.env.DATABASE_URL || 'postgresql://sally_user:sally_password@localhost:5432/sally',
     redisUrl: process.env.REDIS_URL,
     corsOrigins: process.env.CORS_ORIGINS,
     apiV1Prefix: process.env.API_V1_PREFIX,
