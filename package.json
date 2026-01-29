@@ -19,16 +19,20 @@
     "backend:dev": "turbo run dev --filter=@sally/backend",
     "backend:build": "turbo run build --filter=@sally/backend",
     "backend:test": "turbo run test --filter=@sally/backend",
+    "backend:db:push": "cd apps/backend && npm run db:push",
+    "backend:seed": "cd apps/backend && npm run db:seed",
+    "backend:prisma:generate": "cd apps/backend && npm run prisma:generate",
+    "backend:prisma:studio": "cd apps/backend && npm run prisma:studio",
     "backend-py:dev": "cd apps/backend-py && uv run fastapi dev app/main.py",
     "backend-py:test": "cd apps/backend-py && uv run pytest tests/",
+    "backend-py:migrate": "docker-compose exec backend uv run alembic upgrade head",
+    "backend-py:seed": "docker-compose exec backend uv run python scripts/db_seed.py",
     "frontend:dev": "turbo run dev --filter=@sally/web",
     "docker:up": "docker-compose up -d",
     "docker:build": "docker-compose up -d --build",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
-    "docker:restart": "docker-compose restart",
-    "db:migrate": "docker-compose exec backend uv run alembic upgrade head",
-    "db:seed": "docker-compose exec backend uv run python scripts/db_seed.py"
+    "docker:restart": "docker-compose restart"
   },
   "devDependencies": {
     "turbo": "^2.3.3"

@@ -201,7 +201,7 @@ A complete C4 model architecture documentation has been created for SALLY with *
     │
     └── render-diagrams.sh                  # Script to render all diagrams (executable)
 
-/Users/ajay-admin/rest-os/specs/
+/Users/ajay-admin/sally/specs/
 └── IMPLEMENTATION_PLAN.md                  # Original scaffolding plan (copied)
 ```
 
