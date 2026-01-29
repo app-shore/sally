@@ -1,4 +1,4 @@
-# AI Context for REST-OS Project
+# AI Context for SALLY Project
 
 ## Documentation Organization (Updated: January 23, 2026)
 
@@ -38,7 +38,7 @@
 ## Product Framing (CRITICAL)
 
 ### Primary Product
-**REST-OS is a Route Planning Platform for truck drivers**
+**SALLY is a Route Planning Platform for truck drivers**
 
 Core capabilities:
 1. Route planning with stop sequence optimization (TSP/VRP)
@@ -59,13 +59,13 @@ Core capabilities:
 ### Correct Language
 
 **CORRECT:**
-- "REST-OS is a route planning platform"
+- "SALLY is a route planning platform"
 - "REST optimization is called by the route planner"
 - "The system automatically inserts rest stops where needed"
 - "Primary endpoints: /api/v1/routes/plan, /api/v1/routes/update"
 
 **INCORRECT:**
-- "REST-OS is a rest optimization system"
+- "SALLY is a rest optimization system"
 - "REST optimization is the main product"
 - "The system optimizes rest at dock" (too narrow)
 - "Primary endpoint: /api/v1/optimization/recommend" (this is a component)
@@ -79,7 +79,7 @@ Core capabilities:
 3. **Essential getting started guides** → Root directory (README, QUICKSTART, DOCUMENTATION only)
 4. **Always maintain index files** (README.md, INDEX.md) when adding new docs
 5. **Cross-reference related documents** for easy navigation
-6. **Frame REST-OS as route planning platform** with REST optimization as component
+6. **Frame SALLY as route planning platform** with REST optimization as component
 
 ---
 
@@ -186,4 +186,4 @@ Check for:
 January 23, 2026 - Major documentation cleanup and reorganization
 
 ## Maintained By
-REST-OS Product & Engineering Team
+SALLY Product & Engineering Team

@@ -5,6 +5,8 @@ Three deployment options:
 2. **Vercel + CapRover** - Production (Recommended) - Frontend on Vercel, Backend on CapRover
 3. **CapRover Full-Stack** - Legacy option (both frontend and backend on CapRover)
 
+**Backend Deployment:** See [BACKEND_DEPLOYMENT.md](./BACKEND_DEPLOYMENT.md) for deploying NestJS or Python backend to CapRover.
+
 ---
 
 ## Option 1: Docker Compose (Sharing & Local Testing) 🐳

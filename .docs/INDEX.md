@@ -54,6 +54,8 @@ specs/
 |----------|-------------|
 | [QUICKSTART.md](../QUICKSTART.md) | 5-minute quick start guide |
 | [SETUP.md](../SETUP.md) | Comprehensive setup instructions |
+| [DEPLOY.md](./DEPLOY.md) | Deployment guide (Docker, Vercel, CapRover) |
+| [BACKEND_DEPLOYMENT.md](./BACKEND_DEPLOYMENT.md) | Backend deployment (NestJS or Python to CapRover) |
 | [README.md](../README.md) | Project overview and introduction |
 
 ### 2. Architecture
@@ -284,10 +286,11 @@ When making changes:
 4. [architecture/c4-level2-container.puml](architecture/c4-level2-container.puml) - Container architecture
 
 ### DevOps Engineer
-1. [DEPLOYMENT_STATUS.md](../DEPLOYMENT_STATUS.md) - Current status
-2. [architecture/deployment-diagram.puml](architecture/deployment-diagram.puml) - Infrastructure
-3. [docker-compose.yml](../docker-compose.yml) - Docker orchestration
-4. [SETUP.md](../SETUP.md) - Environment setup
+1. [DEPLOY.md](./DEPLOY.md) - Deployment guide
+2. [BACKEND_DEPLOYMENT.md](./BACKEND_DEPLOYMENT.md) - Backend deployment
+3. [DEPLOYMENT_STATUS.md](../DEPLOYMENT_STATUS.md) - Current status
+4. [architecture/deployment-diagram.puml](architecture/deployment-diagram.puml) - Infrastructure
+5. [docker-compose.yml](../docker-compose.yml) - Docker orchestration
 
 ### Product Manager
 1. [README.md](../README.md) - Project overview

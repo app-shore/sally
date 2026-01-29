@@ -1,8 +1,8 @@
 {
-  "name": "rest-os",
+  "name": "sally",
   "version": "0.1.0",
   "private": true,
-  "description": "REST-OS - Rest Optimization System for truck drivers",
+  "description": "SALLY - Rest Optimization System for truck drivers",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -16,12 +16,12 @@
     "type-check": "turbo run type-check",
     "clean": "turbo run clean && rm -rf node_modules",
     "install:all": "./install.sh",
-    "backend:dev": "turbo run dev --filter=@rest-os/backend",
-    "backend:build": "turbo run build --filter=@rest-os/backend",
-    "backend:test": "turbo run test --filter=@rest-os/backend",
+    "backend:dev": "turbo run dev --filter=@sally/backend",
+    "backend:build": "turbo run build --filter=@sally/backend",
+    "backend:test": "turbo run test --filter=@sally/backend",
     "backend-py:dev": "cd apps/backend-py && uv run fastapi dev app/main.py",
     "backend-py:test": "cd apps/backend-py && uv run pytest tests/",
-    "frontend:dev": "turbo run dev --filter=@rest-os/web",
+    "frontend:dev": "turbo run dev --filter=@sally/web",
     "docker:up": "docker-compose up -d",
     "docker:build": "docker-compose up -d --build",
     "docker:down": "docker-compose down",

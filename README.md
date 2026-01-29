@@ -1,19 +1,19 @@
-# REST-OS: Intelligent Route Planning Platform
+# SALLY: Intelligent Route Planning Platform
 
 **The first route planning platform built for truck drivers, not dispatchers.**
 
-REST-OS optimizes stop sequence, rest timing, fuel stops, and dynamically updates routes when reality doesn't match the plan.
+SALLY optimizes stop sequence, rest timing, fuel stops, and dynamically updates routes when reality doesn't match the plan.
 
 ---
 
 ## 🚀 Quick Start
 
-**New to REST-OS?** Get started in 5 minutes:
+**New to SALLY?** Get started in 5 minutes:
 
 ```bash
 # Clone repository
 git clone <repository-url>
-cd rest-os
+cd sally
 
 # Quick start with Docker
 npm run docker:up
@@ -40,7 +40,7 @@ For detailed setup, see [.docs/SETUP.md](./.docs/SETUP.md).
 ### Documentation Structure
 
 ```
-rest-os/
+sally/
 ├── README.md                    # This file - project overview
 ├── QUICKSTART.md               # 5-minute quick start guide
 ├── DOCUMENTATION.md            # Complete documentation guide
@@ -60,7 +60,7 @@ rest-os/
 
 ---
 
-## 🎯 What is REST-OS?
+## 🎯 What is SALLY?
 
 ### The Problem
 
@@ -75,7 +75,7 @@ Truck drivers get a list of stops from dispatch but **no actual route plan**:
 
 ### The Solution
 
-REST-OS is a compliance-first route planning engine that:
+SALLY is a compliance-first route planning engine that:
 
 1. **Optimizes stop sequence** (TSP/VRP algorithms)
 2. **Inserts rest stops** where HOS requires (truck stops, service areas)
@@ -127,7 +127,7 @@ For detailed architecture, see [.docs/architecture/](./.docs/architecture/).
 ## 🚦 Project Structure
 
 ```
-rest-os/
+sally/
 ├── apps/
 │   ├── backend/              # Python FastAPI backend
 │   │   ├── app/
@@ -342,7 +342,7 @@ For issues and questions:
 
 > **"Route planning isn't just about shortest distance—it's about HOS compliance, rest timing, fuel costs, and adapting to reality."**
 
-**REST-OS: Where routing meets reality.**
+**SALLY: Where routing meets reality.**
 
 ---
 

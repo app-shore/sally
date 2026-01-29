@@ -1,24 +1,24 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: rest-os-postgres
+    container_name: sally-postgres
     environment:
-      POSTGRES_USER: rest_os_user
-      POSTGRES_PASSWORD: rest_os_password
-      POSTGRES_DB: rest_os
+      POSTGRES_USER: sally_user
+      POSTGRES_PASSWORD: sally_password
+      POSTGRES_DB: sally
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rest_os_user -d rest_os"]
+      test: ["CMD-SHELL", "pg_isready -U sally_user -d sally"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: rest-os-redis
+    container_name: sally-redis
     ports:
       - "6379:6379"
     volumes:
@@ -33,12 +33,12 @@ services:
   #   build:
   #     context: ./apps/backend-py
   #     dockerfile: Dockerfile
-  #   container_name: rest-os-backend-py
+  #   container_name: sally-backend-py
   #   working_dir: /app
   #   environment:
   #     ENVIRONMENT: development
   #     DEBUG: "true"
-  #     DATABASE_URL: postgresql+asyncpg://rest_os_user:rest_os_password@postgres:5432/rest_os
+  #     DATABASE_URL: postgresql+asyncpg://sally_user:sally_password@postgres:5432/sally
   #     REDIS_URL: redis://redis:6379/0
   #     CORS_ORIGINS: http://localhost:3000,http://frontend:3000
   #     LOG_LEVEL: DEBUG
@@ -57,10 +57,10 @@ services:
     build:
       context: .
       dockerfile: ./apps/backend/Dockerfile
-    container_name: rest-os-backend
+    container_name: sally-backend
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://rest_os_user:rest_os_password@postgres:5432/rest_os
+      DATABASE_URL: postgresql://sally_user:sally_password@postgres:5432/sally
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: http://localhost:3000,http://frontend:3000
     ports:
@@ -76,7 +76,7 @@ services:
       context: ./apps/web
       dockerfile: Dockerfile
       target: development
-    container_name: rest-os-frontend
+    container_name: sally-frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
       NODE_ENV: development
@@ -98,4 +98,4 @@ volumes:
 
 networks:
   default:
-    name: rest-os-network
+    name: sally-network

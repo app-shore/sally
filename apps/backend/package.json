@@ -1,8 +1,8 @@
 {
-  "name": "@rest-os/backend",
+  "name": "@sally/backend",
   "version": "0.1.0",
-  "description": "REST-OS Node.js/TypeScript Backend",
-  "author": "REST-OS Team",
+  "description": "SALLY Node.js/TypeScript Backend",
+  "author": "SALLY Team",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -29,7 +29,7 @@
     "@nestjs/swagger": "11.2.5",
     "@prisma/adapter-pg": "7.3.0",
     "@prisma/client": "7.3.0",
-    "@rest-os/shared-types": "*",
+    "@sally/shared-types": "*",
     "cache-manager": "7.2.8",
     "cache-manager-ioredis": "2.1.0",
     "class-transformer": "0.5.1",

@@ -1,5 +1,5 @@
 {
-  "name": "@rest-os/shared-types",
+  "name": "@sally/shared-types",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",
