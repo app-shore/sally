@@ -1,433 +1,484 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Clock, Shield, Zap, Database, Route, TrendingUp, AlertTriangle, MapPin, Fuel } from "lucide-react";
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { ScrollReveal, StaggerContainer, StaggerItem } from './ScrollReveal';
+import { HeroRouteBackground, AnimatedRoute } from './AnimatedRoute';
+import {
+  FeatureCard,
+  RouteIcon,
+  MonitorIcon,
+  AlertIcon,
+  ComplianceIcon,
+  RestIcon,
+  FuelIcon,
+} from './FeatureCard';
+import { ROICalculator } from './ROICalculator';
+import { MonitoringDashboard } from './MonitoringDashboard';
+import { ComparisonTable } from './ComparisonRow';
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Hero Section */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12 md:py-16">
-        <div className="text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gray-900 px-4 py-1.5 text-xs sm:text-sm font-medium text-white">
-            <Shield className="h-4 w-4" />
-            Zero HOS Violations Guaranteed
-          </div>
-          <h1 className="mb-3 sm:mb-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
-            SALLY
-          </h1>
-          <p className="mb-2 text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 font-semibold">
-            HOS-Aware Route Planning Platform
-          </p>
-          <p className="mx-auto mb-4 max-w-3xl text-sm sm:text-base md:text-lg text-gray-500 px-4">
-            The only route planner that understands drivers have hours, not infinite time.
-          </p>
-          <p className="mx-auto mb-8 sm:mb-12 max-w-3xl text-sm sm:text-base text-gray-600 px-4">
-            Optimize multi-stop routes with automatic rest stop insertion, continuous HOS monitoring,
-            and dynamic updates that keep your fleet compliant while maximizing efficiency.
-          </p>
+    <div className="min-h-screen bg-white smooth-scroll">
+      {/* Section 1: Hero */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <HeroRouteBackground />
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4">
-            <Link href="/route-planner">
-              <Button
-                size="lg"
-                className="gap-2 bg-gray-900 px-6 sm:px-8 hover:bg-gray-800 w-full sm:w-auto"
-              >
-                Plan a Route
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/rest-optimizer">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          >
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 text-gradient">
+              SALLY
+            </h1>
+            <p className="text-2xl md:text-3xl text-gray-900 mb-4 font-semibold tracking-tight">
+              Stop planning routes.<br className="hidden sm:block" /> Start preventing violations.
+            </p>
+            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-12">
+              The only platform that routes <span className="font-semibold text-black">drivers</span>, not trucks.
+            </p>
+
+            {/* CTAs */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
+              <Link href="/login">
+                <Button
+                  size="lg"
+                  className="bg-black hover:bg-gray-800 text-white px-8 py-6 text-lg h-auto rounded-lg transition-all hover:scale-105"
+                >
+                  Get Started
+                </Button>
+              </Link>
               <Button
                 size="lg"
                 variant="outline"
-                className="gap-2 px-6 sm:px-8 w-full sm:w-auto"
+                className="border-2 border-black text-black hover:bg-gray-50 px-8 py-6 text-lg h-auto rounded-lg transition-all hover:scale-105"
+                onClick={() => {
+                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                }}
               >
-                Try Rest Optimizer
+                See How It Works
               </Button>
-            </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* Scroll indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="absolute bottom-12 left-1/2 transform -translate-x-1/2"
+          >
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="w-6 h-10 border-2 border-gray-400 rounded-full flex items-start justify-center p-2"
+            >
+              <div className="w-1 h-2 bg-gray-400 rounded-full" />
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Section 2: The Problem */}
+      <section className="py-32 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-20">
+              The Broken Communication Line
+            </h2>
+          </ScrollReveal>
+
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            {/* Dispatcher side */}
+            <ScrollReveal variant="slide-right">
+              <div className="relative">
+                <div className="absolute -top-6 -left-6 text-9xl font-bold text-gray-200 leading-none">
+                  D
+                </div>
+                <div className="relative bg-white p-8 border-2 border-gray-200 rounded-lg">
+                  <h3 className="text-2xl font-bold text-black mb-6">Dispatcher Pain</h3>
+                  <ul className="space-y-4">
+                    <PainPoint>Manual HOS tracking across fleet</PainPoint>
+                    <PainPoint>Constant driver check-ins</PainPoint>
+                    <PainPoint>Reactive problem solving</PainPoint>
+                    <PainPoint>No visibility into violations until they happen</PainPoint>
+                    <PainPoint>Hours spent re-planning routes</PainPoint>
+                  </ul>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Driver side */}
+            <ScrollReveal variant="slide-left">
+              <div className="relative">
+                <div className="absolute -top-6 -right-6 text-9xl font-bold text-gray-200 leading-none">
+                  D
+                </div>
+                <div className="relative bg-white p-8 border-2 border-gray-200 rounded-lg">
+                  <h3 className="text-2xl font-bold text-black mb-6">Driver Pain</h3>
+                  <ul className="space-y-4">
+                    <PainPoint>No clear route plan</PainPoint>
+                    <PainPoint>Poor rest timing decisions</PainPoint>
+                    <PainPoint>HOS violation stress</PainPoint>
+                    <PainPoint>Inefficient fuel stops</PainPoint>
+                    <PainPoint>Constant uncertainty</PainPoint>
+                  </ul>
+                </div>
+              </div>
+            </ScrollReveal>
+          </div>
+
+          {/* Breaking line */}
+          <ScrollReveal delay={0.5}>
+            <div className="mt-16 relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t-2 border-dashed border-gray-300" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-gray-50 px-6 py-2 text-sm font-medium text-gray-500 uppercase tracking-wide">
+                  Communication Breakdown
+                </span>
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* Section 3: The Solution */}
+      <section className="py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
+              One Platform. Zero Violations.
+            </h2>
+            <p className="text-xl text-gray-600 text-center max-w-3xl mx-auto mb-20">
+              Watch as SALLY automatically builds an HOS-compliant route with optimized stops
+            </p>
+          </ScrollReveal>
+
+          <ScrollReveal delay={0.3}>
+            <AnimatedRoute />
+          </ScrollReveal>
+
+          {/* Solution stats */}
+          <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20">
+            <StaggerItem>
+              <div className="text-center">
+                <div className="text-5xl font-bold text-black mb-2">5-10</div>
+                <div className="text-sm text-gray-600">Stops Optimized</div>
+              </div>
+            </StaggerItem>
+            <StaggerItem>
+              <div className="text-center">
+                <div className="text-5xl font-bold text-black mb-2">&lt;5s</div>
+                <div className="text-sm text-gray-600">Planning Time</div>
+              </div>
+            </StaggerItem>
+            <StaggerItem>
+              <div className="text-center">
+                <div className="text-5xl font-bold text-black mb-2">100%</div>
+                <div className="text-sm text-gray-600">HOS Compliant</div>
+              </div>
+            </StaggerItem>
+            <StaggerItem>
+              <div className="text-center">
+                <div className="text-5xl font-bold text-black mb-2">24/7</div>
+                <div className="text-sm text-gray-600">Monitoring</div>
+              </div>
+            </StaggerItem>
+          </StaggerContainer>
+        </div>
+      </section>
+
+      {/* Section 4: Key Features */}
+      <section className="py-32 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-20">
+              Intelligence That Works For You
+            </h2>
+          </ScrollReveal>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <FeatureCard
+              icon={<RouteIcon />}
+              title="HOS-Aware Routing"
+              description="Unlike traditional planners, SALLY optimizes routes with full awareness of driver hours of service limits"
+              delay={0}
+            />
+            <FeatureCard
+              icon={<RestIcon />}
+              title="Automatic Rest Insertion"
+              description="System detects when rest is needed and automatically inserts optimal rest stops before violations occur"
+              delay={0.1}
+            />
+            <FeatureCard
+              icon={<FuelIcon />}
+              title="Smart Fuel Optimization"
+              description="Find the best fuel stops based on price, location, and route efficiency"
+              delay={0.2}
+            />
+            <FeatureCard
+              icon={<MonitorIcon />}
+              title="Continuous Monitoring"
+              description="14 trigger types monitored every 60 seconds to catch issues before they become problems"
+              delay={0.3}
+            />
+            <FeatureCard
+              icon={<AlertIcon />}
+              title="Proactive Alerts"
+              description="Dispatchers get notified instantly when driver intervention is needed or conditions change"
+              delay={0.4}
+            />
+            <FeatureCard
+              icon={<ComplianceIcon />}
+              title="Zero Violations"
+              description="Proactive monitoring and dynamic updates ensure 100% HOS compliance on every route"
+              delay={0.5}
+            />
           </div>
         </div>
+      </section>
 
-        {/* Route Planning Preview */}
-        <div className="mt-12 sm:mt-16 md:mt-20">
-          <Card className="border-gray-200 bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden">
-            <CardContent className="p-6 sm:p-8 md:p-10">
-              <div className="grid gap-8 lg:grid-cols-2 items-center">
-                <div>
-                  <h2 className="mb-4 text-2xl sm:text-3xl font-bold">
-                    HOS-Aware Route Planning
-                  </h2>
-                  <p className="mb-6 text-gray-300 text-sm sm:text-base">
-                    Unlike traditional route planners that only optimize for distance,
-                    SALLY continuously monitors driver hours and automatically inserts
-                    rest stops, fuel stops, and breaks before violations occur.
+      {/* Section 5: How It Works */}
+      <section id="how-it-works" className="py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-20">
+              Three Steps to Compliance
+            </h2>
+          </ScrollReveal>
+
+          <div className="relative">
+            {/* Timeline line */}
+            <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 transform -translate-y-1/2" />
+
+            <div className="grid lg:grid-cols-3 gap-16 relative">
+              <ScrollReveal delay={0}>
+                <div className="relative bg-white p-8 border-2 border-gray-200 rounded-lg text-center hover-lift">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-black text-white rounded-full text-2xl font-bold mb-6">
+                    1
+                  </div>
+                  <h3 className="text-2xl font-bold text-black mb-4">Input & Plan</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Select driver, add stops, set priorities. SALLY generates an optimized, HOS-compliant route with automatic rest and fuel stops in seconds.
                   </p>
-                  <div className="space-y-3">
-                    <PreviewFeature
-                      icon={<Route className="h-5 w-5" />}
-                      text="Optimizes multi-stop routes with TSP algorithm"
-                    />
-                    <PreviewFeature
-                      icon={<Clock className="h-5 w-5" />}
-                      text="Auto-inserts rest stops when HOS limits approached"
-                    />
-                    <PreviewFeature
-                      icon={<Fuel className="h-5 w-5" />}
-                      text="Optimizes fuel stops based on price and route"
-                    />
-                    <PreviewFeature
-                      icon={<AlertTriangle className="h-5 w-5" />}
-                      text="14 trigger types monitored continuously (60s intervals)"
-                    />
-                  </div>
                 </div>
-                <div className="bg-white rounded-lg p-6 text-gray-900">
-                  <div className="space-y-3">
-                    <RouteSegmentDemo
-                      sequence={1}
-                      label="Origin → Stop A"
-                      duration="2.0h"
-                      icon={<MapPin className="h-4 w-4" />}
-                    />
-                    <RouteSegmentDemo
-                      sequence={2}
-                      label="Truck Stop - Full Rest"
-                      duration="10h"
-                      icon={<Clock className="h-4 w-4" />}
-                      highlight
-                    />
-                    <RouteSegmentDemo
-                      sequence={3}
-                      label="Stop A → Stop B"
-                      duration="3.5h"
-                      icon={<MapPin className="h-4 w-4" />}
-                    />
-                    <RouteSegmentDemo
-                      sequence={4}
-                      label="Fuel Stop - Lowest Price"
-                      duration="0.5h"
-                      icon={<Fuel className="h-4 w-4" />}
-                    />
-                    <RouteSegmentDemo
-                      sequence={5}
-                      label="Stop B → Destination"
-                      duration="2.0h"
-                      icon={<MapPin className="h-4 w-4" />}
-                    />
+              </ScrollReveal>
+
+              <ScrollReveal delay={0.2}>
+                <div className="relative bg-white p-8 border-2 border-gray-200 rounded-lg text-center hover-lift">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-black text-white rounded-full text-2xl font-bold mb-6">
+                    2
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
-                    <div className="flex justify-between">
-                      <span>Total Distance: 450 miles</span>
-                      <span>HOS Compliant ✓</span>
-                    </div>
-                  </div>
+                  <h3 className="text-2xl font-bold text-black mb-4">Monitor 24/7</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Activate monitoring to track 14 trigger types every 60 seconds. System watches HOS limits, traffic, weather, and operational changes continuously.
+                  </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </ScrollReveal>
 
-        {/* Features Grid */}
-        <div className="mt-12 sm:mt-16 md:mt-20 grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <FeatureCard
-            icon={<Shield className="h-6 w-6" />}
-            title="Proactive HOS Monitoring"
-            description="Continuous simulation of remaining route every 60 seconds. Detects violations before they happen and automatically inserts rest stops."
-          />
-          <FeatureCard
-            icon={<Zap className="h-6 w-6" />}
-            title="Dynamic Updates"
-            description="Real-world conditions trigger re-planning: traffic delays, dock time changes, load modifications, and 11 other trigger types."
-          />
-          <FeatureCard
-            icon={<TrendingUp className="h-6 w-6" />}
-            title="Cost Optimization"
-            description="Minimize total route time or cost with intelligent fuel stop selection, efficient stop sequencing, and optimal rest timing."
-          />
-          <FeatureCard
-            icon={<Route className="h-6 w-6" />}
-            title="Multi-Stop Planning"
-            description="Handles 5-10 stops with TSP optimization, respects time windows, and ensures appointment commitments are met."
-          />
-          <FeatureCard
-            icon={<Database className="h-6 w-6" />}
-            title="Complete Audit Trail"
-            description="Every decision logged for compliance. Track plan versions, understand why routes changed, and maintain detailed records."
-          />
-          <FeatureCard
-            icon={<AlertTriangle className="h-6 w-6" />}
-            title="Reactive Compliance"
-            description="If violations occur despite proactive monitoring, system forces immediate mandatory rest with critical priority alerts."
-          />
-        </div>
-
-        {/* How It Works */}
-        <div className="mt-12 sm:mt-16 md:mt-20">
-          <h2 className="mb-6 sm:mb-8 md:mb-10 text-center text-2xl sm:text-3xl font-bold text-gray-900">
-            How It Works
-          </h2>
-          <div className="grid gap-6 sm:gap-8 md:grid-cols-3">
-            <Step
-              number="1"
-              title="Plan Your Route"
-              description="Select driver, add multiple stops, and set optimization priority. System generates HOS-compliant route with automatic rest and fuel stop insertion in under 5 seconds."
-            />
-            <Step
-              number="2"
-              title="Monitor Continuously"
-              description="Activate route to start 24/7 monitoring. System checks 14 trigger types every 60 seconds: HOS limits, traffic, dock changes, fuel levels, and more."
-            />
-            <Step
-              number="3"
-              title="Adapt Dynamically"
-              description="When conditions change, system decides: re-plan entire route or update ETAs only. Drivers receive alerts with new plans and clear reasoning for changes."
-            />
+              <ScrollReveal delay={0.4}>
+                <div className="relative bg-white p-8 border-2 border-gray-200 rounded-lg text-center hover-lift">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-black text-white rounded-full text-2xl font-bold mb-6">
+                    3
+                  </div>
+                  <h3 className="text-2xl font-bold text-black mb-4">Adapt & Update</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    When conditions change, SALLY decides whether to re-plan or update ETAs. Drivers and dispatchers get instant notifications with clear reasoning.
+                  </p>
+                </div>
+              </ScrollReveal>
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* ROI Section for Fleet Managers */}
-        <div className="mt-12 sm:mt-16 md:mt-20">
-          <Card className="border-gray-200 bg-white">
-            <CardContent className="p-4 sm:p-6 md:p-8">
-              <h2 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-bold text-gray-900 text-center">
-                Built for Fleet Operations at Scale
-              </h2>
-              <div className="grid gap-6 sm:gap-8 md:grid-cols-3 mb-8">
-                <MetricCard
-                  metric="Zero"
-                  label="HOS Violations"
-                  description="Proactive monitoring prevents violations before they occur"
+      {/* Section 6: Continuous Monitoring */}
+      <section className="py-32 bg-gradient-to-b from-gray-900 to-black text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
+              Always Watching. Always Ready.
+            </h2>
+            <p className="text-xl text-gray-400 text-center max-w-3xl mx-auto mb-20">
+              SALLY monitors every active route continuously to catch and prevent issues before they impact your operations
+            </p>
+          </ScrollReveal>
+
+          <MonitoringDashboard />
+        </div>
+      </section>
+
+      {/* Section 7: ROI Calculator */}
+      <section className="py-32 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
+              Calculate Your Savings
+            </h2>
+            <p className="text-xl text-gray-600 text-center max-w-3xl mx-auto mb-20">
+              See how much SALLY can save your fleet by preventing HOS violations and improving efficiency
+            </p>
+          </ScrollReveal>
+
+          <ROICalculator />
+        </div>
+      </section>
+
+      {/* Section 8: Comparison Table */}
+      <section className="py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
+              Traditional vs. SALLY
+            </h2>
+            <p className="text-xl text-gray-600 text-center max-w-3xl mx-auto mb-20">
+              We don't just route trucks. We route drivers.
+            </p>
+          </ScrollReveal>
+
+          <ComparisonTable />
+        </div>
+      </section>
+
+      {/* Section 9: Integration Ecosystem */}
+      <section className="py-32 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
+              Plugs The Gap
+            </h2>
+            <p className="text-xl text-gray-600 text-center max-w-3xl mx-auto mb-20">
+              SALLY integrates with your existing systems to provide the intelligence layer they're missing
+            </p>
+          </ScrollReveal>
+
+          <ScrollReveal delay={0.3}>
+            <div className="relative max-w-4xl mx-auto">
+              {/* Center: SALLY */}
+              <div className="flex items-center justify-center mb-20">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="relative z-10 bg-black text-white px-12 py-8 rounded-lg text-center"
+                >
+                  <div className="text-4xl font-bold mb-2">SALLY</div>
+                  <div className="text-sm text-gray-400">Intelligence Layer</div>
+                </motion.div>
+              </div>
+
+              {/* Integration points */}
+              <div className="grid md:grid-cols-3 gap-8">
+                <IntegrationCard
+                  title="TMS Systems"
+                  description="Load data, delivery requirements"
+                  examples={["McLeod", "TMW", "SAP TM"]}
                 />
-                <MetricCard
-                  metric="100%"
-                  label="Compliance Coverage"
-                  description="All 14 trigger types monitored continuously"
+                <IntegrationCard
+                  title="ELD/Telematics"
+                  description="Real-time HOS, location data"
+                  examples={["Samsara", "KeepTruckin", "Geotab"]}
                 />
-                <MetricCard
-                  metric="<5s"
-                  label="Planning Speed"
-                  description="Optimize 5-10 stop routes instantly"
+                <IntegrationCard
+                  title="External Data"
+                  description="Fuel prices, weather, traffic"
+                  examples={["OPIS", "Weather APIs", "HERE Maps"]}
                 />
               </div>
-              <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-                <UseCase
-                  title="Fleet Managers"
-                  description="Eliminate HOS violations (average $16,000 per violation), improve on-time delivery rates, and reduce fuel costs through optimized routing. Complete audit trail for DOT inspections."
-                />
-                <UseCase
-                  title="Dispatchers"
-                  description="Plan complex multi-stop routes in seconds, not hours. Automatic re-planning when conditions change means fewer manual interventions and more reliable ETAs."
-                />
-                <UseCase
-                  title="Safety Officers"
-                  description="Every route decision logged with full reasoning. Track plan versions, understand trigger causes, and demonstrate proactive compliance management to regulators."
-                />
-                <UseCase
-                  title="Drivers"
-                  description="Never worry about running out of hours. System plans rest stops automatically and alerts you before limits are reached. Clear guidance means less stress and better work-life balance."
-                />
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </ScrollReveal>
         </div>
+      </section>
 
-        {/* Unique Market Position */}
-        <div className="mt-12 sm:mt-16 md:mt-20 text-center">
-          <Card className="border-2 border-gray-900 bg-gray-50">
-            <CardContent className="p-6 sm:p-8 md:p-10">
-              <h2 className="mb-4 text-2xl sm:text-3xl font-bold text-gray-900">
-                Why SALLY is Different
-              </h2>
-              <p className="mx-auto max-w-3xl text-base sm:text-lg text-gray-600 mb-6">
-                Traditional route planners optimize for distance or time. SALLY optimizes for
-                <span className="font-bold text-gray-900"> feasibility</span>.
-              </p>
-              <div className="grid gap-4 sm:gap-6 md:grid-cols-2 text-left max-w-4xl mx-auto">
-                <ComparisonCard
-                  type="traditional"
-                  title="Traditional Route Planners"
-                  points={[
-                    "Distance-based optimization only",
-                    "No HOS awareness",
-                    "Static routes (no monitoring)",
-                    "Drivers manually plan rest stops",
-                    "Violations discovered after the fact"
-                  ]}
-                />
-                <ComparisonCard
-                  type="restos"
-                  title="SALLY"
-                  points={[
-                    "HOS-aware optimization",
-                    "Automatic rest stop insertion",
-                    "Continuous monitoring (14 triggers)",
-                    "Proactive violation prevention",
-                    "Dynamic re-planning when needed"
-                  ]}
-                />
-              </div>
-            </CardContent>
-          </Card>
+      {/* Section 10: Final CTA */}
+      <section className="py-32 bg-black text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <ScrollReveal>
+            <h2 className="text-6xl md:text-7xl font-bold tracking-tight mb-6">
+              Route drivers,<br />not trucks
+            </h2>
+            <p className="text-2xl text-gray-400 mb-12">
+              Join fleets who understand that drivers have hours, not infinite time
+            </p>
+
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="inline-block"
+            >
+              <Link href="/route-planner">
+                <Button
+                  size="lg"
+                  className="bg-white text-black hover:bg-gray-100 px-12 py-8 text-xl h-auto rounded-lg"
+                >
+                  Get Started Today
+                </Button>
+              </Link>
+            </motion.div>
+
+            <p className="text-sm text-gray-500 mt-8">
+              Trusted by forward-thinking fleets
+            </p>
+          </ScrollReveal>
         </div>
-      </div>
+      </section>
+
     </div>
   );
 }
 
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
+// Helper components
+function PainPoint({ children }: { children: React.ReactNode }) {
   return (
-    <Card className="border-gray-200 bg-white transition-shadow hover:shadow-md">
-      <CardContent className="p-6">
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-gray-900 text-white">
-          {icon}
-        </div>
-        <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
-        <p className="text-sm text-gray-600">{description}</p>
-      </CardContent>
-    </Card>
+    <li className="flex items-start gap-3">
+      <svg
+        className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+      <span className="text-gray-600">{children}</span>
+    </li>
   );
 }
 
-function Step({
-  number,
+function IntegrationCard({
   title,
   description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="text-center">
-      <div className="mb-4 flex justify-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-900 text-lg font-bold text-white">
-          {number}
-        </div>
-      </div>
-      <h3 className="mb-2 text-xl font-semibold text-gray-900">{title}</h3>
-      <p className="text-sm text-gray-600">{description}</p>
-    </div>
-  );
-}
-
-function UseCase({
-  title,
-  description,
+  examples,
 }: {
   title: string;
   description: string;
+  examples: string[];
 }) {
   return (
-    <div>
-      <h3 className="mb-2 font-semibold text-gray-900">{title}</h3>
-      <p className="text-sm text-gray-600">{description}</p>
-    </div>
-  );
-}
-
-function PreviewFeature({
-  icon,
-  text,
-}: {
-  icon: React.ReactNode;
-  text: string;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/10 text-white">
-        {icon}
-      </div>
-      <p className="text-sm text-gray-200">{text}</p>
-    </div>
-  );
-}
-
-function RouteSegmentDemo({
-  sequence,
-  label,
-  duration,
-  icon,
-  highlight = false,
-}: {
-  sequence: number;
-  label: string;
-  duration: string;
-  icon: React.ReactNode;
-  highlight?: boolean;
-}) {
-  const bgColor = highlight ? "bg-amber-50 border-amber-200" : "bg-gray-50 border-gray-200";
-  const textColor = highlight ? "text-amber-700" : "text-gray-700";
-
-  return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg border ${bgColor}`}>
-      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">
-        {sequence}
-      </div>
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <div className={textColor}>{icon}</div>
-          <p className="text-xs sm:text-sm font-medium text-gray-900">{label}</p>
-        </div>
-      </div>
-      <div className="text-xs font-mono text-gray-500">{duration}</div>
-    </div>
-  );
-}
-
-function MetricCard({
-  metric,
-  label,
-  description,
-}: {
-  metric: string;
-  label: string;
-  description: string;
-}) {
-  return (
-    <div className="text-center">
-      <div className="mb-2 text-3xl sm:text-4xl font-bold text-gray-900">{metric}</div>
-      <div className="mb-1 text-sm sm:text-base font-semibold text-gray-700">{label}</div>
-      <p className="text-xs sm:text-sm text-gray-600">{description}</p>
-    </div>
-  );
-}
-
-function ComparisonCard({
-  type,
-  title,
-  points,
-}: {
-  type: "traditional" | "restos";
-  title: string;
-  points: string[];
-}) {
-  const isRestOS = type === "restos";
-  const bgColor = isRestOS ? "bg-gray-900 text-white" : "bg-white";
-  const pointColor = isRestOS ? "text-gray-300" : "text-gray-600";
-
-  return (
-    <div className={`p-4 sm:p-6 rounded-lg ${bgColor}`}>
-      <h3 className="mb-4 text-lg font-semibold">{title}</h3>
-      <ul className="space-y-2">
-        {points.map((point, idx) => (
-          <li key={idx} className="flex items-start gap-2 text-sm">
-            <span className={pointColor}>{isRestOS ? "✓" : "×"}</span>
-            <span className={pointColor}>{point}</span>
-          </li>
+    <motion.div
+      whileHover={{ y: -4 }}
+      className="bg-white p-6 border border-gray-200 rounded-lg text-center transition-all hover:shadow-card-hover"
+    >
+      <h3 className="text-xl font-bold text-black mb-2">{title}</h3>
+      <p className="text-sm text-gray-600 mb-4">{description}</p>
+      <div className="flex flex-wrap justify-center gap-2">
+        {examples.map((example) => (
+          <span
+            key={example}
+            className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+          >
+            {example}
+          </span>
         ))}
-      </ul>
-    </div>
+      </div>
+    </motion.div>
   );
 }

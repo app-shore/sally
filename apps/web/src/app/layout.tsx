@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { TopNavigation } from "@/components/dashboard/TopNavigation";
+import { LayoutClient } from "./layout-client";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "SALLY Dashboard",
-  description: "Rest Optimization System - Engine Control Dashboard",
+  description: "Dispatch & Driver Coordination Platform",
 };
 
 export default function RootLayout({
@@ -20,12 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <div className="flex h-screen flex-col bg-gray-50">
-            <TopNavigation />
-            <main className="flex-1 overflow-y-auto">
-              {children}
-            </main>
-          </div>
+          <LayoutClient>{children}</LayoutClient>
         </Providers>
       </body>
     </html>

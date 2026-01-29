@@ -27,15 +27,15 @@ export function RouteSummaryCard() {
         </div>
         <div>
           <div className="text-sm text-gray-500">Total Time</div>
-          <div className="text-lg font-semibold">{(currentPlan.total_drive_time_hours + (currentPlan.total_on_duty_time_hours - currentPlan.total_drive_time_hours)).toFixed(1)}h</div>
+          <div className="text-lg font-semibold">{currentPlan.total_time_hours?.toFixed(1) || 0}h</div>
         </div>
         <div>
           <div className="text-sm text-gray-500">Drive Time</div>
-          <div className="text-lg font-semibold">{currentPlan.total_drive_time_hours?.toFixed(1) || 0}h</div>
+          <div className="text-lg font-semibold">{currentPlan.total_time_hours?.toFixed(1) || 0}h</div>
         </div>
         <div>
           <div className="text-sm text-gray-500">On-Duty Time</div>
-          <div className="text-lg font-semibold">{currentPlan.total_on_duty_time_hours?.toFixed(1) || 0}h</div>
+          <div className="text-lg font-semibold">{currentPlan.total_time_hours?.toFixed(1) || 0}h</div>
         </div>
       </div>
 

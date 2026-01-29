@@ -38,7 +38,7 @@
 ## Product Framing (CRITICAL)
 
 ### Primary Product
-**SALLY is a Route Planning Platform for truck drivers**
+**SALLY is a Dispatch & Driver Coordination Platform**
 
 Core capabilities:
 1. Route planning with stop sequence optimization (TSP/VRP)
@@ -47,6 +47,9 @@ Core capabilities:
 4. HOS compliance validation (zero violations)
 5. Dynamic route updates (14 trigger types monitored 24/7)
 6. Continuous monitoring (proactive + reactive)
+7. **Automated dispatcher alerts** (driver not moving, HOS approaching, dock delays)
+8. **Dual user interfaces** (dispatcher dashboard + driver view)
+9. **Mock external API integrations** (Samsara HOS, fuel prices, weather, TMS)
 
 ### REST Optimization is a COMPONENT
 **Not the primary product, but a critical component**
@@ -59,16 +62,19 @@ Core capabilities:
 ### Correct Language
 
 **CORRECT:**
-- "SALLY is a route planning platform"
+- "SALLY is a dispatch & driver coordination platform"
+- "The platform generates optimized routes and alerts dispatchers when intervention is needed"
 - "REST optimization is called by the route planner"
 - "The system automatically inserts rest stops where needed"
-- "Primary endpoints: /api/v1/routes/plan, /api/v1/routes/update"
+- "Dispatchers receive proactive alerts for HOS violations, delays, and other events"
+- "Primary endpoints: /api/v1/routes/plan, /api/v1/routes/update, /api/v1/alerts"
 
 **INCORRECT:**
-- "SALLY is a rest optimization system"
-- "REST optimization is the main product"
-- "The system optimizes rest at dock" (too narrow)
-- "Primary endpoint: /api/v1/optimization/recommend" (this is a component)
+- "SALLY is a rest optimization system" (too narrow)
+- "SALLY is only for route planning" (missing dispatcher coordination aspect)
+- "REST optimization is the main product" (it's a component)
+- "The system optimizes rest at dock" (too narrow - it's end-to-end planning)
+- "Primary endpoint: /api/v1/optimization/recommend" (this is a component endpoint)
 
 ---
 
@@ -99,6 +105,7 @@ Core capabilities:
 - Runs every 60 seconds per active route
 - Proactive HOS monitoring
 - Reactive violation handling
+- **Alert Engine** (generates dispatcher notifications)
 
 **Layer 3: Dynamic Update Handler**
 - Receives triggers from Layer 2
@@ -150,10 +157,20 @@ Route Planner: Inserts rest segment
 3. `GET /api/v1/routes/{plan_id}` - Get route status
 4. `GET /api/v1/routes/{plan_id}/monitoring` - Get monitoring status
 
+### Alert Endpoints (Dispatcher Notifications)
+5. `GET /api/v1/alerts` - List active alerts
+6. `POST /api/v1/alerts/{alert_id}/acknowledge` - Acknowledge alert
+7. `POST /api/v1/alerts/{alert_id}/resolve` - Resolve alert
+
+### Mock External API Endpoints (POC)
+8. `GET /api/v1/external/hos/{driver_id}` - Mock Samsara HOS data
+9. `GET /api/v1/external/fuel-prices` - Mock fuel prices
+10. `GET /api/v1/external/weather` - Mock weather data
+
 ### Component Endpoints (Called by Route Planner)
-5. `POST /api/v1/hos/validate` - HOS compliance check
-6. `POST /api/v1/rest/recommend` - REST optimization
-7. `POST /api/v1/fuel/find-stops` - Fuel stop finding
+11. `POST /api/v1/hos/validate` - HOS compliance check
+12. `POST /api/v1/rest/recommend` - REST optimization
+13. `POST /api/v1/fuel/find-stops` - Fuel stop finding
 
 ---
 

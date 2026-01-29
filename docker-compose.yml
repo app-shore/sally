@@ -73,8 +73,8 @@ services:
 
   frontend:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/web/Dockerfile
       target: development
     container_name: sally-frontend
     environment:
@@ -83,9 +83,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./apps/web:/app
-      - /app/node_modules
-      - /app/.next
+      - ./apps/web:/workspace/apps/web
+      - /workspace/node_modules
+      - /workspace/apps/web/.next
     depends_on:
       - backend
     command: npm run dev

@@ -28,8 +28,8 @@ export function VersionComparison() {
   );
 
   const driveTimeChange = calcChange(
-    currentPlan.total_drive_time_hours || 0,
-    previousPlan.total_drive_time_hours || 0
+    currentPlan.total_time_hours || 0,
+    previousPlan.total_time_hours || 0
   );
 
   return (
@@ -46,12 +46,8 @@ export function VersionComparison() {
               <span className="font-medium">{previousPlan.total_distance_miles?.toFixed(0)} mi</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Drive Time</span>
-              <span className="font-medium">{previousPlan.total_drive_time_hours?.toFixed(1)}h</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">On-Duty Time</span>
-              <span className="font-medium">{previousPlan.total_on_duty_time_hours?.toFixed(1)}h</span>
+              <span className="text-gray-600">Total Time</span>
+              <span className="font-medium">{previousPlan.total_time_hours?.toFixed(1)}h</span>
             </div>
           </div>
         </Card>
@@ -70,17 +66,13 @@ export function VersionComparison() {
               </div>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Drive Time</span>
+              <span className="text-gray-600">Total Time</span>
               <div className="text-right">
-                <span className="font-medium">{currentPlan.total_drive_time_hours?.toFixed(1)}h</span>
+                <span className="font-medium">{currentPlan.total_time_hours?.toFixed(1)}h</span>
                 <span className={`ml-2 text-xs ${driveTimeChange.color}`}>
                   {driveTimeChange.formatted}h
                 </span>
               </div>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">On-Duty Time</span>
-              <span className="font-medium">{currentPlan.total_on_duty_time_hours?.toFixed(1)}h</span>
             </div>
           </div>
         </Card>

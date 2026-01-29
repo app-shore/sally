@@ -22,6 +22,9 @@ import { DriversController } from './api/drivers/drivers.controller';
 import { VehiclesController } from './api/vehicles/vehicles.controller';
 import { LoadsController } from './api/loads/loads.controller';
 import { ScenariosController } from './api/scenarios/scenarios.controller';
+import { ExternalMockController } from './api/external-mock/external-mock.controller';
+import { AlertsController } from './api/alerts/alerts.controller';
+import { SessionController } from './api/session/session.controller';
 
 @Module({
   imports: [
@@ -51,6 +54,9 @@ import { ScenariosController } from './api/scenarios/scenarios.controller';
     VehiclesController,
     LoadsController,
     ScenariosController,
+    ExternalMockController,
+    AlertsController,
+    SessionController,
   ],
 })
 export class AppModule {}

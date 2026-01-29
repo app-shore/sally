@@ -1,24 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { Gauge, History, Home, Menu, X, Route } from "lucide-react";
+import { Gauge, History, Home, Menu, X, Route, Settings, Truck, LogOut, LogIn } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useSessionStore } from "@/lib/store/sessionStore";
+import { logout as apiLogout } from "@/lib/api/session";
+import { Button } from "@/components/ui/button";
 
 export function TopNavigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { is_authenticated, user_type, session_id, logout: sessionLogout } = useSessionStore();
 
   // Determine active page from pathname
   const getActivePage = () => {
     if (pathname === '/') return 'home';
     if (pathname === '/route-planner') return 'route-planner';
-    if (pathname === '/history') return 'history';
+    if (pathname === '/dispatcher') return 'dispatcher';
+    if (pathname === '/driver') return 'driver';
+    if (pathname === '/config') return 'config';
     if (pathname === '/rest-optimizer') return 'rest-optimizer';
     return 'home';
   };
 
   const activePage = getActivePage();
+
+  const handleLogout = async () => {
+    if (session_id) {
+      try {
+        await apiLogout(session_id);
+      } catch (err) {
+        console.error('Logout failed:', err);
+      }
+    }
+    sessionLogout();
+    router.push('/');
+  };
 
   return (
     <nav className="border-b border-gray-200 bg-white">
@@ -29,32 +48,35 @@ export function TopNavigation() {
           </Link>
           <span className="hidden sm:inline text-xs text-gray-400">|</span>
           <p className="hidden sm:block text-xs text-gray-500">
-            Rest Optimization System
+            Dispatch & Driver Coordination
           </p>
         </div>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-1">
-          <NavLink
-            icon={<Home className="h-4 w-4" />}
-            label="Home"
-            active={activePage === "home"}
-            href="/"
-          />
-          <NavLink
-            icon={<Route className="h-4 w-4" />}
-            label="Route Planner"
-            active={activePage === "route-planner"}
-            href="/route-planner"
-          />
-          <NavLink
-            icon={<Gauge className="h-4 w-4" />}
-            label="REST Optimizer"
-            active={activePage === "rest-optimizer"}
-            href="/rest-optimizer"
-          />
-
-
+          {!is_authenticated ? (
+            <>
+              <Link href="/login">
+                <Button
+                  size="sm"
+                  className="bg-black hover:bg-gray-800 text-white"
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Login
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="ml-2"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -75,34 +97,29 @@ export function TopNavigation() {
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-gray-200 bg-white">
           <div className="flex flex-col p-2 space-y-1">
-            <MobileNavLink
-              icon={<Home className="h-4 w-4" />}
-              label="Home"
-              active={activePage === "home"}
-              href="/"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-            <MobileNavLink
-              icon={<Route className="h-4 w-4" />}
-              label="Route Planner"
-              active={activePage === "route-planner"}
-              href="/simulator"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-            <MobileNavLink
-              icon={<History className="h-4 w-4" />}
-              label="History"
-              active={activePage === "history"}
-              href="/history"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-            <MobileNavLink
-              icon={<Gauge className="h-4 w-4" />}
-              label="REST Optimizer"
-              active={activePage === "rest-optimizer"}
-              href="/rest-optimizer"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
+            {!is_authenticated ? (
+              <Link href="/login" className="w-full">
+                <Button
+                  size="sm"
+                  className="w-full bg-black hover:bg-gray-800 text-white"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Login
+                </Button>
+              </Link>
+            ) : (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 w-full"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            )}
           </div>
         </div>
       )}

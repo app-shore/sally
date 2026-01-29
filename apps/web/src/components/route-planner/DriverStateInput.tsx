@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useQuery } from "@tanstack/react-query";
-import { getDrivers } from "@/lib/api/drivers";
+import { listDrivers } from "@/lib/api/drivers";
 
 export function DriverStateInput() {
   const { driverId, setDriverId, driverState, setDriverState, selectedScenario } = useRoutePlanStore();
@@ -13,7 +13,7 @@ export function DriverStateInput() {
   // Fetch available drivers
   const { data: drivers, isLoading: loadingDrivers } = useQuery({
     queryKey: ['drivers'],
-    queryFn: () => getDrivers(),
+    queryFn: () => listDrivers(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -22,13 +22,13 @@ export function DriverStateInput() {
     setDriverId(selectedDriverId);
 
     if (selectedDriverId && drivers) {
-      const driver = drivers.find(d => d.driver_id === selectedDriverId);
-      if (driver) {
+      const driver = drivers.find(d => d.id === selectedDriverId);
+      if (driver && driver.current_hos) {
         // Load driver's actual current state
         setDriverState({
-          hours_driven: driver.hours_driven_today,
-          on_duty_time: driver.on_duty_time_today,
-          hours_since_break: driver.hours_since_break,
+          hours_driven: 11 - driver.current_hos.drive_remaining,
+          on_duty_time: 14 - driver.current_hos.shift_remaining,
+          hours_since_break: driver.current_hos.break_required ? 8 : 0,
         });
       }
     }
@@ -87,21 +87,21 @@ export function DriverStateInput() {
 
         {/* Driver Selection */}
         <div>
-          <Label htmlFor="driver_id">Driver <span className="text-red-600">*</span></Label>
+          <Label htmlFor="id">Driver <span className="text-red-600">*</span></Label>
           <select
-            id="driver_id"
+            id="id"
             value={driverId || ""}
             onChange={(e) => handleDriverSelect(e.target.value)}
             disabled={loadingDrivers}
             className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Select driver...</option>
-            {driverId && selectedScenario && !drivers?.find(d => d.driver_id === driverId) && (
+            {driverId && selectedScenario && !drivers?.find(d => d.id === driverId) && (
               <option value={driverId}>{driverId} (from scenario)</option>
             )}
             {drivers?.map((driver) => (
-              <option key={driver.driver_id} value={driver.driver_id}>
-                {driver.driver_id} - {driver.name} ({driver.hours_driven_today.toFixed(1)}h driven, {driver.current_duty_status})
+              <option key={driver.id} value={driver.id}>
+                {driver.id} - {driver.name} {driver.current_hos ? `(${(11 - driver.current_hos.drive_remaining).toFixed(1)}h driven)` : ''}
               </option>
             ))}
           </select>

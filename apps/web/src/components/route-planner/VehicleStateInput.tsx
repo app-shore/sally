@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { useQuery } from "@tanstack/react-query";
-import { getVehicles } from "@/lib/api/vehicles";
+import { listVehicles } from "@/lib/api/vehicles";
 
 export function VehicleStateInput() {
   const { vehicleId, setVehicleId, vehicleState, setVehicleState, selectedScenario } = useRoutePlanStore();
@@ -14,7 +14,7 @@ export function VehicleStateInput() {
   // Fetch available vehicles
   const { data: vehicles, isLoading: loadingVehicles } = useQuery({
     queryKey: ['vehicles'],
-    queryFn: () => getVehicles(),
+    queryFn: () => listVehicles(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -23,7 +23,7 @@ export function VehicleStateInput() {
     setVehicleId(selectedVehicleId);
 
     if (selectedVehicleId && vehicles) {
-      const vehicle = vehicles.find(v => v.vehicle_id === selectedVehicleId);
+      const vehicle = vehicles.find(v => v.id === selectedVehicleId);
       if (vehicle) {
         // Load vehicle's actual current state
         setVehicleState({
@@ -74,16 +74,16 @@ export function VehicleStateInput() {
 
         {/* Vehicle Selection */}
         <div>
-          <Label htmlFor="vehicle_id">Vehicle <span className="text-red-600">*</span></Label>
+          <Label htmlFor="id">Vehicle <span className="text-red-600">*</span></Label>
           <select
-            id="vehicle_id"
+            id="id"
             value={vehicleId || ""}
             onChange={(e) => handleVehicleSelect(e.target.value)}
             disabled={loadingVehicles}
             className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Select vehicle...</option>
-            {vehicleId && selectedScenario && !vehicles?.find(v => v.vehicle_id === vehicleId) && (
+            {vehicleId && selectedScenario && !vehicles?.find(v => v.id === vehicleId) && (
               <option value={vehicleId}>{vehicleId} (from scenario)</option>
             )}
             {vehicles?.map((vehicle) => {
@@ -92,8 +92,8 @@ export function VehicleStateInput() {
               const fuelPercent = fuelCapacity > 0 ? ((currentFuel / fuelCapacity) * 100).toFixed(0) : 0;
 
               return (
-                <option key={vehicle.vehicle_id} value={vehicle.vehicle_id}>
-                  {vehicle.vehicle_id} - {vehicle.unit_number} ({currentFuel.toFixed(0)}/{fuelCapacity.toFixed(0)} gal, {fuelPercent}%)
+                <option key={vehicle.id} value={vehicle.id}>
+                  {vehicle.id} - {vehicle.unit_number} ({currentFuel.toFixed(0)}/{fuelCapacity.toFixed(0)} gal, {fuelPercent}%)
                 </option>
               );
             })}

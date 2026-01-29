@@ -10,13 +10,12 @@ model Driver {
   id                    Int          @id @default(autoincrement())
   driverId              String       @unique @map("driver_id") @db.VarChar(50)
   name                  String       @db.VarChar(100)
-  hoursDrivenToday      Float        @default(0.0) @map("hours_driven_today")
-  onDutyTimeToday       Float        @default(0.0) @map("on_duty_time_today")
-  hoursSinceBreak       Float        @default(0.0) @map("hours_since_break")
-  currentDutyStatus     String       @default("off_duty") @map("current_duty_status") @db.VarChar(30)
   isActive              Boolean      @default(true) @map("is_active")
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  // HOS fields REMOVED - these are fetched from Samsara mock API on-demand
+  // Removed: hoursDrivenToday, onDutyTimeToday, hoursSinceBreak, currentDutyStatus
 
   routePlans            RoutePlan[]
   scenarios             Scenario[]
@@ -227,4 +226,28 @@ model Recommendation {
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
 
   @@map("recommendations")
+}
+
+model Alert {
+  id                    Int          @id @default(autoincrement())
+  alertId               String       @unique @map("alert_id") @db.VarChar(50)
+  driverId              String       @map("driver_id") @db.VarChar(50)
+  routePlanId           String?      @map("route_plan_id") @db.VarChar(50)
+  alertType             String       @map("alert_type") @db.VarChar(50)
+  priority              String       @db.VarChar(20)
+  title                 String       @db.VarChar(200)
+  message               String       @db.Text
+  recommendedAction     String       @map("recommended_action") @db.Text
+  status                String       @default("active") @db.VarChar(20)
+  acknowledgedAt        DateTime?    @map("acknowledged_at") @db.Timestamptz
+  acknowledgedBy        String?      @map("acknowledged_by") @db.VarChar(50)
+  resolvedAt            DateTime?    @map("resolved_at") @db.Timestamptz
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([driverId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+  @@map("alerts")
 }

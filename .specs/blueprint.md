@@ -1,24 +1,36 @@
-# SALLY: Intelligent Route Planning Platform
+# SALLY: Intelligent Dispatch & Driver Coordination Platform
 
 ## One-Line Idea
 
-**The first route planning platform built for truck drivers, not dispatchers**—optimizes stop sequence, rest timing, fuel stops, and dynamically updates routes when reality doesn't match the plan.
+**The intelligent dispatch & driver coordination platform** that generates optimized end-to-end plans, continuously monitors real-world conditions, and simplifies communication between dispatchers and drivers through automated alerts and dynamic route updates.
 
 ---
 
 ## Problem
 
-In US trucking, drivers get a list of stops from dispatch but **no actual route plan**:
+In US trucking, there's a **coordination gap** between dispatchers and drivers:
 
-* Current TMS: Assigns loads, tracks status, but doesn't plan routes
+**Dispatcher Pain Points:**
+* Manual HOS calculations prone to errors
+* No visibility into whether routes are actually feasible
+* Reactive problem-solving (find out about issues after they happen)
+* Constant phone calls with drivers for status updates
+* Unable to proactively prevent HOS violations or missed appointments
+
+**Driver Pain Points:**
+* Get a list of stops from dispatch but **no actual route plan**
+* Manually plan routes in their heads or on paper
+* Suboptimal stop sequences (unnecessary miles)
+* Poor rest timing (forced breaks at inconvenient locations)
+* HOS violations (run out of hours mid-route)
+* Missed appointments (didn't account for dock delays)
+* Wasted fuel (no fuel stop optimization)
+
+**The Coordination Gap:**
+* Current TMS: Assigns loads, tracks status, but doesn't plan routes or alert dispatchers
 * Current ELD: Logs hours, enforces compliance, but doesn't suggest when/where to rest
-* Samsara/Telematics: Tracks trucks, but doesn't optimize routing
-* **Result:** Drivers manually plan routes in their heads or on paper
-  * Suboptimal stop sequences (unnecessary miles)
-  * Poor rest timing (forced breaks at inconvenient locations)
-  * HOS violations (run out of hours mid-route)
-  * Missed appointments (didn't account for dock delays)
-  * Wasted fuel (no fuel stop optimization)
+* Samsara/Telematics: Tracks trucks, but doesn't optimize routing or provide proactive alerts
+* **Result:** Dispatchers and drivers work in silos, leading to inefficiency and violations
 
 **This is a massive gap in the trucking tech stack.**
 
@@ -63,16 +75,20 @@ You **route drivers with hours, fuel, and rest built into every mile.**
 
 ## Product Definition
 
-**Category:** Route Planning + Decision Intelligence (not TMS, not ELD, but integrates with both)
+**Category:** Dispatch & Driver Coordination Platform (not TMS, not ELD, but integrates with both)
 
 **Primary Users:**
-* Drivers (following route plan, getting rest recommendations)
-* Dispatchers/Ops Managers (creating routes, monitoring progress)
+* **Dispatchers/Ops Managers** (primary user - creating routes, monitoring progress, receiving alerts, managing interventions)
+* **Drivers** (secondary user - following route plan, viewing rest recommendations, receiving updates)
+
+**Core Value:**
+- **For Dispatchers:** Automated route planning with HOS validation, proactive alerts when intervention needed, real-time monitoring of all active routes
+- **For Drivers:** Clear turn-by-turn guidance with rest/fuel stops inserted, automatic plan updates as conditions change
 
 **Target Market:**
 * Mid-size carriers (50–500 trucks)
 * Currently using TMS (McLeod, TMW) + ELD (Samsara, KeepTruckin)
-* Pain: Manual route planning, frequent HOS violations, missed appointments
+* Pain: Manual route planning, constant dispatcher-driver communication, frequent HOS violations, missed appointments
 
 ---
 
@@ -212,7 +228,57 @@ Decision: INSERT fuel stop at Exit 45 Pilot (150 miles into segment)
 
 ---
 
-### 5. Driver Dashboard (Mobile/Web)
+### 5. Automated Alert System
+
+**Purpose:** Proactively notify dispatchers when intervention is needed, reducing reactive fire-fighting.
+
+**Alert Types:**
+
+| Alert Type | Priority | Trigger Condition | Recommended Action |
+|-----------|----------|------------------|-------------------|
+| DRIVER_NOT_MOVING | HIGH | Driver hasn't moved in 2+ hours during drive segment | Call driver to check status |
+| HOS_APPROACHING_LIMIT | MEDIUM | <1h drive time remaining before limit | Monitor driver, ensure rest stop upcoming |
+| HOS_VIOLATION | CRITICAL | Active HOS violation detected | Mandatory rest immediate |
+| DOCK_TIME_EXCEEDED | HIGH | Actual dock time > estimated by 1h+ | Re-plan remaining route |
+| ROUTE_DELAY | MEDIUM | ETA delay > 30min | Update customer, consider re-sequencing |
+| FUEL_LOW | HIGH | Fuel < 20% capacity | Insert fuel stop |
+| MISSED_APPOINTMENT | CRITICAL | Driver missed time window | Contact customer, re-plan |
+| REST_NEEDED | MEDIUM | Rest recommended but driver hasn't stopped | Contact driver |
+
+**Alert Flow:**
+```
+Event Detected (e.g., HOS approaching limit)
+    ↓
+Alert Engine evaluates severity
+    ↓
+Create Alert record (active status)
+    ↓
+Notify Dispatcher (in-app notification)
+    ↓
+Dispatcher Actions:
+    - View alert details
+    - Take action (call driver, update route, etc.)
+    - Acknowledge alert
+    - Resolve alert when handled
+```
+
+**Communication Flows:**
+
+**Automated System Notifications:**
+- Route updated due to conditions (driver notified automatically)
+- HOS approaching limit (driver receives warning)
+- Fuel stop inserted (driver sees updated plan)
+
+**Dispatcher-Initiated Communications:**
+- Critical alerts require dispatcher approval before notifying driver
+- Dispatcher can manually trigger route updates
+- Dispatcher can send custom notifications to driver
+
+**Key Principle:** System handles routine updates automatically. Dispatchers only intervene when human judgment is needed.
+
+---
+
+### 6. Driver Dashboard (Mobile/Web)
 
 **Route View:**
 - Map with route line and markers (drive, rest, fuel, dock)
@@ -239,21 +305,34 @@ Decision: INSERT fuel stop at Exit 45 Pilot (150 miles into segment)
 
 ---
 
-### 6. Ops Dashboard (Web)
+### 7. Dispatcher Dashboard (Web)
 
-**Route Planner:**
-- Select driver (auto-populates HOS)
-- Add/remove/reorder stops (drag-and-drop)
-- Set optimization priority (time vs cost)
-- Click "Plan Route" → View optimized route
+**Tab 1: Create Plan** (Apple-style card-based workflow)
+- Step 1: Select Load (card picker with load details)
+- Step 2: Select Driver (card picker with **live HOS from Samsara mock**)
+- Step 3: Select Vehicle (card picker with fuel level)
+- Set optimization priority (time vs cost vs balanced)
+- Click "Generate Plan" → View optimized route with preview
+- Assign to driver → Route becomes active, monitoring starts
 
-**Live Monitor:**
-- See all active routes
-- Real-time driver locations (future: telematics integration)
-- Alerts (HOS warnings, appointment risks, re-plans)
-- Manual interventions (add/cancel load, trigger re-plan)
+**Tab 2: Active Routes** (Kanban-style status board)
+- See all active routes grouped by status:
+  - 🟢 On Track (meeting ETAs, HOS compliant)
+  - 🟡 Minor Delay (<1h, no action needed)
+  - 🔴 At Risk (major delay, HOS critical, or alert active)
+- Click route card → Expand to see full details
+- Actions: View full route, update route, call driver
 
-**Analytics:**
+**Tab 3: Alerts** (Priority-based triage)
+- List all active alerts sorted by priority (Critical → High → Medium → Low)
+- Each alert shows:
+  - Driver ID, route, alert type
+  - Recommended action
+  - Time since alert created
+- Actions: Acknowledge, Resolve, Call Driver, View Route
+- Auto-refresh every 30 seconds
+
+**Analytics** (Future phase):
 - Hours recovered (rest optimization impact)
 - Routes completed on-time %
 - Average re-plans per route
@@ -264,23 +343,28 @@ Decision: INSERT fuel stop at Exit 45 Pilot (150 miles into segment)
 
 ## System Architecture
 
-### Data Inputs
+### Data Inputs (POC: Mock External APIs)
 
-**Driver State:**
+**Driver State (HOS):**
 - Current HOS status (hours_driven, on_duty_time, hours_since_break)
 - Duty status (driving, on_duty, sleeper_berth, off_duty)
-- Source: Manual input (MVP) → ELD API (Phase 2)
+- **Source (POC):** Mock Samsara ELD API (`/api/v1/external/hos/:driver_id`)
+  - Returns realistic HOS data with simulated latency (100-150ms)
+  - Includes "Samsara ELD (Mock)" data source badge
+- **Source (Production):** Real Samsara/KeepTruckin ELD API
 
 **Truck State:**
 - Fuel level, fuel capacity, MPG
 - Current location (GPS)
-- Source: Manual input (MVP) → Telematics API (Phase 2)
+- **Source (POC):** Database (manual entry via Configuration screen)
+- **Source (Production):** Telematics API (Samsara, Geotab)
 
 **Stops/Loads:**
 - Origin, waypoints, destination
 - Time windows (earliest/latest arrival)
 - Estimated dock times
-- Source: Manual input (MVP) → TMS API (Phase 2)
+- **Source (POC):** Database (manual entry via Configuration screen) + Mock TMS API
+- **Source (Production):** TMS API (McLeod, TMW)
 
 **Distance/Time:**
 - Distance matrix (N x N stops)
@@ -293,43 +377,72 @@ Decision: INSERT fuel stop at Exit 45 Pilot (150 miles into segment)
 
 **Fuel Prices:**
 - Price per gallon at nearby stations
-- Source: Manual DB update (MVP) → GasBuddy API (Phase 2)
+- **Source (POC):** Mock Fuel Finder API (`/api/v1/external/fuel-prices`)
+- **Source (Production):** GasBuddy API
+
+**Weather:**
+- Road conditions, temperature, wind speed
+- **Source (POC):** Mock Weather API (`/api/v1/external/weather`)
+- **Source (Production):** OpenWeatherMap API
 
 ---
 
 ### Core Services
 
-**1. Route Planning Engine**
+**1. Route Planning Engine** (Primary)
 - TSP/VRP optimization
-- HOS simulation
-- Rest stop insertion
+- HOS simulation (segment-by-segment)
+- Rest stop insertion (calls REST Engine)
 - Fuel stop insertion
 - Feasibility validation
 
-**2. Dynamic Update Handler**
-- Monitor for 4 trigger types
+**2. Continuous Monitoring Service** (Background daemon)
+- 14 trigger types across 5 categories
+- Runs every 60 seconds per active route
+- Proactive HOS monitoring (warns before violations)
+- Reactive violation handling (forces rest after violations)
+
+**3. Alert Engine** (Dispatcher notifications)
+- Generates alerts when triggers detected
+- Priority-based categorization (CRITICAL, HIGH, MEDIUM, LOW)
+- Stores alert records in database
+- Exposes API for dispatcher dashboard
+- Auto-evaluates every 60 seconds
+
+**4. Dynamic Update Handler** (Re-planning orchestrator)
+- Receives triggers from Monitoring Service
 - Threshold-based re-plan decision
-- Invoke route planner for new plan
+- Invokes Route Planning Engine for new plan
+- Increments plan version (v1 → v2)
+- Notifies driver and dispatcher
 - Audit trail logging
 
-**3. REST Optimization Engine**
+**5. REST Optimization Engine** (Component - called by Route Planner)
 - Opportunity scoring (0-100)
 - Cost-benefit analysis
-- Recommendation generation
+- Recommendation generation (FULL_REST, PARTIAL_REST, NO_REST)
 - Confidence level calculation
-- Integration point for route planner
+- Supports both dock rest and dedicated rest stops
 
-**4. HOS Rule Engine**
+**6. HOS Rule Engine**
 - FMCSA compliance validation
 - 11h drive, 14h duty, 30min break rules
 - Sleeper berth split provisions
 - Remaining hours calculation
 
-**5. Prediction Engine**
+**7. Prediction Engine**
 - Distance matrix calculation
 - Drive time estimation
 - Dock time estimation
 - Fuel consumption calculation
+
+**8. Mock External API Service** (POC only)
+- Simulates Samsara ELD API (HOS data)
+- Simulates Fuel Finder API (fuel prices)
+- Simulates Weather API (road conditions)
+- Simulates TMS API (load data)
+- Artificial 100-150ms latency
+- Includes "data_source" badge with "(Mock)" suffix
 
 ---
 

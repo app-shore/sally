@@ -10,6 +10,9 @@ async function bootstrap() {
 
   const corsOrigins = configService.get<string>('corsOrigins') || 'http://localhost:3000';
 
+  // Global API prefix
+  app.setGlobalPrefix('api/v1');
+
   // CORS configuration
   app.enableCors({
     origin: corsOrigins.split(',').map((o) => o.trim()),
@@ -33,12 +36,13 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('api', app, document);
 
   const port = 8000;
   await app.listen(port);
   console.log(`SALLY Backend running on port ${port}`);
-  console.log(`Swagger docs: http://localhost:${port}/docs`);
+  console.log(`API endpoints: http://localhost:${port}/api/v1/`);
+  console.log(`Swagger docs: http://localhost:${port}/api`);
 }
 
 bootstrap();

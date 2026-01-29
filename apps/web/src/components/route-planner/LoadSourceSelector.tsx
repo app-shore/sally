@@ -49,10 +49,10 @@ export function LoadSourceSelector() {
       // Instantiate to load driver/vehicle state
       instantiate(scenarioId);
     } else {
-      // Clear scenario - reset driver/vehicle state to null (require manual input)
+      // Clear scenario - reset driver/vehicle state (require manual input)
       selectScenario(null);
-      setDriverState(null);
-      setVehicleState(null);
+      setDriverState({ hours_driven: 0, on_duty_time: 0, hours_since_break: 0 });
+      setVehicleState({ fuel_capacity_gallons: 200, current_fuel_gallons: 180, mpg: 6.5 });
     }
   };
 

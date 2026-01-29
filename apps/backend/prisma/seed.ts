@@ -13,6 +13,7 @@ async function main() {
 
   // Clear existing data (in reverse order of dependencies)
   console.log('Clearing existing data...');
+  await prisma.alert.deleteMany();
   await prisma.recommendation.deleteMany();
   await prisma.event.deleteMany();
   await prisma.scenario.deleteMany();
@@ -25,16 +26,12 @@ async function main() {
   await prisma.driver.deleteMany();
   await prisma.vehicle.deleteMany();
 
-  // Create Drivers
+  // Create Drivers (basic info only - HOS data fetched from Samsara mock API)
   console.log('Creating drivers...');
   const driver1 = await prisma.driver.create({
     data: {
       driverId: 'DRV-001',
       name: 'John Smith',
-      hoursDrivenToday: 5.5,
-      onDutyTimeToday: 6.0,
-      hoursSinceBreak: 5.5,
-      currentDutyStatus: 'on_duty_driving',
       isActive: true,
     },
   });
@@ -43,10 +40,6 @@ async function main() {
     data: {
       driverId: 'DRV-002',
       name: 'Sarah Johnson',
-      hoursDrivenToday: 8.0,
-      onDutyTimeToday: 9.5,
-      hoursSinceBreak: 7.0,
-      currentDutyStatus: 'on_duty_driving',
       isActive: true,
     },
   });
@@ -55,15 +48,51 @@ async function main() {
     data: {
       driverId: 'DRV-003',
       name: 'Mike Williams',
-      hoursDrivenToday: 0.0,
-      onDutyTimeToday: 0.0,
-      hoursSinceBreak: 0.0,
-      currentDutyStatus: 'off_duty',
       isActive: true,
     },
   });
 
-  console.log(`✓ Created ${3} drivers`);
+  const driver4 = await prisma.driver.create({
+    data: {
+      driverId: 'DRV-004',
+      name: 'Jane Doe',
+      isActive: true,
+    },
+  });
+
+  const driver5 = await prisma.driver.create({
+    data: {
+      driverId: 'DRV-005',
+      name: 'Bob Martinez',
+      isActive: true,
+    },
+  });
+
+  const driver6 = await prisma.driver.create({
+    data: {
+      driverId: 'DRV-006',
+      name: 'Lisa Chen',
+      isActive: true,
+    },
+  });
+
+  const driver7 = await prisma.driver.create({
+    data: {
+      driverId: 'DRV-007',
+      name: 'Tom Brown',
+      isActive: true,
+    },
+  });
+
+  const driver8 = await prisma.driver.create({
+    data: {
+      driverId: 'DRV-008',
+      name: 'Emily Davis',
+      isActive: true,
+    },
+  });
+
+  console.log(`✓ Created 8 drivers`);
 
   // Create Vehicles
   console.log('Creating vehicles...');
@@ -100,7 +129,62 @@ async function main() {
     },
   });
 
-  console.log(`✓ Created ${3} vehicles`);
+  const vehicle4 = await prisma.vehicle.create({
+    data: {
+      vehicleId: 'VEH-004',
+      unitNumber: 'TRK-3456',
+      fuelCapacityGallons: 200,
+      currentFuelGallons: 160,
+      mpg: 6.8,
+      isActive: true,
+    },
+  });
+
+  const vehicle5 = await prisma.vehicle.create({
+    data: {
+      vehicleId: 'VEH-005',
+      unitNumber: 'TRK-7890',
+      fuelCapacityGallons: 190,
+      currentFuelGallons: 95,
+      mpg: 7.2,
+      isActive: true,
+    },
+  });
+
+  const vehicle6 = await prisma.vehicle.create({
+    data: {
+      vehicleId: 'VEH-006',
+      unitNumber: 'TRK-1122',
+      fuelCapacityGallons: 210,
+      currentFuelGallons: 180,
+      mpg: 6.3,
+      isActive: true,
+    },
+  });
+
+  const vehicle7 = await prisma.vehicle.create({
+    data: {
+      vehicleId: 'VEH-007',
+      unitNumber: 'TRK-3344',
+      fuelCapacityGallons: 200,
+      currentFuelGallons: 40,
+      mpg: 6.6,
+      isActive: true,
+    },
+  });
+
+  const vehicle8 = await prisma.vehicle.create({
+    data: {
+      vehicleId: 'VEH-008',
+      unitNumber: 'TRK-5566',
+      fuelCapacityGallons: 195,
+      currentFuelGallons: 175,
+      mpg: 7.1,
+      isActive: true,
+    },
+  });
+
+  console.log(`✓ Created 8 vehicles`);
 
   // Create Stops
   console.log('Creating stops...');
@@ -326,14 +410,65 @@ async function main() {
 
   console.log(`✓ Created ${3} scenarios`);
 
+  // Create Sample Alerts (for dispatcher dashboard demo)
+  console.log('Creating sample alerts...');
+
+  const alert1 = await prisma.alert.create({
+    data: {
+      alertId: 'ALT-001',
+      driverId: 'DRV-001',
+      routePlanId: null,
+      alertType: 'DRIVER_NOT_MOVING',
+      priority: 'high',
+      title: 'Driver Not Moving',
+      message: 'DRV-001 (John Smith) has not moved in 2 hours during drive segment',
+      recommendedAction: 'Call driver to check status',
+      status: 'active',
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    },
+  });
+
+  const alert2 = await prisma.alert.create({
+    data: {
+      alertId: 'ALT-002',
+      driverId: 'DRV-002',
+      routePlanId: null,
+      alertType: 'HOS_APPROACHING_LIMIT',
+      priority: 'medium',
+      title: 'HOS Approaching Limit',
+      message: 'DRV-002 (Sarah Johnson) has less than 1h drive time remaining',
+      recommendedAction: 'Monitor driver, ensure rest stop is upcoming',
+      status: 'active',
+      createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+    },
+  });
+
+  const alert3 = await prisma.alert.create({
+    data: {
+      alertId: 'ALT-003',
+      driverId: 'DRV-007',
+      routePlanId: null,
+      alertType: 'FUEL_LOW',
+      priority: 'high',
+      title: 'Fuel Low',
+      message: 'VEH-007 fuel level is below 20% (40 gallons remaining)',
+      recommendedAction: 'Insert fuel stop or direct driver to nearest station',
+      status: 'active',
+      createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+    },
+  });
+
+  console.log(`✓ Created 3 sample alerts`);
+
   console.log('✅ Database seeded successfully!');
   console.log('\nSummary:');
-  console.log(`- Drivers: 3`);
-  console.log(`- Vehicles: 3`);
+  console.log(`- Drivers: 8`);
+  console.log(`- Vehicles: 8`);
   console.log(`- Stops: 4`);
   console.log(`- Loads: 2`);
   console.log(`- Load Stops: 4`);
   console.log(`- Scenarios: 3`);
+  console.log(`- Alerts: 3`);
 }
 
 main()

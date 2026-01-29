@@ -1,16 +1,20 @@
 # Development stage
 FROM node:20-alpine AS development
 
-WORKDIR /app
+WORKDIR /workspace
 
-# Copy package files
+# Copy root workspace configuration
 COPY package*.json ./
+COPY turbo.json* ./
 
-# Install dependencies
+# Copy workspace apps/web
+COPY apps/web ./apps/web
+
+# Install all workspace dependencies from root
 RUN npm install
 
-# Copy source code
-COPY . .
+# Set working directory to web app
+WORKDIR /workspace/apps/web
 
 # Expose port
 EXPOSE 3000
@@ -21,18 +25,20 @@ CMD ["npm", "run", "dev"]
 # Build stage
 FROM node:20-alpine AS builder
 
-WORKDIR /app
+WORKDIR /workspace
 
-# Copy package files
+# Copy root workspace configuration
 COPY package*.json ./
+COPY turbo.json* ./
 
-# Install dependencies
-RUN npm ci
+# Copy workspace apps/web
+COPY apps/web ./apps/web
 
-# Copy source code
-COPY . .
+# Install all workspace dependencies from root
+RUN npm install
 
-# Build application
+# Set working directory to web app and build
+WORKDIR /workspace/apps/web
 RUN npm run build
 
 # Production stage
