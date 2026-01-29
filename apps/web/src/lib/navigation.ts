@@ -10,28 +10,31 @@ export interface NavItem {
 /**
  * Centralized navigation configuration for SALLY
  * Defines all navigation items for authenticated users
+ *
+ * Label Guidelines (Marketing & PO Perspective):
+ * - Use value-driven language (what user gets, not just what it is)
+ * - Use industry-standard terminology (fleet management best practices)
+ * - Keep labels concise but descriptive (2-3 words max)
+ * - Focus on action and outcomes
  */
 export const navigationConfig = {
   dispatcher: [
-    { label: 'Overview', href: '/dispatcher/overview', icon: Home },
-    { label: 'Create Plan', href: '/dispatcher/create-plan', icon: Plus },
+    { label: 'Command Center', href: '/dispatcher/overview', icon: Home },
+    { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Active Routes', href: '/dispatcher/active-routes', icon: Truck },
-    // Separator after Active Routes (index 3)
-    { label: 'Route Planner', href: '/route-planner', icon: Map },
-    { label: 'REST Optimizer', href: '/rest-optimizer', icon: Settings },
     { label: 'Settings', href: '/settings', icon: Settings },
   ] as const,
 
   driver: [
-    { label: 'My Dashboard', href: '/driver/dashboard', icon: Home },
-    { label: 'Current Route', href: '/driver/current-route', icon: Map },
-    { label: 'Messages', href: '/driver/messages', icon: MessageSquare },
+    { label: 'My Routes', href: '/driver/dashboard', icon: Home },
+    { label: 'Today\'s Route', href: '/driver/current-route', icon: Map },
+    { label: 'Dispatch Messages', href: '/driver/messages', icon: MessageSquare },
     { label: 'Settings', href: '/settings', icon: Settings },
   ] as const,
 
   admin: [
-    { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { label: 'Users', href: '/admin/users', icon: Settings },
+    { label: 'System Overview', href: '/admin/dashboard', icon: Home },
+    { label: 'User Management', href: '/admin/users', icon: Settings },
     { label: 'Settings', href: '/settings', icon: Settings },
   ] as const,
 } as const;
@@ -48,10 +51,7 @@ export const protectedRoutePatterns = [
   '/dispatcher',
   '/driver',
   '/admin',
-  '/route-planner',
-  '/rest-optimizer',
   '/settings',
-  '/config',
 ] as const;
 
 /**

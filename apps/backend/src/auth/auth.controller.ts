@@ -7,9 +7,10 @@ import {
   Res,
   Query,
   Param,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
   LoginDto,
@@ -17,6 +18,8 @@ import {
   UserProfileDto,
   TenantDto,
   UserSummaryDto,
+  UserLookupDto,
+  UserLookupResponseDto,
 } from './dto/login.dto';
 import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -26,36 +29,68 @@ import { UserRole } from '@prisma/client';
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private authService: AuthService) {}
 
   @Public()
+  @Post('lookup-user')
+  @ApiOperation({
+    summary: 'Lookup user by email or phone to detect tenant(s)',
+    description: 'Used for simplified login flow - returns user(s) with tenant information',
+  })
+  @ApiBody({ type: UserLookupDto })
+  @ApiResponse({
+    status: 200,
+    description: 'User(s) found',
+    type: UserLookupResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'No user found with this email/phone' })
+  async lookupUser(@Body() lookupDto: UserLookupDto): Promise<UserLookupResponseDto> {
+    return this.authService.lookupUser(lookupDto);
+  }
+
+  @Public()
   @Get('tenants')
-  @ApiOperation({ summary: 'List available tenants (fleet companies)' })
+  @ApiOperation({
+    summary: 'List available tenants (fleet companies)',
+    deprecated: true,
+    description: 'DEPRECATED: Use POST /auth/lookup-user instead for simplified login flow',
+  })
   @ApiResponse({ status: 200, description: 'List of tenants', type: [TenantDto] })
   async listTenants(): Promise<TenantDto[]> {
+    this.logger.warn('[DEPRECATED] GET /auth/tenants is deprecated. Use POST /auth/lookup-user instead.');
     return this.authService.listTenants();
   }
 
   @Public()
   @Get('tenants/:tenant_id/users')
-  @ApiOperation({ summary: 'List users for a tenant (for login user selection)' })
+  @ApiOperation({
+    summary: 'List users for a tenant (for login user selection)',
+    deprecated: true,
+    description: 'DEPRECATED: Use POST /auth/lookup-user instead for simplified login flow',
+  })
   @ApiResponse({ status: 200, description: 'List of users', type: [UserSummaryDto] })
   async listUsersForTenant(
     @Param('tenant_id') tenantId: string,
     @Query('role') role?: UserRole,
   ): Promise<UserSummaryDto[]> {
+    this.logger.warn('[DEPRECATED] GET /auth/tenants/:tenant_id/users is deprecated. Use POST /auth/lookup-user instead.');
     return this.authService.listUsersForTenant(tenantId, role);
   }
 
   @Public()
   @Post('login')
-  @ApiOperation({ summary: 'Login (mock authentication for POC)' })
+  @ApiOperation({
+    summary: 'Login (mock authentication for POC)',
+    description: 'Login with user_id. tenant_id is optional (userId is globally unique)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Login successful',
     type: LoginResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Tenant or user not found' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,

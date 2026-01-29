@@ -91,8 +91,111 @@
 - ✅ Test in BOTH light and dark themes
 - ✅ Verify touch targets (min 44x44px on mobile)
 
+### Shadcn UI Component Usage (NON-NEGOTIABLE)
+**ALWAYS use Shadcn UI components instead of plain HTML elements.**
+
+#### Required Component Mapping
+
+1. **Buttons**
+   - ❌ NEVER: `<button>` (plain HTML)
+   - ✅ ALWAYS: `<Button>` from `@/components/ui/button`
+   - Variants: `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`
+   - Sizes: `default`, `sm`, `lg`, `icon`
+
+2. **Input Fields**
+   - ❌ NEVER: `<input>`, `<textarea>` (plain HTML)
+   - ✅ ALWAYS: `<Input>`, `<Textarea>` from `@/components/ui/input`, `@/components/ui/textarea`
+
+3. **Cards**
+   - ❌ NEVER: `<div className="border rounded-lg p-4">` (manual card styling)
+   - ✅ ALWAYS: `<Card>`, `<CardHeader>`, `<CardTitle>`, `<CardContent>` from `@/components/ui/card`
+
+4. **Dialogs/Modals**
+   - ❌ NEVER: Custom modal implementations
+   - ✅ ALWAYS: `<Dialog>`, `<DialogTrigger>`, `<DialogContent>` from `@/components/ui/dialog`
+
+5. **Dropdowns/Select**
+   - ❌ NEVER: `<select>` (plain HTML)
+   - ✅ ALWAYS: `<Select>`, `<SelectTrigger>`, `<SelectContent>` from `@/components/ui/select`
+
+6. **Labels**
+   - ❌ NEVER: `<label>` (plain HTML)
+   - ✅ ALWAYS: `<Label>` from `@/components/ui/label`
+
+7. **Tabs**
+   - ❌ NEVER: Custom tab implementations
+   - ✅ ALWAYS: `<Tabs>`, `<TabsList>`, `<TabsTrigger>`, `<TabsContent>` from `@/components/ui/tabs`
+
+8. **Badges**
+   - ❌ NEVER: `<span className="px-2 py-1 rounded-full bg-gray-200">`
+   - ✅ ALWAYS: `<Badge>` from `@/components/ui/badge`
+
+9. **Alerts**
+   - ❌ NEVER: Custom alert divs
+   - ✅ ALWAYS: `<Alert>`, `<AlertTitle>`, `<AlertDescription>` from `@/components/ui/alert`
+
+10. **Tables**
+    - ❌ NEVER: `<table>`, `<tr>`, `<td>` (plain HTML)
+    - ✅ ALWAYS: `<Table>`, `<TableHeader>`, `<TableRow>`, `<TableCell>` from `@/components/ui/table`
+
+11. **Tooltips**
+    - ❌ NEVER: Custom tooltip implementations
+    - ✅ ALWAYS: `<Tooltip>`, `<TooltipTrigger>`, `<TooltipContent>` from `@/components/ui/tooltip`
+
+12. **Popover**
+    - ❌ NEVER: Custom popover implementations
+    - ✅ ALWAYS: `<Popover>`, `<PopoverTrigger>`, `<PopoverContent>` from `@/components/ui/popover`
+
+#### Component Installation
+When a needed component doesn't exist, install it using:
+```bash
+npx shadcn@latest add [component-name]
+```
+
+Available components: button, input, card, dialog, select, label, tabs, badge, alert, table, tooltip, popover, dropdown-menu, sheet, separator, scroll-area, skeleton, toast, avatar, checkbox, radio-group, slider, switch, progress, accordion, command, calendar, form, and more.
+
+#### Example: Correct vs Incorrect
+
+**❌ INCORRECT:**
+```tsx
+<button className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-md">
+  Plan Route
+</button>
+```
+
+**✅ CORRECT:**
+```tsx
+import { Button } from "@/components/ui/button"
+
+<Button>Plan Route</Button>
+```
+
+**❌ INCORRECT:**
+```tsx
+<div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+  <h3 className="font-semibold mb-2">Route Details</h3>
+  <p>Content here</p>
+</div>
+```
+
+**✅ CORRECT:**
+```tsx
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+
+<Card>
+  <CardHeader>
+    <CardTitle>Route Details</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <p>Content here</p>
+  </CardContent>
+</Card>
+```
+
 ### Code Review Checklist
 Before committing any UI code, verify:
+- [ ] **ALL interactive elements use Shadcn components** (Button, Input, Select, etc.)
+- [ ] **NO plain HTML elements** (`<button>`, `<input>`, `<select>`, etc.) for UI components
 - [ ] No hardcoded `bg-white`, `text-gray-900`, `border-gray-200` without dark variants
 - [ ] All semantic color tokens used (`bg-background`, `text-foreground`, etc.)
 - [ ] Dark mode variants added where needed (`dark:bg-gray-900`, `dark:text-gray-300`)
@@ -297,7 +400,7 @@ Check for:
 ---
 
 ## Last Updated
-January 29, 2026 - Added critical UI development standards for dark theme and responsive design
+January 29, 2026 - Added mandatory Shadcn UI component usage requirement to UI development standards
 
 ## Maintained By
 SALLY Product & Engineering Team

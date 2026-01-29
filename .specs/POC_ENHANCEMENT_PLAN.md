@@ -1,10 +1,11 @@
 # SALLY POC Enhancement Plan: Dispatch & Driver Coordination Platform
 
-**Status:** Implementation In Progress
+**Status:** ✅ Phase 1 Complete - Codebase Cleanup Done
 **Created:** 2026-01-29
+**Updated:** 2026-01-29 (Cleanup Phase Complete)
 **Estimated Reading Time:** 12 minutes
 
----w
+---
 
 ## Executive Summary
 
@@ -481,6 +482,18 @@ Response:
 
 ## Success Criteria
 
+### ✅ Phase 0: Codebase Cleanup (COMPLETED)
+
+- [x] Removed `/rest-optimizer` page (product misrepresentation)
+- [x] Removed `/route-planner` page (merged into `/dispatcher/create-plan`)
+- [x] Created wizard-style Create Plan flow (Load → Driver → Vehicle → Review → Results)
+- [x] Removed 4 unused dashboard components (ControlPanel, VisualizationArea, ResizableSidebar, TopNavigation)
+- [x] Updated navigation.ts (removed obsolete routes)
+- [x] All route-planner components reused in new Create Plan page
+- [x] Documentation updated (CURRENT_STATE_REVIEW.md)
+
+### Phase 1: Multi-Tenant Auth & Dual Interface (IN PROGRESS)
+
 After implementation, verify:
 
 - [ ] Can login as Dispatcher → See dispatcher dashboard
@@ -497,8 +510,7 @@ After implementation, verify:
 - [ ] Mock HOS API returns realistic data with "Samsara ELD (Mock)" badge
 - [ ] Mock fuel API returns stations with prices
 - [ ] Mock weather API returns conditions
-- [ ] Route planner still works (create route, optimize, view segments)
-- [ ] REST optimizer still works (standalone component page)
+- [ ] Create Plan works (wizard flow: Load → Driver → Vehicle → Generate)
 - [ ] Documentation updated to reflect new vision
 
 ---

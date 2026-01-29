@@ -5,6 +5,7 @@ import { Menu, Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { UserProfileMenu } from './UserProfileMenu';
 import { ThemeToggle } from './ThemeToggle';
+import { CommandPalette } from './CommandPalette';
 import { useSessionStore } from '@/lib/store/sessionStore';
 
 interface AppHeaderProps {
@@ -64,6 +65,9 @@ export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHead
 
         {/* Right section */}
         <div className="flex items-center gap-2">
+          {/* Command Palette */}
+          <CommandPalette />
+
           {/* Theme toggle */}
           <ThemeToggle />
 

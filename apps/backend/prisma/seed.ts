@@ -395,6 +395,39 @@ async function main() {
   console.log(`✓ Created 5 XYZ Logistics users (1 admin, 1 dispatcher, 3 drivers)`);
 
   // ============================================================================
+  // MULTI-TENANT TEST USER (for testing workspace selection)
+  // ============================================================================
+  console.log('Creating multi-tenant test user...');
+
+  // JYC version
+  await prisma.user.create({
+    data: {
+      userId: 'user_multi_jyc',
+      email: 'test@example.com',
+      firstName: 'Multi',
+      lastName: 'Tenant',
+      role: UserRole.DISPATCHER,
+      tenantId: jycCarriers.id,
+      isActive: true,
+    },
+  });
+
+  // XYZ version
+  await prisma.user.create({
+    data: {
+      userId: 'user_multi_xyz',
+      email: 'test@example.com',
+      firstName: 'Multi',
+      lastName: 'Tenant',
+      role: UserRole.ADMIN,
+      tenantId: xyzLogistics.id,
+      isActive: true,
+    },
+  });
+
+  console.log(`✓ Created multi-tenant test user (exists in both JYC and XYZ)`);
+
+  // ============================================================================
   // JYC CARRIERS - Vehicles
   // ============================================================================
   console.log('Creating JYC Carriers vehicles...');

@@ -408,13 +408,14 @@ Current mock APIs exist but unclear if they're:
 
 ## Next Steps (Priority Order)
 
-1. **High Priority - Product Framing**
-   - [ ] Delete `/rest-optimizer` page
-   - [ ] Delete `/config` page (duplicate)
-   - [ ] Update navigation.ts to remove obsolete routes
+1. **High Priority - Product Framing** ✅ COMPLETED
+   - [x] Delete `/rest-optimizer` page
+   - [x] Delete `/config` page (duplicate) - Never existed
+   - [x] Update navigation.ts to remove obsolete routes
+   - [x] Delete `/route-planner` page (merged into `/dispatcher/create-plan`)
+   - [x] Audit 4 dashboard components (ControlPanel, etc.) for usage - Deleted
 
 2. **Medium Priority - Code Cleanup**
-   - [ ] Audit 4 dashboard components (ControlPanel, etc.) for usage
    - [ ] Document or remove Scenarios API
    - [ ] Document purpose of mock external APIs
 
@@ -427,18 +428,24 @@ Current mock APIs exist but unclear if they're:
 
 ## Conclusion
 
-**Overall Assessment:** 🟢 Solid foundation, minor cleanup needed
+**Overall Assessment:** 🟢 Clean and production-ready
 
-The codebase is generally clean and well-structured. The main issues are:
-1. Product misrepresentation via `/rest-optimizer` page
-2. Duplicate `/config` and `/settings` pages
-3. A few potentially unused components from early prototyping
+The codebase cleanup is complete! All major issues have been resolved:
+1. ✅ Removed `/rest-optimizer` page (product misrepresentation)
+2. ✅ Removed `/route-planner` page (merged into `/dispatcher/create-plan`)
+3. ✅ Removed 4 unused dashboard components (ControlPanel, VisualizationArea, ResizableSidebar, TopNavigation)
+4. ✅ Updated navigation.ts (removed obsolete routes)
 
-After removing these 2 pages and auditing 4 dashboard components, the codebase will be lean and production-ready.
+**New Create Plan Flow:**
+- Wizard-style interface: Load → Driver → Vehicle → Review → Generate → Results
+- Reuses ALL existing route-planner components
+- Inline results display with version comparison
+- Clean, focused dispatcher experience
 
-**Estimated Cleanup Time:** 1-2 hours
+**Actual Cleanup Time:** ~30 minutes
 
 ---
 
 **Reviewed By:** Claude (Senior Architect Perspective)
-**Status:** Ready for cleanup implementation
+**Status:** ✅ Cleanup Complete - Production Ready
+**Updated:** January 29, 2026

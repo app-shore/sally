@@ -8,6 +8,7 @@ import { AlertsPanel } from './AlertsPanel';
 import { useSessionStore } from '@/lib/store/sessionStore';
 import { useQuery } from '@tanstack/react-query';
 import { listAlerts } from '@/lib/api/alerts';
+import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const { isAuthenticated, user } = useSessionStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [alertsPanelOpen, setAlertsPanelOpen] = useState(false);
 
   // Fetch alert count
@@ -74,10 +76,17 @@ export function AppLayout({ children }: AppLayoutProps) {
           onClose={() => setSidebarOpen(false)}
           alertCount={alertCount}
           onOpenAlerts={() => setAlertsPanelOpen(true)}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
 
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 md:ml-0">
+        {/* Main content - Adjust margin based on sidebar state */}
+        <main
+          className={cn(
+            'flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300',
+            sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
+          )}
+        >
           <div className="max-w-7xl mx-auto p-4 md:p-8">
             {children}
           </div>

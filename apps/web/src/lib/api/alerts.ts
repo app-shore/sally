@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+import { api } from './client';
 
 export type AlertPriority = 'critical' | 'high' | 'medium' | 'low';
 export type AlertStatus = 'active' | 'acknowledged' | 'resolved';
@@ -28,35 +28,24 @@ export interface ListAlertsParams {
 }
 
 export async function listAlerts(params?: ListAlertsParams): Promise<Alert[]> {
-  const url = new URL(`${API_BASE_URL}/api/v1/alerts`);
+  const queryParams = new URLSearchParams();
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value) {
-        url.searchParams.append(key, value);
+        queryParams.append(key, value);
       }
     });
   }
 
-  const response = await fetch(url.toString());
+  const query = queryParams.toString();
+  const url = `/api/v1/alerts${query ? `?${query}` : ''}`;
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to fetch alerts' }));
-    throw new Error(error.detail || 'Failed to fetch alerts');
-  }
-
-  return response.json();
+  return api.get<Alert[]>(url);
 }
 
 export async function getAlert(alertId: string): Promise<Alert> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/alerts/${alertId}`);
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to fetch alert' }));
-    throw new Error(error.detail || 'Failed to fetch alert');
-  }
-
-  return response.json();
+  return api.get<Alert>(`/api/v1/alerts/${alertId}`);
 }
 
 export interface AcknowledgeAlertResponse {
@@ -65,19 +54,7 @@ export interface AcknowledgeAlertResponse {
 }
 
 export async function acknowledgeAlert(alertId: string): Promise<AcknowledgeAlertResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/alerts/${alertId}/acknowledge`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to acknowledge alert' }));
-    throw new Error(error.detail || 'Failed to acknowledge alert');
-  }
-
-  return response.json();
+  return api.post<AcknowledgeAlertResponse>(`/api/v1/alerts/${alertId}/acknowledge`);
 }
 
 export interface ResolveAlertResponse {
@@ -86,17 +63,5 @@ export interface ResolveAlertResponse {
 }
 
 export async function resolveAlert(alertId: string): Promise<ResolveAlertResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/alerts/${alertId}/resolve`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to resolve alert' }));
-    throw new Error(error.detail || 'Failed to resolve alert');
-  }
-
-  return response.json();
+  return api.post<ResolveAlertResponse>(`/api/v1/alerts/${alertId}/resolve`);
 }
