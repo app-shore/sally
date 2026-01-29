@@ -505,7 +505,7 @@ curl http://localhost:8000/api/v1/vehicles/ | jq '.[0] | {vehicle_id, fuel_capac
 ### Environment Variables
 ```env
 # Backend
-DATABASE_URL=postgresql+asyncpg://user:password@postgres:5432/rest_os
+DATABASE_URL=postgresql+asyncpg://user:password@postgres:5432/sally
 REDIS_URL=redis://redis:6379/0
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 

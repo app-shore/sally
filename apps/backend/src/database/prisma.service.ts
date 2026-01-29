@@ -9,7 +9,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private readonly logger = new Logger(PrismaService.name);
 
   constructor(configService: ConfigService<Configuration>) {
-    const databaseUrl = configService.get<string>('databaseUrl') || process.env.DATABASE_URL || 'postgresql://rest_os_user:rest_os_password@localhost:5432/rest_os';
+    const databaseUrl = configService.get<string>('databaseUrl') || process.env.DATABASE_URL || 'postgresql://sally_user:sally_password@localhost:5432/sally';
     process.env.DATABASE_URL = databaseUrl;
     const adapter = new PrismaPg({ connectionString: databaseUrl });
     super({ adapter });

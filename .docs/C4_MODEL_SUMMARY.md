@@ -130,18 +130,18 @@ A complete C4 model architecture documentation has been created for SALLY with *
 ### Deployment Diagram
 **File**: `deployment-diagram.puml`
 - Docker Desktop environment
-- Docker network: `rest-os-network`
+- Docker network: `sally-network`
 - 4 containers:
-  - **rest-os-postgres**: PostgreSQL 16 (Alpine)
+  - **sally-postgres**: PostgreSQL 16 (Alpine)
     - Port: 5432
     - Volume: postgres_data
-  - **rest-os-redis**: Redis 7 (Alpine)
+  - **sally-redis**: Redis 7 (Alpine)
     - Port: 6379
     - Volume: redis_data
-  - **rest-os-backend**: FastAPI + Uvicorn
+  - **sally-backend**: FastAPI + Uvicorn
     - Port: 8000
     - Hot-reload enabled
-  - **rest-os-frontend**: Next.js + Node
+  - **sally-frontend**: Next.js + Node
     - Port: 3000
     - Hot-reload enabled
 - Healthcheck configurations

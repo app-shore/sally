@@ -9,7 +9,7 @@ Person(dispatcher, "Fleet Dispatcher", "Plans routes, adds/removes stops, monito
 Person(operations, "Operations Manager", "Monitors fleet performance, analyzes route efficiency")
 Person(driver, "Truck Driver", "Follows optimized routes, reports delays, receives rest recommendations")
 
-System(restos, "SALLY", "Intelligent Route Planning Platform that optimizes stop sequences, automatically inserts rest stops where HOS requires, inserts fuel stops, validates compliance, and dynamically updates routes when conditions change")
+System(sally, "SALLY", "Intelligent Route Planning Platform that optimizes stop sequences, automatically inserts rest stops where HOS requires, inserts fuel stops, validates compliance, and dynamically updates routes when conditions change")
 
 System_Ext(eld, "ELD System", "Electronic Logging Device - provides real-time driver HOS data (Phase 3)")
 System_Ext(tms, "TMS", "Transportation Management System - provides load assignments and stops (Phase 3)")
@@ -17,17 +17,17 @@ System_Ext(telematics, "Telematics Platform", "Provides vehicle location, fuel l
 System_Ext(traffic, "Traffic API", "Real-time traffic data for dynamic route updates (Phase 3)")
 System_Ext(fuel_prices, "Fuel Price API", "Current fuel prices for optimization (Phase 3)")
 
-Rel(dispatcher, restos, "Plans routes, adds stops, sets priorities", "HTTPS/Web Dashboard")
-Rel(operations, restos, "Monitors routes, views analytics", "HTTPS/Web Dashboard")
-Rel(driver, restos, "Views route, reports dock delays, requests rest", "Mobile App (Phase 2)")
+Rel(dispatcher, sally, "Plans routes, adds stops, sets priorities", "HTTPS/Web Dashboard")
+Rel(operations, sally, "Monitors routes, views analytics", "HTTPS/Web Dashboard")
+Rel(driver, sally, "Views route, reports dock delays, requests rest", "Mobile App (Phase 2)")
 
-Rel(restos, eld, "Fetches driver HOS data", "REST API (Phase 3)")
-Rel(restos, tms, "Pulls load assignments and stops", "REST API (Phase 3)")
-Rel(restos, telematics, "Gets vehicle location and fuel level", "REST API (Phase 3)")
-Rel(restos, traffic, "Checks traffic conditions", "REST API (Phase 3)")
-Rel(restos, fuel_prices, "Gets fuel prices for optimization", "REST API (Phase 3)")
+Rel(sally, eld, "Fetches driver HOS data", "REST API (Phase 3)")
+Rel(sally, tms, "Pulls load assignments and stops", "REST API (Phase 3)")
+Rel(sally, telematics, "Gets vehicle location and fuel level", "REST API (Phase 3)")
+Rel(sally, traffic, "Checks traffic conditions", "REST API (Phase 3)")
+Rel(sally, fuel_prices, "Gets fuel prices for optimization", "REST API (Phase 3)")
 
-note right of restos
+note right of sally
   **Core Capabilities:**
   • Route planning with stop sequence optimization
   • Automatic rest stop insertion (HOS-aware)

@@ -251,7 +251,7 @@ chmod +x render-diagrams.sh
 **Purpose**: Shows the Docker container deployment architecture.
 
 **Infrastructure**:
-- **Docker Network**: rest-os-network (bridge)
+- **Docker Network**: sally-network (bridge)
 - **Containers**: PostgreSQL, Redis, Backend, Frontend
 - **Volumes**: postgres_data, redis_data
 - **Ports**: 5432, 6379, 8000, 3000

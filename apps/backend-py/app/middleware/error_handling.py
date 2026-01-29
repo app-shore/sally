@@ -9,7 +9,7 @@ from app.core.exceptions import (
     NotFoundError,
     OptimizationError,
     PredictionError,
-    RestOSException,
+    SallyException,
     ValidationError,
 )
 from app.utils.logger import get_logger
@@ -17,8 +17,8 @@ from app.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-async def restos_exception_handler(request: Request, exc: RestOSException) -> JSONResponse:
-    """Handle custom REST-OS exceptions."""
+async def sally_exception_handler(request: Request, exc: SallyException) -> JSONResponse:
+    """Handle custom SALLY exceptions."""
     logger.error(
         "application_error",
         path=request.url.path,

@@ -58,8 +58,8 @@ end note
 
 note right of postgres
   **Database:**
-  - User: rest_os_user
-  - Database: rest_os
+  - User: sally_user
+  - Database: sally
   - 5 tables: drivers, vehicles,
     routes, events, recommendations
   - Async connections via AsyncPG

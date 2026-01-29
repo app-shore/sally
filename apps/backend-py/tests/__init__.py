@@ -1,1 +1,1 @@
-"""Tests for REST-OS backend."""
+"""Tests for SALLY backend."""

@@ -244,9 +244,9 @@ npm install --legacy-peer-deps
 - **recommendations**: Rest recommendation history (legacy)
 
 ### Credentials
-- Database: `rest_os`
-- User: `rest_os_user`
-- Password: `rest_os_password`
+- Database: `sally`
+- User: `sally_user`
+- Password: `sally_password`
 - Host: `localhost` (or `postgres` inside Docker)
 - Port: `5432`
 
@@ -258,7 +258,7 @@ npm install --legacy-peer-deps
 ```bash
 ENVIRONMENT=development
 DEBUG=true
-DATABASE_URL=postgresql+asyncpg://rest_os_user:rest_os_password@postgres:5432/rest_os
+DATABASE_URL=postgresql+asyncpg://sally_user:sally_password@postgres:5432/sally
 REDIS_URL=redis://redis:6379/0
 CORS_ORIGINS=http://localhost:3000
 SECRET_KEY=your-secret-key-here

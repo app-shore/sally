@@ -9,7 +9,7 @@ Person(dispatcher, "Fleet Dispatcher", "Plans routes, monitors execution, handle
 Person(operations, "Operations Manager", "Analyzes route efficiency and system performance")
 Person(driver, "Truck Driver", "Follows routes, reports delays")
 
-System_Boundary(restos, "SALLY") {
+System_Boundary(sally, "SALLY") {
     Container(web, "Operations Dashboard", "Next.js 15, React 18, TypeScript", "Web UI for route planning, monitoring, and analytics")
 
     Container(api, "Backend API", "Python 3.11, FastAPI (Async)", "REST API for route planning, dynamic updates, HOS validation, and component services")
