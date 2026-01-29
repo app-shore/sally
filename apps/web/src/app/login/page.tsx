@@ -7,20 +7,20 @@ import { LoginScreen } from '@/components/auth/LoginScreen';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { is_authenticated, user_type } = useSessionStore();
+  const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
     // If user is already authenticated, redirect to their dashboard
-    if (is_authenticated) {
-      if (user_type === 'dispatcher') {
+    if (isAuthenticated) {
+      if (user?.role === 'DISPATCHER') {
         router.push('/dispatcher/overview');
-      } else if (user_type === 'driver') {
+      } else if (user?.role === 'DRIVER') {
         router.push('/driver/dashboard');
       }
     }
-  }, [is_authenticated, user_type, router]);
+  }, [isAuthenticated, user, router]);
 
-  if (is_authenticated) {
+  if (isAuthenticated) {
     return null; // Will redirect in useEffect
   }
 

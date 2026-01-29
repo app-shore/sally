@@ -46,21 +46,21 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { is_authenticated, user_type } = useSessionStore();
+  const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
-    if (!is_authenticated) {
+    if (!isAuthenticated) {
       router.push('/');
       return;
     }
 
     // Only load fleet data for dispatchers
-    if (user_type === 'dispatcher') {
+    if (user?.role === 'DISPATCHER') {
       loadData();
     } else {
       setIsLoading(false);
     }
-  }, [is_authenticated, user_type, router]);
+  }, [isAuthenticated, user, router]);
 
   const loadData = async () => {
     try {
@@ -79,7 +79,7 @@ export default function SettingsPage() {
     }
   };
 
-  if (!is_authenticated) {
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -87,14 +87,14 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-gray-500 mt-1">
-          {user_type === 'dispatcher'
+        <p className="text-muted-foreground mt-1">
+          {user?.role === 'DISPATCHER'
             ? 'Manage fleet settings and configurations'
             : 'Manage your preferences and account settings'}
         </p>
       </div>
 
-      {user_type === 'dispatcher' ? (
+      {user?.role === 'DISPATCHER' ? (
         <Tabs defaultValue="drivers" className="space-y-4">
           <TabsList>
             <TabsTrigger value="drivers">Drivers</TabsTrigger>
@@ -126,7 +126,7 @@ export default function SettingsPage() {
                 <CardTitle>Loads</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-muted-foreground">
                   <p className="text-lg">Loads Management - Coming Soon</p>
                   <p className="text-sm mt-2">
                     Manage load assignments and delivery schedules
@@ -142,7 +142,7 @@ export default function SettingsPage() {
             <CardTitle>Driver Preferences</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-muted-foreground">
               <p className="text-lg">Driver Settings - Coming Soon</p>
               <p className="text-sm mt-2">
                 Manage your profile, notifications, and preferences
@@ -221,14 +221,14 @@ function DriversTab({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="text-center py-8 text-gray-500">Loading drivers...</div>
+          <div className="text-center py-8 text-muted-foreground">Loading drivers...</div>
         ) : error ? (
           <div className="text-center py-8">
             <p className="text-red-600 mb-4">{error}</p>
             <Button onClick={onRefresh}>Retry</Button>
           </div>
         ) : drivers.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             No drivers found. Add your first driver to get started.
           </div>
         ) : (
@@ -437,14 +437,14 @@ function VehiclesTab({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="text-center py-8 text-gray-500">Loading vehicles...</div>
+          <div className="text-center py-8 text-muted-foreground">Loading vehicles...</div>
         ) : error ? (
           <div className="text-center py-8">
             <p className="text-red-600 mb-4">{error}</p>
             <Button onClick={onRefresh}>Retry</Button>
           </div>
         ) : vehicles.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             No vehicles found. Add your first vehicle to get started.
           </div>
         ) : (

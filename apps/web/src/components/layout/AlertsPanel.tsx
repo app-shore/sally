@@ -16,10 +16,10 @@ interface AlertsPanelProps {
 }
 
 const priorityConfig = {
-  critical: { icon: AlertCircle, color: 'text-red-600', bgColor: 'bg-red-50', badgeVariant: 'destructive' as const },
-  high: { icon: AlertTriangle, color: 'text-orange-600', bgColor: 'bg-orange-50', badgeVariant: 'default' as const },
-  medium: { icon: Info, color: 'text-yellow-600', bgColor: 'bg-yellow-50', badgeVariant: 'secondary' as const },
-  low: { icon: Info, color: 'text-blue-600', bgColor: 'bg-blue-50', badgeVariant: 'outline' as const },
+  critical: { icon: AlertCircle, color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-50 dark:bg-red-950', badgeVariant: 'destructive' as const },
+  high: { icon: AlertTriangle, color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-950', badgeVariant: 'default' as const },
+  medium: { icon: Info, color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-yellow-50 dark:bg-yellow-950', badgeVariant: 'secondary' as const },
+  low: { icon: Info, color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-950', badgeVariant: 'outline' as const },
 };
 
 export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
@@ -84,19 +84,19 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 h-screen w-full sm:w-[400px] bg-white shadow-2xl z-50 flex flex-col"
+            className="fixed right-0 top-0 h-screen w-full sm:w-[400px] bg-background shadow-2xl z-50 flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold">Alerts</h2>
+                <h2 className="text-lg font-semibold text-foreground">Alerts</h2>
                 {alerts.length > 0 && (
                   <Badge variant="secondary">{alerts.length}</Badge>
                 )}
               </div>
               <button
                 onClick={onClose}
-                className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 aria-label="Close alerts panel"
               >
                 <X className="h-5 w-5" />
@@ -104,15 +104,15 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
             </div>
 
             {/* Filter tabs */}
-            <div className="flex gap-2 p-4 border-b border-gray-200 overflow-x-auto">
+            <div className="flex gap-2 p-4 border-b border-border overflow-x-auto">
               {['all', 'critical', 'high', 'medium', 'low'].map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setSelectedFilter(filter)}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                     selectedFilter === filter
-                      ? 'bg-black text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-black text-white dark:bg-white dark:text-black'
+                      : 'bg-gray-100 dark:bg-gray-800 text-foreground hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
                   {filter.charAt(0).toUpperCase() + filter.slice(1)}
@@ -124,9 +124,9 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
             <ScrollArea className="flex-1">
               <div className="p-4 space-y-3">
                 {isLoading ? (
-                  <div className="text-center py-8 text-gray-500">Loading alerts...</div>
+                  <div className="text-center py-8 text-muted-foreground">Loading alerts...</div>
                 ) : filteredAlerts.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     {selectedFilter === 'all' ? 'No active alerts' : `No ${selectedFilter} priority alerts`}
                   </div>
                 ) : (
@@ -135,7 +135,7 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
                     return (
                       <div
                         key={alert.id}
-                        className={`p-4 rounded-lg border ${config.bgColor} border-gray-200`}
+                        className={`p-4 rounded-lg border ${config.bgColor} border-border`}
                       >
                         <div className="flex items-start gap-3">
                           {getAlertIcon(alert.priority)}
@@ -148,18 +148,18 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
                                 {alert.category}
                               </Badge>
                             </div>
-                            <p className="text-sm font-medium text-gray-900 mb-1">
+                            <p className="text-sm font-medium text-foreground mb-1">
                               {alert.title}
                             </p>
-                            <p className="text-xs text-gray-600 mb-2">
+                            <p className="text-xs text-muted-foreground mb-2">
                               {alert.message}
                             </p>
                             {alert.metadata && (
-                              <p className="text-xs text-gray-600 mb-2">
+                              <p className="text-xs text-muted-foreground mb-2">
                                 {JSON.stringify(alert.metadata)}
                               </p>
                             )}
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-muted-foreground">
                               {new Date(alert.created_at).toLocaleString()}
                             </div>
                           </div>

@@ -29,9 +29,104 @@
 - **DEPLOY.md** - Deployment guide (Docker, Vercel, CapRover)
 - **C4_MODEL_SUMMARY.md** - C4 model overview
 - **QUICK_REFERENCE.md** - Quick reference guide
+- **DARK_THEME_IMPLEMENTATION.md** - Dark theme guidelines and checklist
 - **architecture/** - C4 diagrams, sequence diagrams, deployment diagrams
 
 **Key Rule:** All technical docs, architecture diagrams, and operational guides go here.
+
+---
+
+## CRITICAL: UI Development Standards (MUST FOLLOW)
+
+### Dark Theme Support (NON-NEGOTIABLE)
+**ALL UI components, pages, and future development MUST support dark theme.**
+
+#### Required Color Usage
+1. **Backgrounds**
+   - ❌ NEVER: `bg-white`, `bg-gray-50` (standalone)
+   - ✅ ALWAYS: `bg-background`, `bg-card`, `bg-gray-50 dark:bg-gray-900`
+
+2. **Text Colors**
+   - ❌ NEVER: `text-gray-900`, `text-gray-600`, `text-gray-500` (standalone)
+   - ✅ ALWAYS: `text-foreground`, `text-muted-foreground`
+
+3. **Borders**
+   - ❌ NEVER: `border-gray-200`, `border-gray-300` (standalone)
+   - ✅ ALWAYS: `border-border`
+
+4. **Interactive States**
+   - ❌ NEVER: `hover:bg-gray-100` (standalone)
+   - ✅ ALWAYS: `hover:bg-gray-100 dark:hover:bg-gray-800`
+
+5. **Inverted Elements**
+   - For black backgrounds that should invert: `bg-black dark:bg-white text-white dark:text-black`
+
+6. **Progress Bars**
+   - Track: `bg-gray-200 dark:bg-gray-800`
+   - Fill: `bg-foreground` or `bg-black dark:bg-white`
+
+#### Color Palette Restriction
+- ✅ **ONLY** use: Black, White, and Gray shades
+- ✅ Status indicators (red, yellow, green, blue) allowed with dark variants
+- ❌ **NO** other colors in UI
+
+### Responsive Design (NON-NEGOTIABLE)
+**ALL UI components MUST be fully responsive across all breakpoints.**
+
+#### Required Breakpoints
+- `sm`: 640px - Small devices
+- `md`: 768px - Medium devices (sidebar visibility toggle)
+- `lg`: 1024px - Large devices
+- `xl`: 1280px - Extra large devices
+
+#### Responsive Patterns
+1. **Mobile-First**: Always start with mobile layout, then add larger breakpoint variants
+2. **Sidebar**: `hidden md:block` for desktop sidebar, overlay for mobile
+3. **Spacing**: `px-4 md:px-6 lg:px-8` (progressive spacing)
+4. **Typography**: `text-sm md:text-base lg:text-lg` (progressive sizing)
+5. **Grid Layouts**: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
+
+#### Testing Requirement
+- ✅ Test ALL new UI at: 375px (mobile), 768px (tablet), 1440px (desktop)
+- ✅ Test in BOTH light and dark themes
+- ✅ Verify touch targets (min 44x44px on mobile)
+
+### Code Review Checklist
+Before committing any UI code, verify:
+- [ ] No hardcoded `bg-white`, `text-gray-900`, `border-gray-200` without dark variants
+- [ ] All semantic color tokens used (`bg-background`, `text-foreground`, etc.)
+- [ ] Dark mode variants added where needed (`dark:bg-gray-900`, `dark:text-gray-300`)
+- [ ] Responsive classes present for all breakpoints
+- [ ] Tested in both light and dark themes
+- [ ] Tested on mobile, tablet, and desktop screen sizes
+- [ ] Only black, white, and gray colors used (except status indicators)
+- [ ] Hover/focus states work in both themes
+
+### Quick Reference: Semantic Color Tokens
+
+```tsx
+// Backgrounds
+bg-background        // Main page background
+bg-card             // Card/panel backgrounds
+bg-accent           // Subtle accent background
+bg-muted            // Muted background
+
+// Text
+text-foreground          // Primary text
+text-muted-foreground    // Secondary/helper text
+text-accent-foreground   // Accent text
+
+// Borders
+border-border       // Standard borders
+border-input        // Input borders
+
+// Interactive
+bg-primary text-primary-foreground  // Primary buttons
+bg-secondary text-secondary-foreground  // Secondary buttons
+```
+
+### Reference Documentation
+See `.docs/DARK_THEME_IMPLEMENTATION.md` for complete implementation details.
 
 ---
 
@@ -86,6 +181,7 @@ Core capabilities:
 4. **Always maintain index files** (README.md, INDEX.md) when adding new docs
 5. **Cross-reference related documents** for easy navigation
 6. **Frame SALLY as route planning platform** with REST optimization as component
+7. **ALL UI MUST support dark theme and responsive design** (see UI Development Standards above)
 
 ---
 
@@ -141,6 +237,7 @@ Route Planner: Inserts rest segment
 - Next.js 15 (App Router), TypeScript
 - Zustand + React Query
 - Tailwind CSS + Shadcn/ui
+- next-themes (dark mode support)
 - Turborepo (monorepo)
 
 **Infrastructure:**
@@ -200,7 +297,7 @@ Check for:
 ---
 
 ## Last Updated
-January 23, 2026 - Major documentation cleanup and reorganization
+January 29, 2026 - Added critical UI development standards for dark theme and responsive design
 
 ## Maintained By
 SALLY Product & Engineering Team

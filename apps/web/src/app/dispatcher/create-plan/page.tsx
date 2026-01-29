@@ -7,15 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function CreatePlanPage() {
   const router = useRouter();
-  const { is_authenticated, user_type } = useSessionStore();
+  const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
-    if (!is_authenticated || user_type !== 'dispatcher') {
+    if (!isAuthenticated || user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN') {
       router.push('/');
     }
-  }, [is_authenticated, user_type, router]);
+  }, [isAuthenticated, user, router]);
 
-  if (!is_authenticated || user_type !== 'dispatcher') {
+  if (!isAuthenticated || user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN') {
     return null;
   }
 
@@ -23,7 +23,7 @@ export default function CreatePlanPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Create Route Plan</h1>
-        <p className="text-gray-500 mt-1">Plan optimized routes with HOS compliance and rest stop insertion</p>
+        <p className="text-muted-foreground mt-1">Plan optimized routes with HOS compliance and rest stop insertion</p>
       </div>
 
       <Card>
@@ -31,7 +31,7 @@ export default function CreatePlanPage() {
           <CardTitle>Route Planning Interface</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-20 text-gray-500">
+          <div className="text-center py-20 text-muted-foreground">
             <p className="text-lg font-medium">Route Planning Coming Soon</p>
             <p className="text-sm mt-2">Comprehensive route planning interface with:</p>
             <ul className="text-sm mt-4 space-y-2 max-w-md mx-auto text-left">

@@ -1,94 +1,113 @@
 /**
- * API client for FastAPI backend
+ * API client with JWT authentication and automatic token refresh
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { useSessionStore } from '@/lib/store/sessionStore';
 
-export class APIError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-    public details?: unknown
-  ) {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+export class ApiError extends Error {
+  constructor(public status: number, message: string, public data?: any) {
     super(message);
-    this.name = "APIError";
+    this.name = 'ApiError';
   }
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
+export async function apiClient<T = any>(
+  url: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const { accessToken, refreshToken } = useSessionStore.getState();
+
+  // Add Authorization header
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...options.headers,
+  };
+
+  let response = await fetch(`${API_BASE_URL}${url}`, {
+    ...options,
+    headers,
+    credentials: 'include', // Include httpOnly cookies
+  });
+
+  // Handle 401 (token expired) - try to refresh
+  if (response.status === 401 && accessToken) {
+    try {
+      // Refresh access token
+      await refreshToken();
+
+      // Retry original request with new token
+      const newToken = useSessionStore.getState().accessToken;
+      response = await fetch(`${API_BASE_URL}${url}`, {
+        ...options,
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${newToken}`,
+        },
+        credentials: 'include',
+      });
+    } catch (refreshError) {
+      // Refresh failed - redirect to login
+      useSessionStore.getState().logout();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+      throw new ApiError(401, 'Session expired. Please login again.');
+    }
+  }
+
+  // Handle other errors
   if (!response.ok) {
     const error = await response.json().catch(() => ({
-      detail: "An error occurred",
+      message: `Request failed with status ${response.status}`,
     }));
-    throw new APIError(
+    throw new ApiError(
       response.status,
-      error.detail || `HTTP ${response.status}`,
+      error.message || error.detail || 'Request failed',
       error
     );
+  }
+
+  // Handle 204 No Content
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return response.json();
 }
 
+// Convenience methods
+const apiMethods = {
+  get: <T = any>(url: string, options?: RequestInit) =>
+    apiClient<T>(url, { ...options, method: 'GET' }),
+
+  post: <T = any>(url: string, data?: any, options?: RequestInit) =>
+    apiClient<T>(url, {
+      ...options,
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
+  put: <T = any>(url: string, data?: any, options?: RequestInit) =>
+    apiClient<T>(url, {
+      ...options,
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
+  delete: <T = any>(url: string, options?: RequestInit) =>
+    apiClient<T>(url, { ...options, method: 'DELETE' }),
+};
+
+// Import sub-modules
+import { optimization, hosRules, prediction } from './optimization';
+
+// Export combined API object
 export const api = {
-  hos: {
-    check: async (data: {
-      driver_id: string;
-      hours_driven: number;
-      on_duty_time: number;
-      hours_since_break: number;
-    }) => {
-      const response = await fetch(`${API_BASE_URL}/hos-rules/check`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      return handleResponse(response);
-    },
-  },
-
-  optimization: {
-    recommend: async (data: {
-      driver_id: string;
-      hours_driven: number;
-      on_duty_time: number;
-      hours_since_break: number;
-      dock_duration_hours?: number;
-      dock_location?: string;
-      remaining_distance_miles?: number;
-      destination?: string;
-      appointment_time?: string;
-      current_location?: string;
-    }) => {
-      const response = await fetch(
-        `${API_BASE_URL}/optimization/recommend`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
-      return handleResponse(response);
-    },
-  },
-
-  prediction: {
-    estimate: async (data: {
-      remaining_distance_miles: number;
-      destination: string;
-      appointment_time?: string;
-      current_location?: string;
-      average_speed_mph?: number;
-    }) => {
-      const response = await fetch(
-        `${API_BASE_URL}/prediction/estimate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
-      return handleResponse(response);
-    },
-  },
+  ...apiMethods,
+  optimization,
+  hos: hosRules,
+  prediction,
 };

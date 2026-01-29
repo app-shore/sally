@@ -9,15 +9,15 @@ import { Button } from '@/components/ui/button';
 
 export default function ActiveRoutesPage() {
   const router = useRouter();
-  const { is_authenticated, user_type } = useSessionStore();
+  const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
-    if (!is_authenticated || user_type !== 'dispatcher') {
+    if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN')) {
       router.push('/');
     }
-  }, [is_authenticated, user_type, router]);
+  }, [isAuthenticated, user, router]);
 
-  if (!is_authenticated || user_type !== 'dispatcher') {
+  if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN')) {
     return null;
   }
 
@@ -69,7 +69,7 @@ export default function ActiveRoutesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Active Routes</h1>
-        <p className="text-gray-500 mt-1">Monitor ongoing routes and driver progress in real-time</p>
+        <p className="text-muted-foreground mt-1">Monitor ongoing routes and driver progress in real-time</p>
       </div>
 
       <div className="space-y-4">
@@ -79,7 +79,7 @@ export default function ActiveRoutesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-lg">Route {route.id}</CardTitle>
-                  <p className="text-sm text-gray-500 mt-1">{route.driver}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{route.driver}</p>
                 </div>
                 {getStatusBadge(route.status)}
               </div>
@@ -88,23 +88,23 @@ export default function ActiveRoutesPage() {
               <div className="space-y-4">
                 <div className="flex justify-between text-sm">
                   <div>
-                    <p className="text-gray-500">Origin</p>
+                    <p className="text-muted-foreground">Origin</p>
                     <p className="font-medium">{route.origin}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-gray-500">Destination</p>
+                    <p className="text-muted-foreground">Destination</p>
                     <p className="font-medium">{route.destination}</p>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-500">Progress</span>
+                    <span className="text-muted-foreground">Progress</span>
                     <span className="font-medium">{route.progress}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
                     <div
-                      className="bg-black h-2 rounded-full transition-all"
+                      className="bg-black dark:bg-white h-2 rounded-full transition-all"
                       style={{ width: `${route.progress}%` }}
                     />
                   </div>
@@ -112,7 +112,7 @@ export default function ActiveRoutesPage() {
 
                 <div className="flex items-center justify-between">
                   <div className="text-sm">
-                    <span className="text-gray-500">ETA: </span>
+                    <span className="text-muted-foreground">ETA: </span>
                     <span className="font-medium">{route.eta}</span>
                   </div>
                   <Button variant="outline" size="sm">
@@ -127,7 +127,7 @@ export default function ActiveRoutesPage() {
 
       {mockRoutes.length === 0 && (
         <Card>
-          <CardContent className="py-20 text-center text-gray-500">
+          <CardContent className="py-20 text-center text-muted-foreground">
             <p className="text-lg font-medium">No Active Routes</p>
             <p className="text-sm mt-2">Create a new route plan to get started</p>
           </CardContent>

@@ -46,16 +46,16 @@ export default function ConfigPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { is_authenticated, user_type } = useSessionStore();
+  const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
-    if (!is_authenticated || user_type !== 'dispatcher') {
+    if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN')) {
       router.push('/');
       return;
     }
 
     loadData();
-  }, [is_authenticated, user_type, router]);
+  }, [isAuthenticated, user, router]);
 
   const loadData = async () => {
     try {
@@ -74,7 +74,7 @@ export default function ConfigPage() {
     }
   };
 
-  if (!is_authenticated || user_type !== 'dispatcher') {
+  if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN')) {
     return null;
   }
 

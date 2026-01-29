@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, Bell, Home } from 'lucide-react';
+import { Menu, Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { UserProfileMenu } from './UserProfileMenu';
+import { ThemeToggle } from './ThemeToggle';
 import { useSessionStore } from '@/lib/store/sessionStore';
 
 interface AppHeaderProps {
@@ -14,54 +14,45 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHeaderProps) {
-  const { user_type } = useSessionStore();
+  const { user } = useSessionStore();
 
   const getRoleLabel = () => {
-    if (user_type === 'dispatcher') return 'Dispatcher View';
-    if (user_type === 'driver') return 'Driver View';
+    if (user?.role === 'DISPATCHER') return 'Dispatcher View';
+    if (user?.role === 'DRIVER') return 'Driver View';
+    if (user?.role === 'ADMIN') return 'Admin View';
     return 'SALLY';
   };
 
-  const getDashboardLink = () => {
-    if (user_type === 'dispatcher') return '/dispatcher/overview';
-    if (user_type === 'driver') return '/driver/dashboard';
-    return '/';
-  };
-
   return (
-    <header className="h-16 border-b border-gray-200 bg-white sticky top-0 z-30">
+    <header className="h-16 border-b border-gray-200 bg-background z-50">
       <div className="h-full flex items-center justify-between px-4 md:px-6">
         {/* Left section */}
         <div className="flex items-center gap-4">
           {/* Mobile hamburger */}
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-md hover:bg-gray-100 transition-colors md:hidden"
+            className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors md:hidden"
             aria-label="Toggle sidebar"
           >
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* Logo - clickable to dashboard */}
+          {/* Logo - clickable to home */}
           <Link
-            href={getDashboardLink()}
+            href="/"
             className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity"
-            title="Back to Dashboard"
+            title="Back to Home"
           >
             SALLY
           </Link>
 
-          {/* Home link (back to landing) - desktop only */}
-          <Link href="/" className="hidden md:block">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              Home
-            </Button>
-          </Link>
+          {/* Tagline - desktop only */}
+          <div className="hidden lg:flex items-center gap-2">
+            <span className="text-xs text-gray-400">|</span>
+            <p className="text-xs text-gray-500">
+              Smart Routes. Confident Dispatchers. Happy Drivers.
+            </p>
+          </div>
         </div>
 
         {/* Center section - Role badge (desktop only) */}
@@ -72,18 +63,28 @@ export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHead
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          {/* Theme toggle */}
+          <ThemeToggle />
+
           {/* Notifications bell */}
           <button
             onClick={onOpenAlerts}
-            className="relative p-2 rounded-md hover:bg-gray-100 transition-colors"
+            className="relative p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="View alerts"
           >
-            <Bell className="h-5 w-5" />
+            <Bell className={`h-5 w-5 ${alertCount > 0 ? 'animate-pulse text-red-600' : ''}`} />
             {alertCount > 0 && (
-              <span className="absolute top-1 right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {alertCount > 9 ? '9+' : alertCount}
-              </span>
+              <>
+                {/* Pulsating ring effect */}
+                <span className="absolute top-2 right-2 h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                </span>
+                {/* Alert count badge */}
+                <span className="absolute top-1 right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold z-10">
+                  {alertCount > 9 ? '9+' : alertCount}
+                </span>
+              </>
             )}
           </button>
 

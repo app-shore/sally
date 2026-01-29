@@ -16,20 +16,21 @@ import { useSessionStore } from '@/lib/store/sessionStore';
 
 export function UserProfileMenu() {
   const router = useRouter();
-  const { user_id, user_type, logout } = useSessionStore();
+  const { user, logout } = useSessionStore();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
   };
 
-  const getInitials = (id: string) => {
-    return id.slice(0, 2).toUpperCase();
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
-  const getRoleLabel = (type: string | null) => {
-    if (type === 'dispatcher') return 'Dispatcher';
-    if (type === 'driver') return 'Driver';
+  const getRoleLabel = (role: string | undefined) => {
+    if (role === 'DISPATCHER') return 'Dispatcher';
+    if (role === 'DRIVER') return 'Driver';
+    if (role === 'ADMIN') return 'Admin';
     return 'User';
   };
 
@@ -39,7 +40,7 @@ export function UserProfileMenu() {
         <button className="flex items-center gap-2 rounded-full hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-gray-300">
           <Avatar className="h-9 w-9">
             <AvatarFallback className="bg-black text-white text-sm">
-              {user_id ? getInitials(user_id) : 'U'}
+              {user ? getInitials(user.firstName, user.lastName) : 'U'}
             </AvatarFallback>
           </Avatar>
         </button>
@@ -47,10 +48,16 @@ export function UserProfileMenu() {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium">{user_id || 'User'}</p>
-            <Badge variant="secondary" className="w-fit text-xs">
-              {getRoleLabel(user_type)}
+            <p className="text-sm font-medium">
+              {user ? `${user.firstName} ${user.lastName}` : 'User'}
+            </p>
+            <p className="text-xs text-muted-foreground">{user?.email}</p>
+            <Badge variant="secondary" className="w-fit text-xs mt-1">
+              {getRoleLabel(user?.role)}
             </Badge>
+            {user?.tenantName && (
+              <p className="text-xs text-muted-foreground mt-1">{user.tenantName}</p>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

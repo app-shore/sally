@@ -53,7 +53,7 @@ function SliderField({
             {label}
           </Label>
           {futureSource && (
-            <span className="flex items-center gap-1 text-xs text-gray-500">
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Database className="h-3 w-3" />
               {futureSource}
             </span>
@@ -71,11 +71,11 @@ function SliderField({
             onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
             className="h-8 w-20 text-right text-sm"
           />
-          <span className="text-sm text-gray-500 w-6">{unit}</span>
+          <span className="text-sm text-muted-foreground w-6">{unit}</span>
         </div>
       </div>
       {description && (
-        <p className="text-xs text-gray-500">{description}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       )}
       <Slider
         id={`${id}-slider`}
@@ -86,7 +86,7 @@ function SliderField({
         onValueChange={(values) => onChange(values[0])}
         className="mt-2"
       />
-      <div className="flex justify-between text-xs text-gray-400">
+      <div className="flex justify-between text-xs text-muted-foreground">
         <span>{min}{unit}</span>
         <span>{max}{unit}</span>
       </div>
@@ -124,7 +124,7 @@ function FieldWithSource({
           {label}
         </Label>
         {futureSource && (
-          <span className="flex items-center gap-1 text-xs text-gray-500">
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <Database className="h-3 w-3" />
             {futureSource}
           </span>
@@ -161,8 +161,8 @@ function Section({ title, children, defaultOpen = true }: SectionProps) {
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md bg-gray-50 px-3 py-2 hover:bg-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md bg-gray-50 dark:bg-gray-900 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
         <ChevronDown
           className={`h-4 w-4 transition-transform ${
             isOpen ? "rotate-180" : ""
@@ -239,7 +239,7 @@ export function ControlPanel({ formData, setFormData, onRunEngine, isRunning = f
           <CardTitle className="text-base sm:text-lg font-semibold">
             Engine Parameters
           </CardTitle>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Configure driver and trip details
           </p>
         </CardHeader>
@@ -360,18 +360,18 @@ export function ControlPanel({ formData, setFormData, onRunEngine, isRunning = f
             <Button
               onClick={handleClear}
               variant="outline"
-              className="border-gray-300 w-full sm:w-auto"
+              className="w-full sm:w-auto"
             >
               Clear
             </Button>
           </div>
 
           {/* Future Integration Notice */}
-          <div className="rounded-md bg-gray-50 p-3">
+          <div className="rounded-md bg-gray-50 dark:bg-gray-900 p-3">
             <div className="flex items-start gap-2">
-              <Database className="h-4 w-4 text-gray-500 mt-0.5" />
+              <Database className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div className="flex-1">
-                <p className="text-xs text-gray-600 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Parameters marked with <span className="font-medium">ELD</span> and{" "}
                   <span className="font-medium">TMS</span> are expected to be
                   automatically populated from your Electronic Logging Device and

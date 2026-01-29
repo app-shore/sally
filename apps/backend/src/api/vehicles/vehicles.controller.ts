@@ -1,8 +1,12 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus, HttpException, Logger } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { PrismaService } from '../../database/prisma.service';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('Vehicles')
+@ApiBearerAuth()
 @Controller('vehicles')
 export class VehiclesController {
   private readonly logger = new Logger(VehiclesController.name);
@@ -10,13 +14,22 @@ export class VehiclesController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
   @ApiOperation({ summary: 'List all active vehicles' })
-  async listVehicles() {
-    this.logger.log('List vehicles requested');
+  async listVehicles(@CurrentUser() user: any) {
+    this.logger.log(`List vehicles requested by user ${user.userId} in tenant ${user.tenantId}`);
 
     try {
+      // Get tenant ID from authenticated user
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
       const vehicles = await this.prisma.vehicle.findMany({
-        where: { isActive: true },
+        where: {
+          tenantId: tenant.id,
+          isActive: true,
+        },
         orderBy: { vehicleId: 'asc' },
       });
 
@@ -35,6 +48,7 @@ export class VehiclesController {
   }
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new vehicle' })
   @ApiBody({
     schema: {
@@ -50,6 +64,7 @@ export class VehiclesController {
     },
   })
   async createVehicle(
+    @CurrentUser() user: any,
     @Body()
     body: {
       vehicle_id: string;
@@ -59,9 +74,14 @@ export class VehiclesController {
       mpg?: number;
     },
   ) {
-    this.logger.log(`Create vehicle: ${body.vehicle_id} - ${body.unit_number}`);
+    this.logger.log(`Create vehicle: ${body.vehicle_id} - ${body.unit_number} by user ${user.userId}`);
 
     try {
+      // Get tenant ID from authenticated user
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
       const vehicle = await this.prisma.vehicle.create({
         data: {
           vehicleId: body.vehicle_id,
@@ -70,6 +90,7 @@ export class VehiclesController {
           currentFuelGallons: body.current_fuel_gallons,
           mpg: body.mpg,
           isActive: true,
+          tenantId: tenant.id,
         },
       });
 
@@ -93,6 +114,7 @@ export class VehiclesController {
   }
 
   @Put(':vehicle_id')
+  @Roles(UserRole.ADMIN, UserRole.DISPATCHER)
   @ApiOperation({ summary: 'Update vehicle' })
   @ApiParam({ name: 'vehicle_id', description: 'Vehicle ID' })
   @ApiBody({
@@ -107,6 +129,7 @@ export class VehiclesController {
     },
   })
   async updateVehicle(
+    @CurrentUser() user: any,
     @Param('vehicle_id') vehicleId: string,
     @Body()
     body: {
@@ -116,11 +139,21 @@ export class VehiclesController {
       mpg?: number;
     },
   ) {
-    this.logger.log(`Update vehicle: ${vehicleId}`);
+    this.logger.log(`Update vehicle: ${vehicleId} by user ${user.userId}`);
 
     try {
+      // Get tenant ID from authenticated user
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
       const vehicle = await this.prisma.vehicle.update({
-        where: { vehicleId },
+        where: {
+          vehicleId_tenantId: {
+            vehicleId,
+            tenantId: tenant.id,
+          },
+        },
         data: {
           ...(body.unit_number ? { unitNumber: body.unit_number } : {}),
           ...(body.fuel_capacity_gallons !== undefined ? { fuelCapacityGallons: body.fuel_capacity_gallons } : {}),
@@ -145,14 +178,25 @@ export class VehiclesController {
   }
 
   @Delete(':vehicle_id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Soft delete vehicle (set isActive=false)' })
   @ApiParam({ name: 'vehicle_id', description: 'Vehicle ID' })
-  async deleteVehicle(@Param('vehicle_id') vehicleId: string) {
-    this.logger.log(`Delete vehicle: ${vehicleId}`);
+  async deleteVehicle(@CurrentUser() user: any, @Param('vehicle_id') vehicleId: string) {
+    this.logger.log(`Delete vehicle: ${vehicleId} by user ${user.userId}`);
 
     try {
+      // Get tenant ID from authenticated user
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
       const vehicle = await this.prisma.vehicle.update({
-        where: { vehicleId },
+        where: {
+          vehicleId_tenantId: {
+            vehicleId,
+            tenantId: tenant.id,
+          },
+        },
         data: { isActive: false },
       });
 

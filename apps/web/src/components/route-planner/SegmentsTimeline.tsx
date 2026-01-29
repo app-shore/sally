@@ -8,7 +8,7 @@ export function SegmentsTimeline() {
 
   if (!currentPlan?.segments || currentPlan.segments.length === 0) {
     return (
-      <Card className="p-6 text-center text-gray-500">
+      <Card className="p-6 text-center text-muted-foreground">
         No segments available
       </Card>
     );
@@ -36,7 +36,7 @@ export function SegmentsTimeline() {
                 {segment.from_location && ` ${segment.from_location}`}
                 {segment.to_location && segment.to_location !== segment.from_location && ` → ${segment.to_location}`}
               </div>
-              <div className="text-sm text-gray-600 mt-1">
+              <div className="text-sm text-muted-foreground mt-1">
                 {segment.drive_time_hours && `${segment.drive_time_hours.toFixed(1)}h`}
                 {segment.distance_miles && ` | ${segment.distance_miles.toFixed(0)} miles`}
                 {segment.rest_duration_hours && `${segment.rest_duration_hours.toFixed(1)}h rest`}

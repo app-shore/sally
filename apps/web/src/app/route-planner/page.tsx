@@ -88,13 +88,13 @@ export default function RoutePlannerPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Route Planner</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold text-foreground">Route Planner</h1>
+            <p className="text-sm text-muted-foreground mt-1">
               Plan HOS-compliant routes with REST optimization
             </p>
           </div>
@@ -103,11 +103,11 @@ export default function RoutePlannerPage() {
           {planVersions.length > 1 && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Version:</span>
+                <span className="text-sm text-muted-foreground">Version:</span>
                 <select
                   value={currentVersion}
                   onChange={(e) => useRoutePlanStore.getState().setCurrentVersion(Number(e.target.value))}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium"
+                  className="px-3 py-2 border border-border rounded-lg text-sm font-medium bg-background text-foreground"
                 >
                   {planVersions.map((plan, idx) => (
                     <option key={idx} value={plan.plan_version || idx + 1}>
@@ -134,15 +134,15 @@ export default function RoutePlannerPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Setup (40%) */}
-        <div className="w-2/5 bg-white border-r border-gray-200 overflow-y-auto">
+        <div className="w-2/5 bg-card border-r border-border overflow-y-auto">
           <div className="p-6 space-y-4">
             {/* Load Source Selection - Collapsible */}
             <section>
               <button
                 onClick={() => toggleSection('load')}
-                className="w-full flex items-center justify-between text-lg font-semibold text-gray-900 mb-3 hover:text-blue-600 transition-colors"
+                className="w-full flex items-center justify-between text-lg font-semibold text-foreground mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                <span>Load Selection {!expandedSections.load && stops.length > 0 && <span className="text-sm text-green-600 ml-2">✓</span>}</span>
+                <span>Load Selection {!expandedSections.load && stops.length > 0 && <span className="text-sm text-green-600 dark:text-green-400 ml-2">✓</span>}</span>
                 <svg
                   className={`w-5 h-5 transition-transform ${expandedSections.load ? 'rotate-180' : ''}`}
                   fill="none"
@@ -159,9 +159,9 @@ export default function RoutePlannerPage() {
             <section>
               <button
                 onClick={() => toggleSection('driver')}
-                className="w-full flex items-center justify-between text-lg font-semibold text-gray-900 mb-3 hover:text-blue-600 transition-colors"
+                className="w-full flex items-center justify-between text-lg font-semibold text-foreground mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                <span>Driver State {!expandedSections.driver && driverState !== null && !!driverId && <span className="text-sm text-green-600 ml-2">✓</span>}</span>
+                <span>Driver State {!expandedSections.driver && driverState !== null && !!driverId && <span className="text-sm text-green-600 dark:text-green-400 ml-2">✓</span>}</span>
                 <svg
                   className={`w-5 h-5 transition-transform ${expandedSections.driver ? 'rotate-180' : ''}`}
                   fill="none"
@@ -178,9 +178,9 @@ export default function RoutePlannerPage() {
             <section>
               <button
                 onClick={() => toggleSection('vehicle')}
-                className="w-full flex items-center justify-between text-lg font-semibold text-gray-900 mb-3 hover:text-blue-600 transition-colors"
+                className="w-full flex items-center justify-between text-lg font-semibold text-foreground mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                <span>Vehicle State {!expandedSections.vehicle && vehicleState !== null && !!vehicleId && <span className="text-sm text-green-600 ml-2">✓</span>}</span>
+                <span>Vehicle State {!expandedSections.vehicle && vehicleState !== null && !!vehicleId && <span className="text-sm text-green-600 dark:text-green-400 ml-2">✓</span>}</span>
                 <svg
                   className={`w-5 h-5 transition-transform ${expandedSections.vehicle ? 'rotate-180' : ''}`}
                   fill="none"
@@ -197,9 +197,9 @@ export default function RoutePlannerPage() {
             <section>
               <button
                 onClick={() => toggleSection('stops')}
-                className="w-full flex items-center justify-between text-lg font-semibold text-gray-900 mb-3 hover:text-blue-600 transition-colors"
+                className="w-full flex items-center justify-between text-lg font-semibold text-foreground mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                <span>Stops ({stops.length}) {!expandedSections.stops && stops.length > 0 && <span className="text-sm text-green-600 ml-2">✓</span>}</span>
+                <span>Stops ({stops.length}) {!expandedSections.stops && stops.length > 0 && <span className="text-sm text-green-600 dark:text-green-400 ml-2">✓</span>}</span>
                 <svg
                   className={`w-5 h-5 transition-transform ${expandedSections.stops ? 'rotate-180' : ''}`}
                   fill="none"
@@ -223,7 +223,7 @@ export default function RoutePlannerPage() {
             </Button>
 
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+              <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-800 dark:text-red-200">
                 {error}
               </div>
             )}
@@ -231,7 +231,7 @@ export default function RoutePlannerPage() {
         </div>
 
         {/* Right Panel - Visualization (60%) */}
-        <div className="flex-1 bg-gray-50 overflow-y-auto">
+        <div className="flex-1 bg-background overflow-y-auto">
           {showVersionComparison && planVersions.length > 1 ? (
             <VersionComparison />
           ) : currentPlan ? (
@@ -255,26 +255,26 @@ export default function RoutePlannerPage() {
 
               {/* Segments Timeline */}
               <section>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Route Timeline</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">Route Timeline</h3>
                 <SegmentsTimeline />
               </section>
 
               {/* Compliance Status */}
               <section>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">HOS Compliance</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">HOS Compliance</h3>
                 <ComplianceStatus />
               </section>
             </div>
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                   <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No Route Plan</h3>
-                <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                <h3 className="text-lg font-medium text-foreground mb-2">No Route Plan</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                   Select a load source, configure driver and vehicle state, add stops, and generate a plan to get started.
                 </p>
               </div>

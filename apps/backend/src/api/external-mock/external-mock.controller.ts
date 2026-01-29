@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query, HttpStatus, HttpException, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { Public } from '../../auth/decorators/public.decorator';
 
 interface HOSData {
   driver_id: string;
@@ -109,6 +110,7 @@ export class ExternalMockController {
     },
   };
 
+  @Public()
   @Get('hos/:driverId')
   @ApiOperation({ summary: 'Get driver HOS data from mock Samsara ELD API' })
   @ApiParam({ name: 'driverId', description: 'Driver ID (e.g., DRV-001)' })
@@ -129,6 +131,7 @@ export class ExternalMockController {
     return hosData;
   }
 
+  @Public()
   @Get('fuel-prices')
   @ApiOperation({ summary: 'Get fuel prices from mock GasBuddy API' })
   @ApiQuery({ name: 'lat', required: true, description: 'Latitude' })
@@ -173,6 +176,7 @@ export class ExternalMockController {
     };
   }
 
+  @Public()
   @Get('weather')
   @ApiOperation({ summary: 'Get weather data from mock OpenWeatherMap API' })
   @ApiQuery({ name: 'lat', required: true, description: 'Latitude' })

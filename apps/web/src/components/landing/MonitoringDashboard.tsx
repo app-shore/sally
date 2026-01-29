@@ -98,11 +98,11 @@ const triggers: Trigger[] = [
 ];
 
 const categoryColors: Record<Trigger['category'], string> = {
-  proactive: 'bg-white',
-  reactive: 'bg-gray-300',
-  external: 'bg-gray-400',
-  operational: 'bg-gray-200',
-  compliance: 'bg-gray-100',
+  proactive: 'bg-white dark:bg-white',
+  reactive: 'bg-gray-300 dark:bg-gray-300',
+  external: 'bg-gray-400 dark:bg-gray-400',
+  operational: 'bg-gray-200 dark:bg-gray-200',
+  compliance: 'bg-gray-100 dark:bg-gray-100',
 };
 
 export function MonitoringDashboard() {
@@ -119,7 +119,7 @@ export function MonitoringDashboard() {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white border border-white/20 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 dark:bg-black/20 text-white dark:text-gray-300 border border-white/20 dark:border-gray-700 rounded-full text-sm font-medium mb-4">
             <motion.div
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -127,7 +127,7 @@ export function MonitoringDashboard() {
             />
             <span>Monitoring every 60 seconds</span>
           </div>
-          <p className="text-gray-300 max-w-2xl mx-auto">
+          <p className="text-gray-300 dark:text-gray-400 max-w-2xl mx-auto">
             SALLY continuously monitors 14 trigger types across 5 categories to ensure route compliance and efficiency
           </p>
         </div>
@@ -148,8 +148,8 @@ export function MonitoringDashboard() {
               <div
                 className={`h-full p-4 border rounded-lg transition-all duration-300 cursor-pointer ${
                   hoveredTrigger === trigger.id
-                    ? 'shadow-card-hover border-white bg-white/20'
-                    : 'bg-white/10 border-white/20'
+                    ? 'shadow-card-hover border-white dark:border-gray-600 bg-white/20 dark:bg-black/30'
+                    : 'bg-white/10 dark:bg-black/20 border-white/20 dark:border-gray-700'
                 }`}
               >
                 {/* Pulse indicator */}
@@ -170,10 +170,10 @@ export function MonitoringDashboard() {
                 </div>
 
                 {/* Content */}
-                <h4 className="text-sm font-semibold text-white mb-1 leading-tight">
+                <h4 className="text-sm font-semibold text-white dark:text-gray-200 mb-1 leading-tight">
                   {trigger.name}
                 </h4>
-                <p className="text-xs text-gray-400 uppercase tracking-wide">
+                <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">
                   {trigger.category}
                 </p>
 
@@ -182,10 +182,10 @@ export function MonitoringDashboard() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="absolute z-10 bottom-full left-0 right-0 mb-2 p-3 bg-white text-black text-xs rounded-lg shadow-card-lg border border-gray-200"
+                    className="absolute z-10 bottom-full left-0 right-0 mb-2 p-3 bg-white dark:bg-gray-900 text-black dark:text-white text-xs rounded-lg shadow-card-lg border border-gray-200 dark:border-gray-700"
                   >
                     {trigger.description}
-                    <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white" />
+                    <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white dark:border-t-gray-900" />
                   </motion.div>
                 )}
               </div>
@@ -197,8 +197,8 @@ export function MonitoringDashboard() {
         <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm">
           {Object.entries(categoryColors).map(([category, color]) => (
             <div key={category} className="flex items-center gap-2">
-              <div className={`w-3 h-3 ${color} rounded-full border border-white/30`} />
-              <span className="text-gray-300 capitalize">{category}</span>
+              <div className={`w-3 h-3 ${color} rounded-full border border-white/30 dark:border-gray-700`} />
+              <span className="text-gray-300 dark:text-gray-400 capitalize">{category}</span>
             </div>
           ))}
         </div>
@@ -212,16 +212,16 @@ export function MonitoringDashboard() {
           className="mt-12 grid grid-cols-3 gap-8 max-w-2xl mx-auto"
         >
           <div className="text-center">
-            <div className="text-3xl font-bold text-white mb-1">14</div>
-            <div className="text-sm text-gray-400">Trigger Types</div>
+            <div className="text-3xl font-bold text-white dark:text-gray-200 mb-1">14</div>
+            <div className="text-sm text-gray-400 dark:text-gray-500">Trigger Types</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-white mb-1">60s</div>
-            <div className="text-sm text-gray-400">Check Interval</div>
+            <div className="text-3xl font-bold text-white dark:text-gray-200 mb-1">60s</div>
+            <div className="text-sm text-gray-400 dark:text-gray-500">Check Interval</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-white mb-1">24/7</div>
-            <div className="text-sm text-gray-400">Monitoring</div>
+            <div className="text-3xl font-bold text-white dark:text-gray-200 mb-1">24/7</div>
+            <div className="text-sm text-gray-400 dark:text-gray-500">Monitoring</div>
           </div>
         </motion.div>
       </motion.div>

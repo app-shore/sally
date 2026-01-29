@@ -9,6 +9,20 @@ const configSchema = z.object({
   projectName: z.string().default('SALLY Backend'),
   secretKey: z.string().default('sally-development-secret-key-minimum-32-chars'),
 
+  // JWT Configuration
+  jwt: z.object({
+    accessSecret: z.string().default('sally-jwt-access-secret-change-in-production-min-32-chars'),
+    refreshSecret: z.string().default('sally-jwt-refresh-secret-change-in-production-min-32-chars'),
+    accessExpiry: z.string().default('15m'),
+    refreshExpiry: z.string().default('7d'),
+  }),
+
+  // Auth Configuration
+  auth: z.object({
+    enableMockAuth: z.boolean().default(true),
+    bcryptRounds: z.number().default(10),
+  }),
+
   // HOS Constants
   maxDriveHours: z.number().default(11.0),
   maxDutyHours: z.number().default(14.0),
@@ -30,6 +44,16 @@ export default (): Configuration => {
     apiV1Prefix: process.env.API_V1_PREFIX,
     projectName: process.env.PROJECT_NAME,
     secretKey: process.env.SECRET_KEY,
+    jwt: {
+      accessSecret: process.env.JWT_ACCESS_SECRET,
+      refreshSecret: process.env.JWT_REFRESH_SECRET,
+      accessExpiry: process.env.JWT_ACCESS_EXPIRY,
+      refreshExpiry: process.env.JWT_REFRESH_EXPIRY,
+    },
+    auth: {
+      enableMockAuth: process.env.ENABLE_MOCK_AUTH === 'true',
+      bcryptRounds: process.env.BCRYPT_ROUNDS ? Number(process.env.BCRYPT_ROUNDS) : undefined,
+    },
     maxDriveHours: process.env.MAX_DRIVE_HOURS ? Number(process.env.MAX_DRIVE_HOURS) : undefined,
     maxDutyHours: process.env.MAX_DUTY_HOURS ? Number(process.env.MAX_DUTY_HOURS) : undefined,
     requiredBreakMinutes: process.env.REQUIRED_BREAK_MINUTES ? Number(process.env.REQUIRED_BREAK_MINUTES) : undefined,

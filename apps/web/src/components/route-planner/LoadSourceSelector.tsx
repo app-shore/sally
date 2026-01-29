@@ -61,13 +61,13 @@ export function LoadSourceSelector() {
       <div className="space-y-4">
         {/* Load Selection (REQUIRED) */}
         <div>
-          <div className="font-medium text-gray-900 mb-2">
+          <div className="font-medium text-foreground mb-2">
             1. Load Selection <span className="text-red-600">*</span>
           </div>
           <select
             value={selectedLoadId}
             onChange={(e) => setSelectedLoadId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={loadingLoads}
           >
             <option value="">Select a load...</option>
@@ -80,29 +80,29 @@ export function LoadSourceSelector() {
 
           {/* Load Details */}
           {loadDetails && (
-            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
-              <div className="font-medium text-sm text-blue-900">📦 Load Details</div>
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg space-y-2">
+              <div className="font-medium text-sm text-blue-900 dark:text-blue-100">📦 Load Details</div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <span className="text-gray-600">Customer:</span>
+                  <span className="text-muted-foreground">Customer:</span>
                   <div className="font-medium">{loadDetails.customer_name}</div>
                 </div>
                 <div>
-                  <span className="text-gray-600">Weight:</span>
+                  <span className="text-muted-foreground">Weight:</span>
                   <div className="font-medium">{loadDetails.weight_lbs.toLocaleString()} lbs</div>
                 </div>
                 <div>
-                  <span className="text-gray-600">Commodity:</span>
+                  <span className="text-muted-foreground">Commodity:</span>
                   <div className="font-medium capitalize">{loadDetails.commodity_type}</div>
                 </div>
                 <div>
-                  <span className="text-gray-600">Stops:</span>
+                  <span className="text-muted-foreground">Stops:</span>
                   <div className="font-medium">{loadDetails.stops.length}</div>
                 </div>
               </div>
 
               {/* Pickup/Delivery Summary */}
-              <div className="pt-2 border-t border-blue-200">
+              <div className="pt-2 border-t border-blue-200 dark:border-blue-700">
                 <div className="text-xs space-y-1">
                   {loadDetails.stops.map((stop, idx) => (
                     <div key={stop.stop_id} className="flex items-center gap-2">
@@ -117,7 +117,7 @@ export function LoadSourceSelector() {
                         {stop.stop_city}, {stop.stop_state}
                       </span>
                       {stop.estimated_dock_hours && (
-                        <span className="text-gray-500">({stop.estimated_dock_hours}h dock)</span>
+                        <span className="text-muted-foreground">({stop.estimated_dock_hours}h dock)</span>
                       )}
                     </div>
                   ))}
@@ -125,8 +125,8 @@ export function LoadSourceSelector() {
               </div>
 
               {loadDetails.special_requirements && (
-                <div className="pt-2 border-t border-blue-200">
-                  <span className="text-gray-600 text-xs">Special Requirements:</span>
+                <div className="pt-2 border-t border-blue-200 dark:border-blue-700">
+                  <span className="text-muted-foreground text-xs">Special Requirements:</span>
                   <div className="text-xs font-medium">{loadDetails.special_requirements}</div>
                 </div>
               )}
@@ -136,13 +136,13 @@ export function LoadSourceSelector() {
 
         {/* Scenario Selection (OPTIONAL) */}
         <div>
-          <div className="font-medium text-gray-900 mb-2">
+          <div className="font-medium text-foreground mb-2">
             2. Scenario (Optional)
           </div>
           <select
             value={selectedScenarioId}
             onChange={(e) => handleScenarioSelect(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={loadingScenarios || isInstantiating}
           >
             <option value="">None (Manual entry)</option>
@@ -154,13 +154,13 @@ export function LoadSourceSelector() {
           </select>
 
           {selectedScenarioId && scenarios && (
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
+            <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-xs text-muted-foreground">
               ℹ️ {scenarios.find((s) => s.scenario_id === selectedScenarioId)?.description}
             </div>
           )}
 
           {!selectedScenarioId && (
-            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-800">
+            <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg text-xs text-yellow-800 dark:text-yellow-200">
               ⚠️ No scenario selected - you must manually set driver and vehicle state below
             </div>
           )}

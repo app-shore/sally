@@ -210,7 +210,7 @@ export function SallyChatPanel({
             animate={{ x: 0 }}
             exit={{ x: isDocked ? 0 : '100%' }}
             transition={isDocked ? {} : { type: 'spring', damping: 30, stiffness: 300 }}
-            className={`fixed right-0 top-0 h-full w-full sm:w-[480px] bg-white shadow-2xl flex flex-col ${
+            className={`fixed right-0 top-0 h-full w-full sm:w-[480px] bg-background shadow-2xl flex flex-col ${
               isDocked ? 'z-30' : 'z-50'
             }`}
           >
@@ -230,7 +230,7 @@ export function SallyChatPanel({
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">SALLY</h3>
-                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                  <div className="flex items-center gap-2 text-xs text-gray-300 dark:text-gray-400">
                     <div className="w-2 h-2 bg-green-400 rounded-full" />
                     <span>AI Assistant Online</span>
                   </div>
@@ -294,7 +294,7 @@ export function SallyChatPanel({
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
               {messages.map((message) => (
                 <motion.div
                   key={message.id}
@@ -306,13 +306,13 @@ export function SallyChatPanel({
                     className={`max-w-[85%] rounded-lg p-3 ${
                       message.role === 'user'
                         ? 'bg-black text-white'
-                        : 'bg-white text-gray-900 border border-gray-200'
+                        : 'bg-card text-foreground border border-border'
                     }`}
                   >
                     <p className="text-sm leading-relaxed">{message.content}</p>
                     <p
                       className={`text-xs mt-1 ${
-                        message.role === 'user' ? 'text-gray-400' : 'text-gray-500'
+                        message.role === 'user' ? 'text-gray-400 dark:text-gray-500' : 'text-muted-foreground'
                       }`}
                     >
                       {message.timestamp.toLocaleTimeString([], {
@@ -331,7 +331,7 @@ export function SallyChatPanel({
                   animate={{ opacity: 1, y: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="bg-white text-gray-900 border border-gray-200 rounded-lg p-3">
+                  <div className="bg-card text-foreground border border-border rounded-lg p-3">
                     <div className="flex gap-1">
                       <motion.div
                         className="w-2 h-2 bg-gray-400 rounded-full"
@@ -358,8 +358,8 @@ export function SallyChatPanel({
 
             {/* Suggested Questions */}
             {messages.length === 1 && (
-              <div className="p-4 bg-white border-t border-gray-200">
-                <p className="text-xs font-medium text-gray-600 mb-2">Suggested questions:</p>
+              <div className="p-4 bg-background border-t border-border">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Suggested questions:</p>
                 <div className="flex flex-wrap gap-2">
                   {(userType === 'dispatcher'
                     ? DISPATCHER_QUESTIONS
@@ -370,7 +370,7 @@ export function SallyChatPanel({
                     <button
                       key={index}
                       onClick={() => handleSend(question)}
-                      className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
+                      className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full transition-colors"
                     >
                       {question}
                     </button>
@@ -380,7 +380,7 @@ export function SallyChatPanel({
             )}
 
             {/* Input */}
-            <div className="p-4 bg-white border-t border-gray-200">
+            <div className="p-4 bg-background border-t border-border">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -394,7 +394,7 @@ export function SallyChatPanel({
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask me anything about SALLY..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                  className="flex-1 px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
                   disabled={isTyping}
                 />
                 <Button
@@ -405,7 +405,7 @@ export function SallyChatPanel({
                   Send
                 </Button>
               </form>
-              <p className="text-xs text-gray-500 mt-2 text-center">
+              <p className="text-xs text-muted-foreground mt-2 text-center">
                 SALLY AI can make mistakes. Verify important information.
               </p>
             </div>

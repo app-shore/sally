@@ -23,10 +23,10 @@ export function ComplianceStatus() {
       <div className="space-y-4">
         <div>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600">Drive Hours</span>
+            <span className="text-muted-foreground">Drive Hours</span>
             <span className="font-medium">{compliance.max_drive_hours_used || 0} / 11.0h</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full"
               style={{ width: `${((compliance.max_drive_hours_used || 0) / 11) * 100}%` }}
@@ -36,10 +36,10 @@ export function ComplianceStatus() {
 
         <div>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600">On-Duty Hours</span>
+            <span className="text-muted-foreground">On-Duty Hours</span>
             <span className="font-medium">{compliance.max_duty_hours_used || 0} / 14.0h</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
             <div
               className="bg-green-600 h-2 rounded-full"
               style={{ width: `${((compliance.max_duty_hours_used || 0) / 14) * 100}%` }}

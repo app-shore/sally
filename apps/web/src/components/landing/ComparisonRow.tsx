@@ -16,9 +16,9 @@ export function ComparisonRow({ feature, traditional, sally, delay = 0 }: Compar
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.5, delay }}
-      className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors"
+      className="border-b border-border last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
     >
-      <td className="py-4 px-6 text-left text-sm font-medium text-gray-900">
+      <td className="py-4 px-6 text-left text-sm font-medium text-foreground">
         {feature}
       </td>
       <td className="py-4 px-6 text-center">
@@ -28,7 +28,7 @@ export function ComparisonRow({ feature, traditional, sally, delay = 0 }: Compar
             whileInView={{ scale: 1, rotate: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: delay + 0.2, type: 'spring' }}
-            className="w-5 h-5 mx-auto text-black"
+            className="w-5 h-5 mx-auto text-black dark:text-white"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -59,7 +59,7 @@ export function ComparisonRow({ feature, traditional, sally, delay = 0 }: Compar
             whileInView={{ scale: 1, rotate: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: delay + 0.3, type: 'spring' }}
-            className="w-5 h-5 mx-auto text-black"
+            className="w-5 h-5 mx-auto text-black dark:text-white"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -111,18 +111,18 @@ export function ComparisonTable() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-50px' }}
         transition={{ duration: 0.6 }}
-        className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-card"
+        className="bg-card border border-border rounded-lg overflow-hidden shadow-card"
       >
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="py-4 px-6 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <tr className="bg-gray-50 dark:bg-gray-900 border-b border-border">
+              <th className="py-4 px-6 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Feature
               </th>
-              <th className="py-4 px-6 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-32">
+              <th className="py-4 px-6 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider w-32">
                 Traditional
               </th>
-              <th className="py-4 px-6 text-center text-xs font-semibold text-black uppercase tracking-wider w-32 bg-black/5">
+              <th className="py-4 px-6 text-center text-xs font-semibold text-black dark:text-white uppercase tracking-wider w-32 bg-black/5 dark:bg-white/5">
                 SALLY
               </th>
             </tr>
@@ -149,9 +149,9 @@ export function ComparisonTable() {
         transition={{ duration: 0.6, delay: 0.8 }}
         className="mt-8 text-center"
       >
-        <p className="text-gray-600 text-sm">
+        <p className="text-muted-foreground text-sm">
           Traditional routing treats drivers like trucks.{' '}
-          <span className="font-semibold text-black">SALLY routes drivers, not trucks.</span>
+          <span className="font-semibold text-foreground">SALLY routes drivers, not trucks.</span>
         </p>
       </motion.div>
     </div>

@@ -90,9 +90,13 @@ export class ScenariosController {
         throw new HttpException({ detail: `Scenario not found: ${scenarioId}` }, HttpStatus.NOT_FOUND);
       }
 
+      // Extract driver_id and vehicle_id from templates
+      const driverState: any = scenario.driverStateTemplate;
+      const vehicleState: any = scenario.vehicleStateTemplate;
+
       return {
-        driver_id: scenario.driverId,
-        vehicle_id: scenario.vehicleId,
+        driver_id: driverState.driver_id || driverState.driverId || 'DRV-001',
+        vehicle_id: vehicleState.vehicle_id || vehicleState.vehicleId || 'VEH-001',
         driver_state: scenario.driverStateTemplate,
         vehicle_state: scenario.vehicleStateTemplate,
       };

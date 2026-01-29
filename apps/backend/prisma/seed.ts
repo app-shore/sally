@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 
@@ -23,171 +23,505 @@ async function main() {
   await prisma.routePlanUpdate.deleteMany();
   await prisma.routeSegment.deleteMany();
   await prisma.routePlan.deleteMany();
+  await prisma.refreshToken.deleteMany();
+  await prisma.user.deleteMany();
   await prisma.driver.deleteMany();
   await prisma.vehicle.deleteMany();
+  await prisma.tenant.deleteMany();
 
-  // Create Drivers (basic info only - HOS data fetched from Samsara mock API)
-  console.log('Creating drivers...');
-  const driver1 = await prisma.driver.create({
+  // ============================================================================
+  // CREATE TENANTS (Fleet Companies)
+  // ============================================================================
+  console.log('Creating tenants...');
+
+  const jycCarriers = await prisma.tenant.create({
+    data: {
+      tenantId: 'jyc_carriers',
+      companyName: 'JYC Carriers',
+      subdomain: 'jyc',
+      contactEmail: 'admin@jyc.com',
+      contactPhone: '(339) 242-8066',
+      isActive: true,
+    },
+  });
+
+  const xyzLogistics = await prisma.tenant.create({
+    data: {
+      tenantId: 'xyz_logistics',
+      companyName: 'XYZ Logistics',
+      subdomain: 'xyz',
+      contactEmail: 'admin@xyzlogistics.com',
+      contactPhone: '(339) 242-8066',
+      isActive: true,
+    },
+  });
+
+  console.log(`✓ Created 2 tenants`);
+
+  // ============================================================================
+  // JYC CARRIERS - Drivers (8 drivers)
+  // ============================================================================
+  console.log('Creating JYC Carriers drivers...');
+
+  const jycDriver1 = await prisma.driver.create({
     data: {
       driverId: 'DRV-001',
       name: 'John Smith',
       isActive: true,
+      tenantId: jycCarriers.id,
     },
   });
 
-  const driver2 = await prisma.driver.create({
+  const jycDriver2 = await prisma.driver.create({
     data: {
       driverId: 'DRV-002',
       name: 'Sarah Johnson',
       isActive: true,
+      tenantId: jycCarriers.id,
     },
   });
 
-  const driver3 = await prisma.driver.create({
+  const jycDriver3 = await prisma.driver.create({
     data: {
       driverId: 'DRV-003',
       name: 'Mike Williams',
       isActive: true,
+      tenantId: jycCarriers.id,
     },
   });
 
-  const driver4 = await prisma.driver.create({
+  const jycDriver4 = await prisma.driver.create({
     data: {
       driverId: 'DRV-004',
       name: 'Jane Doe',
       isActive: true,
+      tenantId: jycCarriers.id,
     },
   });
 
-  const driver5 = await prisma.driver.create({
+  const jycDriver5 = await prisma.driver.create({
     data: {
       driverId: 'DRV-005',
       name: 'Bob Martinez',
       isActive: true,
+      tenantId: jycCarriers.id,
     },
   });
 
-  const driver6 = await prisma.driver.create({
+  const jycDriver6 = await prisma.driver.create({
     data: {
       driverId: 'DRV-006',
       name: 'Lisa Chen',
       isActive: true,
+      tenantId: jycCarriers.id,
     },
   });
 
-  const driver7 = await prisma.driver.create({
+  const jycDriver7 = await prisma.driver.create({
     data: {
       driverId: 'DRV-007',
       name: 'Tom Brown',
       isActive: true,
+      tenantId: jycCarriers.id,
     },
   });
 
-  const driver8 = await prisma.driver.create({
+  const jycDriver8 = await prisma.driver.create({
     data: {
       driverId: 'DRV-008',
       name: 'Emily Davis',
       isActive: true,
+      tenantId: jycCarriers.id,
     },
   });
 
-  console.log(`✓ Created 8 drivers`);
+  console.log(`✓ Created 8 JYC Carriers drivers`);
 
-  // Create Vehicles
-  console.log('Creating vehicles...');
-  const vehicle1 = await prisma.vehicle.create({
+  // ============================================================================
+  // XYZ LOGISTICS - Drivers (3 drivers)
+  // ============================================================================
+  console.log('Creating XYZ Logistics drivers...');
+
+  const xyzDriver1 = await prisma.driver.create({
     data: {
-      vehicleId: 'VEH-001',
-      unitNumber: 'TRK-1234',
-      fuelCapacityGallons: 200,
-      currentFuelGallons: 150,
-      mpg: 6.5,
+      driverId: 'DRV-101',
+      name: 'Carlos Rodriguez',
+      isActive: true,
+      tenantId: xyzLogistics.id,
+    },
+  });
+
+  const xyzDriver2 = await prisma.driver.create({
+    data: {
+      driverId: 'DRV-102',
+      name: 'Maria Garcia',
+      isActive: true,
+      tenantId: xyzLogistics.id,
+    },
+  });
+
+  const xyzDriver3 = await prisma.driver.create({
+    data: {
+      driverId: 'DRV-103',
+      name: 'David Lee',
+      isActive: true,
+      tenantId: xyzLogistics.id,
+    },
+  });
+
+  console.log(`✓ Created 3 XYZ Logistics drivers`);
+
+  // ============================================================================
+  // JYC CARRIERS - Users
+  // ============================================================================
+  console.log('Creating JYC Carriers users...');
+
+  // Admin
+  const jycAdmin = await prisma.user.create({
+    data: {
+      userId: 'user_jyc_admin_001',
+      email: 'admin@jyc.com',
+      firstName: 'Admin',
+      lastName: 'JYC',
+      role: UserRole.ADMIN,
+      tenantId: jycCarriers.id,
       isActive: true,
     },
   });
 
-  const vehicle2 = await prisma.vehicle.create({
+  // Dispatchers
+  const jycDispatcher1 = await prisma.user.create({
     data: {
-      vehicleId: 'VEH-002',
-      unitNumber: 'TRK-5678',
-      fuelCapacityGallons: 180,
-      currentFuelGallons: 90,
-      mpg: 7.0,
+      userId: 'user_jyc_disp_001',
+      email: 'dispatcher1@jyc.com',
+      firstName: 'James',
+      lastName: 'Wilson',
+      role: UserRole.DISPATCHER,
+      tenantId: jycCarriers.id,
       isActive: true,
     },
   });
 
-  const vehicle3 = await prisma.vehicle.create({
+  const jycDispatcher2 = await prisma.user.create({
     data: {
-      vehicleId: 'VEH-003',
-      unitNumber: 'TRK-9012',
-      fuelCapacityGallons: 220,
-      currentFuelGallons: 200,
-      mpg: 6.0,
+      userId: 'user_jyc_disp_002',
+      email: 'dispatcher2@jyc.com',
+      firstName: 'Jessica',
+      lastName: 'Taylor',
+      role: UserRole.DISPATCHER,
+      tenantId: jycCarriers.id,
       isActive: true,
     },
   });
 
-  const vehicle4 = await prisma.vehicle.create({
+  // Drivers (linked to driver records)
+  await prisma.user.create({
     data: {
-      vehicleId: 'VEH-004',
-      unitNumber: 'TRK-3456',
-      fuelCapacityGallons: 200,
-      currentFuelGallons: 160,
-      mpg: 6.8,
+      userId: 'user_jyc_drv_001',
+      email: 'john.smith@jyc.com',
+      firstName: 'John',
+      lastName: 'Smith',
+      role: UserRole.DRIVER,
+      tenantId: jycCarriers.id,
+      driverId: jycDriver1.id,
       isActive: true,
     },
   });
 
-  const vehicle5 = await prisma.vehicle.create({
+  await prisma.user.create({
     data: {
-      vehicleId: 'VEH-005',
-      unitNumber: 'TRK-7890',
-      fuelCapacityGallons: 190,
-      currentFuelGallons: 95,
-      mpg: 7.2,
+      userId: 'user_jyc_drv_002',
+      email: 'sarah.johnson@jyc.com',
+      firstName: 'Sarah',
+      lastName: 'Johnson',
+      role: UserRole.DRIVER,
+      tenantId: jycCarriers.id,
+      driverId: jycDriver2.id,
       isActive: true,
     },
   });
 
-  const vehicle6 = await prisma.vehicle.create({
+  await prisma.user.create({
     data: {
-      vehicleId: 'VEH-006',
-      unitNumber: 'TRK-1122',
-      fuelCapacityGallons: 210,
-      currentFuelGallons: 180,
-      mpg: 6.3,
+      userId: 'user_jyc_drv_003',
+      email: 'mike.williams@jyc.com',
+      firstName: 'Mike',
+      lastName: 'Williams',
+      role: UserRole.DRIVER,
+      tenantId: jycCarriers.id,
+      driverId: jycDriver3.id,
       isActive: true,
     },
   });
 
-  const vehicle7 = await prisma.vehicle.create({
+  await prisma.user.create({
     data: {
-      vehicleId: 'VEH-007',
-      unitNumber: 'TRK-3344',
-      fuelCapacityGallons: 200,
-      currentFuelGallons: 40,
-      mpg: 6.6,
+      userId: 'user_jyc_drv_004',
+      email: 'jane.doe@jyc.com',
+      firstName: 'Jane',
+      lastName: 'Doe',
+      role: UserRole.DRIVER,
+      tenantId: jycCarriers.id,
+      driverId: jycDriver4.id,
       isActive: true,
     },
   });
 
-  const vehicle8 = await prisma.vehicle.create({
+  await prisma.user.create({
     data: {
-      vehicleId: 'VEH-008',
-      unitNumber: 'TRK-5566',
-      fuelCapacityGallons: 195,
-      currentFuelGallons: 175,
-      mpg: 7.1,
+      userId: 'user_jyc_drv_005',
+      email: 'bob.martinez@jyc.com',
+      firstName: 'Bob',
+      lastName: 'Martinez',
+      role: UserRole.DRIVER,
+      tenantId: jycCarriers.id,
+      driverId: jycDriver5.id,
       isActive: true,
     },
   });
 
-  console.log(`✓ Created 8 vehicles`);
+  await prisma.user.create({
+    data: {
+      userId: 'user_jyc_drv_006',
+      email: 'lisa.chen@jyc.com',
+      firstName: 'Lisa',
+      lastName: 'Chen',
+      role: UserRole.DRIVER,
+      tenantId: jycCarriers.id,
+      driverId: jycDriver6.id,
+      isActive: true,
+    },
+  });
 
-  // Create Stops
+  await prisma.user.create({
+    data: {
+      userId: 'user_jyc_drv_007',
+      email: 'tom.brown@jyc.com',
+      firstName: 'Tom',
+      lastName: 'Brown',
+      role: UserRole.DRIVER,
+      tenantId: jycCarriers.id,
+      driverId: jycDriver7.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      userId: 'user_jyc_drv_008',
+      email: 'emily.davis@jyc.com',
+      firstName: 'Emily',
+      lastName: 'Davis',
+      role: UserRole.DRIVER,
+      tenantId: jycCarriers.id,
+      driverId: jycDriver8.id,
+      isActive: true,
+    },
+  });
+
+  console.log(`✓ Created 11 JYC Carriers users (1 admin, 2 dispatchers, 8 drivers)`);
+
+  // ============================================================================
+  // XYZ LOGISTICS - Users
+  // ============================================================================
+  console.log('Creating XYZ Logistics users...');
+
+  // Admin
+  await prisma.user.create({
+    data: {
+      userId: 'user_xyz_admin_001',
+      email: 'admin@xyzlogistics.com',
+      firstName: 'Admin',
+      lastName: 'XYZ',
+      role: UserRole.ADMIN,
+      tenantId: xyzLogistics.id,
+      isActive: true,
+    },
+  });
+
+  // Dispatcher
+  await prisma.user.create({
+    data: {
+      userId: 'user_xyz_disp_001',
+      email: 'dispatcher1@xyzlogistics.com',
+      firstName: 'Robert',
+      lastName: 'Anderson',
+      role: UserRole.DISPATCHER,
+      tenantId: xyzLogistics.id,
+      isActive: true,
+    },
+  });
+
+  // Drivers (linked to driver records)
+  await prisma.user.create({
+    data: {
+      userId: 'user_xyz_drv_001',
+      email: 'carlos.rodriguez@xyzlogistics.com',
+      firstName: 'Carlos',
+      lastName: 'Rodriguez',
+      role: UserRole.DRIVER,
+      tenantId: xyzLogistics.id,
+      driverId: xyzDriver1.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      userId: 'user_xyz_drv_002',
+      email: 'maria.garcia@xyzlogistics.com',
+      firstName: 'Maria',
+      lastName: 'Garcia',
+      role: UserRole.DRIVER,
+      tenantId: xyzLogistics.id,
+      driverId: xyzDriver2.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      userId: 'user_xyz_drv_003',
+      email: 'david.lee@xyzlogistics.com',
+      firstName: 'David',
+      lastName: 'Lee',
+      role: UserRole.DRIVER,
+      tenantId: xyzLogistics.id,
+      driverId: xyzDriver3.id,
+      isActive: true,
+    },
+  });
+
+  console.log(`✓ Created 5 XYZ Logistics users (1 admin, 1 dispatcher, 3 drivers)`);
+
+  // ============================================================================
+  // JYC CARRIERS - Vehicles
+  // ============================================================================
+  console.log('Creating JYC Carriers vehicles...');
+
+  await prisma.vehicle.createMany({
+    data: [
+      {
+        vehicleId: 'VEH-001',
+        unitNumber: 'TRK-1234',
+        fuelCapacityGallons: 200,
+        currentFuelGallons: 150,
+        mpg: 6.5,
+        isActive: true,
+        tenantId: jycCarriers.id,
+      },
+      {
+        vehicleId: 'VEH-002',
+        unitNumber: 'TRK-5678',
+        fuelCapacityGallons: 180,
+        currentFuelGallons: 90,
+        mpg: 7.0,
+        isActive: true,
+        tenantId: jycCarriers.id,
+      },
+      {
+        vehicleId: 'VEH-003',
+        unitNumber: 'TRK-9012',
+        fuelCapacityGallons: 220,
+        currentFuelGallons: 200,
+        mpg: 6.0,
+        isActive: true,
+        tenantId: jycCarriers.id,
+      },
+      {
+        vehicleId: 'VEH-004',
+        unitNumber: 'TRK-3456',
+        fuelCapacityGallons: 200,
+        currentFuelGallons: 160,
+        mpg: 6.8,
+        isActive: true,
+        tenantId: jycCarriers.id,
+      },
+      {
+        vehicleId: 'VEH-005',
+        unitNumber: 'TRK-7890',
+        fuelCapacityGallons: 190,
+        currentFuelGallons: 95,
+        mpg: 7.2,
+        isActive: true,
+        tenantId: jycCarriers.id,
+      },
+      {
+        vehicleId: 'VEH-006',
+        unitNumber: 'TRK-1122',
+        fuelCapacityGallons: 210,
+        currentFuelGallons: 180,
+        mpg: 6.3,
+        isActive: true,
+        tenantId: jycCarriers.id,
+      },
+      {
+        vehicleId: 'VEH-007',
+        unitNumber: 'TRK-3344',
+        fuelCapacityGallons: 200,
+        currentFuelGallons: 40,
+        mpg: 6.6,
+        isActive: true,
+        tenantId: jycCarriers.id,
+      },
+      {
+        vehicleId: 'VEH-008',
+        unitNumber: 'TRK-5566',
+        fuelCapacityGallons: 195,
+        currentFuelGallons: 175,
+        mpg: 7.1,
+        isActive: true,
+        tenantId: jycCarriers.id,
+      },
+    ],
+  });
+
+  console.log(`✓ Created 8 JYC Carriers vehicles`);
+
+  // ============================================================================
+  // XYZ LOGISTICS - Vehicles
+  // ============================================================================
+  console.log('Creating XYZ Logistics vehicles...');
+
+  await prisma.vehicle.createMany({
+    data: [
+      {
+        vehicleId: 'VEH-201',
+        unitNumber: 'XYZ-1001',
+        fuelCapacityGallons: 200,
+        currentFuelGallons: 180,
+        mpg: 6.7,
+        isActive: true,
+        tenantId: xyzLogistics.id,
+      },
+      {
+        vehicleId: 'VEH-202',
+        unitNumber: 'XYZ-1002',
+        fuelCapacityGallons: 210,
+        currentFuelGallons: 100,
+        mpg: 6.4,
+        isActive: true,
+        tenantId: xyzLogistics.id,
+      },
+      {
+        vehicleId: 'VEH-203',
+        unitNumber: 'XYZ-1003',
+        fuelCapacityGallons: 195,
+        currentFuelGallons: 150,
+        mpg: 7.0,
+        isActive: true,
+        tenantId: xyzLogistics.id,
+      },
+    ],
+  });
+
+  console.log(`✓ Created 3 XYZ Logistics vehicles`);
+
+  // ============================================================================
+  // STOPS (Shared across tenants for POC)
+  // ============================================================================
   console.log('Creating stops...');
+
   const stop1 = await prisma.stop.create({
     data: {
       stopId: 'STP-001',
@@ -244,10 +578,13 @@ async function main() {
     },
   });
 
-  console.log(`✓ Created ${4} stops`);
+  console.log(`✓ Created 4 stops`);
 
-  // Create Loads
+  // ============================================================================
+  // LOADS (Shared for POC)
+  // ============================================================================
   console.log('Creating loads...');
+
   const load1 = await prisma.load.create({
     data: {
       loadId: 'LOAD-001',
@@ -274,10 +611,13 @@ async function main() {
     },
   });
 
-  console.log(`✓ Created ${2} loads`);
+  console.log(`✓ Created 2 loads`);
 
-  // Create Load Stops
+  // ============================================================================
+  // LOAD STOPS
+  // ============================================================================
   console.log('Creating load stops...');
+
   await prisma.loadStop.createMany({
     data: [
       {
@@ -319,10 +659,13 @@ async function main() {
     ],
   });
 
-  console.log(`✓ Created ${4} load stops`);
+  console.log(`✓ Created 4 load stops`);
 
-  // Create Scenarios
+  // ============================================================================
+  // SCENARIOS (JYC Carriers)
+  // ============================================================================
   console.log('Creating scenarios...');
+
   await prisma.scenario.createMany({
     data: [
       {
@@ -330,8 +673,8 @@ async function main() {
         name: 'Basic Short Haul',
         description: 'Simple route under 200 miles, no rest required',
         category: 'basic',
-        driverId: 'DRV-001',
-        vehicleId: 'VEH-001',
+        driverRefId: jycDriver1.id,
+        vehicleRefId: null, // Vehicle reference from template
         driverStateTemplate: {
           hoursDrivenToday: 3.0,
           onDutyTimeToday: 4.0,
@@ -339,6 +682,7 @@ async function main() {
           currentDutyStatus: 'on_duty_driving',
         },
         vehicleStateTemplate: {
+          vehicleId: 'VEH-001',
           currentFuelGallons: 150,
           fuelCapacityGallons: 200,
           mpg: 6.5,
@@ -356,8 +700,8 @@ async function main() {
         name: 'Long Haul with Rest',
         description: 'Route over 500 miles requiring one rest stop',
         category: 'long_haul',
-        driverId: 'DRV-002',
-        vehicleId: 'VEH-002',
+        driverRefId: jycDriver2.id,
+        vehicleRefId: null,
         driverStateTemplate: {
           hoursDrivenToday: 6.0,
           onDutyTimeToday: 7.0,
@@ -365,6 +709,7 @@ async function main() {
           currentDutyStatus: 'on_duty_driving',
         },
         vehicleStateTemplate: {
+          vehicleId: 'VEH-002',
           currentFuelGallons: 90,
           fuelCapacityGallons: 180,
           mpg: 7.0,
@@ -382,8 +727,8 @@ async function main() {
         name: 'Multi-Stop Route',
         description: 'Complex route with 4 stops and multiple pickups/deliveries',
         category: 'complex',
-        driverId: 'DRV-003',
-        vehicleId: 'VEH-003',
+        driverRefId: jycDriver3.id,
+        vehicleRefId: null,
         driverStateTemplate: {
           hoursDrivenToday: 0.0,
           onDutyTimeToday: 0.0,
@@ -391,6 +736,7 @@ async function main() {
           currentDutyStatus: 'off_duty',
         },
         vehicleStateTemplate: {
+          vehicleId: 'VEH-003',
           currentFuelGallons: 200,
           fuelCapacityGallons: 220,
           mpg: 6.0,
@@ -408,67 +754,102 @@ async function main() {
     ],
   });
 
-  console.log(`✓ Created ${3} scenarios`);
+  console.log(`✓ Created 3 scenarios`);
 
-  // Create Sample Alerts (for dispatcher dashboard demo)
-  console.log('Creating sample alerts...');
+  // ============================================================================
+  // ALERTS (JYC Carriers - for dispatcher dashboard demo)
+  // ============================================================================
+  console.log('Creating sample alerts for JYC Carriers...');
 
-  const alert1 = await prisma.alert.create({
-    data: {
-      alertId: 'ALT-001',
-      driverId: 'DRV-001',
-      routePlanId: null,
-      alertType: 'DRIVER_NOT_MOVING',
-      priority: 'high',
-      title: 'Driver Not Moving',
-      message: 'DRV-001 (John Smith) has not moved in 2 hours during drive segment',
-      recommendedAction: 'Call driver to check status',
-      status: 'active',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    },
+  await prisma.alert.createMany({
+    data: [
+      {
+        alertId: 'ALT-001',
+        driverId: 'DRV-001',
+        routePlanId: null,
+        alertType: 'DRIVER_NOT_MOVING',
+        priority: 'high',
+        title: 'Driver Not Moving',
+        message: 'DRV-001 (John Smith) has not moved in 2 hours during drive segment',
+        recommendedAction: 'Call driver to check status',
+        status: 'active',
+        tenantId: jycCarriers.id,
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      },
+      {
+        alertId: 'ALT-002',
+        driverId: 'DRV-002',
+        routePlanId: null,
+        alertType: 'HOS_APPROACHING_LIMIT',
+        priority: 'medium',
+        title: 'HOS Approaching Limit',
+        message: 'DRV-002 (Sarah Johnson) has less than 1h drive time remaining',
+        recommendedAction: 'Monitor driver, ensure rest stop is upcoming',
+        status: 'active',
+        tenantId: jycCarriers.id,
+        createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+      },
+      {
+        alertId: 'ALT-003',
+        driverId: 'DRV-007',
+        routePlanId: null,
+        alertType: 'FUEL_LOW',
+        priority: 'high',
+        title: 'Fuel Low',
+        message: 'VEH-007 fuel level is below 20% (40 gallons remaining)',
+        recommendedAction: 'Insert fuel stop or direct driver to nearest station',
+        status: 'active',
+        tenantId: jycCarriers.id,
+        createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+      },
+    ],
   });
 
-  const alert2 = await prisma.alert.create({
-    data: {
-      alertId: 'ALT-002',
-      driverId: 'DRV-002',
-      routePlanId: null,
-      alertType: 'HOS_APPROACHING_LIMIT',
-      priority: 'medium',
-      title: 'HOS Approaching Limit',
-      message: 'DRV-002 (Sarah Johnson) has less than 1h drive time remaining',
-      recommendedAction: 'Monitor driver, ensure rest stop is upcoming',
-      status: 'active',
-      createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-    },
-  });
+  console.log(`✓ Created 3 sample alerts for JYC Carriers`);
 
-  const alert3 = await prisma.alert.create({
-    data: {
-      alertId: 'ALT-003',
-      driverId: 'DRV-007',
-      routePlanId: null,
-      alertType: 'FUEL_LOW',
-      priority: 'high',
-      title: 'Fuel Low',
-      message: 'VEH-007 fuel level is below 20% (40 gallons remaining)',
-      recommendedAction: 'Insert fuel stop or direct driver to nearest station',
-      status: 'active',
-      createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-    },
-  });
-
-  console.log(`✓ Created 3 sample alerts`);
-
+  // ============================================================================
+  // SUMMARY
+  // ============================================================================
   console.log('✅ Database seeded successfully!');
-  console.log('\nSummary:');
-  console.log(`- Drivers: 8`);
-  console.log(`- Vehicles: 8`);
-  console.log(`- Stops: 4`);
-  console.log(`- Loads: 2`);
-  console.log(`- Load Stops: 4`);
-  console.log(`- Scenarios: 3`);
-  console.log(`- Alerts: 3`);
+  console.log('\n📊 Summary:');
+  console.log('─────────────────────────────────────');
+  console.log('Tenants:');
+  console.log('  - JYC Carriers (jyc_carriers)');
+  console.log('  - XYZ Logistics (xyz_logistics)');
+  console.log('');
+  console.log('JYC Carriers:');
+  console.log('  - Drivers: 8');
+  console.log('  - Vehicles: 8');
+  console.log('  - Users: 11 (1 admin, 2 dispatchers, 8 drivers)');
+  console.log('  - Alerts: 3');
+  console.log('');
+  console.log('XYZ Logistics:');
+  console.log('  - Drivers: 3');
+  console.log('  - Vehicles: 3');
+  console.log('  - Users: 5 (1 admin, 1 dispatcher, 3 drivers)');
+  console.log('  - Alerts: 0');
+  console.log('');
+  console.log('Shared Resources:');
+  console.log('  - Stops: 4');
+  console.log('  - Loads: 2');
+  console.log('  - Load Stops: 4');
+  console.log('  - Scenarios: 3');
+  console.log('─────────────────────────────────────');
+  console.log('\n🔑 Test Users:');
+  console.log('\nJYC Carriers:');
+  console.log('  Admin:       admin@jyc.com (user_jyc_admin_001)');
+  console.log('  Dispatcher:  dispatcher1@jyc.com (user_jyc_disp_001)');
+  console.log('  Dispatcher:  dispatcher2@jyc.com (user_jyc_disp_002)');
+  console.log('  Driver:      john.smith@jyc.com (user_jyc_drv_001 - DRV-001)');
+  console.log('  Driver:      sarah.johnson@jyc.com (user_jyc_drv_002 - DRV-002)');
+  console.log('  ... 6 more drivers');
+  console.log('\nXYZ Logistics:');
+  console.log('  Admin:       admin@xyzlogistics.com (user_xyz_admin_001)');
+  console.log('  Dispatcher:  dispatcher1@xyzlogistics.com (user_xyz_disp_001)');
+  console.log('  Driver:      carlos.rodriguez@xyzlogistics.com (user_xyz_drv_001 - DRV-101)');
+  console.log('  Driver:      maria.garcia@xyzlogistics.com (user_xyz_drv_002 - DRV-102)');
+  console.log('  Driver:      david.lee@xyzlogistics.com (user_xyz_drv_003 - DRV-103)');
+  console.log('─────────────────────────────────────');
 }
 
 main()

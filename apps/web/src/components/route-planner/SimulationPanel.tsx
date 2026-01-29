@@ -83,13 +83,13 @@ export function SimulationPanel() {
             <h2 className="text-xl font-bold">Simulation Mode</h2>
             <button
               onClick={exitSimulationMode}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-muted-foreground hover:text-foreground"
             >
               ×
             </button>
           </div>
 
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-900">
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg text-sm text-blue-900 dark:text-blue-100">
             Current Plan: v{currentPlan?.plan_version || 1}
           </div>
 
@@ -97,7 +97,7 @@ export function SimulationPanel() {
             <h3 className="font-semibold">Select Triggers to Simulate:</h3>
 
             {/* Dock Time Change */}
-            <label className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-start gap-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
               <input
                 type="checkbox"
                 checked={activeTriggers.dock_time_change}
@@ -122,7 +122,7 @@ export function SimulationPanel() {
             </label>
 
             {/* Traffic Delay */}
-            <label className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-start gap-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
               <input
                 type="checkbox"
                 checked={activeTriggers.traffic_delay}
@@ -147,7 +147,7 @@ export function SimulationPanel() {
             </label>
 
             {/* Driver Rest Request */}
-            <label className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-start gap-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
               <input
                 type="checkbox"
                 checked={activeTriggers.driver_rest_request}

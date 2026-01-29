@@ -61,13 +61,13 @@ export function DriverStateInput() {
   const getDriveWarning = (hours: number) => {
     if (hours >= 10) return "text-red-600";
     if (hours >= 9) return "text-yellow-600";
-    return "text-gray-900";
+    return "text-foreground";
   };
 
   const getDutyWarning = (hours: number) => {
     if (hours >= 13) return "text-red-600";
     if (hours >= 12) return "text-yellow-600";
-    return "text-gray-900";
+    return "text-foreground";
   };
 
   return (
@@ -75,11 +75,11 @@ export function DriverStateInput() {
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="font-medium text-gray-900">
+          <div className="font-medium text-foreground">
             3. Driver State {isManualEntry && <span className="text-red-600">*</span>}
           </div>
           {selectedScenario && (
-            <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+            <span className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded">
               From scenario (editable)
             </span>
           )}
@@ -93,7 +93,7 @@ export function DriverStateInput() {
             value={driverId || ""}
             onChange={(e) => handleDriverSelect(e.target.value)}
             disabled={loadingDrivers}
-            className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="mt-2 w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Select driver...</option>
             {driverId && selectedScenario && !drivers?.find(d => d.id === driverId) && (
@@ -114,7 +114,7 @@ export function DriverStateInput() {
 
         {/* Manual entry warning */}
         {isManualEntry && !isComplete && (
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-800">
+          <div className="p-3 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg text-xs text-yellow-800 dark:text-yellow-200">
             ⚠️ Please set driver state manually (adjust sliders below)
           </div>
         )}
@@ -163,7 +163,7 @@ export function DriverStateInput() {
         <div>
           <div className="flex justify-between items-center mb-2">
             <Label>Hours Since Break</Label>
-            <span className="text-sm font-semibold text-gray-900">
+            <span className="text-sm font-semibold text-foreground">
               {hoursSinceBreak.toFixed(1)}h / 8.0h
             </span>
           </div>

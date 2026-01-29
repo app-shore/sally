@@ -14,24 +14,24 @@ export default function DriverDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { is_authenticated, user_type, user_id } = useSessionStore();
+  const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
-    if (!is_authenticated || user_type !== 'driver' || !user_id) {
+    if (!isAuthenticated || user?.role !== 'DRIVER' || !user?.driverId) {
       router.push('/');
       return;
     }
 
     loadDriver();
-  }, [is_authenticated, user_type, user_id, router]);
+  }, [isAuthenticated, user, router]);
 
   const loadDriver = async () => {
-    if (!user_id) return;
+    if (!user?.driverId) return;
 
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getDriver(user_id);
+      const data = await getDriver(user.driverId);
       setDriver(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load driver data');
@@ -40,13 +40,13 @@ export default function DriverDashboardPage() {
     }
   };
 
-  if (!is_authenticated || user_type !== 'driver') {
+  if (!isAuthenticated || user?.role !== 'DRIVER') {
     return null;
   }
 
   if (isLoading) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-muted-foreground">
         Loading dashboard...
       </div>
     );
@@ -64,7 +64,7 @@ export default function DriverDashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">My Dashboard</h1>
-        <p className="text-gray-500 mt-1">Welcome back, {driver?.name || 'Driver'}</p>
+        <p className="text-muted-foreground mt-1">Welcome back, {driver?.name || 'Driver'}</p>
       </div>
 
       {/* Quick status cards */}
@@ -72,7 +72,7 @@ export default function DriverDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Current Status</CardTitle>
-            <Clock className="h-4 w-4 text-gray-500" />
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">On Duty</div>
@@ -83,22 +83,22 @@ export default function DriverDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Next Stop</CardTitle>
-            <MapPin className="h-4 w-4 text-gray-500" />
+            <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">2.5 hrs</div>
-            <p className="text-xs text-gray-500 mt-2">Phoenix, AZ</p>
+            <p className="text-xs text-muted-foreground mt-2">Phoenix, AZ</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Alerts</CardTitle>
-            <AlertCircle className="h-4 w-4 text-gray-500" />
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-gray-500 mt-2">No active alerts</p>
+            <p className="text-xs text-muted-foreground mt-2">No active alerts</p>
           </CardContent>
         </Card>
       </div>
@@ -111,22 +111,22 @@ export default function DriverDashboardPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500">Name</p>
+              <p className="text-sm text-muted-foreground">Name</p>
               <p className="font-medium">{driver?.name}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">License Number</p>
+              <p className="text-sm text-muted-foreground">License Number</p>
               <p className="font-medium">{driver?.license_number}</p>
             </div>
             {driver?.phone && (
               <div>
-                <p className="text-sm text-gray-500">Phone</p>
+                <p className="text-sm text-muted-foreground">Phone</p>
                 <p className="font-medium">{driver.phone}</p>
               </div>
             )}
             {driver?.email && (
               <div>
-                <p className="text-sm text-gray-500">Email</p>
+                <p className="text-sm text-muted-foreground">Email</p>
                 <p className="font-medium">{driver.email}</p>
               </div>
             )}
@@ -144,7 +144,7 @@ export default function DriverDashboardPage() {
             <div>
               <div className="flex justify-between mb-2">
                 <span className="text-sm font-medium">Drive Time Remaining</span>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                   {driver.current_hos.drive_remaining.toFixed(1)}h / 11h
                 </span>
               </div>
@@ -154,7 +154,7 @@ export default function DriverDashboardPage() {
             <div>
               <div className="flex justify-between mb-2">
                 <span className="text-sm font-medium">Shift Time Remaining</span>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                   {driver.current_hos.shift_remaining.toFixed(1)}h / 14h
                 </span>
               </div>
@@ -164,7 +164,7 @@ export default function DriverDashboardPage() {
             <div>
               <div className="flex justify-between mb-2">
                 <span className="text-sm font-medium">Cycle Time Remaining</span>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                   {driver.current_hos.cycle_remaining.toFixed(1)}h / 70h
                 </span>
               </div>
@@ -193,14 +193,14 @@ export default function DriverDashboardPage() {
               <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5" />
               <div className="flex-1">
                 <p className="font-medium">Departed from Los Angeles</p>
-                <p className="text-gray-500 text-xs">Today at 8:30 AM</p>
+                <p className="text-muted-foreground text-xs">Today at 8:30 AM</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5" />
               <div className="flex-1">
                 <p className="font-medium">Rest stop scheduled</p>
-                <p className="text-gray-500 text-xs">Today at 2:00 PM</p>
+                <p className="text-muted-foreground text-xs">Today at 2:00 PM</p>
               </div>
             </div>
           </div>

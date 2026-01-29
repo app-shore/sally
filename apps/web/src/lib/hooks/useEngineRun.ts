@@ -3,7 +3,7 @@
  */
 
 import { useMutation } from "@tanstack/react-query";
-import { api } from "@/lib/api/client";
+import { optimization } from "@/lib/api/optimization";
 import { useEngineStore } from "@/lib/store/engineStore";
 import type { OptimizationResult } from "@/lib/types/engine";
 
@@ -24,7 +24,7 @@ export function useEngineRun() {
       current_location?: string;
     }) => {
       setLoading(true);
-      const result = await api.optimization.recommend(input);
+      const result = await optimization.recommend(input);
       return { input, result };
     },
     onSuccess: ({ input, result }) => {

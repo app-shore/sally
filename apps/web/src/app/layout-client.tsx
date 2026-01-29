@@ -1,23 +1,63 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { TopNavigation } from '@/components/dashboard/TopNavigation';
+import { PublicLayout } from '@/components/layout/PublicLayout';
 import { GlobalSallyChat } from '@/components/chat/GlobalSallyChat';
 import { useChatStore } from '@/lib/store/chatStore';
+import { useSessionStore } from '@/lib/store/sessionStore';
+import { isProtectedRoute } from '@/lib/navigation';
 
 export function LayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { isDocked } = useChatStore();
+  const { isAuthenticated, refreshToken, isLoading, restoreSession } = useSessionStore();
+  const [isRestoring, setIsRestoring] = useState(true);
 
-  // Use new AppLayout for authenticated pages and tools
-  const isAuthenticatedPage = pathname?.startsWith('/dispatcher') ||
-                              pathname?.startsWith('/driver') ||
-                              pathname?.startsWith('/settings') ||
-                              pathname?.startsWith('/route-planner') ||
-                              pathname?.startsWith('/rest-optimizer');
+  // Determine if current page requires authentication using centralized logic
+  const requiresAuth = pathname ? isProtectedRoute(pathname) : false;
 
-  if (isAuthenticatedPage) {
+  // Restore session on page load
+  useEffect(() => {
+    async function restore() {
+      // First try to restore from localStorage
+      restoreSession();
+
+      // Then try to refresh token if not authenticated
+      if (!isAuthenticated) {
+        try {
+          await refreshToken();
+          console.log('Session restored from refresh token');
+        } catch (error) {
+          console.log('No valid session to restore');
+        }
+      }
+      setIsRestoring(false);
+    }
+
+    restore();
+  }, []);
+
+  // Redirect to login if trying to access protected page without auth
+  useEffect(() => {
+    if (requiresAuth && !isAuthenticated && !isRestoring) {
+      router.push('/');
+    }
+  }, [requiresAuth, isAuthenticated, isRestoring, pathname, router]);
+
+  // Show loading spinner while restoring session
+  if (isRestoring || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground" />
+      </div>
+    );
+  }
+
+  // Protected pages use AppLayout (authenticated UI)
+  if (requiresAuth) {
     return (
       <>
         <div className={`sally-chat-container ${isDocked ? 'docked' : ''}`}>
@@ -28,16 +68,11 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Use old layout for landing page and other public pages
+  // Public pages use PublicLayout (landing, login)
   return (
     <>
       <div className={`sally-chat-container ${isDocked ? 'docked' : ''}`}>
-        <div className="flex h-screen flex-col bg-gray-50">
-          <TopNavigation />
-          <main className="flex-1 overflow-y-auto">
-            {children}
-          </main>
-        </div>
+        <PublicLayout>{children}</PublicLayout>
       </div>
       <GlobalSallyChat />
     </>

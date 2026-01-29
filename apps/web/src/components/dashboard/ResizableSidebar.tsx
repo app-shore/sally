@@ -51,7 +51,7 @@ export function ResizableSidebar({
     <div className="relative flex h-full">
       <div
         ref={sidebarRef}
-        className={`relative bg-white border-r border-gray-200 transition-all duration-300 flex flex-col ${
+        className={`relative bg-background border-r border-border transition-all duration-300 flex flex-col ${
           isCollapsed ? "w-0 border-r-0" : ""
         }`}
         style={{ width: isCollapsed ? 0 : width }}
@@ -66,8 +66,8 @@ export function ResizableSidebar({
         {/* Resize Handle */}
         {!isCollapsed && (
           <div
-            className={`absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-gray-300 ${
-              isResizing ? "bg-gray-400" : ""
+            className={`absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-gray-300 dark:hover:bg-gray-600 ${
+              isResizing ? "bg-gray-400 dark:bg-gray-500" : ""
             }`}
             onMouseDown={() => setIsResizing(true)}
           />
@@ -79,7 +79,7 @@ export function ResizableSidebar({
         variant="ghost"
         size="sm"
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute top-4 z-10 h-6 w-6 rounded-full border border-gray-200 bg-white p-0 shadow-sm hover:bg-gray-50"
+        className="absolute top-4 z-10 h-6 w-6 rounded-full border border-border bg-background p-0 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800"
         style={{ left: isCollapsed ? -4 : width - 12 }}
       >
         {isCollapsed ? (

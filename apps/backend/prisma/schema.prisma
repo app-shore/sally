@@ -6,9 +6,91 @@ datasource db {
   provider = "postgresql"
 }
 
+// ============================================================================
+// AUTHENTICATION & MULTI-TENANCY MODELS
+// ============================================================================
+
+enum UserRole {
+  DISPATCHER
+  DRIVER
+  ADMIN
+}
+
+model Tenant {
+  id                    Int          @id @default(autoincrement())
+  tenantId              String       @unique @map("tenant_id") @db.VarChar(50)
+  companyName           String       @map("company_name") @db.VarChar(255)
+  subdomain             String?      @unique @db.VarChar(100)
+  contactEmail          String?      @map("contact_email") @db.VarChar(255)
+  contactPhone          String?      @map("contact_phone") @db.VarChar(50)
+  isActive              Boolean      @default(true) @map("is_active")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  users                 User[]
+  drivers               Driver[]
+  vehicles              Vehicle[]
+  routePlans            RoutePlan[]
+  alerts                Alert[]
+
+  @@index([tenantId])
+  @@index([subdomain])
+  @@map("tenants")
+}
+
+model User {
+  id                    Int          @id @default(autoincrement())
+  userId                String       @unique @map("user_id") @db.VarChar(50)
+  email                 String       @map("email") @db.VarChar(255)
+  passwordHash          String?      @map("password_hash") @db.VarChar(255)
+  role                  UserRole
+  firstName             String       @map("first_name") @db.VarChar(100)
+  lastName              String       @map("last_name") @db.VarChar(100)
+  isActive              Boolean      @default(true) @map("is_active")
+  lastLoginAt           DateTime?    @map("last_login_at") @db.Timestamptz
+  passwordChangedAt     DateTime?    @map("password_changed_at") @db.Timestamptz
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant                Tenant       @relation(fields: [tenantId], references: [id])
+  tenantId              Int          @map("tenant_id")
+
+  driver                Driver?      @relation(fields: [driverId], references: [id])
+  driverId              Int?         @unique @map("driver_id")
+
+  refreshTokens         RefreshToken[]
+
+  @@unique([email, tenantId])
+  @@index([email])
+  @@index([role])
+  @@index([tenantId])
+  @@map("users")
+}
+
+model RefreshToken {
+  id                    Int          @id @default(autoincrement())
+  tokenId               String       @unique @map("token_id") @db.VarChar(50)
+  userId                Int          @map("user_id")
+  token                 String       @db.VarChar(500)
+  expiresAt             DateTime     @map("expires_at") @db.Timestamptz
+  isRevoked             Boolean      @default(false) @map("is_revoked")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  revokedAt             DateTime?    @map("revoked_at") @db.Timestamptz
+
+  user                  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ============================================================================
+// EXISTING MODELS (UPDATED FOR MULTI-TENANCY)
+// ============================================================================
+
 model Driver {
   id                    Int          @id @default(autoincrement())
-  driverId              String       @unique @map("driver_id") @db.VarChar(50)
+  driverId              String       @map("driver_id") @db.VarChar(50)
   name                  String       @db.VarChar(100)
   isActive              Boolean      @default(true) @map("is_active")
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
@@ -17,15 +99,21 @@ model Driver {
   // HOS fields REMOVED - these are fetched from Samsara mock API on-demand
   // Removed: hoursDrivenToday, onDutyTimeToday, hoursSinceBreak, currentDutyStatus
 
+  tenant                Tenant       @relation(fields: [tenantId], references: [id])
+  tenantId              Int          @map("tenant_id")
+
+  user                  User?
   routePlans            RoutePlan[]
   scenarios             Scenario[]
 
+  @@unique([driverId, tenantId])
+  @@index([tenantId])
   @@map("drivers")
 }
 
 model Vehicle {
   id                    Int          @id @default(autoincrement())
-  vehicleId             String       @unique @map("vehicle_id") @db.VarChar(50)
+  vehicleId             String       @map("vehicle_id") @db.VarChar(50)
   unitNumber            String       @db.VarChar(50) @map("unit_number")
   fuelCapacityGallons   Float?       @map("fuel_capacity_gallons")
   currentFuelGallons    Float?       @map("current_fuel_gallons")
@@ -34,9 +122,14 @@ model Vehicle {
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
+  tenant                Tenant       @relation(fields: [tenantId], references: [id])
+  tenantId              Int          @map("tenant_id")
+
   routePlans            RoutePlan[]
   scenarios             Scenario[]
 
+  @@unique([vehicleId, tenantId])
+  @@index([tenantId])
   @@map("vehicles")
 }
 
@@ -60,6 +153,9 @@ model RoutePlan {
   createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
+  tenant                Tenant           @relation(fields: [tenantId], references: [id])
+  tenantId              Int              @map("tenant_id")
+
   driver                Driver           @relation(fields: [driverId], references: [id])
   vehicle               Vehicle          @relation(fields: [vehicleId], references: [id])
   segments              RouteSegment[]
@@ -67,6 +163,7 @@ model RoutePlan {
 
   @@index([driverId])
   @@index([isActive])
+  @@index([tenantId])
   @@map("route_plans")
 }
 
@@ -182,8 +279,8 @@ model Scenario {
   name                  String       @db.VarChar(200)
   description           String       @db.Text
   category              String       @db.VarChar(50)
-  driverId              String?      @map("driver_id") @db.VarChar(50)
-  vehicleId             String?      @map("vehicle_id") @db.VarChar(50)
+  driverRefId           Int?         @map("driver_ref_id")
+  vehicleRefId          Int?         @map("vehicle_ref_id")
   driverStateTemplate   Json         @map("driver_state_template")
   vehicleStateTemplate  Json         @map("vehicle_state_template")
   stopsTemplate         Json         @map("stops_template")
@@ -195,8 +292,8 @@ model Scenario {
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
-  driver                Driver?      @relation(fields: [driverId], references: [driverId])
-  vehicle               Vehicle?     @relation(fields: [vehicleId], references: [vehicleId])
+  driver                Driver?      @relation(fields: [driverRefId], references: [id])
+  vehicle               Vehicle?     @relation(fields: [vehicleRefId], references: [id])
 
   @@index([category])
   @@map("scenarios")
@@ -245,9 +342,13 @@ model Alert {
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
+  tenant                Tenant       @relation(fields: [tenantId], references: [id])
+  tenantId              Int          @map("tenant_id")
+
   @@index([driverId])
   @@index([status])
   @@index([priority])
   @@index([createdAt])
+  @@index([tenantId])
   @@map("alerts")
 }

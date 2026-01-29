@@ -22,27 +22,27 @@ export function RouteSummaryCard() {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <div className="text-sm text-gray-500">Total Distance</div>
+          <div className="text-sm text-muted-foreground">Total Distance</div>
           <div className="text-lg font-semibold">{currentPlan.total_distance_miles?.toFixed(0) || 0} miles</div>
         </div>
         <div>
-          <div className="text-sm text-gray-500">Total Time</div>
+          <div className="text-sm text-muted-foreground">Total Time</div>
           <div className="text-lg font-semibold">{currentPlan.total_time_hours?.toFixed(1) || 0}h</div>
         </div>
         <div>
-          <div className="text-sm text-gray-500">Drive Time</div>
+          <div className="text-sm text-muted-foreground">Drive Time</div>
           <div className="text-lg font-semibold">{currentPlan.total_time_hours?.toFixed(1) || 0}h</div>
         </div>
         <div>
-          <div className="text-sm text-gray-500">On-Duty Time</div>
+          <div className="text-sm text-muted-foreground">On-Duty Time</div>
           <div className="text-lg font-semibold">{currentPlan.total_time_hours?.toFixed(1) || 0}h</div>
         </div>
       </div>
 
       {currentPlan.total_cost_estimate && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="text-sm text-gray-500">Estimated Cost</div>
-          <div className="text-xl font-bold text-gray-900">${currentPlan.total_cost_estimate.toFixed(2)}</div>
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="text-sm text-muted-foreground">Estimated Cost</div>
+          <div className="text-xl font-bold text-foreground">${currentPlan.total_cost_estimate.toFixed(2)}</div>
         </div>
       )}
     </Card>

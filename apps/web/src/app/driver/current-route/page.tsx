@@ -9,15 +9,15 @@ import { MapPin, Clock, Fuel, Moon } from 'lucide-react';
 
 export default function CurrentRoutePage() {
   const router = useRouter();
-  const { is_authenticated, user_type } = useSessionStore();
+  const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
-    if (!is_authenticated || user_type !== 'driver') {
+    if (!isAuthenticated || user?.role !== 'DRIVER') {
       router.push('/');
     }
-  }, [is_authenticated, user_type, router]);
+  }, [isAuthenticated, user, router]);
 
-  if (!is_authenticated || user_type !== 'driver') {
+  if (!isAuthenticated || user?.role !== 'DRIVER') {
     return null;
   }
 
@@ -70,7 +70,7 @@ export default function CurrentRoutePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Current Route</h1>
-        <p className="text-gray-500 mt-1">Track your route progress and upcoming stops</p>
+        <p className="text-muted-foreground mt-1">Track your route progress and upcoming stops</p>
       </div>
 
       {/* Route overview */}
@@ -85,30 +85,30 @@ export default function CurrentRoutePage() {
           <div className="space-y-4">
             <div className="flex justify-between">
               <div>
-                <p className="text-sm text-gray-500">Origin</p>
+                <p className="text-sm text-muted-foreground">Origin</p>
                 <p className="font-medium">{mockRoute.origin}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-gray-500">Destination</p>
+                <p className="text-sm text-muted-foreground">Destination</p>
                 <p className="font-medium">{mockRoute.destination}</p>
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-500">Overall Progress</span>
+                <span className="text-muted-foreground">Overall Progress</span>
                 <span className="font-medium">{mockRoute.progress}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3">
                 <div
-                  className="bg-black h-3 rounded-full transition-all"
+                  className="bg-black dark:bg-white h-3 rounded-full transition-all"
                   style={{ width: `${mockRoute.progress}%` }}
                 />
               </div>
             </div>
 
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Stop Progress</span>
+              <span className="text-muted-foreground">Stop Progress</span>
               <span className="font-medium">
                 {mockRoute.currentStop} of {mockRoute.totalStops} stops
               </span>
@@ -128,15 +128,15 @@ export default function CurrentRoutePage() {
               <div key={index} className="flex gap-4">
                 <div className="flex flex-col items-center">
                   <div className={`rounded-full p-2 ${
-                    stop.status === 'completed' ? 'bg-green-100 text-green-600' :
-                    stop.status === 'in_progress' ? 'bg-black text-white' :
-                    'bg-gray-100 text-gray-400'
+                    stop.status === 'completed' ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300' :
+                    stop.status === 'in_progress' ? 'bg-black text-white dark:bg-white dark:text-black' :
+                    'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500'
                   }`}>
                     {getStopIcon(stop.type)}
                   </div>
                   {index < mockRoute.stops.length - 1 && (
                     <div className={`w-0.5 h-12 ${
-                      stop.status === 'completed' ? 'bg-green-200' : 'bg-gray-200'
+                      stop.status === 'completed' ? 'bg-green-200 dark:bg-green-800' : 'bg-gray-200 dark:bg-gray-700'
                     }`} />
                   )}
                 </div>
@@ -145,11 +145,11 @@ export default function CurrentRoutePage() {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <p className="font-medium capitalize">{stop.type} Stop</p>
-                      <p className="text-sm text-gray-500">{stop.location}</p>
+                      <p className="text-sm text-muted-foreground">{stop.location}</p>
                     </div>
                     {getStopBadge(stop.status)}
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     <Clock className="inline h-3 w-3 mr-1" />
                     {stop.time}
                   </p>
@@ -166,8 +166,8 @@ export default function CurrentRoutePage() {
           <CardTitle>Route Map</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 bg-gray-100 rounded-lg flex items-center justify-center">
-            <div className="text-center text-gray-500">
+          <div className="h-80 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+            <div className="text-center text-muted-foreground">
               <p className="text-lg font-medium">Interactive Map</p>
               <p className="text-sm mt-1">Real-time route visualization coming soon</p>
             </div>

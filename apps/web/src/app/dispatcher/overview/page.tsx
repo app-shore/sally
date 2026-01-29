@@ -10,15 +10,15 @@ import Link from 'next/link';
 
 export default function DispatcherOverviewPage() {
   const router = useRouter();
-  const { is_authenticated, user_type } = useSessionStore();
+  const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
-    if (!is_authenticated || user_type !== 'dispatcher') {
+    if (!isAuthenticated || user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN') {
       router.push('/');
     }
-  }, [is_authenticated, user_type, router]);
+  }, [isAuthenticated, user, router]);
 
-  if (!is_authenticated || user_type !== 'dispatcher') {
+  if (!isAuthenticated || user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN') {
     return null;
   }
 
@@ -26,7 +26,7 @@ export default function DispatcherOverviewPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-        <p className="text-gray-500 mt-1">Monitor your fleet operations at a glance</p>
+        <p className="text-muted-foreground mt-1">Monitor your fleet operations at a glance</p>
       </div>
 
       {/* Quick stats */}
@@ -34,33 +34,33 @@ export default function DispatcherOverviewPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Routes</CardTitle>
-            <TrendingUp className="h-4 w-4 text-gray-500" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-gray-500 mt-1">+2 from yesterday</p>
+            <p className="text-xs text-muted-foreground mt-1">+2 from yesterday</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Plans</CardTitle>
-            <Clock className="h-4 w-4 text-gray-500" />
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-gray-500 mt-1">Awaiting execution</p>
+            <p className="text-xs text-muted-foreground mt-1">Awaiting execution</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
-            <TrendingUp className="h-4 w-4 text-gray-500" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-gray-500 mt-1">8 available</p>
+            <p className="text-xs text-muted-foreground mt-1">8 available</p>
           </CardContent>
         </Card>
 
@@ -114,21 +114,21 @@ export default function DispatcherOverviewPage() {
                 <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5" />
                 <div className="flex-1">
                   <p className="font-medium">Route #RT-1234 completed</p>
-                  <p className="text-gray-500 text-xs">Driver #45 • 2 hours ago</p>
+                  <p className="text-muted-foreground text-xs">Driver #45 • 2 hours ago</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5" />
                 <div className="flex-1">
                   <p className="font-medium">New plan created</p>
-                  <p className="text-gray-500 text-xs">Route #RT-1235 • 3 hours ago</p>
+                  <p className="text-muted-foreground text-xs">Route #RT-1235 • 3 hours ago</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 rounded-full bg-orange-500 mt-1.5" />
                 <div className="flex-1">
                   <p className="font-medium">Alert: HOS approaching limit</p>
-                  <p className="text-gray-500 text-xs">Driver #12 • 4 hours ago</p>
+                  <p className="text-muted-foreground text-xs">Driver #12 • 4 hours ago</p>
                 </div>
               </div>
             </div>
@@ -142,8 +142,8 @@ export default function DispatcherOverviewPage() {
           <CardTitle>Active Routes Map</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-            <div className="text-center text-gray-500">
+          <div className="h-96 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center justify-center border border-border">
+            <div className="text-center text-muted-foreground">
               <p className="text-lg font-medium">Map Visualization</p>
               <p className="text-sm mt-1">Real-time fleet tracking coming soon</p>
             </div>

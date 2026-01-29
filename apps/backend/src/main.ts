@@ -3,12 +3,16 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Configuration } from './config/configuration';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService<Configuration>);
 
   const corsOrigins = configService.get<string>('corsOrigins') || 'http://localhost:3000';
+
+  // Cookie parser for refresh tokens
+  app.use(cookieParser());
 
   // Global API prefix
   app.setGlobalPrefix('api/v1');
@@ -18,13 +22,16 @@ async function bootstrap() {
     origin: corsOrigins.split(',').map((o) => o.trim()),
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true, // Allow cookies
   });
 
   // Swagger/OpenAPI documentation
   const swaggerConfig = new DocumentBuilder()
     .setTitle('SALLY Backend API')
-    .setDescription('Route Planning Platform API - Node.js/TypeScript replica')
+    .setDescription('Dispatch & Driver Coordination Platform API with Multi-Tenant Auth')
     .setVersion('1.0.0')
+    .addBearerAuth()
+    .addTag('Authentication', 'JWT-based authentication with multi-tenancy')
     .addTag('HOS Rules', 'Hours of Service compliance validation')
     .addTag('Optimization', 'REST optimization recommendations')
     .addTag('Prediction', 'Drive demand predictions')
@@ -33,6 +40,7 @@ async function bootstrap() {
     .addTag('Vehicles', 'Vehicle management')
     .addTag('Loads', 'Load management')
     .addTag('Scenarios', 'Test scenario management')
+    .addTag('External Mock APIs', 'Mock external API endpoints')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

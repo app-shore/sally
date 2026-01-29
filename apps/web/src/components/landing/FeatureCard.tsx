@@ -20,28 +20,28 @@ export function FeatureCard({ icon, title, description, delay = 0 }: FeatureCard
       whileHover={{ y: -8, transition: { duration: 0.2 } }}
       className="group relative"
     >
-      <div className="relative h-full p-8 bg-white border border-gray-200 rounded-lg transition-all duration-300 hover:shadow-card-hover hover:border-gray-300">
+      <div className="relative h-full p-8 bg-card border border-border rounded-lg transition-all duration-300 hover:shadow-card-hover hover:border-gray-300 dark:hover:border-gray-700">
         {/* Icon */}
         <motion.div
           className="mb-4"
           whileHover={{ scale: 1.1, rotate: 5 }}
           transition={{ type: 'spring', stiffness: 400, damping: 17 }}
         >
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-black text-white rounded-lg">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-black dark:bg-white text-white dark:text-black rounded-lg">
             {icon}
           </div>
         </motion.div>
 
         {/* Content */}
-        <h3 className="text-xl font-bold text-black mb-2 tracking-tight">
+        <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">
           {title}
         </h3>
-        <p className="text-gray-600 leading-relaxed">
+        <p className="text-muted-foreground leading-relaxed">
           {description}
         </p>
 
         {/* Hover indicator */}
-        <div className="absolute bottom-0 left-8 right-8 h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+        <div className="absolute bottom-0 left-8 right-8 h-0.5 bg-black dark:bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
       </div>
     </motion.div>
   );

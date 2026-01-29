@@ -16,7 +16,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, user_type } = useSessionStore();
+  const { isAuthenticated, user } = useSessionStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [alertsPanelOpen, setAlertsPanelOpen] = useState(false);
 
@@ -38,12 +38,15 @@ export function AppLayout({ children }: AppLayoutProps) {
     }
 
     // Role-based route protection
-    if (pathname?.startsWith('/dispatcher') && user_type !== 'dispatcher') {
+    const role = user?.role;
+    if (pathname?.startsWith('/dispatcher') && role !== 'DISPATCHER' && role !== 'ADMIN') {
       router.push('/driver/dashboard');
-    } else if (pathname?.startsWith('/driver') && user_type !== 'driver') {
+    } else if (pathname?.startsWith('/driver') && role !== 'DRIVER') {
+      router.push('/dispatcher/overview');
+    } else if (pathname?.startsWith('/admin') && role !== 'ADMIN') {
       router.push('/dispatcher/overview');
     }
-  }, [isAuthenticated, user_type, pathname, router]);
+  }, [isAuthenticated, user, pathname, router]);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -55,26 +58,26 @@ export function AppLayout({ children }: AppLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
-      <AppSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+    <div className="flex flex-col h-screen overflow-hidden">
+      {/* Header - Full width at top */}
+      <AppHeader
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         alertCount={alertCount}
         onOpenAlerts={() => setAlertsPanelOpen(true)}
       />
 
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col md:ml-64">
-        {/* Header */}
-        <AppHeader
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+      {/* Content area with sidebar */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar - Below header */}
+        <AppSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
           alertCount={alertCount}
           onOpenAlerts={() => setAlertsPanelOpen(true)}
         />
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto bg-gray-50 md:ml-0">
           <div className="max-w-7xl mx-auto p-4 md:p-8">
             {children}
           </div>

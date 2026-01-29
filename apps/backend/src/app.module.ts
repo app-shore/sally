@@ -1,7 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import configuration from './config/configuration';
 import { DatabaseModule } from './database/database.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { TenantGuard } from './auth/guards/tenant.guard';
+import { RolesGuard } from './auth/guards/roles.guard';
 
 // Services
 import { HOSRuleEngineService } from './services/hos-rule-engine/hos-rule-engine.service';
@@ -33,9 +39,25 @@ import { SessionController } from './api/session/session.controller';
       load: [configuration],
       envFilePath: '.env',
     }),
+    PrismaModule,
     DatabaseModule,
+    AuthModule,
   ],
   providers: [
+    // Global guards (applied to all routes by default)
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: TenantGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    // Services
     HOSRuleEngineService,
     RestOptimizationService,
     PredictionEngineService,

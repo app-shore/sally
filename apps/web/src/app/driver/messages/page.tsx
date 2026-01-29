@@ -9,15 +9,15 @@ import { AlertCircle, Info, MessageSquare } from 'lucide-react';
 
 export default function MessagesPage() {
   const router = useRouter();
-  const { is_authenticated, user_type } = useSessionStore();
+  const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
-    if (!is_authenticated || user_type !== 'driver') {
+    if (!isAuthenticated || user?.role !== 'DRIVER') {
       router.push('/');
     }
-  }, [is_authenticated, user_type, router]);
+  }, [isAuthenticated, user, router]);
 
-  if (!is_authenticated || user_type !== 'driver') {
+  if (!isAuthenticated || user?.role !== 'DRIVER') {
     return null;
   }
 

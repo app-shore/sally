@@ -1,8 +1,12 @@
-import { Controller, Get, Post, Put, Delete, Param, Query, Body, HttpStatus, HttpException, Logger } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery, ApiParam, ApiBody } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Param, Query, Body, HttpStatus, HttpException, Logger, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiQuery, ApiParam, ApiBody, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { PrismaService } from '../../database/prisma.service';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('Drivers')
+@ApiBearerAuth()
 @Controller('drivers')
 export class DriversController {
   private readonly logger = new Logger(DriversController.name);
@@ -10,13 +14,20 @@ export class DriversController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
   @ApiOperation({ summary: 'List all active drivers (basic info only, HOS fetched from external API)' })
-  async listDrivers() {
-    this.logger.log('List drivers requested');
+  async listDrivers(@CurrentUser() user: any) {
+    this.logger.log(`List drivers requested by user ${user.userId} in tenant ${user.tenantId}`);
 
     try {
+      // Get tenant ID from authenticated user
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
       const drivers = await this.prisma.driver.findMany({
         where: {
+          tenantId: tenant.id,
           isActive: true,
         },
         orderBy: { driverId: 'asc' },
@@ -39,6 +50,7 @@ export class DriversController {
   }
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new driver (basic info only)' })
   @ApiBody({
     schema: {
@@ -50,15 +62,21 @@ export class DriversController {
       required: ['driver_id', 'name'],
     },
   })
-  async createDriver(@Body() body: { driver_id: string; name: string }) {
-    this.logger.log(`Create driver: ${body.driver_id} - ${body.name}`);
+  async createDriver(@CurrentUser() user: any, @Body() body: { driver_id: string; name: string }) {
+    this.logger.log(`Create driver: ${body.driver_id} - ${body.name} by user ${user.userId}`);
 
     try {
+      // Get tenant ID from authenticated user
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
       const driver = await this.prisma.driver.create({
         data: {
           driverId: body.driver_id,
           name: body.name,
           isActive: true,
+          tenantId: tenant.id,
         },
       });
 
@@ -80,6 +98,7 @@ export class DriversController {
   }
 
   @Put(':driver_id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update driver basic info' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
   @ApiBody({
@@ -90,12 +109,22 @@ export class DriversController {
       },
     },
   })
-  async updateDriver(@Param('driver_id') driverId: string, @Body() body: { name?: string }) {
-    this.logger.log(`Update driver: ${driverId}`);
+  async updateDriver(@CurrentUser() user: any, @Param('driver_id') driverId: string, @Body() body: { name?: string }) {
+    this.logger.log(`Update driver: ${driverId} by user ${user.userId}`);
 
     try {
+      // Get tenant ID from authenticated user
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
       const driver = await this.prisma.driver.update({
-        where: { driverId },
+        where: {
+          driverId_tenantId: {
+            driverId,
+            tenantId: tenant.id,
+          },
+        },
         data: {
           ...(body.name ? { name: body.name } : {}),
         },
@@ -115,14 +144,25 @@ export class DriversController {
   }
 
   @Delete(':driver_id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Soft delete driver (set isActive=false)' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
-  async deleteDriver(@Param('driver_id') driverId: string) {
-    this.logger.log(`Delete driver: ${driverId}`);
+  async deleteDriver(@CurrentUser() user: any, @Param('driver_id') driverId: string) {
+    this.logger.log(`Delete driver: ${driverId} by user ${user.userId}`);
 
     try {
+      // Get tenant ID from authenticated user
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
       const driver = await this.prisma.driver.update({
-        where: { driverId },
+        where: {
+          driverId_tenantId: {
+            driverId,
+            tenantId: tenant.id,
+          },
+        },
         data: { isActive: false },
       });
 
@@ -137,15 +177,26 @@ export class DriversController {
   }
 
   @Get(':driver_id/hos')
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.DRIVER)
   @ApiOperation({ summary: 'Get driver HOS data from Samsara mock API' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
-  async getDriverHOS(@Param('driver_id') driverId: string) {
-    this.logger.log(`Get HOS data for driver: ${driverId}`);
+  async getDriverHOS(@CurrentUser() user: any, @Param('driver_id') driverId: string) {
+    this.logger.log(`Get HOS data for driver: ${driverId} by user ${user.userId}`);
 
     try {
+      // Get tenant ID from authenticated user
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
       // Get basic driver info from database
       const driver = await this.prisma.driver.findUnique({
-        where: { driverId },
+        where: {
+          driverId_tenantId: {
+            driverId,
+            tenantId: tenant.id,
+          },
+        },
       });
 
       if (!driver) {
@@ -164,6 +215,69 @@ export class DriversController {
       this.logger.error(`Get HOS failed: ${error.message}`);
       if (error instanceof HttpException) throw error;
       throw new HttpException({ detail: 'Failed to fetch HOS data' }, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get(':driver_id')
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.DRIVER)
+  @ApiOperation({ summary: 'Get driver by ID' })
+  @ApiParam({ name: 'driver_id', description: 'Driver ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Driver details',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'number' },
+        driver_id: { type: 'string' },
+        name: { type: 'string' },
+        is_active: { type: 'boolean' },
+        created_at: { type: 'string', format: 'date-time' },
+        updated_at: { type: 'string', format: 'date-time' },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Driver not found' })
+  async getDriver(
+    @Param('driver_id') driverId: string,
+    @CurrentUser() user: any,
+  ) {
+    this.logger.log(`Get driver requested: ${driverId}`);
+
+    try {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
+      if (!tenant) {
+        throw new HttpException({ detail: 'Tenant not found' }, HttpStatus.NOT_FOUND);
+      }
+
+      const driver = await this.prisma.driver.findUnique({
+        where: {
+          driverId_tenantId: {
+            driverId,
+            tenantId: tenant.id,
+          },
+        },
+      });
+
+      if (!driver) {
+        throw new HttpException({ detail: `Driver not found: ${driverId}` }, HttpStatus.NOT_FOUND);
+      }
+
+      return {
+        id: driver.id,
+        driver_id: driver.driverId,
+        name: driver.name,
+        is_active: driver.isActive,
+        created_at: driver.createdAt,
+        updated_at: driver.updatedAt,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      this.logger.error(`Get driver failed: ${error.message}`);
+      throw new HttpException({ detail: 'Failed to fetch driver' }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
