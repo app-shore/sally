@@ -14,6 +14,7 @@ import { SegmentsTimeline } from "@/components/route-planner/SegmentsTimeline";
 import { ComplianceStatus } from "@/components/route-planner/ComplianceStatus";
 import { SimulationPanel } from "@/components/route-planner/SimulationPanel";
 import { VersionComparison } from "@/components/route-planner/VersionComparison";
+import { PlanInputSummary } from "@/components/route-planner/PlanInputSummary";
 import { useRoutePlanStore } from "@/lib/store/routePlanStore";
 import { useRoutePlanning } from "@/lib/hooks/useRoutePlanning";
 import { Button } from "@/components/ui/button";
@@ -235,6 +236,9 @@ export default function RoutePlannerPage() {
             <VersionComparison />
           ) : currentPlan ? (
             <div className="p-6 space-y-6">
+              {/* Plan Input Summary */}
+              <PlanInputSummary />
+
               {/* Route Summary */}
               <RouteSummaryCard />
 

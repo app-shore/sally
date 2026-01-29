@@ -102,6 +102,21 @@ export interface RouteSummary {
   estimated_completion?: string;
 }
 
+export interface PlanInputSnapshot {
+  load_id?: string;
+  load_number?: string;
+  customer_name?: string;
+  scenario_id?: string;
+  scenario_name?: string;
+  driver_id: string;
+  vehicle_id: string;
+  driver_state: DriverStateInput;
+  vehicle_state: VehicleStateInput;
+  stops_count: number;
+  optimization_priority: string;
+  generated_at: string;
+}
+
 export interface RoutePlan {
   plan_id: string;
   plan_version: number;
@@ -117,6 +132,7 @@ export interface RoutePlan {
   summary: RouteSummary;
   compliance_report: ComplianceReport;
   data_sources?: Record<string, DataSourceBadge>;
+  input_snapshot?: PlanInputSnapshot;
 }
 
 export interface RouteUpdateRequest {

@@ -1,0 +1,56 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './config/configuration';
+import { DatabaseModule } from './database/database.module';
+
+// Services
+import { HOSRuleEngineService } from './services/hos-rule-engine/hos-rule-engine.service';
+import { RestOptimizationService } from './services/rest-optimization/rest-optimization.service';
+import { PredictionEngineService } from './services/prediction-engine/prediction-engine.service';
+import { RestStopFinderService } from './services/rest-stop-finder/rest-stop-finder.service';
+import { FuelStopOptimizerService } from './services/fuel-stop-optimizer/fuel-stop-optimizer.service';
+import { RoutePlanningEngineService } from './services/route-planning-engine/route-planning-engine.service';
+import { DynamicUpdateHandlerService } from './services/dynamic-update-handler/dynamic-update-handler.service';
+
+// Controllers
+import { HealthController } from './health/health.controller';
+import { HOSRulesController } from './api/hos-rules/hos-rules.controller';
+import { OptimizationController } from './api/optimization/optimization.controller';
+import { PredictionController } from './api/prediction/prediction.controller';
+import { RoutePlanningController } from './api/route-planning/route-planning.controller';
+import { DriversController } from './api/drivers/drivers.controller';
+import { VehiclesController } from './api/vehicles/vehicles.controller';
+import { LoadsController } from './api/loads/loads.controller';
+import { ScenariosController } from './api/scenarios/scenarios.controller';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      envFilePath: '.env',
+    }),
+    DatabaseModule,
+  ],
+  providers: [
+    HOSRuleEngineService,
+    RestOptimizationService,
+    PredictionEngineService,
+    RestStopFinderService,
+    FuelStopOptimizerService,
+    RoutePlanningEngineService,
+    DynamicUpdateHandlerService,
+  ],
+  controllers: [
+    HealthController,
+    HOSRulesController,
+    OptimizationController,
+    PredictionController,
+    RoutePlanningController,
+    DriversController,
+    VehiclesController,
+    LoadsController,
+    ScenariosController,
+  ],
+})
+export class AppModule {}

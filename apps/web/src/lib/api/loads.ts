@@ -4,7 +4,7 @@
 
 import type { Load, LoadListItem, LoadCreate } from "@/lib/types/load";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export async function getLoads(params?: {
   status?: string;

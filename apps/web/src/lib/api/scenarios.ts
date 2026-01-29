@@ -4,7 +4,7 @@
 
 import type { Scenario, ScenarioListItem, ScenarioStateResponse } from "@/lib/types/scenario";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export async function getScenarios(category?: string): Promise<ScenarioListItem[]> {
   const url = new URL(`${API_BASE}/scenarios/`);

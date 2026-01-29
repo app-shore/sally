@@ -41,6 +41,12 @@ export function LoadSourceSelector() {
   const handleScenarioSelect = (scenarioId: string) => {
     setSelectedScenarioId(scenarioId);
     if (scenarioId) {
+      // Find and save full scenario object
+      const scenario = scenarios?.find(s => s.scenario_id === scenarioId);
+      if (scenario) {
+        selectScenario(scenario as any);
+      }
+      // Instantiate to load driver/vehicle state
       instantiate(scenarioId);
     } else {
       // Clear scenario - reset driver/vehicle state to null (require manual input)

@@ -1,0 +1,230 @@
+generator client {
+  provider        = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Driver {
+  id                    Int          @id @default(autoincrement())
+  driverId              String       @unique @map("driver_id") @db.VarChar(50)
+  name                  String       @db.VarChar(100)
+  hoursDrivenToday      Float        @default(0.0) @map("hours_driven_today")
+  onDutyTimeToday       Float        @default(0.0) @map("on_duty_time_today")
+  hoursSinceBreak       Float        @default(0.0) @map("hours_since_break")
+  currentDutyStatus     String       @default("off_duty") @map("current_duty_status") @db.VarChar(30)
+  isActive              Boolean      @default(true) @map("is_active")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  routePlans            RoutePlan[]
+  scenarios             Scenario[]
+
+  @@map("drivers")
+}
+
+model Vehicle {
+  id                    Int          @id @default(autoincrement())
+  vehicleId             String       @unique @map("vehicle_id") @db.VarChar(50)
+  unitNumber            String       @db.VarChar(50) @map("unit_number")
+  fuelCapacityGallons   Float?       @map("fuel_capacity_gallons")
+  currentFuelGallons    Float?       @map("current_fuel_gallons")
+  mpg                   Float?
+  isActive              Boolean      @default(true) @map("is_active")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  routePlans            RoutePlan[]
+  scenarios             Scenario[]
+
+  @@map("vehicles")
+}
+
+model RoutePlan {
+  id                    Int              @id @default(autoincrement())
+  planId                String           @unique @map("plan_id") @db.VarChar(50)
+  driverId              Int              @map("driver_id")
+  vehicleId             Int              @map("vehicle_id")
+  planVersion           Int              @default(1) @map("plan_version")
+  isActive              Boolean          @default(false) @map("is_active")
+  status                String           @default("draft") @db.VarChar(50)
+  optimizationPriority  String           @default("minimize_time") @map("optimization_priority") @db.VarChar(50)
+  totalDistanceMiles    Float            @default(0.0) @map("total_distance_miles")
+  totalDriveTimeHours   Float            @default(0.0) @map("total_drive_time_hours")
+  totalOnDutyTimeHours  Float            @default(0.0) @map("total_on_duty_time_hours")
+  totalCostEstimate     Float            @default(0.0) @map("total_cost_estimate")
+  isFeasible            Boolean          @default(true) @map("is_feasible")
+  feasibilityIssues     Json?            @map("feasibility_issues")
+  complianceReport      Json?            @map("compliance_report")
+  activatedAt           DateTime?        @map("activated_at") @db.Timestamptz
+  createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  driver                Driver           @relation(fields: [driverId], references: [id])
+  vehicle               Vehicle          @relation(fields: [vehicleId], references: [id])
+  segments              RouteSegment[]
+  updates               RoutePlanUpdate[]
+
+  @@index([driverId])
+  @@index([isActive])
+  @@map("route_plans")
+}
+
+model RouteSegment {
+  id                    Int          @id @default(autoincrement())
+  segmentId             String       @unique @map("segment_id") @db.VarChar(50)
+  planId                Int          @map("plan_id")
+  sequenceOrder         Int          @map("sequence_order")
+  fromLocation          String?      @map("from_location") @db.VarChar(200)
+  toLocation            String?      @map("to_location") @db.VarChar(200)
+  segmentType           String       @map("segment_type") @db.VarChar(20)
+  distanceMiles         Float?       @map("distance_miles")
+  driveTimeHours        Float?       @map("drive_time_hours")
+  restType              String?      @map("rest_type") @db.VarChar(30)
+  restDurationHours     Float?       @map("rest_duration_hours")
+  restReason            String?      @map("rest_reason") @db.Text
+  fuelGallons           Float?       @map("fuel_gallons")
+  fuelCostEstimate      Float?       @map("fuel_cost_estimate")
+  fuelStationName       String?      @map("fuel_station_name") @db.VarChar(200)
+  dockDurationHours     Float?       @map("dock_duration_hours")
+  customerName          String?      @map("customer_name") @db.VarChar(200)
+  hosStateAfter         Json?        @map("hos_state_after")
+  estimatedArrival      DateTime?    @map("estimated_arrival") @db.Timestamptz
+  estimatedDeparture    DateTime?    @map("estimated_departure") @db.Timestamptz
+  status                String       @default("planned") @db.VarChar(20)
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  plan                  RoutePlan    @relation(fields: [planId], references: [id])
+
+  @@index([planId, sequenceOrder])
+  @@map("route_segments")
+}
+
+model RoutePlanUpdate {
+  id                    Int          @id @default(autoincrement())
+  updateId              String       @unique @map("update_id") @db.VarChar(50)
+  planId                Int          @map("plan_id")
+  updateType            String       @map("update_type") @db.VarChar(50)
+  triggeredAt           DateTime     @map("triggered_at") @db.Timestamptz
+  triggeredBy           String       @map("triggered_by") @db.VarChar(50)
+  triggerData           Json?        @map("trigger_data")
+  replanTriggered       Boolean      @default(false) @map("replan_triggered")
+  replanReason          String?      @map("replan_reason") @db.Text
+  previousPlanVersion   Int?         @map("previous_plan_version")
+  newPlanVersion        Int?         @map("new_plan_version")
+  impactSummary         Json?        @map("impact_summary")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  plan                  RoutePlan    @relation(fields: [planId], references: [id])
+
+  @@index([planId])
+  @@map("route_plan_updates")
+}
+
+model Stop {
+  id                    Int          @id @default(autoincrement())
+  stopId                String       @unique @map("stop_id") @db.VarChar(50)
+  name                  String       @db.VarChar(200)
+  address               String?      @db.Text
+  city                  String?      @db.VarChar(100)
+  state                 String?      @db.VarChar(50)
+  lat                   Float?
+  lon                   Float?
+  locationType          String       @default("warehouse") @map("location_type") @db.VarChar(30)
+  isActive              Boolean      @default(true) @map("is_active")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  loadStops             LoadStop[]
+
+  @@map("stops")
+}
+
+model Load {
+  id                    Int          @id @default(autoincrement())
+  loadId                String       @unique @map("load_id") @db.VarChar(50)
+  loadNumber            String       @map("load_number") @db.VarChar(50)
+  status                String       @default("pending") @db.VarChar(30)
+  weightLbs             Float        @map("weight_lbs")
+  commodityType         String       @map("commodity_type") @db.VarChar(100)
+  specialRequirements   String?      @map("special_requirements") @db.Text
+  customerName          String       @map("customer_name") @db.VarChar(200)
+  isActive              Boolean      @default(true) @map("is_active")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  stops                 LoadStop[]
+
+  @@map("loads")
+}
+
+model LoadStop {
+  id                    Int          @id @default(autoincrement())
+  loadId                Int          @map("load_id")
+  stopId                Int          @map("stop_id")
+  sequenceOrder         Int          @map("sequence_order")
+  actionType            String       @map("action_type") @db.VarChar(20)
+  earliestArrival       String?      @map("earliest_arrival") @db.VarChar(10)
+  latestArrival         String?      @map("latest_arrival") @db.VarChar(10)
+  estimatedDockHours    Float        @map("estimated_dock_hours")
+  actualDockHours       Float?       @map("actual_dock_hours")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  load                  Load         @relation(fields: [loadId], references: [id])
+  stop                  Stop         @relation(fields: [stopId], references: [id])
+
+  @@index([loadId])
+  @@map("load_stops")
+}
+
+model Scenario {
+  id                    Int          @id @default(autoincrement())
+  scenarioId            String       @unique @map("scenario_id") @db.VarChar(50)
+  name                  String       @db.VarChar(200)
+  description           String       @db.Text
+  category              String       @db.VarChar(50)
+  driverId              String?      @map("driver_id") @db.VarChar(50)
+  vehicleId             String?      @map("vehicle_id") @db.VarChar(50)
+  driverStateTemplate   Json         @map("driver_state_template")
+  vehicleStateTemplate  Json         @map("vehicle_state_template")
+  stopsTemplate         Json         @map("stops_template")
+  expectedRestStops     Int          @default(0) @map("expected_rest_stops")
+  expectedFuelStops     Int          @default(0) @map("expected_fuel_stops")
+  expectedViolations    Json?        @map("expected_violations")
+  isActive              Boolean      @default(true) @map("is_active")
+  displayOrder          Int          @default(0) @map("display_order")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  driver                Driver?      @relation(fields: [driverId], references: [driverId])
+  vehicle               Vehicle?     @relation(fields: [vehicleId], references: [vehicleId])
+
+  @@index([category])
+  @@map("scenarios")
+}
+
+model Event {
+  id                    Int          @id @default(autoincrement())
+  eventId               String       @unique @map("event_id") @db.VarChar(50)
+  eventType             String       @map("event_type") @db.VarChar(50)
+  entityType            String       @map("entity_type") @db.VarChar(50)
+  entityId              Int?         @map("entity_id")
+  eventData             Json?        @map("event_data")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([entityType, entityId])
+  @@map("events")
+}
+
+model Recommendation {
+  id                    Int          @id @default(autoincrement())
+  recommendationId      String       @unique @map("recommendation_id") @db.VarChar(50)
+  driverId              String       @map("driver_id") @db.VarChar(50)
+  recommendation        String       @db.VarChar(30)
+  duration              Float?
+  confidence            Int          @default(0)
+  reasoning             String       @db.Text
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("recommendations")
+}
