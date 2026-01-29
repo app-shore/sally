@@ -1,9 +1,9 @@
 ================================================================================
-REST-OS C4 MODEL ARCHITECTURE - CREATION SUMMARY
+SALLY C4 MODEL ARCHITECTURE - CREATION SUMMARY
 ================================================================================
 
 Created on: 2026-01-22
-Location: /Users/ajay-admin/rest-os/docs/
+Location: /Users/ajay-admin/sally/docs/
 
 ================================================================================
 PLANTUML DIAGRAMS CREATED (9 total)
@@ -11,7 +11,7 @@ PLANTUML DIAGRAMS CREATED (9 total)
 
 1. c4-level1-context.puml (1.5 KB)
    - System Context Diagram (C4 Level 1)
-   - Shows: Users, REST-OS system, external systems
+   - Shows: Users, SALLY system, external systems
    - Audience: Executives, Product Managers, Stakeholders
 
 2. c4-level2-container.puml (1.5 KB)
@@ -120,7 +120,7 @@ SPECIFICATIONS COPIED (1 total)
 DIRECTORY STRUCTURE
 ================================================================================
 
-/Users/ajay-admin/rest-os/
+/Users/ajay-admin/sally/
 ├── docs/
 │   ├── INDEX.md                           # Master index
 │   ├── QUICK_REFERENCE.md                 # Quick reference card

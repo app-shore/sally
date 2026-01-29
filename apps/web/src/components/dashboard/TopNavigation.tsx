@@ -25,7 +25,7 @@ export function TopNavigation() {
       <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 py-3">
         <div className="flex items-center gap-2">
           <Link href="/" className="text-lg sm:text-xl font-bold text-gray-900 hover:text-gray-700">
-            REST-OS
+            SALLY
           </Link>
           <span className="hidden sm:inline text-xs text-gray-400">|</span>
           <p className="hidden sm:block text-xs text-gray-500">

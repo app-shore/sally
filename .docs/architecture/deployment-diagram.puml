@@ -3,32 +3,32 @@
 
 LAYOUT_WITH_LEGEND()
 
-title Deployment diagram for REST-OS (Development Environment)
+title Deployment diagram for SALLY (Development Environment)
 
 Deployment_Node(dev_machine, "Developer Machine", "macOS/Linux/Windows") {
     Deployment_Node(docker, "Docker Desktop", "Docker Engine") {
-        Deployment_Node(network, "rest-os-network", "Docker Bridge Network") {
+        Deployment_Node(network, "sally-network", "Docker Bridge Network") {
 
-            Deployment_Node(postgres_container, "rest-os-postgres", "Docker Container") {
+            Deployment_Node(postgres_container, "sally-postgres", "Docker Container") {
                 ContainerDb(postgres, "PostgreSQL 16", "Alpine Linux", "Primary data store with async connection pooling")
                 Deployment_Node(pg_volume, "postgres_data", "Docker Volume") {
                     Container(pg_data, "Database Files", "PostgreSQL Data", "Persistent storage for all tables")
                 }
             }
 
-            Deployment_Node(redis_container, "rest-os-redis", "Docker Container") {
+            Deployment_Node(redis_container, "sally-redis", "Docker Container") {
                 ContainerDb(redis, "Redis 7", "Alpine Linux", "Cache and session store")
                 Deployment_Node(redis_volume, "redis_data", "Docker Volume") {
                     Container(redis_data, "Cache Files", "Redis Data", "Persistent cache data")
                 }
             }
 
-            Deployment_Node(backend_container, "rest-os-backend", "Docker Container") {
+            Deployment_Node(backend_container, "sally-backend", "Docker Container") {
                 Container(fastapi, "FastAPI Application", "Python 3.11, UV", "REST API with HOS, Optimization, and Prediction engines")
                 Container(uvicorn, "Uvicorn Server", "ASGI Server", "Async web server with hot-reload")
             }
 
-            Deployment_Node(frontend_container, "rest-os-frontend", "Docker Container") {
+            Deployment_Node(frontend_container, "sally-frontend", "Docker Container") {
                 Container(nextjs, "Next.js Application", "Node 20, TypeScript", "Operations dashboard with SSR")
                 Container(node_server, "Node.js Server", "Development Server", "Hot-reload dev server")
             }

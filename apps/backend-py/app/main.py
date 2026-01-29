@@ -7,10 +7,10 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_router
 from app.config import settings
-from app.core.exceptions import RestOSException
+from app.core.exceptions import SallyException
 from app.db.database import close_db, init_db
 from app.middleware.cors import setup_cors
-from app.middleware.error_handling import generic_exception_handler, restos_exception_handler
+from app.middleware.error_handling import generic_exception_handler, sally_exception_handler
 from app.middleware.logging import LoggingMiddleware
 from app.utils.cache import cache_manager
 from app.utils.logger import get_logger, setup_logging
@@ -53,7 +53,7 @@ async def lifespan(app: FastAPI):
 # Create FastAPI application
 app = FastAPI(
     title=settings.project_name,
-    description="REST-OS Backend API for optimizing truck driver rest periods",
+    description="SALLY Backend API for optimizing truck driver rest periods",
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -68,7 +68,7 @@ setup_cors(app)
 app.add_middleware(LoggingMiddleware)
 
 # Add exception handlers
-app.add_exception_handler(RestOSException, restos_exception_handler)
+app.add_exception_handler(SallyException, sally_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
 # Include API router
@@ -101,7 +101,7 @@ async def root() -> dict[str, str]:
         dict: Welcome message
     """
     return {
-        "message": "REST-OS Backend API",
+        "message": "SALLY Backend API",
         "docs": "/docs",
         "health": "/health",
     }
@@ -117,3 +117,5 @@ if __name__ == "__main__":
         reload=settings.debug,
         log_level=settings.log_level.lower(),
     )
+)
+)

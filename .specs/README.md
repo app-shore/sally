@@ -1,6 +1,6 @@
-# REST-OS Product Specifications
+# SALLY Product Specifications
 
-This directory contains the complete product specifications for REST-OS: Intelligent Route Planning Platform for Truck Drivers.
+This directory contains the complete product specifications for SALLY: Intelligent Route Planning Platform for Truck Drivers.
 
 ---
 
@@ -8,7 +8,7 @@ This directory contains the complete product specifications for REST-OS: Intelli
 
 ### Start Here
 
-**New to REST-OS?** Read documents in this order:
+**New to SALLY?** Read documents in this order:
 
 1. **[blueprint.md](./blueprint.md)** - Product vision, market positioning, and feature overview (20 min)
 2. **[ROUTE_PLANNING_SPEC.md](./ROUTE_PLANNING_SPEC.md)** - Complete technical specification (45 min)
@@ -22,7 +22,7 @@ This directory contains the complete product specifications for REST-OS: Intelli
 
 **Audience:** Product Managers, Executives, Investors, Sales Team
 
-**Purpose:** Defines what REST-OS is, why it exists, and where it's going
+**Purpose:** Defines what SALLY is, why it exists, and where it's going
 
 **Key Sections:**
 - **Problem Statement:** Why trucking needs intelligent route planning
@@ -115,7 +115,7 @@ Feasibility Check → Opportunity Scoring → Cost-Benefit Analysis → Recommen
 
 ## 🎯 Product Evolution
 
-### What REST-OS Is Today
+### What SALLY Is Today
 
 **Category:** Route Planning + Decision Intelligence Platform
 
@@ -361,9 +361,9 @@ For questions about:
 
 > **"We don't just route trucks. We route drivers with hours, fuel, and rest built into every mile."**
 
-**REST-OS: Where routing meets reality.**
+**SALLY: Where routing meets reality.**
 
 ---
 
 **Last Updated:** January 23, 2026
-**Maintained By:** REST-OS Product Team
+**Maintained By:** SALLY Product Team

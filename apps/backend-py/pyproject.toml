@@ -1,7 +1,7 @@
 [project]
-name = "rest-os-backend"
+name = "sally-backend"
 version = "0.1.0"
-description = "REST-OS Backend - FastAPI-based rest optimization engine"
+description = "SALLY Backend - FastAPI-based rest optimization engine"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi[standard]>=0.115.0",

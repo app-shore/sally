@@ -124,7 +124,7 @@ cd /app && uv run alembic upgrade head
 ## File Structure
 
 ```
-rest-os/
+sally/
 ├── captain-definition          # Deploys NestJS (points to apps/backend/Dockerfile)
 ├── apps/
 │   ├── backend/
@@ -225,7 +225,7 @@ caprover apps:restart -a sally-api
 ### Build Fails
 ```bash
 # Check logs
-caprover apps:logs -a rest-os
+caprover apps:logs -a sally
 
 # Verify captain-definition exists
 ls captain-definition              # For NestJS (root)

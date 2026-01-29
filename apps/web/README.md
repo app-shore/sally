@@ -1,6 +1,6 @@
-# REST-OS Web Dashboard
+# SALLY Web Dashboard
 
-Next.js-based operations dashboard for the REST-OS (Rest Optimization System).
+Next.js-based operations dashboard for the SALLY (Rest Optimization System).
 
 ## Overview
 

@@ -7,7 +7,7 @@ import { TopNavigation } from "@/components/dashboard/TopNavigation";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "REST-OS Dashboard",
+  title: "SALLY Dashboard",
   description: "Rest Optimization System - Engine Control Dashboard",
 };
 

@@ -1,14 +1,14 @@
 #!/bin/bash
-# Local build and deploy script for REST-OS to CapRover
+# Local build and deploy script for SALLY to CapRover
 
 set -e  # Exit on error
 
-echo "🚀 REST-OS Local Build & Deploy to CapRover"
+echo "🚀 SALLY Local Build & Deploy to CapRover"
 echo "============================================"
 
 # Configuration
-APP_NAME="rest-os"
-IMAGE_NAME="rest-os:latest"
+APP_NAME="sally"
+IMAGE_NAME="sally:latest"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -56,13 +56,13 @@ echo -e "${BLUE}🚀 Deploying to CapRover...${NC}"
 # Deploy using tar approach (same as caprover deploy but with pre-built image)
 # Save the image as a tar file
 echo "Saving image to tar file..."
-docker save ${IMAGE_NAME} -o /tmp/rest-os-image.tar
+docker save ${IMAGE_NAME} -o /tmp/sally-image.tar
 
 echo "Deploying to CapRover..."
-caprover deploy -a ${APP_NAME} -t /tmp/rest-os-image.tar
+caprover deploy -a ${APP_NAME} -t /tmp/sally-image.tar
 
 # Clean up
-rm /tmp/rest-os-image.tar
+rm /tmp/sally-image.tar
 
 echo ""
 echo -e "${GREEN}✅ Deployment complete!${NC}"

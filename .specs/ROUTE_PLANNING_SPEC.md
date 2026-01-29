@@ -1,8 +1,8 @@
-# REST-OS Route Planning System - Complete Specification
+# SALLY Route Planning System - Complete Specification
 
 ## Executive Summary
 
-REST-OS transforms from a **tactical rest optimizer** to a **strategic route planning platform** with continuous HOS monitoring and dynamic updates.
+SALLY transforms from a **tactical rest optimizer** to a **strategic route planning platform** with continuous HOS monitoring and dynamic updates.
 
 **Key Pivot:**
 - **Before:** "Should I extend rest at this dock?" (single decision point)
@@ -436,7 +436,7 @@ def check_hos_violations(plan_id, driver_id):
 
 **Status:** Not replaced, enhanced to support route planning context
 
-**Before (Original REST-OS):**
+**Before (Original SALLY):**
 - Input: Driver HOS, dock time, single next trip
 - Output: Should extend rest at dock? (FULL_REST, PARTIAL_REST, NO_REST)
 
@@ -485,7 +485,7 @@ def recommend_rest(request: RestOptimizationRequest):
 
     # CASE 2: Opportunistic rest at dock
     if request.location_type == 'dock' and request.dock_duration_hours > 0:
-        # Existing REST-OS logic (unchanged)
+        # Existing SALLY logic (unchanged)
         # Evaluate if dock time should be extended to rest
         return _evaluate_dock_rest_opportunity(request)
 
@@ -496,7 +496,7 @@ def recommend_rest(request: RestOptimizationRequest):
 
 def _evaluate_dock_rest_opportunity(request):
     """
-    Existing REST-OS logic (unchanged).
+    Existing SALLY logic (unchanged).
 
     Evaluates:
         - Feasibility: Can driver complete remaining route?
@@ -506,7 +506,7 @@ def _evaluate_dock_rest_opportunity(request):
     Returns recommendation with confidence score.
     """
     # This is the existing intelligent formula
-    # (already implemented in current REST-OS)
+    # (already implemented in current SALLY)
     feasibility = _calculate_feasibility(request)
     opportunity = _calculate_rest_opportunity(request)
     cost = _calculate_rest_cost(request)
@@ -1092,7 +1092,7 @@ Response:
 
 ## Conclusion
 
-This specification transforms REST-OS from a tactical rest optimizer into a **strategic route planning platform with continuous compliance monitoring**.
+This specification transforms SALLY from a tactical rest optimizer into a **strategic route planning platform with continuous compliance monitoring**.
 
 **Key Differentiators:**
 1. **HOS-aware routing** (not just distance optimization)

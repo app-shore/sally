@@ -1,6 +1,6 @@
-# REST-OS Documentation Guide
+# SALLY Documentation Guide
 
-**Complete navigation guide for all REST-OS documentation.**
+**Complete navigation guide for all SALLY documentation.**
 
 ---
 
@@ -11,7 +11,7 @@
 **...get started quickly**
 → Read [QUICKSTART.md](./QUICKSTART.md) (5 minutes)
 
-**...understand what REST-OS is**
+**...understand what SALLY is**
 → Read [README.md](./README.md) (10 minutes)
 
 **...learn the product vision**
@@ -20,7 +20,7 @@
 **...understand the technical architecture**
 → Read [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) (45 minutes)
 
-**...deploy REST-OS**
+**...deploy SALLY**
 → Read [DEPLOY.md](./DEPLOY.md) (15 minutes)
 
 **...view architecture diagrams**
@@ -31,7 +31,7 @@
 ## 📂 Documentation Structure
 
 ```
-rest-os/
+sally/
 │
 ├── 📖 Root Documentation (Setup & Deployment)
 │   ├── README.md                    # Project overview
@@ -109,7 +109,7 @@ rest-os/
 | [.docs/C4_MODEL_SUMMARY.md](./.docs/C4_MODEL_SUMMARY.md) | C4 model summary | 15 min | Architects |
 
 **Architecture Diagrams:**
-- **Level 1 - System Context:** REST-OS in relation to users and external systems
+- **Level 1 - System Context:** SALLY in relation to users and external systems
 - **Level 2 - Container:** Technology stack (Next.js, FastAPI, PostgreSQL, Redis)
 - **Level 3 - Components:** Backend and frontend internal structure
 - **Level 4 - Code:** Detailed class diagrams (HOS Engine, Optimization Engine)
@@ -402,7 +402,7 @@ Before merging documentation changes:
 
 ## 🎯 Core Concepts
 
-### REST-OS Architecture
+### SALLY Architecture
 
 **Three-Layer System:**
 1. **Route Planning Engine** - Initial route generation
@@ -473,7 +473,7 @@ Before merging documentation changes:
 **Total Documents:** 20+ files
 **Total Reading Time:** ~5 hours (complete documentation)
 **Last Major Update:** January 23, 2026
-**Maintained By:** REST-OS Product & Engineering Team
+**Maintained By:** SALLY Product & Engineering Team
 
 ---
 
@@ -491,4 +491,4 @@ Documentation should be:
 ---
 
 **Last Updated:** January 23, 2026
-**Maintained By:** REST-OS Team
+**Maintained By:** SALLY Team

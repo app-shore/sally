@@ -1,6 +1,6 @@
-# REST-OS Implementation Summary
+# SALLY Implementation Summary
 
-This document summarizes the complete implementation of the REST-OS project scaffolding.
+This document summarizes the complete implementation of the SALLY project scaffolding.
 
 ## ✅ Completed Tasks
 
@@ -447,7 +447,7 @@ All success criteria from the plan have been met:
 
 ## 🎉 Summary
 
-The REST-OS project scaffolding is **100% complete** according to the implementation plan. All backend engines, frontend dashboard, database models, API endpoints, testing infrastructure, and documentation have been implemented.
+The SALLY project scaffolding is **100% complete** according to the implementation plan. All backend engines, frontend dashboard, database models, API endpoints, testing infrastructure, and documentation have been implemented.
 
 The project is now ready for:
 1. Dependency installation (`npm install`, `uv sync`)

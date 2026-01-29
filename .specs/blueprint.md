@@ -1,4 +1,4 @@
-# REST-OS: Intelligent Route Planning Platform
+# SALLY: Intelligent Route Planning Platform
 
 ## One-Line Idea
 
@@ -33,7 +33,7 @@ Current routing tools (Google Maps, TMS) assume:
 - Static conditions (no dock delays, traffic, load changes)
 - No rest/fuel requirements
 
-**REST-OS is different:**
+**SALLY is different:**
 - Routes are HOS-aware (driver has X hours left, plan around it)
 - Rest stops are inserted automatically (where, when, how long)
 - Fuel stops are optimized (cheapest on route)
@@ -527,7 +527,7 @@ Route Planner inserts rest segment:
 * "We don't replace your TMS"
 * "We don't replace your ELD"
 * "We plug the gap: **route planning for drivers**"
-* "Samsara tracks, McLeod dispatches, **REST-OS routes**"
+* "Samsara tracks, McLeod dispatches, **SALLY routes**"
 
 ### Sales Motion
 
@@ -581,7 +581,7 @@ Route Planner inserts rest segment:
 - Shortest route for cars/trucks
 - **Does NOT:** Understand HOS, insert rest stops, handle dynamic updates
 
-### REST-OS Unique Position
+### SALLY Unique Position
 
 **We sit at the intersection of:**
 - TMS (load assignment)
@@ -724,11 +724,11 @@ Route Planner inserts rest segment:
 >
 > Drivers aren't unlimited resources—they have hours, they need rest, they need fuel. Every route plan must respect these constraints, not ignore them.
 >
-> REST-OS is the first platform built for the reality of trucking, not the fantasy of infinite drive time.
+> SALLY is the first platform built for the reality of trucking, not the fantasy of infinite drive time.
 
 **Rest is not downtime.**
 **It's a resource.**
 **Route planning is not optional.**
 **It's survival.**
 
-**REST-OS: Where routing meets reality.**
+**SALLY: Where routing meets reality.**

@@ -1,6 +1,6 @@
-# REST-OS Setup Guide
+# SALLY Setup Guide
 
-Complete setup instructions for REST-OS (Route Planning Platform with intelligent HOS compliance).
+Complete setup instructions for SALLY (Route Planning Platform with intelligent HOS compliance).
 
 ## Table of Contents
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "Starting REST-OS Services..."
+echo "Starting SALLY Services..."
 
 # Start backend in background
 echo "Starting FastAPI Backend on port 8000..."
@@ -18,7 +18,7 @@ cd /app/web
 npm start -- -p 3000 -H 0.0.0.0 &
 FRONTEND_PID=$!
 
-echo "REST-OS Started!"
+echo "SALLY Started!"
 echo "Backend PID: $BACKEND_PID"
 echo "Frontend PID: $FRONTEND_PID"
 echo "Dashboard: http://localhost:3000"

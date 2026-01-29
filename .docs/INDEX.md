@@ -1,6 +1,6 @@
-# REST-OS Documentation Index
+# SALLY Documentation Index
 
-Welcome to the REST-OS documentation. This index provides links to all documentation resources.
+Welcome to the SALLY documentation. This index provides links to all documentation resources.
 
 ## 📚 Documentation Structure
 
@@ -89,7 +89,7 @@ specs/
 #### Level 1 - System Context
 **File**: `architecture/c4-level1-context.puml`
 
-Shows REST-OS in the context of:
+Shows SALLY in the context of:
 - Users (Dispatchers, Operations Managers, Drivers)
 - External systems (ELD, TMS, Telematics)
 
@@ -350,4 +350,4 @@ For documentation improvements or questions:
 ---
 
 **Last Updated**: 2026-01-22
-**Maintained By**: REST-OS Development Team
+**Maintained By**: SALLY Development Team

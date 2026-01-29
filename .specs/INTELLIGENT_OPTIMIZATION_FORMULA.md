@@ -2,7 +2,7 @@
 
 ## Context: Component of Route Planning System
 
-**IMPORTANT:** This REST Optimization Engine is a **component** of the larger REST-OS Route Planning Platform, not a standalone product.
+**IMPORTANT:** This REST Optimization Engine is a **component** of the larger SALLY Route Planning Platform, not a standalone product.
 
 ### How It Fits in the System
 
@@ -754,6 +754,6 @@ def optimize_rest_decision(D_current, T_next, HOS):
 
 ## Conclusion
 
-This intelligent optimization formula transforms REST-OS from a simple compliance checker into a **proactive decision-making system**. It doesn't just tell drivers what they *can't* do - it tells them what they *should* do to maximize efficiency while staying compliant.
+This intelligent optimization formula transforms SALLY from a simple compliance checker into a **proactive decision-making system**. It doesn't just tell drivers what they *can't* do - it tells them what they *should* do to maximize efficiency while staying compliant.
 
 **The driver always has final say** (except for mandatory compliance issues), but now they have **data-driven recommendations** to guide their decisions.

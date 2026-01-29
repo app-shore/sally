@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo "================================================"
-echo "REST-OS Architecture Diagram Renderer"
+echo "SALLY Architecture Diagram Renderer"
 echo "================================================"
 echo ""
 

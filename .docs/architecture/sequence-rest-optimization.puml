@@ -2,7 +2,7 @@
 !theme plain
 skinparam sequenceMessageAlign center
 
-title REST-OS: Rest Optimization Flow
+title SALLY: Rest Optimization Flow
 
 actor "Dispatcher" as user
 participant "Dashboard\n(React)" as ui

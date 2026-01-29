@@ -1,6 +1,6 @@
-# REST-OS Architecture Documentation
+# SALLY Architecture Documentation
 
-This directory contains comprehensive C4 model diagrams for the REST-OS (Rest Optimization System) application using PlantUML.
+This directory contains comprehensive C4 model diagrams for the SALLY (Rest Optimization System) application using PlantUML.
 
 ## 📋 Table of Contents
 
@@ -14,7 +14,7 @@ This directory contains comprehensive C4 model diagrams for the REST-OS (Rest Op
 
 ## Overview
 
-The REST-OS architecture follows the **C4 model** (Context, Container, Component, Code) for documenting software architecture. This provides multiple levels of abstraction, from high-level system context down to detailed code-level views.
+The SALLY architecture follows the **C4 model** (Context, Container, Component, Code) for documenting software architecture. This provides multiple levels of abstraction, from high-level system context down to detailed code-level views.
 
 ### What is the C4 Model?
 
@@ -123,7 +123,7 @@ Create a script to render all diagrams:
 #!/bin/bash
 # render-diagrams.sh
 
-cd /Users/ajay-admin/rest-os/docs/architecture
+cd /Users/ajay-admin/sally/docs/architecture
 
 # Render all PlantUML files as PNG
 for file in *.puml; do
@@ -146,11 +146,11 @@ chmod +x render-diagrams.sh
 
 ### 1. System Context Diagram (`c4-level1-context.puml`)
 
-**Purpose**: Shows REST-OS in the context of users and external systems.
+**Purpose**: Shows SALLY in the context of users and external systems.
 
 **Key Elements**:
 - **Users**: Fleet Dispatchers, Operations Managers, Truck Drivers
-- **System**: REST-OS (main system)
+- **System**: SALLY (main system)
 - **External Systems**: ELD, TMS, Telematics Platform (future integrations)
 
 **Use Case**: Understanding who uses the system and what external integrations are planned.
@@ -371,7 +371,7 @@ Service → Repository → Database
 
 **Structure**:
 ```
-rest-os/
+sally/
 ├── apps/
 │   ├── backend/    # Python FastAPI
 │   └── web/        # Next.js dashboard
@@ -466,4 +466,4 @@ For questions about the architecture or to suggest improvements, please:
 ---
 
 **Last Updated**: 2026-01-22
-**Maintainer**: REST-OS Development Team
+**Maintainer**: SALLY Development Team

@@ -3,13 +3,13 @@
 
 LAYOUT_WITH_LEGEND()
 
-title Container diagram for REST-OS (Route Planning Platform)
+title Container diagram for SALLY (Route Planning Platform)
 
 Person(dispatcher, "Fleet Dispatcher", "Plans routes, monitors execution, handles updates")
 Person(operations, "Operations Manager", "Analyzes route efficiency and system performance")
 Person(driver, "Truck Driver", "Follows routes, reports delays")
 
-System_Boundary(restos, "REST-OS") {
+System_Boundary(restos, "SALLY") {
     Container(web, "Operations Dashboard", "Next.js 15, React 18, TypeScript", "Web UI for route planning, monitoring, and analytics")
 
     Container(api, "Backend API", "Python 3.11, FastAPI (Async)", "REST API for route planning, dynamic updates, HOS validation, and component services")

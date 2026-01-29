@@ -1,4 +1,4 @@
-# REST-OS Route Planning with Simulation - REFINED Implementation Plan
+# SALLY Route Planning with Simulation - REFINED Implementation Plan
 
 > **Plan Version:** 2.0 - Optimized based on codebase analysis
 > **Estimated Effort:** 2.5 weeks (reduced from 4 weeks)
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This plan implements a complete **route planning and simulation system** that leverages 70% of existing REST-OS infrastructure. Key insight: Most backend services already exist and just need enhancement, not replacement.
+This plan implements a complete **route planning and simulation system** that leverages 70% of existing SALLY infrastructure. Key insight: Most backend services already exist and just need enhancement, not replacement.
 
 **User Journey:**
 ```

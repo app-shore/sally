@@ -1,8 +1,8 @@
-# REST-OS C4 Model Architecture - Complete Summary
+# SALLY C4 Model Architecture - Complete Summary
 
 ## ✅ Created Successfully
 
-A complete C4 model architecture documentation has been created for REST-OS with **9 PlantUML diagrams** covering all architectural levels.
+A complete C4 model architecture documentation has been created for SALLY with **9 PlantUML diagrams** covering all architectural levels.
 
 ---
 
@@ -10,7 +10,7 @@ A complete C4 model architecture documentation has been created for REST-OS with
 
 ### Level 1 - System Context
 **File**: `c4-level1-context.puml`
-- Shows REST-OS system boundary
+- Shows SALLY system boundary
 - External users: Dispatchers, Operations Managers, Drivers
 - External systems: ELD, TMS, Telematics (future)
 - High-level relationships
@@ -181,7 +181,7 @@ A complete C4 model architecture documentation has been created for REST-OS with
 ## 📁 File Structure
 
 ```
-/Users/ajay-admin/rest-os/docs/
+/Users/ajay-admin/sally/docs/
 ├── INDEX.md                                 # Documentation index
 ├── C4_MODEL_SUMMARY.md                      # This file
 │
@@ -244,7 +244,7 @@ brew install plantuml graphviz  # macOS
 sudo apt-get install plantuml graphviz  # Linux
 
 # Render all diagrams
-cd /Users/ajay-admin/rest-os/docs/architecture
+cd /Users/ajay-admin/sally/docs/architecture
 ./render-diagrams.sh
 
 # Output will be in: output/*.png
@@ -257,7 +257,7 @@ cd /Users/ajay-admin/rest-os/docs/architecture
 ### Method 4: Docker (No Local Installation)
 
 ```bash
-cd /Users/ajay-admin/rest-os/docs/architecture
+cd /Users/ajay-admin/sally/docs/architecture
 
 docker run --rm -v $(pwd):/data plantuml/plantuml -tpng "/data/*.puml"
 
@@ -329,7 +329,7 @@ All diagrams include:
 
 **Or use the script:**
 ```bash
-cd /Users/ajay-admin/rest-os/docs/architecture
+cd /Users/ajay-admin/sally/docs/architecture
 ./render-diagrams.sh
 open output/*.png  # macOS
 ```
@@ -426,5 +426,5 @@ open output/*.png  # macOS
 ---
 
 **Created**: 2026-01-22
-**Location**: `/Users/ajay-admin/rest-os/docs/`
+**Location**: `/Users/ajay-admin/sally/docs/`
 **Status**: ✅ Complete and ready for visualization

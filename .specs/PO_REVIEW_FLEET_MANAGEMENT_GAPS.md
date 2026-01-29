@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-REST-OS has successfully implemented **core route planning capabilities** with HOS compliance. However, to be production-ready for real-world fleet management, we need to bridge the gap between "technical demo" and "dispatcher's daily tool."
+SALLY has successfully implemented **core route planning capabilities** with HOS compliance. However, to be production-ready for real-world fleet management, we need to bridge the gap between "technical demo" and "dispatcher's daily tool."
 
 **Key Finding:** We built the engine, but we're missing the steering wheel, dashboard, and mirrors.
 

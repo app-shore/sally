@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# REST-OS Installation Script
-# This script automates the initial setup of the REST-OS project
+# SALLY Installation Script
+# This script automates the initial setup of the SALLY project
 
 set -e  # Exit on error
 
 echo "========================================="
-echo "  REST-OS Installation Script"
+echo "  SALLY Installation Script"
 echo "========================================="
 echo ""
 

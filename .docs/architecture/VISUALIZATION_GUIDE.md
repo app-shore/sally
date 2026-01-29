@@ -1,4 +1,4 @@
-# Quick Visualization Guide for REST-OS Architecture Diagrams
+# Quick Visualization Guide for SALLY Architecture Diagrams
 
 This guide provides the fastest ways to visualize the C4 model diagrams.
 
@@ -57,7 +57,7 @@ choco install plantuml graphviz
 
 **Render All Diagrams**:
 ```bash
-cd /Users/ajay-admin/rest-os/docs/architecture
+cd /Users/ajay-admin/sally/docs/architecture
 ./render-diagrams.sh
 ```
 
@@ -87,7 +87,7 @@ plantuml -tpdf *.puml
 
 **Render All Diagrams**:
 ```bash
-cd /Users/ajay-admin/rest-os/docs/architecture
+cd /Users/ajay-admin/sally/docs/architecture
 
 docker run --rm -v $(pwd):/data plantuml/plantuml -tpng "/data/*.puml"
 ```
@@ -171,7 +171,7 @@ sudo apt-get install graphviz
 
 **Solution**: Ensure you're in the correct directory
 ```bash
-cd /Users/ajay-admin/rest-os/docs/architecture
+cd /Users/ajay-admin/sally/docs/architecture
 ls *.puml  # Should list all diagram files
 ```
 

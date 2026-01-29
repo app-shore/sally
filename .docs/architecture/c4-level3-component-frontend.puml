@@ -3,7 +3,7 @@
 
 LAYOUT_WITH_LEGEND()
 
-title Component diagram for REST-OS Frontend Dashboard
+title Component diagram for SALLY Frontend Dashboard
 
 Person(user, "Dispatcher/Operations", "System user")
 

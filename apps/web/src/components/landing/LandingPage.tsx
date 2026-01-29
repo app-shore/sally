@@ -16,7 +16,7 @@ export function LandingPage() {
             Zero HOS Violations Guaranteed
           </div>
           <h1 className="mb-3 sm:mb-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
-            REST-OS
+            SALLY
           </h1>
           <p className="mb-2 text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 font-semibold">
             HOS-Aware Route Planning Platform
@@ -63,7 +63,7 @@ export function LandingPage() {
                   </h2>
                   <p className="mb-6 text-gray-300 text-sm sm:text-base">
                     Unlike traditional route planners that only optimize for distance,
-                    REST-OS continuously monitors driver hours and automatically inserts
+                    SALLY continuously monitors driver hours and automatically inserts
                     rest stops, fuel stops, and breaks before violations occur.
                   </p>
                   <div className="space-y-3">
@@ -240,10 +240,10 @@ export function LandingPage() {
           <Card className="border-2 border-gray-900 bg-gray-50">
             <CardContent className="p-6 sm:p-8 md:p-10">
               <h2 className="mb-4 text-2xl sm:text-3xl font-bold text-gray-900">
-                Why REST-OS is Different
+                Why SALLY is Different
               </h2>
               <p className="mx-auto max-w-3xl text-base sm:text-lg text-gray-600 mb-6">
-                Traditional route planners optimize for distance or time. REST-OS optimizes for
+                Traditional route planners optimize for distance or time. SALLY optimizes for
                 <span className="font-bold text-gray-900"> feasibility</span>.
               </p>
               <div className="grid gap-4 sm:gap-6 md:grid-cols-2 text-left max-w-4xl mx-auto">
@@ -260,7 +260,7 @@ export function LandingPage() {
                 />
                 <ComparisonCard
                   type="restos"
-                  title="REST-OS"
+                  title="SALLY"
                   points={[
                     "HOS-aware optimization",
                     "Automatic rest stop insertion",

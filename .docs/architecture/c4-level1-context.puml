@@ -3,13 +3,13 @@
 
 LAYOUT_WITH_LEGEND()
 
-title System Context diagram for REST-OS (Route Planning Platform)
+title System Context diagram for SALLY (Route Planning Platform)
 
 Person(dispatcher, "Fleet Dispatcher", "Plans routes, adds/removes stops, monitors route execution")
 Person(operations, "Operations Manager", "Monitors fleet performance, analyzes route efficiency")
 Person(driver, "Truck Driver", "Follows optimized routes, reports delays, receives rest recommendations")
 
-System(restos, "REST-OS", "Intelligent Route Planning Platform that optimizes stop sequences, automatically inserts rest stops where HOS requires, inserts fuel stops, validates compliance, and dynamically updates routes when conditions change")
+System(restos, "SALLY", "Intelligent Route Planning Platform that optimizes stop sequences, automatically inserts rest stops where HOS requires, inserts fuel stops, validates compliance, and dynamically updates routes when conditions change")
 
 System_Ext(eld, "ELD System", "Electronic Logging Device - provides real-time driver HOS data (Phase 3)")
 System_Ext(tms, "TMS", "Transportation Management System - provides load assignments and stops (Phase 3)")

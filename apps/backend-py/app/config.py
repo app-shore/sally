@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     environment: str = Field(default="development", description="Environment name")
     debug: bool = Field(default=False, description="Debug mode")
     log_level: str = Field(default="INFO", description="Logging level")
-    project_name: str = Field(default="REST-OS Backend", description="Project name")
+    project_name: str = Field(default="SALLY Backend", description="Project name")
     api_v1_prefix: str = Field(default="/api/v1", description="API v1 prefix")
 
     # Security
@@ -85,3 +85,4 @@ def get_settings() -> Settings:
 
 # Convenience export
 settings = get_settings()
+)

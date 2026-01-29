@@ -3,7 +3,7 @@
 
 LAYOUT_WITH_LEGEND()
 
-title Component diagram for REST-OS Backend API (Route Planning Platform)
+title Component diagram for SALLY Backend API (Route Planning Platform)
 
 Container(web, "Operations Dashboard", "Next.js, React", "Web UI for route planning and monitoring")
 

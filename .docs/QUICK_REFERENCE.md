@@ -1,4 +1,4 @@
-# REST-OS Quick Reference Card
+# SALLY Quick Reference Card
 
 ## 🚀 Quick Commands
 
@@ -164,7 +164,7 @@ docker-compose logs backend --tail=50
 ### Reset Database
 ```bash
 docker-compose down
-docker volume rm rest-os_postgres_data
+docker volume rm sally_postgres_data
 docker-compose up -d
 npm run db:migrate
 ```
@@ -379,7 +379,7 @@ POST /api/v1/fuel/find-stops
 ## 📚 Documentation Hierarchy
 
 ```
-rest-os/
+sally/
 ├── README.md                   # Project overview
 ├── QUICKSTART.md              # 5-minute guide
 ├── DOCUMENTATION.md           # Master navigation
@@ -425,5 +425,5 @@ rest-os/
 ---
 
 **Last Updated**: 2026-01-23
-**Product**: REST-OS Route Planning Platform
+**Product**: SALLY Route Planning Platform
 **Quick Reference**: Keep this handy!

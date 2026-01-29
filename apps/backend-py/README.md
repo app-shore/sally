@@ -1,6 +1,6 @@
-# REST-OS Backend
+# SALLY Backend
 
-FastAPI-based backend for the REST-OS (Rest Optimization System).
+FastAPI-based backend for the SALLY (Rest Optimization System).
 
 ## Overview
 
@@ -255,3 +255,4 @@ Logs include:
 ## License
 
 Proprietary - All rights reserved
+ved

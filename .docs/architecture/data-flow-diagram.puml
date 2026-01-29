@@ -1,7 +1,7 @@
 @startuml Data_Flow_Diagram
 !theme plain
 
-title REST-OS Data Flow Diagram
+title SALLY Data Flow Diagram
 
 skinparam component {
     BackgroundColor<<input>> LightBlue

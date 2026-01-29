@@ -1,4 +1,4 @@
-# REST-OS Deployment Guide
+# SALLY Deployment Guide
 
 Three deployment options:
 1. **Docker Compose** - Local development & testing
@@ -17,8 +17,8 @@ Three deployment options:
 
 ```bash
 # Clone and start
-git clone https://github.com/YOUR_USERNAME/rest-os.git
-cd rest-os
+git clone https://github.com/YOUR_USERNAME/sally.git
+cd sally
 npm run docker:up
 ```
 
@@ -92,10 +92,10 @@ In CapRover dashboard:
 
 1. **Apps** → **One-Click Apps/Databases**
 2. Deploy **PostgreSQL**:
-   - App Name: `rest-os-db`
+   - App Name: `sally-db`
    - Set password (remember it!)
 3. Deploy **Redis**:
-   - App Name: `rest-os-cache`
+   - App Name: `sally-cache`
 
 #### 1.2: Deploy Backend API
 
@@ -104,7 +104,7 @@ In CapRover dashboard:
 caprover login
 
 # Deploy backend (builds on your CapRover server)
-caprover deploy -a rest-os-api
+caprover deploy -a sally-api
 ```
 
 **When prompted:**
@@ -113,14 +113,14 @@ caprover deploy -a rest-os-api
 
 #### 1.3: Configure Backend Environment Variables
 
-In CapRover dashboard → **Apps** → **rest-os-api** → **App Configs** → **Environment Variables**:
+In CapRover dashboard → **Apps** → **sally-api** → **App Configs** → **Environment Variables**:
 
 ```bash
-DATABASE_URL=postgresql+asyncpg://postgres:YOUR_DB_PASSWORD@srv-captain--rest-os-db:5432/postgres
-REDIS_URL=redis://srv-captain--rest-os-cache:6379/0
+DATABASE_URL=postgresql+asyncpg://postgres:YOUR_DB_PASSWORD@srv-captain--sally-db:5432/postgres
+REDIS_URL=redis://srv-captain--sally-cache:6379/0
 ENVIRONMENT=production
 LOG_LEVEL=INFO
-CORS_ORIGINS=https://your-app.vercel.app,https://rest-os.your-domain.com
+CORS_ORIGINS=https://your-app.vercel.app,https://sally.your-domain.com
 ```
 
 **Important:**
@@ -132,7 +132,7 @@ Click **Save & Update**.
 
 #### 1.4: Enable HTTPS & Custom Domain (Optional)
 
-In **rest-os-api** app settings:
+In **sally-api** app settings:
 
 1. **HTTP Settings** → **Enable HTTPS** ✓
 2. **Connect New Domain**:
@@ -142,7 +142,7 @@ In **rest-os-api** app settings:
 
 #### 1.5: Run Database Migrations
 
-In CapRover Dashboard → Apps → rest-os-api → Deployment → Execute Command:
+In CapRover Dashboard → Apps → sally-api → Deployment → Execute Command:
 
 ```bash
 cd /app/backend && uv run alembic upgrade head
@@ -154,7 +154,7 @@ Click **Execute**.
 
 Your backend API is now available at:
 - With custom domain: `https://api.your-domain.com`
-- Without custom domain: `https://rest-os-api.captain.your-domain.com`
+- Without custom domain: `https://sally-api.captain.your-domain.com`
 
 ### Step 2: Deploy Frontend to Vercel
 
@@ -168,7 +168,7 @@ git push origin main
 
 1. Go to [vercel.com](https://vercel.com) and sign in
 2. Click **Add New** → **Project**
-3. Import your `rest-os` repository
+3. Import your `sally` repository
 4. Configure:
    - **Framework Preset:** Next.js
    - **Root Directory:** `apps/web`
@@ -203,7 +203,7 @@ CORS_ORIGINS=https://your-app.vercel.app
 
 #### Frontend Domain (Vercel)
 1. In Vercel: Settings → Domains
-2. Add your domain: `rest-os.your-domain.com`
+2. Add your domain: `sally.your-domain.com`
 3. Follow Vercel's DNS instructions
 
 #### Backend Domain (CapRover)
@@ -216,7 +216,7 @@ Already done in Step 1.4!
 git add .
 git commit -m "Update backend"
 git push
-caprover deploy -a rest-os-api
+caprover deploy -a sally-api
 ```
 
 **Frontend updates:**
@@ -252,12 +252,12 @@ In CapRover dashboard:
 
 1. **Apps** → **One-Click Apps/Databases**
 2. Deploy **PostgreSQL**:
-   - App Name: `rest-os-db`
+   - App Name: `sally-db`
    - Set password (remember it!)
 3. Deploy **Redis**:
-   - App Name: `rest-os-cache`
+   - App Name: `sally-cache`
 
-### Step 2: Deploy REST-OS
+### Step 2: Deploy SALLY
 
 #### Method A: Build on Server (Simple)
 
@@ -266,7 +266,7 @@ In CapRover dashboard:
 caprover login
 
 # Deploy (builds on your CapRover server)
-caprover deploy -a rest-os
+caprover deploy -a sally
 ```
 
 **When prompted:**
@@ -294,28 +294,28 @@ caprover login
 **Or manual steps:**
 ```bash
 # Build the image
-docker build -t rest-os:latest .
+docker build -t sally:latest .
 
 # Test locally (optional)
-docker run -p 3000:3000 -p 8000:8000 rest-os:latest
+docker run -p 3000:3000 -p 8000:8000 sally:latest
 
-# Save and deploy to 'rest-os' app
-docker save rest-os:latest -o /tmp/rest-os.tar
-caprover deploy -a rest-os -t /tmp/rest-os.tar
-rm /tmp/rest-os.tar
+# Save and deploy to 'sally' app
+docker save sally:latest -o /tmp/sally.tar
+caprover deploy -a sally -t /tmp/sally.tar
+rm /tmp/sally.tar
 ```
 
 ### Step 3: Configure Environment Variables
 
-In CapRover dashboard → **Apps** → **rest-os** → **App Configs** → **Environment Variables**:
+In CapRover dashboard → **Apps** → **sally** → **App Configs** → **Environment Variables**:
 
 ```bash
-NEXT_PUBLIC_API_URL=https://rest-os.your-domain.com
-DATABASE_URL=postgresql+asyncpg://postgres:YOUR_DB_PASSWORD@srv-captain--rest-os-db:5432/postgres
-REDIS_URL=redis://srv-captain--rest-os-cache:6379/0
+NEXT_PUBLIC_API_URL=https://sally.your-domain.com
+DATABASE_URL=postgresql+asyncpg://postgres:YOUR_DB_PASSWORD@srv-captain--sally-db:5432/postgres
+REDIS_URL=redis://srv-captain--sally-cache:6379/0
 ENVIRONMENT=production
 LOG_LEVEL=INFO
-CORS_ORIGINS=https://rest-os.your-domain.com
+CORS_ORIGINS=https://sally.your-domain.com
 ```
 
 **Important:**
@@ -326,18 +326,18 @@ Click **Save & Update**.
 
 ### Step 4: Enable HTTPS & Custom Domain
 
-In **rest-os** app settings:
+In **sally** app settings:
 
 1. **HTTP Settings** → **Enable HTTPS** ✓
 2. **Connect New Domain**:
-   - Domain: `rest-os.your-domain.com`
+   - Domain: `sally.your-domain.com`
    - Enable **HTTPS** ✓
    - Enable **Force HTTPS** ✓
 
 ### Step 5: Run Database Migrations
 
 **Option 1: Via Dashboard (Easier)**
-1. Go to CapRover Dashboard → Apps → rest-os
+1. Go to CapRover Dashboard → Apps → sally
 2. Scroll to **Deployment** tab
 3. Click **Execute Command**
 4. Enter: `cd /app/backend && uv run alembic upgrade head`
@@ -349,7 +349,7 @@ In **rest-os** app settings:
 ssh root@your-server-ip
 
 # Find the container
-docker ps | grep rest-os
+docker ps | grep sally
 
 # Execute in container (replace CONTAINER_ID)
 docker exec -it CONTAINER_ID sh
@@ -360,7 +360,7 @@ exit
 
 ### Step 6: Access Your App
 
-🎉 **Done!** Visit: `https://rest-os.your-domain.com`
+🎉 **Done!** Visit: `https://sally.your-domain.com`
 
 ### Updating Your App
 
@@ -371,7 +371,7 @@ When you make changes:
 git add .
 git commit -m "Update description"
 git push
-caprover deploy -a rest-os
+caprover deploy -a sally
 ```
 
 **Method B (Build Locally - Faster):**
@@ -394,14 +394,14 @@ caprover deploy
 ```
 
 **In Dashboard:**
-- **View Logs**: Apps → rest-os → View Logs
-- **Restart**: Apps → rest-os → Click "Save & Update"
-- **Environment Variables**: Apps → rest-os → App Configs
-- **Domain Settings**: Apps → rest-os → HTTP Settings
+- **View Logs**: Apps → sally → View Logs
+- **Restart**: Apps → sally → Click "Save & Update"
+- **Environment Variables**: Apps → sally → App Configs
+- **Domain Settings**: Apps → sally → HTTP Settings
 
 ---
 
-## What's Included in REST-OS
+## What's Included in SALLY
 
 ### Backend (FastAPI + Python)
 - ✅ HOS Rule Engine (FMCSA compliance validation)
@@ -467,21 +467,21 @@ docker-compose up -d --build frontend
 ### CapRover Issues
 
 **Database connection fails:**
-- Ensure PostgreSQL app name is `rest-os-db`
-- Use `srv-captain--rest-os-db` in DATABASE_URL (not localhost)
+- Ensure PostgreSQL app name is `sally-db`
+- Use `srv-captain--sally-db` in DATABASE_URL (not localhost)
 - Check password is correct
 - Verify environment variables are saved
 
 **App not accessible:**
 - Check if HTTPS is enabled
 - Verify domain is connected
-- Check app logs: `caprover apps:logs -a rest-os`
+- Check app logs: `caprover apps:logs -a sally`
 - Ensure port 80/443 are open in firewall
 
 **Build fails:**
 ```bash
 # Check build logs
-caprover apps:logs -a rest-os
+caprover apps:logs -a sally
 
 # Try deploying again
 caprover deploy
@@ -532,8 +532,8 @@ npm run docker:restart   # Restart
 ### CapRover
 ```bash
 caprover deploy                    # Deploy
-caprover apps:logs -a rest-os     # Logs
-caprover apps:restart -a rest-os  # Restart
+caprover apps:logs -a sally     # Logs
+caprover apps:restart -a sally  # Restart
 ```
 
 ---
@@ -555,7 +555,7 @@ Before going live with CapRover:
 
 ## Support
 
-- **API Docs:** http://localhost:8000/docs (local) or https://rest-os.your-domain.com/docs (production)
+- **API Docs:** http://localhost:8000/docs (local) or https://sally.your-domain.com/docs (production)
 - **Product Blueprint:** `.specs/blueprint.md`
 - **Implementation Plan:** `.specs/IMPLEMENTATION_PLAN.md`
 

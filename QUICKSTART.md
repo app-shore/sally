@@ -1,6 +1,6 @@
-# REST-OS Quick Start Guide
+# SALLY Quick Start Guide
 
-**Get REST-OS (Route Planning Platform) up and running in under 5 minutes!**
+**Get SALLY (Route Planning Platform) up and running in under 5 minutes!**
 
 ---
 
@@ -535,9 +535,9 @@ Now that you're up and running:
 
 ## Success! 🎉
 
-You now have REST-OS running locally. The route planning engine is ready to optimize multi-stop routes with automatic rest stop insertion, fuel stop optimization, and HOS compliance validation.
+You now have SALLY running locally. The route planning engine is ready to optimize multi-stop routes with automatic rest stop insertion, fuel stop optimization, and HOS compliance validation.
 
-**What makes REST-OS unique:**
+**What makes SALLY unique:**
 - Routes drivers, not just trucks (understands HOS limits)
 - Automatically inserts rest stops where needed
 - Leverages dock time for opportunistic rest
