@@ -125,6 +125,9 @@ export class LoadsController {
         stop_count: load.stops.length,
         weight_lbs: load.weightLbs,
         commodity_type: load.commodityType,
+        external_load_id: load.externalLoadId,
+        external_source: load.externalSource,
+        last_synced_at: load.lastSyncedAt?.toISOString(),
       }));
     } catch (error) {
       this.logger.error(`List loads failed: ${error.message}`);

@@ -32,6 +32,7 @@ import { ExternalMockController } from './api/external-mock/external-mock.contro
 import { AlertsController } from './api/alerts/alerts.controller';
 import { SessionController } from './api/session/session.controller';
 import { IntegrationsModule } from './api/integrations/integrations.module';
+import { PreferencesModule } from './api/preferences/preferences.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { IntegrationsModule } from './api/integrations/integrations.module';
     DatabaseModule,
     AuthModule,
     IntegrationsModule,
+    PreferencesModule,
   ],
   providers: [
     // Global guards (applied to all routes by default)

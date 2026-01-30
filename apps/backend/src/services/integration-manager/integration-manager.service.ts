@@ -3,6 +3,11 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CredentialsService } from '../credentials/credentials.service';
 import { SamsaraHOSAdapter } from '../adapters/hos/samsara-hos.adapter';
 import { HOSData } from '../adapters/hos/hos-adapter.interface';
+import { McLeodTMSAdapter } from '../adapters/tms/mcleod-tms.adapter';
+import { TruckbaseTMSAdapter } from '../adapters/tms/truckbase-tms.adapter';
+import { GasBuddyFuelAdapter } from '../adapters/fuel/gasbuddy-fuel.adapter';
+import { FuelFinderAdapter } from '../adapters/fuel/fuelfinder-fuel.adapter';
+import { OpenWeatherAdapter } from '../adapters/weather/openweather.adapter';
 
 /**
  * Central service for managing external system integrations
@@ -20,6 +25,11 @@ export class IntegrationManagerService {
     private prisma: PrismaService,
     private credentials: CredentialsService,
     private samsaraAdapter: SamsaraHOSAdapter,
+    private mcleodAdapter: McLeodTMSAdapter,
+    private truckbaseAdapter: TruckbaseTMSAdapter,
+    private gasBuddyAdapter: GasBuddyFuelAdapter,
+    private fuelFinderAdapter: FuelFinderAdapter,
+    private openWeatherAdapter: OpenWeatherAdapter,
   ) {}
 
   /**
@@ -134,11 +144,21 @@ export class IntegrationManagerService {
 
       let success = false;
 
-      if (
-        integration.vendor === 'SAMSARA_ELD' ||
-        integration.vendor === 'MOCK_SAMSARA'
-      ) {
+      // Test connection based on vendor
+      if (integration.vendor === 'SAMSARA_ELD' || integration.vendor === 'KEEPTRUCKIN_ELD' || integration.vendor === 'MOTIVE_ELD') {
         success = await this.samsaraAdapter.testConnection(apiKey);
+      } else if (integration.vendor === 'MCLEOD_TMS' || integration.vendor === 'TMW_TMS') {
+        success = await this.mcleodAdapter.testConnection(apiKey);
+      } else if (integration.vendor === 'TRUCKBASE_TMS') {
+        success = await this.truckbaseAdapter.testConnection(apiKey);
+      } else if (integration.vendor === 'GASBUDDY_FUEL') {
+        success = await this.gasBuddyAdapter.testConnection(apiKey);
+      } else if (integration.vendor === 'FUELFINDER_FUEL') {
+        success = await this.fuelFinderAdapter.testConnection(apiKey);
+      } else if (integration.vendor === 'OPENWEATHER') {
+        success = await this.openWeatherAdapter.testConnection(apiKey);
+      } else {
+        throw new Error(`Unsupported vendor: ${integration.vendor}`);
       }
 
       // Update integration status

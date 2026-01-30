@@ -17,6 +17,36 @@ export class DriversController {
     @Inject(IntegrationManagerService) private readonly integrationManager: IntegrationManagerService,
   ) {}
 
+  /**
+   * Validate that a driver is not from an external source before allowing modification
+   */
+  private async validateNotExternal(
+    driverId: string,
+    tenantId: number,
+    operation: string
+  ) {
+    const driver = await this.prisma.driver.findFirst({
+      where: { driverId, tenantId },
+    });
+
+    if (!driver) {
+      throw new HttpException(
+        { detail: `Driver not found: ${driverId}` },
+        HttpStatus.NOT_FOUND
+      );
+    }
+
+    if (driver.externalSource) {
+      throw new HttpException(
+        {
+          detail: `Cannot ${operation} driver from external source: ${driver.externalSource}. This is a read-only integration record.`,
+          external_source: driver.externalSource
+        },
+        HttpStatus.FORBIDDEN
+      );
+    }
+  }
+
   @Get()
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
   @ApiOperation({ summary: 'List all active drivers (basic info only, HOS fetched from external API)' })
@@ -44,8 +74,11 @@ export class DriversController {
         driver_id: driver.driverId,
         name: driver.name,
         is_active: driver.isActive,
-        created_at: driver.createdAt,
-        updated_at: driver.updatedAt,
+        external_driver_id: driver.externalDriverId,
+        external_source: driver.externalSource,
+        last_synced_at: driver.lastSyncedAt?.toISOString(),
+        created_at: driver.createdAt.toISOString(),
+        updated_at: driver.updatedAt.toISOString(),
       }));
     } catch (error) {
       this.logger.error(`List drivers failed: ${error.message}`);
@@ -122,6 +155,13 @@ export class DriversController {
         where: { tenantId: user.tenantId },
       });
 
+      if (!tenant) {
+        throw new HttpException({ detail: 'Tenant not found' }, HttpStatus.NOT_FOUND);
+      }
+
+      // Validate driver is not from external source
+      await this.validateNotExternal(driverId, tenant.id, 'update');
+
       const driver = await this.prisma.driver.update({
         where: {
           driverId_tenantId: {
@@ -142,6 +182,9 @@ export class DriversController {
         updated_at: driver.updatedAt,
       };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       this.logger.error(`Update driver failed: ${error.message}`);
       throw new HttpException({ detail: 'Failed to update driver' }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -160,6 +203,13 @@ export class DriversController {
         where: { tenantId: user.tenantId },
       });
 
+      if (!tenant) {
+        throw new HttpException({ detail: 'Tenant not found' }, HttpStatus.NOT_FOUND);
+      }
+
+      // Validate driver is not from external source
+      await this.validateNotExternal(driverId, tenant.id, 'delete');
+
       const driver = await this.prisma.driver.update({
         where: {
           driverId_tenantId: {
@@ -175,6 +225,9 @@ export class DriversController {
         message: 'Driver deactivated successfully',
       };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       this.logger.error(`Delete driver failed: ${error.message}`);
       throw new HttpException({ detail: 'Failed to delete driver' }, HttpStatus.INTERNAL_SERVER_ERROR);
     }

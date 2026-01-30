@@ -17,9 +17,24 @@ export class IntegrationsService {
   /**
    * List all integrations for a tenant
    */
-  async listIntegrations(tenantId: number) {
+  async listIntegrations(tenantId: number | string) {
+    // If tenantId is a string (from JWT), look up the numeric ID
+    let numericTenantId: number;
+    if (typeof tenantId === 'string') {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId },
+        select: { id: true },
+      });
+      if (!tenant) {
+        throw new Error(`Tenant not found: ${tenantId}`);
+      }
+      numericTenantId = tenant.id;
+    } else {
+      numericTenantId = tenantId;
+    }
+
     const integrations = await this.prisma.integrationConfig.findMany({
-      where: { tenantId },
+      where: { tenantId: numericTenantId },
       select: {
         integrationId: true,
         integrationType: true,
@@ -86,7 +101,21 @@ export class IntegrationsService {
   /**
    * Create new integration
    */
-  async createIntegration(tenantId: number, dto: CreateIntegrationDto) {
+  async createIntegration(tenantId: number | string, dto: CreateIntegrationDto) {
+    // If tenantId is a string (from JWT), look up the numeric ID
+    let numericTenantId: number;
+    if (typeof tenantId === 'string') {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId },
+        select: { id: true },
+      });
+      if (!tenant) {
+        throw new Error(`Tenant not found: ${tenantId}`);
+      }
+      numericTenantId = tenant.id;
+    } else {
+      numericTenantId = tenantId;
+    }
     // Encrypt credentials if provided
     let encryptedCredentials = null;
     if (dto.credentials) {
@@ -100,7 +129,7 @@ export class IntegrationsService {
     const integration = await this.prisma.integrationConfig.create({
       data: {
         integrationId: `int_${randomUUID()}`,
-        tenantId,
+        tenantId: numericTenantId,
         integrationType: dto.integration_type,
         vendor: dto.vendor,
         displayName: dto.display_name,

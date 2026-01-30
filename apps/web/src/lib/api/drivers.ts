@@ -2,6 +2,7 @@ import { apiClient } from './client';
 
 export interface Driver {
   id: string;
+  driver_id: string;  // The actual driver ID used in API calls
   name: string;
   license_number: string;
   phone?: string;

@@ -7,6 +7,11 @@ import { CredentialsService } from '../../services/credentials/credentials.servi
 import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';
 import { IntegrationSchedulerService } from '../../services/integration-manager/integration-scheduler.service';
 import { SamsaraHOSAdapter } from '../../services/adapters/hos/samsara-hos.adapter';
+import { McLeodTMSAdapter } from '../../services/adapters/tms/mcleod-tms.adapter';
+import { TruckbaseTMSAdapter } from '../../services/adapters/tms/truckbase-tms.adapter';
+import { GasBuddyFuelAdapter } from '../../services/adapters/fuel/gasbuddy-fuel.adapter';
+import { FuelFinderAdapter } from '../../services/adapters/fuel/fuelfinder-fuel.adapter';
+import { OpenWeatherAdapter } from '../../services/adapters/weather/openweather.adapter';
 
 @Module({
   imports: [PrismaModule, ScheduleModule.forRoot()],
@@ -16,7 +21,13 @@ import { SamsaraHOSAdapter } from '../../services/adapters/hos/samsara-hos.adapt
     IntegrationManagerService,
     IntegrationSchedulerService,
     CredentialsService,
+    // Adapters
     SamsaraHOSAdapter,
+    McLeodTMSAdapter,
+    TruckbaseTMSAdapter,
+    GasBuddyFuelAdapter,
+    FuelFinderAdapter,
+    OpenWeatherAdapter,
   ],
   exports: [IntegrationsService, IntegrationManagerService],
 })

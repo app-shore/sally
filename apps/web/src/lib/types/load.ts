@@ -45,6 +45,9 @@ export interface LoadListItem {
   stop_count: number;
   weight_lbs: number;
   commodity_type: string;
+  external_load_id?: string;
+  external_source?: string;
+  last_synced_at?: string;
 }
 
 export interface LoadStopCreate {

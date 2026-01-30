@@ -56,7 +56,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Fleet', href: '/settings/fleet', icon: Package },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
-    { label: 'Preferences', href: '/settings', icon: Settings },
+    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
   ],
 };
 

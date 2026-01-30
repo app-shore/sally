@@ -23,6 +23,9 @@
 **...deploy SALLY**
 → Read [DEPLOY.md](./DEPLOY.md) (15 minutes)
 
+**...set up Google Maps for accurate distances**
+→ Read [GOOGLE_MAPS_QUICKSTART.md](./GOOGLE_MAPS_QUICKSTART.md) (5 minutes)
+
 **...view architecture diagrams**
 → See [.docs/architecture/](./.docs/architecture/) + [.docs/INDEX.md](./.docs/INDEX.md)
 

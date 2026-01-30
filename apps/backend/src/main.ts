@@ -20,7 +20,7 @@ async function bootstrap() {
   // CORS configuration
   app.enableCors({
     origin: corsOrigins.split(',').map((o) => o.trim()),
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true, // Allow cookies
   });

@@ -23,10 +23,15 @@ async function main() {
   await prisma.routePlanUpdate.deleteMany();
   await prisma.routeSegment.deleteMany();
   await prisma.routePlan.deleteMany();
+  await prisma.driverPreferences.deleteMany();
+  await prisma.dispatcherPreferences.deleteMany();
+  await prisma.userPreferences.deleteMany();
   await prisma.refreshToken.deleteMany();
   await prisma.user.deleteMany();
   await prisma.driver.deleteMany();
   await prisma.vehicle.deleteMany();
+  await prisma.integrationSyncLog.deleteMany();
+  await prisma.integrationConfig.deleteMany();
   await prisma.tenant.deleteMany();
 
   // ============================================================================
@@ -63,75 +68,101 @@ async function main() {
   // ============================================================================
   console.log('Creating JYC Carriers drivers...');
 
+  // All drivers synced from TMS Truckbase (default driver source)
   const jycDriver1 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-001',
+      driverId: 'driver_001',
       name: 'John Smith',
       isActive: true,
       tenantId: jycCarriers.id,
+      externalDriverId: 'driver_001',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
   const jycDriver2 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-002',
+      driverId: 'driver_002',
       name: 'Sarah Johnson',
       isActive: true,
       tenantId: jycCarriers.id,
+      externalDriverId: 'driver_002',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
   const jycDriver3 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-003',
+      driverId: 'driver_003',
       name: 'Mike Williams',
       isActive: true,
       tenantId: jycCarriers.id,
+      externalDriverId: 'driver_003',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
   const jycDriver4 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-004',
+      driverId: 'driver_004',
       name: 'Jane Doe',
       isActive: true,
       tenantId: jycCarriers.id,
+      externalDriverId: 'driver_004',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
   const jycDriver5 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-005',
+      driverId: 'driver_005',
       name: 'Bob Martinez',
       isActive: true,
       tenantId: jycCarriers.id,
+      externalDriverId: 'driver_005',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
   const jycDriver6 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-006',
+      driverId: 'driver_006',
       name: 'Lisa Chen',
       isActive: true,
       tenantId: jycCarriers.id,
+      externalDriverId: 'driver_006',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
+  // Last 2 drivers are manual (no external source)
   const jycDriver7 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-007',
+      driverId: 'driver_007',
       name: 'Tom Brown',
       isActive: true,
       tenantId: jycCarriers.id,
+      externalDriverId: null,
+      externalSource: null,
+      lastSyncedAt: null,
     },
   });
 
   const jycDriver8 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-008',
+      driverId: 'driver_008',
       name: 'Emily Davis',
       isActive: true,
       tenantId: jycCarriers.id,
+      externalDriverId: null,
+      externalSource: null,
+      lastSyncedAt: null,
     },
   });
 
@@ -142,30 +173,40 @@ async function main() {
   // ============================================================================
   console.log('Creating XYZ Logistics drivers...');
 
+  // XYZ drivers from TMS Truckbase integration
   const xyzDriver1 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-101',
+      driverId: 'driver_101',
       name: 'Carlos Rodriguez',
       isActive: true,
       tenantId: xyzLogistics.id,
+      externalDriverId: 'driver_101',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
   const xyzDriver2 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-102',
+      driverId: 'driver_102',
       name: 'Maria Garcia',
       isActive: true,
       tenantId: xyzLogistics.id,
+      externalDriverId: 'driver_102',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
   const xyzDriver3 = await prisma.driver.create({
     data: {
-      driverId: 'DRV-103',
+      driverId: 'driver_103',
       name: 'David Lee',
       isActive: true,
       tenantId: xyzLogistics.id,
+      externalDriverId: 'driver_103',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
@@ -432,79 +473,105 @@ async function main() {
   // ============================================================================
   console.log('Creating JYC Carriers vehicles...');
 
+  // All vehicles from TMS Truckbase integration (default vehicle source)
   await prisma.vehicle.createMany({
     data: [
       {
-        vehicleId: 'VEH-001',
+        vehicleId: 'vehicle_001',
         unitNumber: 'TRK-1234',
         fuelCapacityGallons: 200,
         currentFuelGallons: 150,
         mpg: 6.5,
         isActive: true,
         tenantId: jycCarriers.id,
+        externalVehicleId: 'vehicle_001',
+        externalSource: 'mock_truckbase_tms',
+        lastSyncedAt: new Date(),
       },
       {
-        vehicleId: 'VEH-002',
+        vehicleId: 'vehicle_002',
         unitNumber: 'TRK-5678',
         fuelCapacityGallons: 180,
         currentFuelGallons: 90,
         mpg: 7.0,
         isActive: true,
         tenantId: jycCarriers.id,
+        externalVehicleId: 'vehicle_002',
+        externalSource: 'mock_truckbase_tms',
+        lastSyncedAt: new Date(),
       },
       {
-        vehicleId: 'VEH-003',
+        vehicleId: 'vehicle_003',
         unitNumber: 'TRK-9012',
         fuelCapacityGallons: 220,
         currentFuelGallons: 200,
         mpg: 6.0,
         isActive: true,
         tenantId: jycCarriers.id,
+        externalVehicleId: 'vehicle_003',
+        externalSource: 'mock_truckbase_tms',
+        lastSyncedAt: new Date(),
       },
       {
-        vehicleId: 'VEH-004',
+        vehicleId: 'vehicle_004',
         unitNumber: 'TRK-3456',
         fuelCapacityGallons: 200,
         currentFuelGallons: 160,
         mpg: 6.8,
         isActive: true,
         tenantId: jycCarriers.id,
+        externalVehicleId: 'vehicle_004',
+        externalSource: 'mock_truckbase_tms',
+        lastSyncedAt: new Date(),
       },
       {
-        vehicleId: 'VEH-005',
+        vehicleId: 'vehicle_005',
         unitNumber: 'TRK-7890',
         fuelCapacityGallons: 190,
         currentFuelGallons: 95,
         mpg: 7.2,
         isActive: true,
         tenantId: jycCarriers.id,
+        externalVehicleId: 'vehicle_005',
+        externalSource: 'mock_truckbase_tms',
+        lastSyncedAt: new Date(),
       },
+      // Last 3 vehicles are manual (no external source)
       {
-        vehicleId: 'VEH-006',
+        vehicleId: 'vehicle_006',
         unitNumber: 'TRK-1122',
         fuelCapacityGallons: 210,
         currentFuelGallons: 180,
         mpg: 6.3,
         isActive: true,
         tenantId: jycCarriers.id,
+        externalVehicleId: null,
+        externalSource: null,
+        lastSyncedAt: null,
       },
       {
-        vehicleId: 'VEH-007',
+        vehicleId: 'vehicle_007',
         unitNumber: 'TRK-3344',
         fuelCapacityGallons: 200,
         currentFuelGallons: 40,
         mpg: 6.6,
         isActive: true,
         tenantId: jycCarriers.id,
+        externalVehicleId: null,
+        externalSource: null,
+        lastSyncedAt: null,
       },
       {
-        vehicleId: 'VEH-008',
+        vehicleId: 'vehicle_008',
         unitNumber: 'TRK-5566',
         fuelCapacityGallons: 195,
         currentFuelGallons: 175,
         mpg: 7.1,
         isActive: true,
         tenantId: jycCarriers.id,
+        externalVehicleId: null,
+        externalSource: null,
+        lastSyncedAt: null,
       },
     ],
   });
@@ -516,34 +583,44 @@ async function main() {
   // ============================================================================
   console.log('Creating XYZ Logistics vehicles...');
 
+  // XYZ vehicles from TMS Truckbase integration
   await prisma.vehicle.createMany({
     data: [
       {
-        vehicleId: 'VEH-201',
+        vehicleId: 'vehicle_101',
         unitNumber: 'XYZ-1001',
         fuelCapacityGallons: 200,
         currentFuelGallons: 180,
         mpg: 6.7,
         isActive: true,
         tenantId: xyzLogistics.id,
+        externalVehicleId: 'vehicle_101',
+        externalSource: 'mock_truckbase_tms',
+        lastSyncedAt: new Date(),
       },
       {
-        vehicleId: 'VEH-202',
+        vehicleId: 'vehicle_102',
         unitNumber: 'XYZ-1002',
         fuelCapacityGallons: 210,
         currentFuelGallons: 100,
         mpg: 6.4,
         isActive: true,
         tenantId: xyzLogistics.id,
+        externalVehicleId: 'vehicle_102',
+        externalSource: 'mock_truckbase_tms',
+        lastSyncedAt: new Date(),
       },
       {
-        vehicleId: 'VEH-203',
+        vehicleId: 'vehicle_103',
         unitNumber: 'XYZ-1003',
         fuelCapacityGallons: 195,
         currentFuelGallons: 150,
         mpg: 7.0,
         isActive: true,
         tenantId: xyzLogistics.id,
+        externalVehicleId: 'vehicle_103',
+        externalSource: 'mock_truckbase_tms',
+        lastSyncedAt: new Date(),
       },
     ],
   });
@@ -614,7 +691,7 @@ async function main() {
   console.log(`✓ Created 4 stops`);
 
   // ============================================================================
-  // LOADS (Shared for POC)
+  // LOADS (Real-world scenarios for route planning testing)
   // ============================================================================
   console.log('Creating loads...');
 
@@ -625,9 +702,12 @@ async function main() {
       status: 'pending',
       weightLbs: 38000,
       commodityType: 'Electronics',
-      specialRequirements: 'Temperature controlled',
+      specialRequirements: 'Temperature controlled, fragile',
       customerName: 'TechCorp Inc',
       isActive: true,
+      externalLoadId: 'LOAD-001',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
@@ -638,21 +718,153 @@ async function main() {
       status: 'in_transit',
       weightLbs: 42000,
       commodityType: 'Food Products',
-      specialRequirements: 'Refrigerated',
+      specialRequirements: 'Refrigerated 35-40°F',
       customerName: 'FreshFoods LLC',
       isActive: true,
+      externalLoadId: 'LOAD-002',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
     },
   });
 
-  console.log(`✓ Created 2 loads`);
+  const load3 = await prisma.load.create({
+    data: {
+      loadId: 'LOAD-003',
+      loadNumber: 'L2026-003',
+      status: 'pending',
+      weightLbs: 45000,
+      commodityType: 'Building Materials',
+      specialRequirements: 'Flatbed required, tarps needed',
+      customerName: 'ABC Construction',
+      isActive: true,
+      externalLoadId: 'LOAD-003',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
+    },
+  });
+
+  const load4 = await prisma.load.create({
+    data: {
+      loadId: 'LOAD-004',
+      loadNumber: 'L2026-004',
+      status: 'planned',
+      weightLbs: 32000,
+      commodityType: 'Auto Parts',
+      specialRequirements: 'Liftgate delivery required',
+      customerName: 'AutoZone Distribution',
+      isActive: true,
+      externalLoadId: 'LOAD-004',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
+    },
+  });
+
+  const load5 = await prisma.load.create({
+    data: {
+      loadId: 'LOAD-005',
+      loadNumber: 'L2026-005',
+      status: 'pending',
+      weightLbs: 28000,
+      commodityType: 'Pharmaceutical',
+      specialRequirements: 'Climate controlled, security required, chain of custody',
+      customerName: 'MedSupply Corp',
+      isActive: true,
+      externalLoadId: 'LOAD-005',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
+    },
+  });
+
+  const load6 = await prisma.load.create({
+    data: {
+      loadId: 'LOAD-006',
+      loadNumber: 'L2026-006',
+      status: 'active',
+      weightLbs: 44000,
+      commodityType: 'Consumer Goods',
+      specialRequirements: 'No special requirements',
+      customerName: 'Walmart Distribution',
+      isActive: true,
+      externalLoadId: 'LOAD-006',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
+    },
+  });
+
+  const load7 = await prisma.load.create({
+    data: {
+      loadId: 'LOAD-007',
+      loadNumber: 'L2026-007',
+      status: 'pending',
+      weightLbs: 35000,
+      commodityType: 'Paper Products',
+      specialRequirements: 'Keep dry, no exposure to moisture',
+      customerName: 'Office Depot Logistics',
+      isActive: true,
+      externalLoadId: 'LOAD-007',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
+    },
+  });
+
+  const load8 = await prisma.load.create({
+    data: {
+      loadId: 'LOAD-008',
+      loadNumber: 'L2026-008',
+      status: 'pending',
+      weightLbs: 40000,
+      commodityType: 'Machinery',
+      specialRequirements: 'Heavy equipment, specialized straps needed',
+      customerName: 'Industrial Equipment Co',
+      isActive: true,
+      externalLoadId: 'LOAD-008',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
+    },
+  });
+
+  const load9 = await prisma.load.create({
+    data: {
+      loadId: 'LOAD-009',
+      loadNumber: 'L2026-009',
+      status: 'completed',
+      weightLbs: 36000,
+      commodityType: 'Textiles',
+      specialRequirements: 'Dry van, climate neutral',
+      customerName: 'Fashion Brands Inc',
+      isActive: true,
+      externalLoadId: 'LOAD-009',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
+    },
+  });
+
+  const load10 = await prisma.load.create({
+    data: {
+      loadId: 'LOAD-010',
+      loadNumber: 'L2026-010',
+      status: 'pending',
+      weightLbs: 48000,
+      commodityType: 'Beverages',
+      specialRequirements: 'Refrigerated, no freezing',
+      customerName: 'Coca-Cola Bottling',
+      isActive: true,
+      externalLoadId: 'LOAD-010',
+      externalSource: 'mock_truckbase_tms',
+      lastSyncedAt: new Date(),
+    },
+  });
+
+  console.log(`✓ Created 10 loads`);
 
   // ============================================================================
-  // LOAD STOPS
+  // LOAD STOPS (Real-world multi-stop scenarios)
   // ============================================================================
   console.log('Creating load stops...');
 
   await prisma.loadStop.createMany({
     data: [
+      // Load 1: Electronics - Single pickup, single delivery
       {
         loadId: load1.id,
         stopId: stop1.id,
@@ -671,6 +883,7 @@ async function main() {
         latestArrival: '18:00',
         estimatedDockHours: 1.5,
       },
+      // Load 2: Food Products - Pickup and 2 deliveries
       {
         loadId: load2.id,
         stopId: stop3.id,
@@ -689,10 +902,200 @@ async function main() {
         latestArrival: '17:00',
         estimatedDockHours: 1.5,
       },
+      {
+        loadId: load2.id,
+        stopId: stop1.id,
+        sequenceOrder: 3,
+        actionType: 'delivery',
+        earliestArrival: '18:00',
+        latestArrival: '22:00',
+        estimatedDockHours: 1.0,
+      },
+      // Load 3: Building Materials - Single pickup, single delivery
+      {
+        loadId: load3.id,
+        stopId: stop2.id,
+        sequenceOrder: 1,
+        actionType: 'pickup',
+        earliestArrival: '07:00',
+        latestArrival: '11:00',
+        estimatedDockHours: 1.5,
+      },
+      {
+        loadId: load3.id,
+        stopId: stop3.id,
+        sequenceOrder: 2,
+        actionType: 'delivery',
+        earliestArrival: '15:00',
+        latestArrival: '19:00',
+        estimatedDockHours: 2.0,
+      },
+      // Load 4: Auto Parts - Multi-stop delivery (1 pickup, 3 deliveries)
+      {
+        loadId: load4.id,
+        stopId: stop1.id,
+        sequenceOrder: 1,
+        actionType: 'pickup',
+        earliestArrival: '05:00',
+        latestArrival: '09:00',
+        estimatedDockHours: 1.5,
+      },
+      {
+        loadId: load4.id,
+        stopId: stop2.id,
+        sequenceOrder: 2,
+        actionType: 'delivery',
+        earliestArrival: '11:00',
+        latestArrival: '13:00',
+        estimatedDockHours: 0.5,
+      },
+      {
+        loadId: load4.id,
+        stopId: stop3.id,
+        sequenceOrder: 3,
+        actionType: 'delivery',
+        earliestArrival: '14:00',
+        latestArrival: '16:00',
+        estimatedDockHours: 0.5,
+      },
+      {
+        loadId: load4.id,
+        stopId: stop4.id,
+        sequenceOrder: 4,
+        actionType: 'delivery',
+        earliestArrival: '17:00',
+        latestArrival: '19:00',
+        estimatedDockHours: 0.5,
+      },
+      // Load 5: Pharmaceutical - High-value, time-sensitive
+      {
+        loadId: load5.id,
+        stopId: stop1.id,
+        sequenceOrder: 1,
+        actionType: 'pickup',
+        earliestArrival: '06:00',
+        latestArrival: '08:00',
+        estimatedDockHours: 2.5,
+      },
+      {
+        loadId: load5.id,
+        stopId: stop4.id,
+        sequenceOrder: 2,
+        actionType: 'delivery',
+        earliestArrival: '14:00',
+        latestArrival: '16:00',
+        estimatedDockHours: 2.0,
+      },
+      // Load 6: Consumer Goods - Standard route
+      {
+        loadId: load6.id,
+        stopId: stop2.id,
+        sequenceOrder: 1,
+        actionType: 'pickup',
+        earliestArrival: '08:00',
+        latestArrival: '12:00',
+        estimatedDockHours: 1.0,
+      },
+      {
+        loadId: load6.id,
+        stopId: stop3.id,
+        sequenceOrder: 2,
+        actionType: 'delivery',
+        earliestArrival: '16:00',
+        latestArrival: '20:00',
+        estimatedDockHours: 1.5,
+      },
+      // Load 7: Paper Products - Standard route
+      {
+        loadId: load7.id,
+        stopId: stop3.id,
+        sequenceOrder: 1,
+        actionType: 'pickup',
+        earliestArrival: '07:00',
+        latestArrival: '11:00',
+        estimatedDockHours: 1.0,
+      },
+      {
+        loadId: load7.id,
+        stopId: stop1.id,
+        sequenceOrder: 2,
+        actionType: 'delivery',
+        earliestArrival: '15:00',
+        latestArrival: '19:00',
+        estimatedDockHours: 1.0,
+      },
+      // Load 8: Machinery - Heavy equipment, longer dock times
+      {
+        loadId: load8.id,
+        stopId: stop4.id,
+        sequenceOrder: 1,
+        actionType: 'pickup',
+        earliestArrival: '06:00',
+        latestArrival: '10:00',
+        estimatedDockHours: 3.0,
+      },
+      {
+        loadId: load8.id,
+        stopId: stop2.id,
+        sequenceOrder: 2,
+        actionType: 'delivery',
+        earliestArrival: '14:00',
+        latestArrival: '18:00',
+        estimatedDockHours: 3.0,
+      },
+      // Load 9: Textiles - Already completed
+      {
+        loadId: load9.id,
+        stopId: stop1.id,
+        sequenceOrder: 1,
+        actionType: 'pickup',
+        earliestArrival: '08:00',
+        latestArrival: '12:00',
+        estimatedDockHours: 1.0,
+        actualDockHours: 1.2,
+      },
+      {
+        loadId: load9.id,
+        stopId: stop3.id,
+        sequenceOrder: 2,
+        actionType: 'delivery',
+        earliestArrival: '16:00',
+        latestArrival: '20:00',
+        estimatedDockHours: 1.0,
+        actualDockHours: 0.8,
+      },
+      // Load 10: Beverages - Multi-stop delivery
+      {
+        loadId: load10.id,
+        stopId: stop2.id,
+        sequenceOrder: 1,
+        actionType: 'pickup',
+        earliestArrival: '05:00',
+        latestArrival: '09:00',
+        estimatedDockHours: 2.0,
+      },
+      {
+        loadId: load10.id,
+        stopId: stop1.id,
+        sequenceOrder: 2,
+        actionType: 'delivery',
+        earliestArrival: '11:00',
+        latestArrival: '13:00',
+        estimatedDockHours: 1.0,
+      },
+      {
+        loadId: load10.id,
+        stopId: stop4.id,
+        sequenceOrder: 3,
+        actionType: 'delivery',
+        earliestArrival: '15:00',
+        latestArrival: '17:00',
+        estimatedDockHours: 1.0,
+      },
     ],
   });
 
-  console.log(`✓ Created 4 load stops`);
+  console.log(`✓ Created 26 load stops for 10 loads`);
 
   // ============================================================================
   // SCENARIOS (JYC Carriers)
@@ -715,7 +1118,7 @@ async function main() {
           currentDutyStatus: 'on_duty_driving',
         },
         vehicleStateTemplate: {
-          vehicleId: 'VEH-001',
+          vehicleId: 'vehicle_001',
           currentFuelGallons: 150,
           fuelCapacityGallons: 200,
           mpg: 6.5,
@@ -742,7 +1145,7 @@ async function main() {
           currentDutyStatus: 'on_duty_driving',
         },
         vehicleStateTemplate: {
-          vehicleId: 'VEH-002',
+          vehicleId: 'vehicle_002',
           currentFuelGallons: 90,
           fuelCapacityGallons: 180,
           mpg: 7.0,
@@ -769,7 +1172,7 @@ async function main() {
           currentDutyStatus: 'off_duty',
         },
         vehicleStateTemplate: {
-          vehicleId: 'VEH-003',
+          vehicleId: 'vehicle_003',
           currentFuelGallons: 200,
           fuelCapacityGallons: 220,
           mpg: 6.0,
@@ -798,12 +1201,12 @@ async function main() {
     data: [
       {
         alertId: 'ALT-001',
-        driverId: 'DRV-001',
+        driverId: 'driver_001',
         routePlanId: null,
         alertType: 'DRIVER_NOT_MOVING',
         priority: 'high',
         title: 'Driver Not Moving',
-        message: 'DRV-001 (John Smith) has not moved in 2 hours during drive segment',
+        message: 'driver_001 (John Smith) has not moved in 2 hours during drive segment',
         recommendedAction: 'Call driver to check status',
         status: 'active',
         tenantId: jycCarriers.id,
@@ -811,12 +1214,12 @@ async function main() {
       },
       {
         alertId: 'ALT-002',
-        driverId: 'DRV-002',
+        driverId: 'driver_002',
         routePlanId: null,
         alertType: 'HOS_APPROACHING_LIMIT',
         priority: 'medium',
         title: 'HOS Approaching Limit',
-        message: 'DRV-002 (Sarah Johnson) has less than 1h drive time remaining',
+        message: 'driver_002 (Sarah Johnson) has less than 1h drive time remaining',
         recommendedAction: 'Monitor driver, ensure rest stop is upcoming',
         status: 'active',
         tenantId: jycCarriers.id,
@@ -824,12 +1227,12 @@ async function main() {
       },
       {
         alertId: 'ALT-003',
-        driverId: 'DRV-007',
+        driverId: 'driver_007',
         routePlanId: null,
         alertType: 'FUEL_LOW',
         priority: 'high',
         title: 'Fuel Low',
-        message: 'VEH-007 fuel level is below 20% (40 gallons remaining)',
+        message: 'vehicle_007 fuel level is below 20% (40 gallons remaining)',
         recommendedAction: 'Insert fuel stop or direct driver to nearest station',
         status: 'active',
         tenantId: jycCarriers.id,
@@ -843,6 +1246,51 @@ async function main() {
   // ============================================================================
   // SUMMARY
   // ============================================================================
+  // ============================================================================
+  // CREATE USER PREFERENCES FOR ALL USERS
+  // ============================================================================
+  console.log('Creating user preferences...');
+
+  const allUsers = await prisma.user.findMany();
+  let userPrefsCount = 0;
+  let dispatcherPrefsCount = 0;
+  let driverPrefsCount = 0;
+
+  for (const user of allUsers) {
+    // Create user preferences for everyone
+    await prisma.userPreferences.create({
+      data: {
+        userId: user.id,
+      },
+    });
+    userPrefsCount++;
+
+    // Create dispatcher preferences for dispatchers and admins
+    if (user.role === UserRole.DISPATCHER || user.role === UserRole.ADMIN) {
+      await prisma.dispatcherPreferences.create({
+        data: {
+          userId: user.id,
+        },
+      });
+      dispatcherPrefsCount++;
+    }
+
+    // Create driver preferences for drivers
+    if (user.role === UserRole.DRIVER) {
+      await prisma.driverPreferences.create({
+        data: {
+          userId: user.id,
+          driverId: user.driverId,
+        },
+      });
+      driverPrefsCount++;
+    }
+  }
+
+  console.log(`✓ Created ${userPrefsCount} user preferences`);
+  console.log(`✓ Created ${dispatcherPrefsCount} dispatcher preferences`);
+  console.log(`✓ Created ${driverPrefsCount} driver preferences`);
+
   console.log('✅ Database seeded successfully!');
   console.log('\n📊 Summary:');
   console.log('─────────────────────────────────────');
@@ -864,8 +1312,8 @@ async function main() {
   console.log('');
   console.log('Shared Resources:');
   console.log('  - Stops: 4');
-  console.log('  - Loads: 2');
-  console.log('  - Load Stops: 4');
+  console.log('  - Loads: 10');
+  console.log('  - Load Stops: 26');
   console.log('  - Scenarios: 3');
   console.log('─────────────────────────────────────');
   console.log('\n🔑 Test Users:');
@@ -873,15 +1321,15 @@ async function main() {
   console.log('  Admin:       admin@jyc.com (user_jyc_admin_001)');
   console.log('  Dispatcher:  dispatcher1@jyc.com (user_jyc_disp_001)');
   console.log('  Dispatcher:  dispatcher2@jyc.com (user_jyc_disp_002)');
-  console.log('  Driver:      john.smith@jyc.com (user_jyc_drv_001 - DRV-001)');
-  console.log('  Driver:      sarah.johnson@jyc.com (user_jyc_drv_002 - DRV-002)');
+  console.log('  Driver:      john.smith@jyc.com (user_jyc_drv_001 - driver_001)');
+  console.log('  Driver:      sarah.johnson@jyc.com (user_jyc_drv_002 - driver_002)');
   console.log('  ... 6 more drivers');
   console.log('\nXYZ Logistics:');
   console.log('  Admin:       admin@xyzlogistics.com (user_xyz_admin_001)');
   console.log('  Dispatcher:  dispatcher1@xyzlogistics.com (user_xyz_disp_001)');
-  console.log('  Driver:      carlos.rodriguez@xyzlogistics.com (user_xyz_drv_001 - DRV-101)');
-  console.log('  Driver:      maria.garcia@xyzlogistics.com (user_xyz_drv_002 - DRV-102)');
-  console.log('  Driver:      david.lee@xyzlogistics.com (user_xyz_drv_003 - DRV-103)');
+  console.log('  Driver:      carlos.rodriguez@xyzlogistics.com (user_xyz_drv_001 - driver_101)');
+  console.log('  Driver:      maria.garcia@xyzlogistics.com (user_xyz_drv_002 - driver_102)');
+  console.log('  Driver:      david.lee@xyzlogistics.com (user_xyz_drv_003 - driver_103)');
   console.log('─────────────────────────────────────');
 }
 

@@ -36,8 +36,9 @@ Read in this order:
 │   ├── 05-continuous-monitoring/ # ❌ Planned
 │   ├── 06-route-wizard-ui/      # ✅ Complete
 │   ├── 07-fleet-management/     # ⚠️ Partial
-│   ├── 08-driver-portal/        # ⚠️ Partial
-│   └── 09-rest-optimization/    # ✅ Complete (backend component)
+│   ├── 08-user-preferences/     # ❌ Planned (spec complete)
+│   ├── 09-driver-portal/        # ⚠️ Partial
+│   └── 10-rest-optimization/    # ✅ Complete (backend component)
 │
 ├── planning/                     # Strategic plans
 │   ├── POC_ENHANCEMENT_PLAN.md  # Phase 0 & 1 plan
@@ -61,6 +62,7 @@ Read in this order:
 | **Integrations** | ⚠️ 20% | ⚠️ 50% | Mock APIs only | P1 (Phase 2) |
 | **Alerts** | ⚠️ 40% | ⚠️ 20% | API only | P1 (Phase 2) |
 | **Fleet Management** | ⚠️ 50% | ⚠️ 30% | Basic CRUD | P2 (Future) |
+| **User Preferences** | ❌ 0% | ❌ 0% | Spec complete | P1 (Phase 2) |
 | **Driver Portal** | ⚠️ 50% | ⚠️ 40% | Dashboard exists | P2 (Future) |
 | **Continuous Monitoring** | ❌ 0% | N/A | Planning only | P1 (Phase 2) |
 
@@ -176,6 +178,28 @@ Background service monitoring 14 trigger types.
 - External condition triggers (4 types)
 
 **Docs:** [features/05-continuous-monitoring/](./features/05-continuous-monitoring/)
+
+---
+
+### ❌ 7. User Preferences
+**Status:** Planned (Specification complete)
+
+Customizable user preferences for display, dashboard, alerts, and operational defaults.
+
+**Planned:**
+- **User Preferences (All Roles):** Display formats (units, time, currency), dashboard settings, alert preferences, accessibility
+- **Dispatcher Preferences:** HOS defaults, compliance thresholds, optimization priorities, rest/fuel rules, alert thresholds
+- **Driver Preferences:** Favorite locations, break preferences, route display settings, mobile preferences
+
+**Key Benefits:**
+- Different fleets can use different HOS rules and optimization priorities
+- Users can customize units (miles/km), time format (12h/24h), and currency
+- Alert fatigue reduced through customizable priority filters and quiet hours
+- Accessibility support (font size, contrast, reduce motion)
+
+**Estimated Effort:** 32-40 hours (~1 week sprint)
+
+**Docs:** [features/08-user-preferences/](./features/08-user-preferences/)
 
 ---
 

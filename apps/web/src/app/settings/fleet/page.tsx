@@ -40,7 +40,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { formatRelativeTime } from '@/lib/api/integrations';
+import { getLoads, getLoad } from '@/lib/api/loads';
+import type { LoadListItem, Load } from '@/lib/types/load';
+import { Lock, Plus, RefreshCw, ChevronDown, ChevronRight, MapPin } from 'lucide-react';
 
 export default function FleetPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -121,19 +125,7 @@ export default function FleetPage() {
         </TabsContent>
 
         <TabsContent value="loads">
-          <Card>
-            <CardHeader>
-              <CardTitle>Loads</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-lg">Loads Management - Coming Soon</p>
-                <p className="text-sm mt-2">
-                  Manage load assignments and delivery schedules
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <LoadsTab />
         </TabsContent>
       </Tabs>
     </div>
@@ -182,13 +174,34 @@ function DriversTab({
     await onRefresh();
   };
 
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncDrivers = async () => {
+    setIsSyncing(true);
+    try {
+      await onRefresh();
+    } catch (err) {
+      alert('Sync failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Drivers</CardTitle>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingDriver(null)}>Add Driver</Button>
+            <Button
+              onClick={() => setEditingDriver(null)}
+              disabled
+              className="opacity-50 cursor-not-allowed"
+              title="Add Driver disabled - PUSH capability required"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Driver
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -204,6 +217,31 @@ function DriversTab({
           </DialogContent>
         </Dialog>
       </CardHeader>
+
+      {drivers.some(d => d.external_source) && (
+        <div className="mx-6 mt-4 mb-2">
+          <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+            <AlertDescription className="text-sm text-blue-900 dark:text-blue-100 flex items-center justify-between">
+              <span>
+                <span className="font-medium">🔗 One-way PULL integration active</span>
+                {' '}— Drivers synced from Truckbase TMS. Edit/delete/add disabled (read-only).
+                <span className="text-blue-700 dark:text-blue-300"> PUSH capability required for modifications.</span>
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSyncDrivers}
+                disabled={isSyncing}
+                className="ml-4"
+              >
+                <RefreshCw className={`h-3 w-3 mr-1 ${isSyncing ? 'animate-spin' : ''}`} />
+                Sync Now
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       <CardContent>
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Loading drivers...</div>
@@ -256,21 +294,48 @@ function DriversTab({
                     {driver.last_synced_at ? formatRelativeTime(driver.last_synced_at) : 'Never'}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEdit(driver)}
-                      className="mr-2"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDelete(driver.id)}
-                    >
-                      Delete
-                    </Button>
+                    {driver.external_source ? (
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled
+                          className="opacity-50 cursor-not-allowed"
+                          title={`Read-only - synced from ${getSourceLabel(driver.external_source)}`}
+                        >
+                          <Lock className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          disabled
+                          className="opacity-50 cursor-not-allowed"
+                          title={`Read-only - synced from ${getSourceLabel(driver.external_source)}`}
+                        >
+                          <Lock className="h-3 w-3 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(driver)}
+                          className="mr-2"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDelete(driver.driver_id)}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -419,13 +484,34 @@ function VehiclesTab({
     await onRefresh();
   };
 
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncVehicles = async () => {
+    setIsSyncing(true);
+    try {
+      await onRefresh();
+    } catch (err) {
+      alert('Sync failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Vehicles</CardTitle>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingVehicle(null)}>Add Vehicle</Button>
+            <Button
+              onClick={() => setEditingVehicle(null)}
+              disabled
+              className="opacity-50 cursor-not-allowed"
+              title="Add Vehicle disabled - PUSH capability required"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Vehicle
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -441,6 +527,31 @@ function VehiclesTab({
           </DialogContent>
         </Dialog>
       </CardHeader>
+
+      {vehicles.some(v => v.external_source) && (
+        <div className="mx-6 mt-4 mb-2">
+          <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+            <AlertDescription className="text-sm text-blue-900 dark:text-blue-100 flex items-center justify-between">
+              <span>
+                <span className="font-medium">🔗 One-way PULL integration active</span>
+                {' '}— Vehicles synced from Truckbase TMS. Edit/delete/add disabled (read-only).
+                <span className="text-blue-700 dark:text-blue-300"> PUSH capability required for modifications.</span>
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSyncVehicles}
+                disabled={isSyncing}
+                className="ml-4"
+              >
+                <RefreshCw className={`h-3 w-3 mr-1 ${isSyncing ? 'animate-spin' : ''}`} />
+                Sync Now
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       <CardContent>
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Loading vehicles...</div>
@@ -462,6 +573,8 @@ function VehiclesTab({
                 <TableHead>Year</TableHead>
                 <TableHead>Fuel Capacity</TableHead>
                 <TableHead>MPG</TableHead>
+                <TableHead>Source</TableHead>
+                <TableHead>Last Synced</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -477,22 +590,65 @@ function VehiclesTab({
                   <TableCell className="text-foreground">{vehicle.year || '-'}</TableCell>
                   <TableCell className="text-foreground">{vehicle.fuel_capacity_gallons} gal</TableCell>
                   <TableCell className="text-foreground">{vehicle.mpg ? `${vehicle.mpg} mpg` : '-'}</TableCell>
+                  <TableCell>
+                    {vehicle.external_source ? (
+                      <Badge variant="secondary" className="gap-1">
+                        <span className="text-xs">🔗</span>
+                        {getSourceLabel(vehicle.external_source)}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="gap-1">
+                        <span className="text-xs">✋</span>
+                        Manual
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {vehicle.last_synced_at ? formatRelativeTime(vehicle.last_synced_at) : 'Never'}
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEdit(vehicle)}
-                      className="mr-2"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDelete(vehicle.id)}
-                    >
-                      Delete
-                    </Button>
+                    {vehicle.external_source ? (
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled
+                          className="opacity-50 cursor-not-allowed"
+                          title={`Read-only - synced from ${getSourceLabel(vehicle.external_source)}`}
+                        >
+                          <Lock className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          disabled
+                          className="opacity-50 cursor-not-allowed"
+                          title={`Read-only - synced from ${getSourceLabel(vehicle.external_source)}`}
+                        >
+                          <Lock className="h-3 w-3 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(vehicle)}
+                          className="mr-2"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDelete(vehicle.vehicle_id)}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -655,15 +811,334 @@ function VehicleForm({
 }
 
 /**
+ * Loads Tab Component - Displays TMS Load Data with Expandable Stop Details
+ */
+function LoadsTab() {
+  const [loads, setLoads] = useState<LoadListItem[]>([]);
+  const [expandedLoads, setExpandedLoads] = useState<Map<number, Load>>(new Map());
+  const [loadingDetails, setLoadingDetails] = useState<Set<number>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  useEffect(() => {
+    loadLoadsData();
+  }, []);
+
+  const loadLoadsData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const loadsData = await getLoads();
+      setLoads(loadsData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load loads');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSyncLoads = async () => {
+    setIsSyncing(true);
+    try {
+      await loadLoadsData();
+    } catch (err) {
+      alert('Sync failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const toggleLoadExpansion = async (load: LoadListItem) => {
+    const isExpanded = expandedLoads.has(load.id);
+
+    if (isExpanded) {
+      // Collapse - remove from expanded map
+      const newExpanded = new Map(expandedLoads);
+      newExpanded.delete(load.id);
+      setExpandedLoads(newExpanded);
+    } else {
+      // Expand - fetch details if not already loaded
+      if (!expandedLoads.has(load.id)) {
+        setLoadingDetails(new Set(loadingDetails).add(load.id));
+        try {
+          const loadDetails = await getLoad(load.load_id);
+          const newExpanded = new Map(expandedLoads);
+          newExpanded.set(load.id, loadDetails);
+          setExpandedLoads(newExpanded);
+        } catch (err) {
+          alert('Failed to load details: ' + (err instanceof Error ? err.message : 'Unknown error'));
+        } finally {
+          const newLoading = new Set(loadingDetails);
+          newLoading.delete(load.id);
+          setLoadingDetails(newLoading);
+        }
+      } else {
+        // Already loaded, just expand
+        const newExpanded = new Map(expandedLoads);
+        newExpanded.set(load.id, expandedLoads.get(load.id)!);
+        setExpandedLoads(newExpanded);
+      }
+    }
+  };
+
+  function getStatusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+      pending: "outline",      // Gray - Not yet planned
+      planned: "secondary",    // Light gray - Planned but not started
+      active: "secondary",     // Light gray - At dock/loading/unloading
+      in_transit: "default",   // Blue - Actively moving on road
+      completed: "secondary",  // Light gray - Delivered
+      cancelled: "destructive", // Red - Cancelled
+    };
+    return variants[status] || "outline";
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Loads</CardTitle>
+          <Button disabled className="opacity-50 cursor-not-allowed">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Load
+          </Button>
+        </div>
+      </CardHeader>
+
+      <div className="mx-6 mt-2 mb-4">
+        <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+          <AlertDescription className="text-sm text-blue-900 dark:text-blue-100 flex items-center justify-between">
+            <span>
+              <span className="font-medium">🔗 One-way PULL integration</span>
+              {' '}— Loads synced from Truckbase TMS. Read-only display.
+              <span className="text-blue-700 dark:text-blue-300"> PUSH capability required for modifications.</span>
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSyncLoads}
+              disabled={isSyncing}
+              className="ml-4"
+            >
+              <RefreshCw className={`h-3 w-3 mr-1 ${isSyncing ? 'animate-spin' : ''}`} />
+              Sync Now
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+
+      <CardContent>
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground">Loading loads...</div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+            <Button onClick={loadLoadsData}>Retry</Button>
+          </div>
+        ) : loads.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No loads found. Loads will sync automatically from your TMS integration.
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12"></TableHead>
+                <TableHead>Load #</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Stops</TableHead>
+                <TableHead>Weight</TableHead>
+                <TableHead>Commodity</TableHead>
+                <TableHead>Source</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loads.map((load) => {
+                const isExpanded = expandedLoads.has(load.id);
+                const loadDetails = expandedLoads.get(load.id);
+                const isLoadingDetails = loadingDetails.has(load.id);
+
+                return (
+                  <>
+                    <TableRow
+                      key={load.id}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => toggleLoadExpansion(load)}
+                    >
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleLoadExpansion(load);
+                          }}
+                        >
+                          {isLoadingDetails ? (
+                            <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+                          ) : isExpanded ? (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </TableCell>
+                      <TableCell className="font-medium text-foreground">
+                        {load.load_number}
+                      </TableCell>
+                      <TableCell className="text-foreground">
+                        {load.customer_name}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusVariant(load.status)}>
+                          {load.status.replace('_', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-foreground">
+                        {load.stop_count} {load.stop_count === 1 ? 'stop' : 'stops'}
+                      </TableCell>
+                      <TableCell className="text-foreground">
+                        {load.weight_lbs.toLocaleString()} lbs
+                      </TableCell>
+                      <TableCell className="text-foreground">
+                        {load.commodity_type}
+                      </TableCell>
+                      <TableCell>
+                        {load.external_source ? (
+                          <Badge variant="secondary" className="gap-1">
+                            <span className="text-xs">🔗</span>
+                            {getSourceLabel(load.external_source)}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="gap-1">
+                            <span className="text-xs">✋</span>
+                            Manual
+                          </Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Expandable Stop Details Row */}
+                    {isExpanded && loadDetails && (
+                      <TableRow key={`${load.id}-details`}>
+                        <TableCell colSpan={8} className="bg-muted/30 p-0">
+                          <div className="p-6 space-y-4 animate-in fade-in-50 slide-in-from-top-2 duration-200">
+                            {/* Load Details Header */}
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1">
+                                <h4 className="text-sm font-semibold text-foreground">
+                                  Load Details
+                                </h4>
+                                <p className="text-xs text-muted-foreground">
+                                  {loadDetails.special_requirements || 'No special requirements'}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-muted-foreground">Total Weight</p>
+                                <p className="text-sm font-medium text-foreground">
+                                  {loadDetails.weight_lbs.toLocaleString()} lbs
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Stops Timeline */}
+                            <div className="space-y-3">
+                              <h5 className="text-xs font-medium text-foreground uppercase tracking-wide">
+                                Route Timeline ({loadDetails.stops.length} stops)
+                              </h5>
+                              <div className="space-y-2">
+                                {loadDetails.stops.map((stop, index) => (
+                                  <div
+                                    key={stop.id}
+                                    className="flex items-start gap-3 p-3 rounded-lg bg-background border border-border hover:border-foreground/20 transition-colors"
+                                  >
+                                    {/* Stop Number & Icon */}
+                                    <div className="flex flex-col items-center gap-1 min-w-[48px]">
+                                      <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${
+                                        stop.action_type === 'pickup'
+                                          ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                                          : 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300'
+                                      }`}>
+                                        {index + 1}
+                                      </div>
+                                      {index < loadDetails.stops.length - 1 && (
+                                        <div className="w-0.5 h-6 bg-border" />
+                                      )}
+                                    </div>
+
+                                    {/* Stop Details */}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-start justify-between gap-4">
+                                        <div className="space-y-1 flex-1">
+                                          <div className="flex items-center gap-2">
+                                            <Badge
+                                              variant={stop.action_type === 'pickup' ? 'default' : 'secondary'}
+                                              className="text-xs"
+                                            >
+                                              {stop.action_type === 'pickup' ? '📦 Pickup' : '📍 Delivery'}
+                                            </Badge>
+                                            <span className="text-sm font-medium text-foreground">
+                                              {stop.stop_name || 'Stop Location'}
+                                            </span>
+                                          </div>
+                                          {stop.stop_address && (
+                                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                              <MapPin className="h-3 w-3" />
+                                              {stop.stop_address}, {stop.stop_city}, {stop.stop_state}
+                                            </p>
+                                          )}
+                                        </div>
+
+                                        <div className="text-right space-y-1 min-w-[140px]">
+                                          {stop.earliest_arrival && stop.latest_arrival && (
+                                            <p className="text-xs text-muted-foreground">
+                                              Window: {stop.earliest_arrival} - {stop.latest_arrival}
+                                            </p>
+                                          )}
+                                          <p className="text-xs font-medium text-foreground">
+                                            Dock: {stop.estimated_dock_hours}h
+                                            {stop.actual_dock_hours && (
+                                              <span className="text-muted-foreground">
+                                                {' '}(actual: {stop.actual_dock_hours}h)
+                                              </span>
+                                            )}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
  * Helper function to get human-readable source labels for drivers
  */
 function getSourceLabel(source: string): string {
   const labels: Record<string, string> = {
-    samsara_eld: 'Samsara',
+    mock_samsara: 'Samsara ELD',
+    mock_truckbase_tms: 'Truckbase TMS',
+    samsara_eld: 'Samsara ELD',
     keeptruckin_eld: 'KeepTruckin',
     motive_eld: 'Motive',
     mcleod_tms: 'McLeod',
-    mock_samsara: 'Samsara',
   };
   return labels[source] || source;
 }

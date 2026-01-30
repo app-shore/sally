@@ -12,10 +12,11 @@ import { useRoutePlanStore } from '@/lib/store/routePlanStore';
 import { useRoutePlanning } from '@/lib/hooks/useRoutePlanning';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { LoadSelector } from '@/components/route-planner/LoadSelector';
-import { DriverSelector } from '@/components/route-planner/DriverSelector';
-import { VehicleSelector } from '@/components/route-planner/VehicleSelector';
-import { RouteMapView } from '@/components/route-planner/RouteMapView';
+import { LoadSelector } from '@/components/route-planner/shared/LoadSelector';
+import { DriverSelector } from '@/components/route-planner/shared/DriverSelector';
+import { VehicleSelector } from '@/components/route-planner/shared/VehicleSelector';
+import RoutePlanningCockpit from '@/components/route-planner/core/RoutePlanningCockpit';
+import RoutePlanningCockpitSkeleton from '@/components/route-planner/core/RoutePlanningCockpitSkeleton';
 
 export default function CreatePlanPage() {
   const router = useRouter();
@@ -143,8 +144,28 @@ export default function CreatePlanPage() {
           </div>
         </Card>
 
-        {/* Results Section - Map-first with timeline drawer */}
-        {currentPlan && (
+        {/* Loading State */}
+        {isOptimizing && !currentPlan && (
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="text-2xl">⏳</div>
+                <div>
+                  <div className="font-semibold text-blue-800 dark:text-blue-200">
+                    Generating Route Plan...
+                  </div>
+                  <div className="text-sm text-blue-700 dark:text-blue-300">
+                    Optimizing route sequence, inserting rest stops, and validating HOS compliance
+                  </div>
+                </div>
+              </div>
+            </div>
+            <RoutePlanningCockpitSkeleton />
+          </div>
+        )}
+
+        {/* Results Section - Route Planning Cockpit with multi-view tabs */}
+        {currentPlan && !isOptimizing && (
           <div className="space-y-4">
             {/* Success message */}
             <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -161,8 +182,8 @@ export default function CreatePlanPage() {
               </div>
             </div>
 
-            {/* Map-first visualization */}
-            <RouteMapView />
+            {/* Route Planning Cockpit - Tabbed multi-view interface */}
+            <RoutePlanningCockpit />
           </div>
         )}
       </div>

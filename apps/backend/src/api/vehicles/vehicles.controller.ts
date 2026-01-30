@@ -13,6 +13,36 @@ export class VehiclesController {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Validate that a vehicle is not from an external source before allowing modification
+   */
+  private async validateNotExternal(
+    vehicleId: string,
+    tenantId: number,
+    operation: string
+  ) {
+    const vehicle = await this.prisma.vehicle.findFirst({
+      where: { vehicleId, tenantId },
+    });
+
+    if (!vehicle) {
+      throw new HttpException(
+        { detail: `Vehicle not found: ${vehicleId}` },
+        HttpStatus.NOT_FOUND
+      );
+    }
+
+    if (vehicle.externalSource) {
+      throw new HttpException(
+        {
+          detail: `Cannot ${operation} vehicle from external source: ${vehicle.externalSource}. This is a read-only integration record.`,
+          external_source: vehicle.externalSource
+        },
+        HttpStatus.FORBIDDEN
+      );
+    }
+  }
+
   @Get()
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
   @ApiOperation({ summary: 'List all active vehicles' })
@@ -40,6 +70,11 @@ export class VehiclesController {
         fuel_capacity_gallons: vehicle.fuelCapacityGallons,
         current_fuel_gallons: vehicle.currentFuelGallons,
         mpg: vehicle.mpg,
+        external_vehicle_id: vehicle.externalVehicleId,
+        external_source: vehicle.externalSource,
+        last_synced_at: vehicle.lastSyncedAt?.toISOString(),
+        created_at: vehicle.createdAt.toISOString(),
+        updated_at: vehicle.updatedAt.toISOString(),
       }));
     } catch (error) {
       this.logger.error(`List vehicles failed: ${error.message}`);
@@ -147,6 +182,13 @@ export class VehiclesController {
         where: { tenantId: user.tenantId },
       });
 
+      if (!tenant) {
+        throw new HttpException({ detail: 'Tenant not found' }, HttpStatus.NOT_FOUND);
+      }
+
+      // Validate vehicle is not from external source
+      await this.validateNotExternal(vehicleId, tenant.id, 'update');
+
       const vehicle = await this.prisma.vehicle.update({
         where: {
           vehicleId_tenantId: {
@@ -172,6 +214,9 @@ export class VehiclesController {
         updated_at: vehicle.updatedAt,
       };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       this.logger.error(`Update vehicle failed: ${error.message}`);
       throw new HttpException({ detail: 'Failed to update vehicle' }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -190,6 +235,13 @@ export class VehiclesController {
         where: { tenantId: user.tenantId },
       });
 
+      if (!tenant) {
+        throw new HttpException({ detail: 'Tenant not found' }, HttpStatus.NOT_FOUND);
+      }
+
+      // Validate vehicle is not from external source
+      await this.validateNotExternal(vehicleId, tenant.id, 'delete');
+
       const vehicle = await this.prisma.vehicle.update({
         where: {
           vehicleId_tenantId: {
@@ -205,6 +257,9 @@ export class VehiclesController {
         message: 'Vehicle deactivated successfully',
       };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       this.logger.error(`Delete vehicle failed: ${error.message}`);
       throw new HttpException({ detail: 'Failed to delete vehicle' }, HttpStatus.INTERNAL_SERVER_ERROR);
     }

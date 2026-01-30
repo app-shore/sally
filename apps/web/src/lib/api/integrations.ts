@@ -5,12 +5,13 @@ export type IntegrationType = 'TMS' | 'HOS_ELD' | 'FUEL_PRICE' | 'WEATHER' | 'TE
 export type IntegrationVendor =
   | 'MCLEOD_TMS'
   | 'TMW_TMS'
+  | 'TRUCKBASE_TMS'
   | 'SAMSARA_ELD'
   | 'KEEPTRUCKIN_ELD'
   | 'MOTIVE_ELD'
   | 'GASBUDDY_FUEL'
-  | 'OPENWEATHER'
-  | 'MOCK_SAMSARA';
+  | 'FUELFINDER_FUEL'
+  | 'OPENWEATHER';
 
 export type IntegrationStatus = 'NOT_CONFIGURED' | 'CONFIGURED' | 'ACTIVE' | 'ERROR' | 'DISABLED';
 
@@ -75,21 +76,21 @@ export interface SyncLog {
  * List all integration configurations for the current tenant
  */
 export async function listIntegrations(): Promise<IntegrationConfig[]> {
-  return apiClient<IntegrationConfig[]>('/api/v1/integrations', { method: 'GET' });
+  return apiClient<IntegrationConfig[]>('/integrations', { method: 'GET' });
 }
 
 /**
  * Get a specific integration configuration by ID
  */
 export async function getIntegration(integrationId: string): Promise<IntegrationConfig> {
-  return apiClient<IntegrationConfig>(`/api/v1/integrations/${integrationId}`, { method: 'GET' });
+  return apiClient<IntegrationConfig>(`/integrations/${integrationId}`, { method: 'GET' });
 }
 
 /**
  * Create a new integration configuration
  */
 export async function createIntegration(data: CreateIntegrationRequest): Promise<IntegrationConfig> {
-  return apiClient<IntegrationConfig>('/api/v1/integrations', {
+  return apiClient<IntegrationConfig>('/integrations', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -102,7 +103,7 @@ export async function updateIntegration(
   integrationId: string,
   data: UpdateIntegrationRequest
 ): Promise<IntegrationConfig> {
-  return apiClient<IntegrationConfig>(`/api/v1/integrations/${integrationId}`, {
+  return apiClient<IntegrationConfig>(`/integrations/${integrationId}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
   });
@@ -112,14 +113,14 @@ export async function updateIntegration(
  * Delete an integration configuration
  */
 export async function deleteIntegration(integrationId: string): Promise<void> {
-  return apiClient<void>(`/api/v1/integrations/${integrationId}`, { method: 'DELETE' });
+  return apiClient<void>(`/integrations/${integrationId}`, { method: 'DELETE' });
 }
 
 /**
  * Test connection to external system
  */
 export async function testConnection(integrationId: string): Promise<TestConnectionResponse> {
-  return apiClient<TestConnectionResponse>(`/api/v1/integrations/${integrationId}/test`, {
+  return apiClient<TestConnectionResponse>(`/integrations/${integrationId}/test`, {
     method: 'POST',
   });
 }
@@ -128,7 +129,7 @@ export async function testConnection(integrationId: string): Promise<TestConnect
  * Trigger a manual sync for this integration
  */
 export async function triggerSync(integrationId: string): Promise<SyncResponse> {
-  return apiClient<SyncResponse>(`/api/v1/integrations/${integrationId}/sync`, {
+  return apiClient<SyncResponse>(`/integrations/${integrationId}/sync`, {
     method: 'POST',
   });
 }
@@ -137,7 +138,7 @@ export async function triggerSync(integrationId: string): Promise<SyncResponse> 
  * Get sync history for an integration
  */
 export async function getSyncHistory(integrationId: string, limit = 20): Promise<SyncLog[]> {
-  return apiClient<SyncLog[]>(`/api/v1/integrations/${integrationId}/sync-history?limit=${limit}`, {
+    return apiClient<SyncLog[]>(`/integrations/${integrationId}/sync-history?limit=${limit}`, {
     method: 'GET',
   });
 }
@@ -163,12 +164,13 @@ export function getVendorLabel(vendor: IntegrationVendor): string {
   const labels: Record<IntegrationVendor, string> = {
     MCLEOD_TMS: 'McLeod',
     TMW_TMS: 'TMW Systems',
+    TRUCKBASE_TMS: 'Truckbase',
     SAMSARA_ELD: 'Samsara',
     KEEPTRUCKIN_ELD: 'KeepTruckin',
     MOTIVE_ELD: 'Motive',
     GASBUDDY_FUEL: 'GasBuddy',
+    FUELFINDER_FUEL: 'Fuel Finder',
     OPENWEATHER: 'OpenWeather',
-    MOCK_SAMSARA: 'Samsara (Mock)',
   };
   return labels[vendor];
 }

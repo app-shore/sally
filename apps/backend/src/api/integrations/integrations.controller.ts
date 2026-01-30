@@ -14,7 +14,7 @@ import { IntegrationsService } from './integrations.service';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
 import { UpdateIntegrationDto } from './dto/update-integration.dto';
 
-@Controller('api/v1/integrations')
+@Controller('integrations')
 @UseGuards(JwtAuthGuard)
 export class IntegrationsController {
   constructor(private integrationsService: IntegrationsService) {}
