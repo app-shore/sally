@@ -21,6 +21,7 @@ import {
   UserLookupDto,
   UserLookupResponseDto,
 } from './dto/login.dto';
+import { FirebaseExchangeDto } from './dto/firebase-exchange.dto';
 import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
@@ -77,6 +78,21 @@ export class AuthController {
   ): Promise<UserSummaryDto[]> {
     this.logger.warn('[DEPRECATED] GET /auth/tenants/:tenant_id/users is deprecated. Use POST /auth/lookup-user instead.');
     return this.authService.listUsersForTenant(tenantId, role);
+  }
+
+  @Public()
+  @Post('firebase/exchange')
+  @ApiOperation({
+    summary: 'Exchange Firebase token for SALLY JWT',
+    description: 'Verifies Firebase ID token and returns SALLY JWT tokens',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Token exchange successful',
+  })
+  @ApiResponse({ status: 401, description: 'Invalid Firebase token or user not found' })
+  async exchangeFirebaseToken(@Body() dto: FirebaseExchangeDto) {
+    return this.authService.exchangeFirebaseToken(dto);
   }
 
   @Public()

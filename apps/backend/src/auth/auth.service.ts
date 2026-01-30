@@ -15,6 +15,8 @@ import {
   UserLookupResponseDto,
   UserLookupResultDto,
 } from './dto/login.dto';
+import { FirebaseExchangeDto } from './dto/firebase-exchange.dto';
+import { FirebaseAuthService } from './firebase-auth.service';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
@@ -22,6 +24,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtTokenService: JwtTokenService,
+    private firebaseAuthService: FirebaseAuthService,
   ) {}
 
   /**
@@ -234,6 +237,66 @@ export class AuthService {
       driverId: u.driver?.driverId,
       driverName: u.driver?.name,
     }));
+  }
+
+  /**
+   * Exchange Firebase token for SALLY JWT
+   */
+  async exchangeFirebaseToken(dto: FirebaseExchangeDto) {
+    // Verify Firebase token
+    const decodedToken = await this.firebaseAuthService.verifyFirebaseToken(
+      dto.firebaseToken,
+    );
+
+    // Find user by Firebase UID
+    const user = await this.firebaseAuthService.findOrCreateUserByFirebaseUid(
+      decodedToken.uid,
+      decodedToken.email,
+    );
+
+    if (!user) {
+      throw new UnauthorizedException('User not found. Please complete registration.');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is deactivated. Please contact support.');
+    }
+
+    if (user.tenant && user.tenant.status !== 'ACTIVE') {
+      throw new UnauthorizedException(
+        'Your organization account is pending approval. Please check back later.',
+      );
+    }
+
+    // Update last login
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    // Generate SALLY JWT tokens
+    const { accessToken, refreshToken } = await this.jwtTokenService.generateTokenPair({
+      sub: user.userId,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenant?.tenantId,
+      driverId: user.driver?.driverId,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        userId: user.userId,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        tenantId: user.tenant?.tenantId,
+        tenantName: user.tenant?.companyName,
+        driverId: user.driver?.driverId,
+      },
+    };
   }
 
   /**

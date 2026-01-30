@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { JwtTokenService } from './jwt.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
+import { FirebaseAuthService } from './firebase-auth.service';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
@@ -25,7 +26,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtTokenService, JwtStrategy, RefreshJwtStrategy],
-  exports: [AuthService, JwtTokenService],
+  providers: [AuthService, JwtTokenService, JwtStrategy, RefreshJwtStrategy, FirebaseAuthService],
+  exports: [AuthService, JwtTokenService, FirebaseAuthService],
 })
 export class AuthModule {}
