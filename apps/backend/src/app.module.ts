@@ -34,6 +34,7 @@ import { SessionController } from './api/session/session.controller';
 import { IntegrationsModule } from './api/integrations/integrations.module';
 import { PreferencesModule } from './api/preferences/preferences.module';
 import { TenantsModule } from './api/tenants/tenants.module';
+import { UserInvitationsModule } from './api/user-invitations/user-invitations.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { TenantsModule } from './api/tenants/tenants.module';
     IntegrationsModule,
     PreferencesModule,
     TenantsModule,
+    UserInvitationsModule,
   ],
   providers: [
     // Global guards (applied to all routes by default)
