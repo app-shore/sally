@@ -47,29 +47,33 @@ export interface ITMSAdapter {
   /**
    * Fetch load details by ID
    * @param apiKey - Encrypted API key or credentials
+   * @param apiSecret - Optional API secret (for vendors like Truckbase)
    * @param loadId - Load ID in the external system
    * @returns Standardized load data
    */
-  getLoad(apiKey: string, loadId: string): Promise<LoadData>;
+  getLoad(apiKey: string, apiSecret: string, loadId: string): Promise<LoadData>;
 
   /**
    * Fetch all active loads for a tenant
    * @param apiKey - Encrypted API key or credentials
+   * @param apiSecret - Optional API secret (for vendors like Truckbase)
    * @returns Array of loads
    */
-  getActiveLoads(apiKey: string): Promise<LoadData[]>;
+  getActiveLoads(apiKey: string, apiSecret: string): Promise<LoadData[]>;
 
   /**
    * Test if credentials are valid and connection works
    * @param apiKey - Encrypted API key or credentials
+   * @param apiSecret - Optional API secret (for vendors like Truckbase)
    * @returns true if connection successful
    */
-  testConnection(apiKey: string): Promise<boolean>;
+  testConnection(apiKey: string, apiSecret?: string): Promise<boolean>;
 
   /**
    * Sync all loads for a tenant
    * @param apiKey - Encrypted API key or credentials
+   * @param apiSecret - Optional API secret (for vendors like Truckbase)
    * @returns Array of load IDs synced
    */
-  syncAllLoads?(apiKey: string): Promise<string[]>;
+  syncAllLoads?(apiKey: string, apiSecret?: string): Promise<string[]>;
 }

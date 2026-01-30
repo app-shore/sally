@@ -148,9 +148,10 @@ export class IntegrationManagerService {
       if (integration.vendor === 'SAMSARA_ELD' || integration.vendor === 'KEEPTRUCKIN_ELD' || integration.vendor === 'MOTIVE_ELD') {
         success = await this.samsaraAdapter.testConnection(apiKey);
       } else if (integration.vendor === 'MCLEOD_TMS' || integration.vendor === 'TMW_TMS') {
-        success = await this.mcleodAdapter.testConnection(apiKey);
+        success = await this.mcleodAdapter.testConnection(apiKey, '');
       } else if (integration.vendor === 'TRUCKBASE_TMS') {
-        success = await this.truckbaseAdapter.testConnection(apiKey);
+        const apiSecret = this.getApiSecretFromCredentials(integration.credentials);
+        success = await this.truckbaseAdapter.testConnection(apiKey, apiSecret);
       } else if (integration.vendor === 'GASBUDDY_FUEL') {
         success = await this.gasBuddyAdapter.testConnection(apiKey);
       } else if (integration.vendor === 'FUELFINDER_FUEL') {
@@ -240,6 +241,22 @@ export class IntegrationManagerService {
     } catch {
       // If not encrypted, return as-is (for development)
       return credentials.apiKey;
+    }
+  }
+
+  /**
+   * Extract API secret from encrypted credentials JSON (for Truckbase)
+   */
+  private getApiSecretFromCredentials(credentials: any): string {
+    if (!credentials || !credentials.apiSecret) {
+      throw new Error('Invalid credentials - apiSecret missing');
+    }
+
+    try {
+      return this.credentials.decrypt(credentials.apiSecret);
+    } catch {
+      // If not encrypted, return as-is (for development)
+      return credentials.apiSecret;
     }
   }
 }
