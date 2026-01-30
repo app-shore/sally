@@ -9,7 +9,8 @@ import { IFuelAdapter, FuelStation, FuelStationQuery } from './fuel-adapter.inte
  */
 @Injectable()
 export class FuelFinderAdapter implements IFuelAdapter {
-  private readonly useMockData = true; // Set to false when ready for real API calls
+  private readonly useMockData = false; // Set to false when ready for real API calls
+  private readonly baseUrl = process.env.FUELFINDER_API_URL || 'https://api.fuelfinder.com/v1';
 
   /**
    * Find fuel stations near a location
@@ -22,7 +23,26 @@ export class FuelFinderAdapter implements IFuelAdapter {
 
     // Real API call (Phase 2)
     try {
-      throw new Error('Real Fuel Finder API integration not implemented yet');
+      const { latitude, longitude, radius_miles = 25, max_results = 10 } = query;
+
+      const response = await fetch(
+        `${this.baseUrl}/stations?lat=${latitude}&lon=${longitude}&radius=${radius_miles}&limit=${max_results}`,
+        {
+          headers: {
+            'X-API-Key': apiKey,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Fuel Finder API error: ${response.status} - ${errorBody}`);
+      }
+
+      const data = await response.json();
+      const stations = data.stations || data.data || data;
+      return Array.isArray(stations) ? stations.map(s => this.transformStationData(s)) : [];
     } catch (error) {
       throw new Error(`Failed to fetch fuel stations from Fuel Finder: ${error.message}`);
     }
@@ -61,10 +81,54 @@ export class FuelFinderAdapter implements IFuelAdapter {
 
     // Real API test (Phase 2)
     try {
-      return false;
+      const response = await fetch(
+        `${this.baseUrl}/stations?lat=33.4484&lon=-112.074&limit=1`,
+        {
+          headers: {
+            'X-API-Key': apiKey,
+          },
+        }
+      );
+      return response.ok;
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Transform Fuel Finder API response to SALLY standard format
+   */
+  private transformStationData(ffData: any): FuelStation {
+    return {
+      station_id: ffData.id || ffData.station_id,
+      name: ffData.name,
+      brand: ffData.brand,
+      address: ffData.address,
+      city: ffData.city,
+      state: ffData.state,
+      zip: ffData.zip || ffData.postal_code,
+      latitude: ffData.lat || ffData.latitude,
+      longitude: ffData.lon || ffData.longitude,
+      price_per_gallon: ffData.regular_price || ffData.price,
+      diesel_price: ffData.diesel_price,
+      distance_miles: ffData.distance,
+      amenities: this.parseAmenities(ffData.amenities),
+      last_updated: ffData.updated_at || new Date().toISOString(),
+      data_source: 'fuelfinder',
+    };
+  }
+
+  /**
+   * Parse amenities from various formats
+   */
+  private parseAmenities(amenities: any): string[] {
+    if (Array.isArray(amenities)) {
+      return amenities;
+    }
+    if (typeof amenities === 'string') {
+      return amenities.split(',').map(a => a.trim());
+    }
+    return [];
   }
 
   /**
