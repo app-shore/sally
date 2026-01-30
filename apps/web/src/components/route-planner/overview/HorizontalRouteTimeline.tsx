@@ -80,17 +80,10 @@ export default function HorizontalRouteTimeline({ plan, onViewDetails, showHeade
                       <display.Icon className={`w-5 h-5 ${display.iconColor}`} />
                     </button>
 
-                    {/* Primary Label */}
+                    {/* Simple Type Label */}
                     <div className="text-xs font-medium text-foreground text-center">
                       {label.primary}
                     </div>
-
-                    {/* Secondary Label (context-specific) */}
-                    {label.secondary && (
-                      <div className="text-xs text-muted-foreground text-center">
-                        {label.secondary}
-                      </div>
-                    )}
 
                     {/* Expanded Details - Dropdown below icon */}
                     {isExpanded && (

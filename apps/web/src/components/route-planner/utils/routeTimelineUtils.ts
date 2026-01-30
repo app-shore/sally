@@ -79,6 +79,7 @@ export function getSegmentDisplay(segment: RouteSegment, index: number, totalSeg
 
 /**
  * Get minimal label for segment (used in compact views)
+ * Returns simple type labels: "Start", "Fuel", "Rest", "Dock", "End"
  */
 export function getMinimalLabel(
   segment: RouteSegment,
@@ -89,48 +90,22 @@ export function getMinimalLabel(
   const isDestination = index === totalSegments - 1;
 
   if (isOrigin) {
-    const location = segment.from_location || "Start";
-    return {
-      primary: location.length > 20 ? location.substring(0, 20) + "..." : location,
-    };
+    return { primary: "Start" };
   }
 
   if (isDestination) {
-    const location = segment.to_location || "End";
-    return {
-      primary: location.length > 20 ? location.substring(0, 20) + "..." : location,
-    };
+    return { primary: "End" };
   }
 
   switch (segment.segment_type) {
     case "rest":
-      const restType =
-        segment.rest_type === "full_rest"
-          ? "Full rest"
-          : segment.rest_type === "partial_rest"
-          ? "Partial rest"
-          : "Break";
-      return {
-        primary: restType,
-        secondary: `${segment.rest_duration_hours?.toFixed(1) || "0"}h`,
-      };
+      return { primary: "Rest" };
     case "fuel":
-      return {
-        primary: segment.fuel_station_name?.substring(0, 20) || "Fuel Stop",
-        secondary: `${segment.fuel_gallons?.toFixed(0) || "0"}gal`,
-      };
+      return { primary: "Fuel" };
     case "dock":
-      const dockLocation = segment.to_location || "Dock";
-      return {
-        primary: dockLocation.length > 20 ? dockLocation.substring(0, 20) + "..." : dockLocation,
-        secondary: `${segment.dock_duration_hours?.toFixed(1) || "0"}h`,
-      };
+      return { primary: "Dock" };
     case "drive":
-      const location = segment.to_location || "Stop";
-      return {
-        primary: location.length > 20 ? location.substring(0, 20) + "..." : location,
-        secondary: `${segment.distance_miles?.toFixed(0) || "0"} mi`,
-      };
+      return { primary: "Drive" };
     default:
       return { primary: "Stop" };
   }

@@ -94,29 +94,28 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
                   <Badge variant="secondary">{alerts.length}</Badge>
                 )}
               </div>
-              <button
+              <Button
                 onClick={onClose}
-                className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                variant="ghost"
+                size="icon"
                 aria-label="Close alerts panel"
               >
                 <X className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
 
             {/* Filter tabs */}
             <div className="flex gap-2 p-4 border-b border-border overflow-x-auto">
               {['all', 'critical', 'high', 'medium', 'low'].map((filter) => (
-                <button
+                <Button
                   key={filter}
                   onClick={() => setSelectedFilter(filter)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                    selectedFilter === filter
-                      ? 'bg-black text-white dark:bg-white dark:text-black'
-                      : 'bg-gray-100 dark:bg-gray-800 text-foreground hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
+                  variant={selectedFilter === filter ? 'default' : 'secondary'}
+                  size="sm"
+                  className="whitespace-nowrap"
                 >
                   {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                </button>
+                </Button>
               ))}
             </div>
 
