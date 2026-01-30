@@ -11,7 +11,7 @@ import { IWeatherAdapter, WeatherData } from './weather-adapter.interface';
  */
 @Injectable()
 export class OpenWeatherAdapter implements IWeatherAdapter {
-  private readonly useMockData = true; // Set to false when ready for real API calls
+  private readonly useMockData = false; // Set to false when ready for real API calls
   private readonly baseUrl = 'https://api.openweathermap.org/data/2.5';
 
   /**
