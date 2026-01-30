@@ -209,7 +209,7 @@ export class IntegrationManagerService {
       where: {
         tenantId,
         isActive: true,
-        hosManualOverride: false, // Skip manually overridden drivers
+        hosManualOverride: null, // Skip manually overridden drivers (null = no override)
       },
     });
 

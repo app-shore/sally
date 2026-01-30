@@ -257,6 +257,7 @@ model Driver {
   scenarios             Scenario[]
   driverPreferences     DriverPreferences?
 
+  @@unique([driverId, tenantId])
   @@index([tenantId])
   @@index([externalDriverId])
   @@index([status])
