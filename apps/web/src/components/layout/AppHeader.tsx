@@ -18,10 +18,14 @@ export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHead
   const { user } = useSessionStore();
 
   const getRoleLabel = () => {
-    if (user?.role === 'DISPATCHER') return 'Dispatcher View';
-    if (user?.role === 'DRIVER') return 'Driver View';
-    if (user?.role === 'ADMIN') return 'Admin View';
-    return 'SALLY';
+    const tenantName = user?.tenantName || 'Unknown Tenant';
+    let roleView = 'SALLY';
+
+    if (user?.role === 'DISPATCHER') roleView = 'Dispatcher View';
+    if (user?.role === 'DRIVER') roleView = 'Driver View';
+    if (user?.role === 'ADMIN') roleView = 'Admin View';
+
+    return `${tenantName} • ${roleView}`;
   };
 
   return (

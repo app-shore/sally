@@ -1247,13 +1247,12 @@ async function main() {
   // SUMMARY
   // ============================================================================
   // ============================================================================
-  // CREATE USER PREFERENCES FOR ALL USERS
+  // CREATE USER PREFERENCES
   // ============================================================================
   console.log('Creating user preferences...');
 
   const allUsers = await prisma.user.findMany();
   let userPrefsCount = 0;
-  let dispatcherPrefsCount = 0;
   let driverPrefsCount = 0;
 
   for (const user of allUsers) {
@@ -1264,16 +1263,6 @@ async function main() {
       },
     });
     userPrefsCount++;
-
-    // Create dispatcher preferences for dispatchers and admins
-    if (user.role === UserRole.DISPATCHER || user.role === UserRole.ADMIN) {
-      await prisma.dispatcherPreferences.create({
-        data: {
-          userId: user.id,
-        },
-      });
-      dispatcherPrefsCount++;
-    }
 
     // Create driver preferences for drivers
     if (user.role === UserRole.DRIVER) {
@@ -1287,8 +1276,21 @@ async function main() {
     }
   }
 
+  // Create dispatcher preferences (one per tenant)
+  await prisma.dispatcherPreferences.create({
+    data: {
+      tenantId: jycCarriers.id,
+    },
+  });
+
+  await prisma.dispatcherPreferences.create({
+    data: {
+      tenantId: xyzLogistics.id,
+    },
+  });
+
   console.log(`✓ Created ${userPrefsCount} user preferences`);
-  console.log(`✓ Created ${dispatcherPrefsCount} dispatcher preferences`);
+  console.log(`✓ Created 2 dispatcher preferences (one per tenant)`);
   console.log(`✓ Created ${driverPrefsCount} driver preferences`);
 
   console.log('✅ Database seeded successfully!');

@@ -1,42 +1,62 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateUserPreferencesDto } from './dto/user-preferences.dto';
 import { UpdateDispatcherPreferencesDto } from './dto/dispatcher-preferences.dto';
 import { UpdateDriverPreferencesDto } from './dto/driver-preferences.dto';
 
 @Injectable()
 export class PreferencesService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   // ============================================================================
   // USER PREFERENCES
   // ============================================================================
 
-  async getUserPreferences(userId: number) {
+  async getUserPreferences(userIdString: string) {
+    // First, get the numeric user ID from the string userId
+    const user = await this.prisma.user.findUnique({
+      where: { userId: userIdString },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     // Get or create user preferences with defaults
     let preferences = await this.prisma.userPreferences.findUnique({
-      where: { userId },
+      where: { userId: user.id },
     });
 
     if (!preferences) {
       // Create with defaults
       preferences = await this.prisma.userPreferences.create({
-        data: { userId },
+        data: { userId: user.id },
       });
     }
 
     return preferences;
   }
 
-  async updateUserPreferences(userId: number, dto: UpdateUserPreferencesDto) {
+  async updateUserPreferences(userIdString: string, dto: UpdateUserPreferencesDto) {
+    // Get numeric user ID
+    const user = await this.prisma.user.findUnique({
+      where: { userId: userIdString },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     // Validate preferences
     this.validateUserPreferences(dto);
 
     // Upsert preferences
     const preferences = await this.prisma.userPreferences.upsert({
-      where: { userId },
+      where: { userId: user.id },
       create: {
-        userId,
+        userId: user.id,
         ...dto,
       },
       update: dto,
@@ -49,41 +69,61 @@ export class PreferencesService {
   // DISPATCHER PREFERENCES
   // ============================================================================
 
-  async getDispatcherPreferences(userId: number, userRole: string) {
+  async getDispatcherPreferences(userIdString: string, userRole: string, tenantIdString: string) {
     // Check role
     if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN') {
-      throw new ForbiddenException('Only dispatchers and admins can access dispatcher preferences');
+      throw new ForbiddenException('Only dispatchers and admins can access route planning preferences');
     }
 
-    // Get or create dispatcher preferences with defaults
+    // Get tenant numeric ID
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { tenantId: tenantIdString },
+      select: { id: true },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // Get or create dispatcher preferences with defaults (one per tenant)
     let preferences = await this.prisma.dispatcherPreferences.findUnique({
-      where: { userId },
+      where: { tenantId: tenant.id },
     });
 
     if (!preferences) {
       // Create with defaults
       preferences = await this.prisma.dispatcherPreferences.create({
-        data: { userId },
+        data: { tenantId: tenant.id },
       });
     }
 
     return preferences;
   }
 
-  async updateDispatcherPreferences(userId: number, userRole: string, dto: UpdateDispatcherPreferencesDto) {
+  async updateDispatcherPreferences(userIdString: string, userRole: string, tenantIdString: string, dto: UpdateDispatcherPreferencesDto) {
     // Check role
     if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN') {
-      throw new ForbiddenException('Only dispatchers and admins can update dispatcher preferences');
+      throw new ForbiddenException('Only dispatchers and admins can update route planning preferences');
+    }
+
+    // Get tenant numeric ID
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { tenantId: tenantIdString },
+      select: { id: true },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
     }
 
     // Validate preferences
     this.validateDispatcherPreferences(dto);
 
-    // Upsert preferences
+    // Upsert preferences (one per tenant)
     const preferences = await this.prisma.dispatcherPreferences.upsert({
-      where: { userId },
+      where: { tenantId: tenant.id },
       create: {
-        userId,
+        tenantId: tenant.id,
         ...dto,
       },
       update: dto,
@@ -96,29 +136,33 @@ export class PreferencesService {
   // DRIVER PREFERENCES
   // ============================================================================
 
-  async getDriverPreferences(userId: number, userRole: string) {
+  async getDriverPreferences(userIdString: string, userRole: string) {
     // Check role
     if (userRole !== 'DRIVER' && userRole !== 'ADMIN') {
       throw new ForbiddenException('Only drivers and admins can access driver preferences');
     }
 
+    // Get numeric user ID and driver ID
+    const user = await this.prisma.user.findUnique({
+      where: { userId: userIdString },
+      select: { id: true, driverId: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     // Get or create driver preferences with defaults
     let preferences = await this.prisma.driverPreferences.findUnique({
-      where: { userId },
+      where: { userId: user.id },
     });
 
     if (!preferences) {
-      // Get driver ID if available
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { driverId: true },
-      });
-
       // Create with defaults
       preferences = await this.prisma.driverPreferences.create({
         data: {
-          userId,
-          driverId: user?.driverId || null,
+          userId: user.id,
+          driverId: user.driverId || null,
         },
       });
     }
@@ -126,27 +170,31 @@ export class PreferencesService {
     return preferences;
   }
 
-  async updateDriverPreferences(userId: number, userRole: string, dto: UpdateDriverPreferencesDto) {
+  async updateDriverPreferences(userIdString: string, userRole: string, dto: UpdateDriverPreferencesDto) {
     // Check role
     if (userRole !== 'DRIVER' && userRole !== 'ADMIN') {
       throw new ForbiddenException('Only drivers and admins can update driver preferences');
     }
 
+    // Get numeric user ID and driver ID
+    const user = await this.prisma.user.findUnique({
+      where: { userId: userIdString },
+      select: { id: true, driverId: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     // Validate preferences
     this.validateDriverPreferences(dto);
 
-    // Get driver ID
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { driverId: true },
-    });
-
     // Upsert preferences
     const preferences = await this.prisma.driverPreferences.upsert({
-      where: { userId },
+      where: { userId: user.id },
       create: {
-        userId,
-        driverId: user?.driverId || null,
+        userId: user.id,
+        driverId: user.driverId || null,
         ...dto,
       },
       update: dto,
@@ -159,32 +207,49 @@ export class PreferencesService {
   // RESET TO DEFAULTS
   // ============================================================================
 
-  async resetToDefaults(userId: number, scope: 'user' | 'dispatcher' | 'driver', userRole: string) {
+  async resetToDefaults(userIdString: string, tenantIdString: string, scope: 'user' | 'dispatcher' | 'driver', userRole: string) {
+    // Get numeric user ID
+    const user = await this.prisma.user.findUnique({
+      where: { userId: userIdString },
+      select: { id: true, driverId: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     if (scope === 'user') {
       // Delete and recreate with defaults
-      await this.prisma.userPreferences.delete({ where: { userId } }).catch(() => {});
-      return await this.prisma.userPreferences.create({ data: { userId } });
+      await this.prisma.userPreferences.delete({ where: { userId: user.id } }).catch(() => {});
+      return await this.prisma.userPreferences.create({ data: { userId: user.id } });
     }
 
     if (scope === 'dispatcher') {
       if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN') {
-        throw new ForbiddenException('Only dispatchers and admins can reset dispatcher preferences');
+        throw new ForbiddenException('Only dispatchers and admins can reset route planning preferences');
       }
-      await this.prisma.dispatcherPreferences.delete({ where: { userId } }).catch(() => {});
-      return await this.prisma.dispatcherPreferences.create({ data: { userId } });
+
+      // Get tenant numeric ID
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: tenantIdString },
+        select: { id: true },
+      });
+
+      if (!tenant) {
+        throw new NotFoundException('Tenant not found');
+      }
+
+      await this.prisma.dispatcherPreferences.delete({ where: { tenantId: tenant.id } }).catch(() => {});
+      return await this.prisma.dispatcherPreferences.create({ data: { tenantId: tenant.id } });
     }
 
     if (scope === 'driver') {
       if (userRole !== 'DRIVER' && userRole !== 'ADMIN') {
         throw new ForbiddenException('Only drivers and admins can reset driver preferences');
       }
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { driverId: true },
-      });
-      await this.prisma.driverPreferences.delete({ where: { userId } }).catch(() => {});
+      await this.prisma.driverPreferences.delete({ where: { userId: user.id } }).catch(() => {});
       return await this.prisma.driverPreferences.create({
-        data: { userId, driverId: user?.driverId || null },
+        data: { userId: user.id, driverId: user.driverId || null },
       });
     }
 

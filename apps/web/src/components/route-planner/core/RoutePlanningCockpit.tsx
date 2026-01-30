@@ -4,10 +4,9 @@
  * Route Planning Cockpit - Main container with tabbed multi-view interface
  *
  * Provides comprehensive route planning visualization for dispatchers with:
- * - Overview: Executive summary with KPIs
- * - Timeline: Gantt-style time-based visualization
+ * - Overview: Executive summary with KPIs and timeline
+ * - Route: Clean visual route flow
  * - Map: Geographic route visualization (Phase 2)
- * - Compliance: Audit-ready HOS compliance view
  * - Costs: Financial breakdown and efficiency metrics
  */
 
@@ -17,11 +16,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import RouteHeader from "./RouteHeader";
 import OverviewTab from "../overview/OverviewTab";
-import TimelineTab from "../timeline/TimelineTab";
-import ComplianceTab from "../compliance/ComplianceTab";
+import FullyExpandedRouteTimeline from "../route/FullyExpandedRouteTimeline";
 import CostsTab from "../costs/CostsTab";
 
-type ViewTab = "overview" | "timeline" | "map" | "compliance" | "costs";
+type ViewTab = "overview" | "route" | "map" | "costs";
 
 export default function RoutePlanningCockpit() {
   const { currentPlan } = useRoutePlanStore();
@@ -49,20 +47,19 @@ export default function RoutePlanningCockpit() {
 
       {/* Tabbed interface */}
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ViewTab)} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="route">Route</TabsTrigger>
           <TabsTrigger value="map">Map</TabsTrigger>
-          <TabsTrigger value="compliance">Compliance</TabsTrigger>
           <TabsTrigger value="costs">Costs</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
-          <OverviewTab plan={currentPlan} />
+          <OverviewTab plan={currentPlan} onViewRouteDetails={() => setActiveTab("route")} />
         </TabsContent>
 
-        <TabsContent value="timeline" className="mt-4">
-          <TimelineTab plan={currentPlan} />
+        <TabsContent value="route" className="mt-4">
+          <FullyExpandedRouteTimeline plan={currentPlan} />
         </TabsContent>
 
         <TabsContent value="map" className="mt-4">
@@ -73,10 +70,6 @@ export default function RoutePlanningCockpit() {
               <p className="text-sm mt-1">Will show stop markers, route polyline, and geographic context</p>
             </div>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="compliance" className="mt-4">
-          <ComplianceTab plan={currentPlan} />
         </TabsContent>
 
         <TabsContent value="costs" className="mt-4">

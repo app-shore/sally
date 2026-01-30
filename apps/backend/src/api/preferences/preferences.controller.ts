@@ -32,14 +32,16 @@ export class PreferencesController {
   async getDispatcherPreferences(@Req() req: any) {
     const userId = req.user.userId;
     const userRole = req.user.role;
-    return this.preferencesService.getDispatcherPreferences(userId, userRole);
+    const tenantId = req.user.tenantId;
+    return this.preferencesService.getDispatcherPreferences(userId, userRole, tenantId);
   }
 
   @Put('dispatcher')
   async updateDispatcherPreferences(@Req() req: any, @Body() dto: UpdateDispatcherPreferencesDto) {
     const userId = req.user.userId;
     const userRole = req.user.role;
-    return this.preferencesService.updateDispatcherPreferences(userId, userRole, dto);
+    const tenantId = req.user.tenantId;
+    return this.preferencesService.updateDispatcherPreferences(userId, userRole, tenantId, dto);
   }
 
   // ============================================================================
@@ -69,7 +71,8 @@ export class PreferencesController {
   async resetToDefaults(@Req() req: any, @Body() body: { scope: 'user' | 'dispatcher' | 'driver' }) {
     const userId = req.user.userId;
     const userRole = req.user.role;
-    return this.preferencesService.resetToDefaults(userId, body.scope, userRole);
+    const tenantId = req.user.tenantId;
+    return this.preferencesService.resetToDefaults(userId, tenantId, body.scope, userRole);
   }
 
   // ============================================================================

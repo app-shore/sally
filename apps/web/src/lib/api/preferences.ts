@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+import { apiClient } from './client';
 
 export interface UserPreferences {
   id: number;
@@ -32,7 +32,7 @@ export interface UserPreferences {
 
 export interface DispatcherPreferences {
   id: number;
-  userId: number;
+  tenantId: number;
   defaultDriveHours: number;
   defaultOnDutyHours: number;
   defaultSinceBreakHours: number;
@@ -86,53 +86,19 @@ export interface DriverPreferences {
   updatedAt: string;
 }
 
-async function getAuthToken(): Promise<string | null> {
-  // Check if we're in a browser environment
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  // Get token from localStorage
-  const token = localStorage.getItem('accessToken');
-  return token;
-}
-
 // ============================================================================
 // USER PREFERENCES
 // ============================================================================
 
 export async function getUserPreferences(): Promise<UserPreferences> {
-  const token = await getAuthToken();
-  const response = await fetch(`${API_BASE}/preferences/user`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch user preferences');
-  }
-
-  return response.json();
+  return apiClient<UserPreferences>('/preferences/user');
 }
 
 export async function updateUserPreferences(updates: Partial<UserPreferences>): Promise<UserPreferences> {
-  const token = await getAuthToken();
-  const response = await fetch(`${API_BASE}/preferences/user`, {
+  return apiClient<UserPreferences>('/preferences/user', {
     method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(updates),
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to update user preferences');
-  }
-
-  return response.json();
 }
 
 // ============================================================================
@@ -140,37 +106,14 @@ export async function updateUserPreferences(updates: Partial<UserPreferences>): 
 // ============================================================================
 
 export async function getDispatcherPreferences(): Promise<DispatcherPreferences> {
-  const token = await getAuthToken();
-  const response = await fetch(`${API_BASE}/preferences/dispatcher`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch dispatcher preferences');
-  }
-
-  return response.json();
+  return apiClient<DispatcherPreferences>('/preferences/dispatcher');
 }
 
 export async function updateDispatcherPreferences(updates: Partial<DispatcherPreferences>): Promise<DispatcherPreferences> {
-  const token = await getAuthToken();
-  const response = await fetch(`${API_BASE}/preferences/dispatcher`, {
+  return apiClient<DispatcherPreferences>('/preferences/dispatcher', {
     method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(updates),
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to update dispatcher preferences');
-  }
-
-  return response.json();
 }
 
 // ============================================================================
@@ -178,37 +121,14 @@ export async function updateDispatcherPreferences(updates: Partial<DispatcherPre
 // ============================================================================
 
 export async function getDriverPreferences(): Promise<DriverPreferences> {
-  const token = await getAuthToken();
-  const response = await fetch(`${API_BASE}/preferences/driver`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch driver preferences');
-  }
-
-  return response.json();
+  return apiClient<DriverPreferences>('/preferences/driver');
 }
 
 export async function updateDriverPreferences(updates: Partial<DriverPreferences>): Promise<DriverPreferences> {
-  const token = await getAuthToken();
-  const response = await fetch(`${API_BASE}/preferences/driver`, {
+  return apiClient<DriverPreferences>('/preferences/driver', {
     method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(updates),
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to update driver preferences');
-  }
-
-  return response.json();
 }
 
 // ============================================================================
@@ -216,21 +136,10 @@ export async function updateDriverPreferences(updates: Partial<DriverPreferences
 // ============================================================================
 
 export async function resetToDefaults(scope: 'user' | 'dispatcher' | 'driver'): Promise<any> {
-  const token = await getAuthToken();
-  const response = await fetch(`${API_BASE}/preferences/reset`, {
+    return apiClient<any>('/preferences/reset', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ scope }),
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to reset preferences');
-  }
-
-  return response.json();
 }
 
 // ============================================================================
@@ -242,17 +151,9 @@ export async function getDefaults(): Promise<{
   dispatcher: Partial<DispatcherPreferences>;
   driver: Partial<DriverPreferences>;
 }> {
-  const token = await getAuthToken();
-  const response = await fetch(`${API_BASE}/preferences/defaults`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch default preferences');
-  }
-
-  return response.json();
+  return apiClient<{
+    user: Partial<UserPreferences>;
+    dispatcher: Partial<DispatcherPreferences>;
+    driver: Partial<DriverPreferences>;
+  }>('/preferences/defaults');
 }

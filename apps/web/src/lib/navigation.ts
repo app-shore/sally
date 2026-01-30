@@ -1,4 +1,4 @@
-import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3 } from 'lucide-react';
+import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -31,9 +31,10 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Active Routes', href: '/dispatcher/active-routes', icon: Truck },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
+    { label: 'Route Planning', href: '/settings/route-planning', icon: Route },
     { label: 'Fleet', href: '/settings/fleet', icon: Package },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
-    { label: 'Preferences', href: '/settings', icon: Settings },
+    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
   ],
 
   driver: [
@@ -41,7 +42,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Today\'s Route', href: '/driver/current-route', icon: Map },
     { label: 'Dispatch Messages', href: '/driver/messages', icon: MessageSquare },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Preferences', href: '/settings', icon: Settings },
+    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
   ],
 
   admin: [
@@ -54,6 +55,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Active Routes', href: '/dispatcher/active-routes', icon: Truck },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
+    { label: 'Route Planning', href: '/settings/route-planning', icon: Route },
     { label: 'Fleet', href: '/settings/fleet', icon: Package },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
     { label: 'Preferences', href: '/settings/preferences', icon: Settings },

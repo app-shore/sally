@@ -7,14 +7,12 @@ import { Loader2 } from 'lucide-react';
 import { useSessionStore } from '@/lib/store/sessionStore';
 import { usePreferencesStore } from '@/lib/store/preferencesStore';
 import UserPreferencesTab from './components/UserPreferencesTab';
-import DispatcherPreferencesTab from './components/DispatcherPreferencesTab';
 import DriverPreferencesTab from './components/DriverPreferencesTab';
 
 export default function PreferencesPage() {
   const { user } = useSessionStore();
   const { loadAllPreferences, isLoading } = usePreferencesStore();
 
-  const isDispatcher = user?.role === 'DISPATCHER' || user?.role === 'ADMIN';
   const isDriver = user?.role === 'DRIVER';
 
   useEffect(() => {
@@ -36,7 +34,7 @@ export default function PreferencesPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Preferences</h1>
         <p className="text-muted-foreground">
-          Customize your SALLY experience with personalized settings
+          Manage your personal preferences and UI settings
         </p>
       </div>
 
@@ -50,19 +48,12 @@ export default function PreferencesPage() {
         <Tabs defaultValue="general" className="space-y-6">
           <TabsList>
             <TabsTrigger value="general">General</TabsTrigger>
-            {isDispatcher && <TabsTrigger value="dispatcher">Dispatcher</TabsTrigger>}
             {isDriver && <TabsTrigger value="driver">Driver</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="general">
             <UserPreferencesTab />
           </TabsContent>
-
-          {isDispatcher && (
-            <TabsContent value="dispatcher">
-              <DispatcherPreferencesTab />
-            </TabsContent>
-          )}
 
           {isDriver && (
             <TabsContent value="driver">

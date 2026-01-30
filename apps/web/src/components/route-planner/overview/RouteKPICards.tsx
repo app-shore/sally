@@ -76,7 +76,7 @@ export default function RouteKPICards({ plan }: RouteKPICardsProps) {
       value: total_distance_miles != null ? `${total_distance_miles.toFixed(0)} mi` : 'N/A',
       icon: Navigation,
       description: `${plan.segments.filter((s) => s.segment_type === "drive").length} driving segments`,
-      color: "text-blue-600 dark:text-blue-400",
+      color: "text-foreground",
     },
     {
       title: "Total Time",
@@ -85,7 +85,7 @@ export default function RouteKPICards({ plan }: RouteKPICardsProps) {
       description: total_time_hours != null
         ? `${Math.floor(total_time_hours)}h ${Math.round((total_time_hours % 1) * 60)}m estimated`
         : 'Not calculated',
-      color: "text-purple-600 dark:text-purple-400",
+      color: "text-foreground",
     },
     {
       title: "HOS Status",
@@ -105,7 +105,7 @@ export default function RouteKPICards({ plan }: RouteKPICardsProps) {
       value: total_cost_estimate != null ? `$${total_cost_estimate.toFixed(2)}` : '$0.00',
       icon: DollarSign,
       description: "Estimated route cost",
-      color: "text-green-600 dark:text-green-400",
+      color: "text-foreground",
     },
     {
       title: "Efficiency Score",
@@ -115,7 +115,7 @@ export default function RouteKPICards({ plan }: RouteKPICardsProps) {
       color: efficiencyScore >= 80
         ? "text-green-600 dark:text-green-400"
         : efficiencyScore >= 60
-        ? "text-yellow-600 dark:text-yellow-400"
+        ? "text-orange-600 dark:text-orange-400"
         : "text-red-600 dark:text-red-400",
     },
     {
@@ -125,7 +125,7 @@ export default function RouteKPICards({ plan }: RouteKPICardsProps) {
       description: summary.estimated_completion
         ? `Est: ${new Date(summary.estimated_completion).toLocaleString()}`
         : "Not calculated",
-      color: "text-blue-600 dark:text-blue-400",
+      color: "text-foreground",
     },
   ];
 

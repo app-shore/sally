@@ -8,12 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { usePreferencesStore } from '@/lib/store/preferencesStore';
+import { UserPreferences } from '@/lib/api/preferences';
 import { Loader2, Save, RotateCcw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function UserPreferencesTab() {
   const { userPreferences, updateUserPrefs, resetToDefaults, isSaving } = usePreferencesStore();
-  const [formData, setFormData] = useState(userPreferences || {});
+  const [formData, setFormData] = useState<Partial<UserPreferences>>(userPreferences || {});
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleChange = (field: string, value: any) => {
@@ -33,8 +34,12 @@ export default function UserPreferencesTab() {
   const handleReset = async () => {
     if (confirm('Reset all general preferences to defaults?')) {
       try {
-        const resetPrefs = await resetToDefaults('user');
-        setFormData(resetPrefs);
+        await resetToDefaults('user');
+        // Reload from store after reset
+        const resetPrefs = usePreferencesStore.getState().userPreferences;
+        if (resetPrefs) {
+          setFormData(resetPrefs);
+        }
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       } catch (error) {
