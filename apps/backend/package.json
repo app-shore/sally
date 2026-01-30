@@ -55,6 +55,7 @@
     "express": "5.2.1",
     "firebase-admin": "13.6.0",
     "ioredis": "5.9.2",
+    "nanoid": "3.3.11",
     "nestjs-pino": "4.5.0",
     "nestjs-zod": "5.1.1",
     "passport": "0.7.0",

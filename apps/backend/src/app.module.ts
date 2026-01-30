@@ -33,6 +33,7 @@ import { AlertsController } from './api/alerts/alerts.controller';
 import { SessionController } from './api/session/session.controller';
 import { IntegrationsModule } from './api/integrations/integrations.module';
 import { PreferencesModule } from './api/preferences/preferences.module';
+import { TenantsModule } from './api/tenants/tenants.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { PreferencesModule } from './api/preferences/preferences.module';
     AuthModule,
     IntegrationsModule,
     PreferencesModule,
+    TenantsModule,
   ],
   providers: [
     // Global guards (applied to all routes by default)
