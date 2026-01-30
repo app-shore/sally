@@ -81,14 +81,18 @@ async function main() {
   console.log('Creating JYC Carriers drivers...');
 
   // All drivers synced from TMS Truckbase (default driver source)
+  // NOTE: New drivers synced from external sources should be PENDING_ACTIVATION
+  // and require manual activation by an admin
   const jycDriver1 = await prisma.driver.create({
     data: {
       driverId: 'driver_001',
       name: 'John Smith',
-      isActive: true,
+      status: 'PENDING_ACTIVATION', // NEW: External drivers start as pending
+      isActive: false, // NEW: Inactive until manually activated
       tenantId: jycCarriers.id,
       externalDriverId: 'driver_001',
       externalSource: 'mock_truckbase_tms',
+      syncStatus: 'SYNCED',
       lastSyncedAt: new Date(),
     },
   });
@@ -97,10 +101,12 @@ async function main() {
     data: {
       driverId: 'driver_002',
       name: 'Sarah Johnson',
-      isActive: true,
+      status: 'PENDING_ACTIVATION',
+      isActive: false,
       tenantId: jycCarriers.id,
       externalDriverId: 'driver_002',
       externalSource: 'mock_truckbase_tms',
+      syncStatus: 'SYNCED',
       lastSyncedAt: new Date(),
     },
   });
@@ -109,10 +115,12 @@ async function main() {
     data: {
       driverId: 'driver_003',
       name: 'Mike Williams',
-      isActive: true,
+      status: 'PENDING_ACTIVATION',
+      isActive: false,
       tenantId: jycCarriers.id,
       externalDriverId: 'driver_003',
       externalSource: 'mock_truckbase_tms',
+      syncStatus: 'SYNCED',
       lastSyncedAt: new Date(),
     },
   });
@@ -121,10 +129,12 @@ async function main() {
     data: {
       driverId: 'driver_004',
       name: 'Jane Doe',
-      isActive: true,
+      status: 'PENDING_ACTIVATION',
+      isActive: false,
       tenantId: jycCarriers.id,
       externalDriverId: 'driver_004',
       externalSource: 'mock_truckbase_tms',
+      syncStatus: 'SYNCED',
       lastSyncedAt: new Date(),
     },
   });
@@ -133,10 +143,12 @@ async function main() {
     data: {
       driverId: 'driver_005',
       name: 'Bob Martinez',
-      isActive: true,
+      status: 'PENDING_ACTIVATION',
+      isActive: false,
       tenantId: jycCarriers.id,
       externalDriverId: 'driver_005',
       externalSource: 'mock_truckbase_tms',
+      syncStatus: 'SYNCED',
       lastSyncedAt: new Date(),
     },
   });
@@ -145,23 +157,28 @@ async function main() {
     data: {
       driverId: 'driver_006',
       name: 'Lisa Chen',
-      isActive: true,
+      status: 'PENDING_ACTIVATION',
+      isActive: false,
       tenantId: jycCarriers.id,
       externalDriverId: 'driver_006',
       externalSource: 'mock_truckbase_tms',
+      syncStatus: 'SYNCED',
       lastSyncedAt: new Date(),
     },
   });
 
   // Last 2 drivers are manual (no external source)
+  // Manual drivers are immediately ACTIVE (no approval needed)
   const jycDriver7 = await prisma.driver.create({
     data: {
       driverId: 'driver_007',
       name: 'Tom Brown',
+      status: 'ACTIVE', // Manual drivers are immediately active
       isActive: true,
       tenantId: jycCarriers.id,
       externalDriverId: null,
       externalSource: null,
+      syncStatus: 'MANUAL_ENTRY',
       lastSyncedAt: null,
     },
   });
@@ -170,10 +187,12 @@ async function main() {
     data: {
       driverId: 'driver_008',
       name: 'Emily Davis',
+      status: 'ACTIVE',
       isActive: true,
       tenantId: jycCarriers.id,
       externalDriverId: null,
       externalSource: null,
+      syncStatus: 'MANUAL_ENTRY',
       lastSyncedAt: null,
     },
   });
@@ -190,10 +209,12 @@ async function main() {
     data: {
       driverId: 'driver_101',
       name: 'Carlos Rodriguez',
-      isActive: true,
+      status: 'PENDING_ACTIVATION',
+      isActive: false,
       tenantId: xyzLogistics.id,
       externalDriverId: 'driver_101',
       externalSource: 'mock_truckbase_tms',
+      syncStatus: 'SYNCED',
       lastSyncedAt: new Date(),
     },
   });
@@ -202,10 +223,12 @@ async function main() {
     data: {
       driverId: 'driver_102',
       name: 'Maria Garcia',
-      isActive: true,
+      status: 'PENDING_ACTIVATION',
+      isActive: false,
       tenantId: xyzLogistics.id,
       externalDriverId: 'driver_102',
       externalSource: 'mock_truckbase_tms',
+      syncStatus: 'SYNCED',
       lastSyncedAt: new Date(),
     },
   });
@@ -214,10 +237,12 @@ async function main() {
     data: {
       driverId: 'driver_103',
       name: 'David Lee',
-      isActive: true,
+      status: 'PENDING_ACTIVATION',
+      isActive: false,
       tenantId: xyzLogistics.id,
       externalDriverId: 'driver_103',
       externalSource: 'mock_truckbase_tms',
+      syncStatus: 'SYNCED',
       lastSyncedAt: new Date(),
     },
   });

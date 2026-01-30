@@ -110,12 +110,18 @@ export class DriversController {
         where: { tenantId: user.tenantId },
       });
 
+      // NOTE: Manual drivers are immediately ACTIVE
+      // Drivers synced from external sources (TMS/ELD) should be created with:
+      //   status: 'PENDING_ACTIVATION', isActive: false, externalSource: 'SAMSARA'
+      //   and require manual activation via /drivers/:id/activate endpoint
       const driver = await this.prisma.driver.create({
         data: {
           driverId: body.driver_id,
           name: body.name,
+          status: 'ACTIVE',
           isActive: true,
           tenantId: tenant.id,
+          syncStatus: 'MANUAL_ENTRY',
         },
       });
 
