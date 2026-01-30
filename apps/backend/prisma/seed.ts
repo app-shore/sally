@@ -46,6 +46,12 @@ async function main() {
       subdomain: 'jyc',
       contactEmail: 'admin@jyc.com',
       contactPhone: '(339) 242-8066',
+      status: 'ACTIVE',
+      dotNumber: '12345678',
+      fleetSize: 'SIZE_51_100',
+      approvedAt: new Date(),
+      approvedBy: 'system@sally.com',
+      onboardingCompletedAt: new Date(),
       isActive: true,
     },
   });
@@ -57,6 +63,12 @@ async function main() {
       subdomain: 'xyz',
       contactEmail: 'admin@xyzlogistics.com',
       contactPhone: '(339) 242-8066',
+      status: 'ACTIVE',
+      dotNumber: '87654321',
+      fleetSize: 'SIZE_11_50',
+      approvedAt: new Date(),
+      approvedBy: 'system@sally.com',
+      onboardingCompletedAt: new Date(),
       isActive: true,
     },
   });
@@ -211,6 +223,26 @@ async function main() {
   });
 
   console.log(`✓ Created 3 XYZ Logistics drivers`);
+
+  // ============================================================================
+  // SUPER_ADMIN - SALLY Internal Team
+  // ============================================================================
+  console.log('Creating SUPER_ADMIN user...');
+
+  const superAdmin = await prisma.user.create({
+    data: {
+      userId: 'user_sally_superadmin_001',
+      email: 'admin@sally.com',
+      firstName: 'SALLY',
+      lastName: 'Admin',
+      role: 'SUPER_ADMIN',
+      tenantId: null,
+      isActive: true,
+      emailVerified: true,
+    },
+  });
+
+  console.log(`✓ Created SUPER_ADMIN user: ${superAdmin.email}`);
 
   // ============================================================================
   // JYC CARRIERS - Users
