@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CredentialsService } from '../credentials/credentials.service';
+import { RetryService } from '../retry/retry.service';
 import { SamsaraHOSAdapter } from '../adapters/hos/samsara-hos.adapter';
 import { HOSData } from '../adapters/hos/hos-adapter.interface';
 import { McLeodTMSAdapter } from '../adapters/tms/mcleod-tms.adapter';
@@ -21,9 +22,12 @@ import { OpenWeatherAdapter } from '../adapters/weather/openweather.adapter';
  */
 @Injectable()
 export class IntegrationManagerService {
+  private readonly logger = new Logger(IntegrationManagerService.name);
+
   constructor(
     private prisma: PrismaService,
     private credentials: CredentialsService,
+    private retry: RetryService,
     private samsaraAdapter: SamsaraHOSAdapter,
     private mcleodAdapter: McLeodTMSAdapter,
     private truckbaseAdapter: TruckbaseTMSAdapter,
@@ -73,25 +77,36 @@ export class IntegrationManagerService {
       };
     }
 
-    // 3. Fetch from ELD
+    // 3. Fetch from ELD with retry
     try {
-      const integration = await this.prisma.integrationConfig.findFirst({
-        where: {
-          tenantId,
-          integrationType: 'HOS_ELD',
-          status: 'ACTIVE',
+      const hosData = await this.retry.withRetry(
+        async () => {
+          const integration = await this.prisma.integrationConfig.findFirst({
+            where: {
+              tenantId,
+              integrationType: 'HOS_ELD',
+              status: 'ACTIVE',
+            },
+          });
+
+          if (!integration) {
+            throw new Error('No active HOS integration configured');
+          }
+
+          const apiKey = this.getApiKeyFromCredentials(integration.credentials);
+
+          return await this.samsaraAdapter.getDriverHOS(
+            apiKey,
+            driver.externalDriverId || driverId,
+          );
         },
-      });
-
-      if (!integration) {
-        throw new Error('No active HOS integration configured');
-      }
-
-      const apiKey = this.getApiKeyFromCredentials(integration.credentials);
-
-      const hosData = await this.samsaraAdapter.getDriverHOS(
-        apiKey,
-        driver.externalDriverId || driverId,
+        {
+          maxAttempts: 3,
+          baseDelayMs: 1000,
+          maxDelayMs: 10000,
+          exponentialBase: 2,
+        },
+        `getDriverHOS(${driverId})`,
       );
 
       // Update cache
@@ -109,7 +124,7 @@ export class IntegrationManagerService {
     } catch (error) {
       // 4. Fall back to stale cache
       if (driver.hosData) {
-        console.warn(
+        this.logger.warn(
           `Failed to fetch HOS for ${driverId}, using stale cache: ${error.message}`,
         );
         return {

@@ -6,6 +6,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { CredentialsService } from '../../services/credentials/credentials.service';
 import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';
 import { IntegrationSchedulerService } from '../../services/integration-manager/integration-scheduler.service';
+import { RetryModule } from '../../services/retry/retry.module';
 import { SamsaraHOSAdapter } from '../../services/adapters/hos/samsara-hos.adapter';
 import { McLeodTMSAdapter } from '../../services/adapters/tms/mcleod-tms.adapter';
 import { TruckbaseTMSAdapter } from '../../services/adapters/tms/truckbase-tms.adapter';
@@ -14,7 +15,7 @@ import { FuelFinderAdapter } from '../../services/adapters/fuel/fuelfinder-fuel.
 import { OpenWeatherAdapter } from '../../services/adapters/weather/openweather.adapter';
 
 @Module({
-  imports: [PrismaModule, ScheduleModule.forRoot()],
+  imports: [PrismaModule, ScheduleModule.forRoot(), RetryModule],
   controllers: [IntegrationsController],
   providers: [
     IntegrationsService,
