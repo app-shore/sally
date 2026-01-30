@@ -248,4 +248,74 @@ export class IntegrationsService {
       message: 'Sync completed',
     };
   }
+
+  /**
+   * Get sync history for an integration
+   */
+  async getSyncHistory(
+    integrationId: string,
+    limit: number = 50,
+    offset: number = 0,
+  ) {
+    const integration = await this.prisma.integrationConfig.findUnique({
+      where: { integrationId },
+    });
+
+    if (!integration) {
+      throw new NotFoundException('Integration not found');
+    }
+
+    const logs = await this.prisma.integrationSyncLog.findMany({
+      where: { integrationId: integration.id },
+      orderBy: { startedAt: 'desc' },
+      take: limit,
+      skip: offset,
+    });
+
+    return logs.map((log) => ({
+      id: log.logId,
+      sync_type: log.syncType,
+      status: log.status,
+      started_at: log.startedAt.toISOString(),
+      completed_at: log.completedAt?.toISOString(),
+      duration_ms: log.completedAt
+        ? log.completedAt.getTime() - log.startedAt.getTime()
+        : null,
+      records_processed: log.recordsProcessed,
+      records_created: log.recordsCreated,
+      records_updated: log.recordsUpdated,
+    }));
+  }
+
+  /**
+   * Get sync statistics for an integration
+   */
+  async getSyncStats(integrationId: string) {
+    const integration = await this.prisma.integrationConfig.findUnique({
+      where: { integrationId },
+    });
+
+    if (!integration) {
+      throw new NotFoundException('Integration not found');
+    }
+
+    const [total, successful, failed] = await Promise.all([
+      this.prisma.integrationSyncLog.count({
+        where: { integrationId: integration.id },
+      }),
+      this.prisma.integrationSyncLog.count({
+        where: { integrationId: integration.id, status: 'success' },
+      }),
+      this.prisma.integrationSyncLog.count({
+        where: { integrationId: integration.id, status: 'failed' },
+      }),
+    ]);
+
+    return {
+      total_syncs: total,
+      successful_syncs: successful,
+      failed_syncs: failed,
+      success_rate: total > 0 ? (successful / total) * 100 : 0,
+    };
+  }
 }
