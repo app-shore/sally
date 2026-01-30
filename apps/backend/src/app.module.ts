@@ -17,6 +17,7 @@ import { RestStopFinderService } from './services/rest-stop-finder/rest-stop-fin
 import { FuelStopOptimizerService } from './services/fuel-stop-optimizer/fuel-stop-optimizer.service';
 import { RoutePlanningEngineService } from './services/route-planning-engine/route-planning-engine.service';
 import { DynamicUpdateHandlerService } from './services/dynamic-update-handler/dynamic-update-handler.service';
+import { DriversActivationService } from './api/drivers/drivers-activation.service';
 
 // Controllers
 import { HealthController } from './health/health.controller';
@@ -73,6 +74,7 @@ import { UserInvitationsModule } from './api/user-invitations/user-invitations.m
     FuelStopOptimizerService,
     RoutePlanningEngineService,
     DynamicUpdateHandlerService,
+    DriversActivationService,
   ],
   controllers: [
     HealthController,
