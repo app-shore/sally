@@ -53,6 +53,7 @@
     "cookie-parser": "1.4.7",
     "dotenv": "17.2.3",
     "express": "5.2.1",
+    "firebase-admin": "13.6.0",
     "ioredis": "5.9.2",
     "nestjs-pino": "4.5.0",
     "nestjs-zod": "5.1.1",

@@ -4,8 +4,12 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Configuration } from './config/configuration';
 import cookieParser from 'cookie-parser';
+import { initializeFirebase } from './config/firebase.config';
 
 async function bootstrap() {
+  // Initialize Firebase Admin SDK
+  initializeFirebase();
+
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService<Configuration>);
 
