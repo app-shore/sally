@@ -32,6 +32,13 @@ enum FleetSize {
   SIZE_500_PLUS  @map("500+")
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  CANCELLED
+  EXPIRED
+}
+
 model Tenant {
   id                    Int          @id @default(autoincrement())
   tenantId              String       @unique @map("tenant_id") @db.VarChar(50)
@@ -148,35 +155,43 @@ model RefreshToken {
 }
 
 model UserInvitation {
-  id                Int           @id @default(autoincrement())
-  invitationId      String        @unique @default(uuid()) @map("invitation_id")
+  id                    Int           @id @default(autoincrement())
+  invitationId          String        @unique @default(uuid()) @map("invitation_id")
 
-  tenant            Tenant        @relation(fields: [tenantId], references: [id])
-  tenantId          Int           @map("tenant_id")
+  tenant                Tenant        @relation(fields: [tenantId], references: [id])
+  tenantId              Int           @map("tenant_id")
 
-  email             String        @db.VarChar(255)
-  firstName         String        @map("first_name") @db.VarChar(100)
-  lastName          String        @map("last_name") @db.VarChar(100)
-  role              UserRole
+  email                 String        @db.VarChar(255)
+  firstName             String        @map("first_name") @db.VarChar(100)
+  lastName              String        @map("last_name") @db.VarChar(100)
+  role                  UserRole
 
-  token             String        @unique @db.VarChar(255)
-  expiresAt         DateTime      @map("expires_at") @db.Timestamptz
+  // Optional driver link (for DRIVER role invitations)
+  driverId              Int?          @map("driver_id")
+  driver                Driver?       @relation(fields: [driverId], references: [id])
 
-  invitedBy         Int           @map("invited_by")
-  invitedByUser     User          @relation("InvitedBy", fields: [invitedBy], references: [id])
+  token                 String        @unique @db.VarChar(255)
+  expiresAt             DateTime      @map("expires_at") @db.Timestamptz
 
-  acceptedAt        DateTime?     @map("accepted_at") @db.Timestamptz
-  acceptedByUserId  Int?          @map("accepted_by_user_id")
-  acceptedByUser    User?         @relation("AcceptedBy", fields: [acceptedByUserId], references: [id])
+  invitedBy             Int           @map("invited_by")
+  invitedByUser         User          @relation("InvitedBy", fields: [invitedBy], references: [id])
 
-  cancelledAt       DateTime?     @map("cancelled_at") @db.Timestamptz
+  status                InvitationStatus @default(PENDING)
+  acceptedAt            DateTime?     @map("accepted_at") @db.Timestamptz
+  acceptedByUserId      Int?          @map("accepted_by_user_id")
+  acceptedByUser        User?         @relation("AcceptedBy", fields: [acceptedByUserId], references: [id])
 
-  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  cancelledAt           DateTime?     @map("cancelled_at") @db.Timestamptz
+  cancellationReason    String?       @map("cancellation_reason")
+
+  createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz
 
   @@index([tenantId])
   @@index([token])
   @@index([email])
   @@index([expiresAt])
+  @@index([status])
+  @@index([driverId])
   @@map("user_invitations")
 }
 
@@ -256,6 +271,7 @@ model Driver {
   routePlans            RoutePlan[]
   scenarios             Scenario[]
   driverPreferences     DriverPreferences?
+  invitations           UserInvitation[]
 
   @@unique([driverId, tenantId])
   @@index([tenantId])
