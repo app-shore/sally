@@ -14,6 +14,22 @@ enum UserRole {
   DISPATCHER
   DRIVER
   ADMIN
+  SUPER_ADMIN
+}
+
+enum TenantStatus {
+  PENDING_APPROVAL
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+enum FleetSize {
+  SIZE_1_10      @map("1-10")
+  SIZE_11_50     @map("11-50")
+  SIZE_51_100    @map("51-100")
+  SIZE_101_500   @map("101-500")
+  SIZE_500_PLUS  @map("500+")
 }
 
 model Tenant {
@@ -23,7 +39,23 @@ model Tenant {
   subdomain             String?      @unique @db.VarChar(100)
   contactEmail          String?      @map("contact_email") @db.VarChar(255)
   contactPhone          String?      @map("contact_phone") @db.VarChar(50)
-  isActive              Boolean      @default(true) @map("is_active")
+
+  // Registration fields
+  status                TenantStatus @default(PENDING_APPROVAL)
+  dotNumber             String?      @map("dot_number") @db.VarChar(8)
+  fleetSize             FleetSize?   @map("fleet_size")
+
+  // Approval tracking
+  approvedAt            DateTime?    @map("approved_at") @db.Timestamptz
+  approvedBy            String?      @map("approved_by") @db.VarChar(100)
+  rejectedAt            DateTime?    @map("rejected_at") @db.Timestamptz
+  rejectionReason       String?      @map("rejection_reason")
+
+  // Onboarding tracking
+  onboardingCompletedAt DateTime?    @map("onboarding_completed_at") @db.Timestamptz
+  onboardingProgress    Json?        @map("onboarding_progress")
+
+  isActive              Boolean      @default(false) @map("is_active")
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -34,40 +66,67 @@ model Tenant {
   alerts                Alert[]
   integrationConfigs    IntegrationConfig[]
   dispatcherPreferences DispatcherPreferences?
+  invitations           UserInvitation[]
 
   @@index([tenantId])
   @@index([subdomain])
+  @@index([status])
+  @@index([dotNumber])
   @@map("tenants")
 }
 
 model User {
-  id                    Int          @id @default(autoincrement())
-  userId                String       @unique @map("user_id") @db.VarChar(50)
-  email                 String       @map("email") @db.VarChar(255)
-  passwordHash          String?      @map("password_hash") @db.VarChar(255)
-  role                  UserRole
-  firstName             String       @map("first_name") @db.VarChar(100)
-  lastName              String       @map("last_name") @db.VarChar(100)
-  isActive              Boolean      @default(true) @map("is_active")
-  lastLoginAt           DateTime?    @map("last_login_at") @db.Timestamptz
-  passwordChangedAt     DateTime?    @map("password_changed_at") @db.Timestamptz
-  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  id                Int              @id @default(autoincrement())
+  userId            String           @unique @map("user_id") @db.VarChar(50)
 
-  tenant                Tenant       @relation(fields: [tenantId], references: [id])
-  tenantId              Int          @map("tenant_id")
+  tenant            Tenant?          @relation(fields: [tenantId], references: [id])
+  tenantId          Int?             @map("tenant_id")
 
-  driver                Driver?      @relation(fields: [driverId], references: [id])
-  driverId              Int?         @unique @map("driver_id")
+  email             String           @db.VarChar(255)
+  passwordHash      String?          @map("password_hash") @db.VarChar(255)
+  firstName         String           @map("first_name") @db.VarChar(100)
+  lastName          String           @map("last_name") @db.VarChar(100)
+  role              UserRole
 
-  refreshTokens         RefreshToken[]
-  preferences           UserPreferences?
-  driverPreferences     DriverPreferences?
+  // Firebase integration
+  firebaseUid       String?          @unique @map("firebase_uid") @db.VarChar(128)
+  emailVerified     Boolean          @default(false) @map("email_verified")
 
-  @@unique([email, tenantId])
-  @@index([email])
-  @@index([role])
+  // Driver link (optional, only for DRIVER role)
+  driver            Driver?          @relation(fields: [driverId], references: [id])
+  driverId          Int?             @unique @map("driver_id")
+
+  // Status tracking
+  isActive          Boolean          @default(true) @map("is_active")
+  lastLoginAt       DateTime?        @map("last_login_at") @db.Timestamptz
+  passwordChangedAt DateTime?        @map("password_changed_at") @db.Timestamptz
+
+  // Soft delete
+  deletedAt         DateTime?        @map("deleted_at") @db.Timestamptz
+  deletedBy         Int?             @map("deleted_by")
+  deletedByUser     User?            @relation("DeletedBy", fields: [deletedBy], references: [id])
+  deletedUsers      User[]           @relation("DeletedBy")
+  deletionReason    String?          @map("deletion_reason")
+
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  refreshTokens     RefreshToken[]
+  preferences       UserPreferences?
+  driverPreferences DriverPreferences?
+  invitationsSent   UserInvitation[] @relation("InvitedBy")
+  invitationsAccepted UserInvitation[] @relation("AcceptedBy")
+  driversActivated  Driver[]         @relation("ActivatedBy")
+  driversDeactivated Driver[]        @relation("DeactivatedBy")
+  driversReactivated Driver[]        @relation("ReactivatedBy")
+
   @@index([tenantId])
+  @@index([email])
+  @@index([firebaseUid])
+  @@index([role])
+  @@index([isActive])
+  @@index([deletedAt])
   @@map("users")
 }
 
@@ -88,52 +147,121 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
+model UserInvitation {
+  id                Int           @id @default(autoincrement())
+  invitationId      String        @unique @default(uuid()) @map("invitation_id")
+
+  tenant            Tenant        @relation(fields: [tenantId], references: [id])
+  tenantId          Int           @map("tenant_id")
+
+  email             String        @db.VarChar(255)
+  firstName         String        @map("first_name") @db.VarChar(100)
+  lastName          String        @map("last_name") @db.VarChar(100)
+  role              UserRole
+
+  token             String        @unique @db.VarChar(255)
+  expiresAt         DateTime      @map("expires_at") @db.Timestamptz
+
+  invitedBy         Int           @map("invited_by")
+  invitedByUser     User          @relation("InvitedBy", fields: [invitedBy], references: [id])
+
+  acceptedAt        DateTime?     @map("accepted_at") @db.Timestamptz
+  acceptedByUserId  Int?          @map("accepted_by_user_id")
+  acceptedByUser    User?         @relation("AcceptedBy", fields: [acceptedByUserId], references: [id])
+
+  cancelledAt       DateTime?     @map("cancelled_at") @db.Timestamptz
+
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([tenantId])
+  @@index([token])
+  @@index([email])
+  @@index([expiresAt])
+  @@map("user_invitations")
+}
+
 // ============================================================================
 // EXISTING MODELS (UPDATED FOR MULTI-TENANCY)
 // ============================================================================
 
+enum DriverStatus {
+  PENDING_ACTIVATION
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  REMOVED_FROM_SOURCE
+}
+
+enum SyncStatus {
+  SYNCED
+  REMOVED
+  SYNC_ERROR
+  MANUAL_ENTRY
+}
+
 model Driver {
-  id                    Int          @id @default(autoincrement())
-  driverId              String       @map("driver_id") @db.VarChar(50)
-  name                  String       @db.VarChar(100)
-  licenseNumber         String?      @map("license_number") @db.VarChar(50)
-  phone                 String?      @db.VarChar(50)
-  email                 String?      @db.VarChar(255)
-  isActive              Boolean      @default(true) @map("is_active")
-  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  id                    Int           @id @default(autoincrement())
+  driverId              String        @unique @map("driver_id") @db.VarChar(50)
 
-  // HOS fields REMOVED - these are fetched from Samsara mock API on-demand
-  // Removed: hoursDrivenToday, onDutyTimeToday, hoursSinceBreak, currentDutyStatus
+  tenant                Tenant        @relation(fields: [tenantId], references: [id])
+  tenantId              Int           @map("tenant_id")
 
-  // External system linkage (for integration sync)
-  externalDriverId      String?      @map("external_driver_id") @db.VarChar(100)
-  externalSource        String?      @map("external_source") @db.VarChar(50)
+  name                  String        @db.VarChar(255)
+  licenseNumber         String?       @map("license_number") @db.VarChar(50)
+  phone                 String?       @db.VarChar(20)
+  email                 String?       @db.VarChar(255)
 
-  // Cached HOS data (from ELD)
-  hosData               Json?        @map("hos_data")
-  hosDataSyncedAt       DateTime?    @map("hos_data_synced_at") @db.Timestamptz
-  hosDataSource         String?      @map("hos_data_source") @db.VarChar(50)
+  // Status management
+  status                DriverStatus  @default(PENDING_ACTIVATION)
+  isActive              Boolean       @default(true) @map("is_active")
 
-  // Manual override tracking
-  hosManualOverride     Boolean      @default(false) @map("hos_manual_override")
-  hosOverrideBy         String?      @map("hos_override_by") @db.VarChar(50)
-  hosOverrideAt         DateTime?    @map("hos_override_at") @db.Timestamptz
-  hosOverrideReason     String?      @map("hos_override_reason") @db.Text
+  // Activation tracking
+  activatedAt           DateTime?     @map("activated_at") @db.Timestamptz
+  activatedBy           Int?          @map("activated_by")
+  activatedByUser       User?         @relation("ActivatedBy", fields: [activatedBy], references: [id])
 
-  lastSyncedAt          DateTime?    @map("last_synced_at") @db.Timestamptz
+  // Deactivation tracking
+  deactivatedAt         DateTime?     @map("deactivated_at") @db.Timestamptz
+  deactivatedBy         Int?          @map("deactivated_by")
+  deactivatedByUser     User?         @relation("DeactivatedBy", fields: [deactivatedBy], references: [id])
+  deactivationReason    String?       @map("deactivation_reason")
 
-  tenant                Tenant       @relation(fields: [tenantId], references: [id])
-  tenantId              Int          @map("tenant_id")
+  // Reactivation tracking
+  reactivatedAt         DateTime?     @map("reactivated_at") @db.Timestamptz
+  reactivatedBy         Int?          @map("reactivated_by")
+  reactivatedByUser     User?         @relation("ReactivatedBy", fields: [reactivatedBy], references: [id])
 
+  // External sync tracking
+  externalDriverId      String?       @map("external_driver_id") @db.VarChar(100)
+  externalSource        String?       @map("external_source") @db.VarChar(50)
+  lastSyncedAt          DateTime?     @map("last_synced_at") @db.Timestamptz
+  syncStatus            SyncStatus?   @map("sync_status")
+
+  // HOS cache
+  hosData               Json?         @map("hos_data")
+  hosDataSyncedAt       DateTime?     @map("hos_data_synced_at") @db.Timestamptz
+  hosDataSource         String?       @map("hos_data_source") @db.VarChar(50)
+
+  // Manual override
+  hosManualOverride     Json?         @map("hos_manual_override")
+  hosOverrideBy         Int?          @map("hos_override_by")
+  hosOverrideAt         DateTime?     @map("hos_override_at") @db.Timestamptz
+  hosOverrideReason     String?       @map("hos_override_reason")
+
+  createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
   user                  User?
   routePlans            RoutePlan[]
   scenarios             Scenario[]
   driverPreferences     DriverPreferences?
 
-  @@unique([driverId, tenantId])
-  @@unique([externalDriverId, tenantId])
   @@index([tenantId])
+  @@index([externalDriverId])
+  @@index([status])
+  @@index([syncStatus])
+  @@index([isActive])
   @@map("drivers")
 }
 
