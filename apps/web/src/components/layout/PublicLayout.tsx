@@ -40,7 +40,8 @@ export function PublicLayout({ children }: PublicLayoutProps) {
           <div className="flex items-center gap-2">
             <Link
               href="/"
-              className="text-lg sm:text-xl font-bold text-foreground hover:text-muted-foreground transition-opacity"
+              className="text-lg sm:text-xl font-bold text-foreground hover:text-muted-foreground transition-opacity font-space-grotesk"
+              data-sally-logo
             >
               SALLY
             </Link>

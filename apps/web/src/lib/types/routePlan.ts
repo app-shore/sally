@@ -11,6 +11,9 @@ export interface DataSourceBadge {
 export interface StopInput {
   stop_id: string;
   name: string;
+  city?: string;
+  state?: string;
+  action_type?: 'pickup' | 'delivery' | 'both';
   lat: number;
   lon: number;
   location_type: 'warehouse' | 'customer' | 'distribution_center' | 'truck_stop' | 'service_area' | 'fuel_station';

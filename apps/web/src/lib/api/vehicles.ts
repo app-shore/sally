@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+import { apiClient } from './client';
 
 export interface Vehicle {
   id: string;
@@ -37,68 +37,29 @@ export interface UpdateVehicleRequest {
 }
 
 export async function listVehicles(): Promise<Vehicle[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/vehicles`);
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to fetch vehicles' }));
-    throw new Error(error.detail || 'Failed to fetch vehicles');
-  }
-
-  return response.json();
+  return apiClient<Vehicle[]>('/vehicles');
 }
 
 export async function getVehicle(vehicleId: string): Promise<Vehicle> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/vehicles/${vehicleId}`);
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to fetch vehicle' }));
-    throw new Error(error.detail || 'Failed to fetch vehicle');
-  }
-
-  return response.json();
+  return apiClient<Vehicle>(`/vehicles/${vehicleId}`);
 }
 
 export async function createVehicle(data: CreateVehicleRequest): Promise<Vehicle> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/vehicles`, {
+  return apiClient<Vehicle>('/vehicles', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to create vehicle' }));
-    throw new Error(error.detail || 'Failed to create vehicle');
-  }
-
-  return response.json();
 }
 
 export async function updateVehicle(vehicleId: string, data: UpdateVehicleRequest): Promise<Vehicle> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/vehicles/${vehicleId}`, {
+  return apiClient<Vehicle>(`/vehicles/${vehicleId}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to update vehicle' }));
-    throw new Error(error.detail || 'Failed to update vehicle');
-  }
-
-  return response.json();
 }
 
 export async function deleteVehicle(vehicleId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/vehicles/${vehicleId}`, {
+  return apiClient<void>(`/vehicles/${vehicleId}`, {
     method: 'DELETE',
   });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to delete vehicle' }));
-    throw new Error(error.detail || 'Failed to delete vehicle');
-  }
 }

@@ -22,6 +22,27 @@ interface RoutePlanStore {
   vehicleState: VehicleStateInput | null;
   optimizationPriority: 'minimize_time' | 'minimize_cost' | 'balance';
 
+  // TMS Integration
+  selectedLoadId: string | null;
+  setSelectedLoadId: (id: string | null) => void;
+
+  // Auto-suggest state
+  suggestedDriverId: string | null;
+  setSuggestedDriverId: (id: string | null) => void;
+  driverAssignedVehicleId: string | null;
+  setDriverAssignedVehicleId: (id: string | null) => void;
+  isVehicleOverridden: boolean;
+  setVehicleOverridden: (overridden: boolean) => void;
+
+  // Validation
+  validationErrors: {
+    load?: string;
+    driver?: string;
+    vehicle?: string;
+  };
+  isFormValid: boolean;
+  validateForm: () => boolean;
+
   // Scenarios
   scenarios: ScenarioListItem[];
   selectedScenario: Scenario | null;
@@ -92,6 +113,12 @@ export const useRoutePlanStore = create<RoutePlanStore>((set, get) => ({
   driverState: null,
   vehicleState: null,
   optimizationPriority: 'minimize_time',
+  selectedLoadId: null,
+  suggestedDriverId: null,
+  driverAssignedVehicleId: null,
+  isVehicleOverridden: false,
+  validationErrors: {},
+  isFormValid: false,
   scenarios: [],
   selectedScenario: null,
   loads: [],
@@ -174,6 +201,40 @@ export const useRoutePlanStore = create<RoutePlanStore>((set, get) => ({
 
   clearTriggers: () => set({ selectedTriggers: [] }),
 
+  // TMS Integration
+  setSelectedLoadId: (selectedLoadId) => set({ selectedLoadId }),
+
+  // Auto-suggest
+  setSuggestedDriverId: (suggestedDriverId) => set({ suggestedDriverId }),
+  setDriverAssignedVehicleId: (driverAssignedVehicleId) => set({ driverAssignedVehicleId }),
+  setVehicleOverridden: (isVehicleOverridden) => set({ isVehicleOverridden }),
+
+  // Validation
+  validateForm: () => {
+    const state = get();
+    const errors: Record<string, string> = {};
+
+    if (!state.selectedLoadId) {
+      errors.load = "Load is required";
+    }
+
+    if (!state.driverId) {
+      errors.driver = "Driver is required";
+    }
+
+    if (!state.vehicleId) {
+      errors.vehicle = "Vehicle is required";
+    }
+
+    if (!state.stops || state.stops.length < 2) {
+      errors.load = "Load must have at least 2 stops";
+    }
+
+    const isValid = Object.keys(errors).length === 0;
+    set({ validationErrors: errors, isFormValid: isValid });
+    return isValid;
+  },
+
   // Reset
   reset: () => set({
     currentPlan: null,
@@ -183,6 +244,12 @@ export const useRoutePlanStore = create<RoutePlanStore>((set, get) => ({
     driverState: null,
     vehicleState: null,
     optimizationPriority: 'minimize_time',
+    selectedLoadId: null,
+    suggestedDriverId: null,
+    driverAssignedVehicleId: null,
+    isVehicleOverridden: false,
+    validationErrors: {},
+    isFormValid: false,
     scenarios: [],
     selectedScenario: null,
     loads: [],

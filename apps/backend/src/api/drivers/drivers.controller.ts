@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Put, Delete, Param, Query, Body, HttpStatus, HttpException, Logger, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Query, Body, HttpStatus, HttpException, Logger, UseGuards, Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiParam, ApiBody, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { PrismaService } from '../../database/prisma.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';
 
 @ApiTags('Drivers')
 @ApiBearerAuth()
@@ -11,7 +12,10 @@ import { UserRole } from '@prisma/client';
 export class DriversController {
   private readonly logger = new Logger(DriversController.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(IntegrationManagerService) private readonly integrationManager: IntegrationManagerService,
+  ) {}
 
   @Get()
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
@@ -176,47 +180,6 @@ export class DriversController {
     }
   }
 
-  @Get(':driver_id/hos')
-  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.DRIVER)
-  @ApiOperation({ summary: 'Get driver HOS data from Samsara mock API' })
-  @ApiParam({ name: 'driver_id', description: 'Driver ID' })
-  async getDriverHOS(@CurrentUser() user: any, @Param('driver_id') driverId: string) {
-    this.logger.log(`Get HOS data for driver: ${driverId} by user ${user.userId}`);
-
-    try {
-      // Get tenant ID from authenticated user
-      const tenant = await this.prisma.tenant.findUnique({
-        where: { tenantId: user.tenantId },
-      });
-
-      // Get basic driver info from database
-      const driver = await this.prisma.driver.findUnique({
-        where: {
-          driverId_tenantId: {
-            driverId,
-            tenantId: tenant.id,
-          },
-        },
-      });
-
-      if (!driver) {
-        throw new HttpException({ detail: `Driver ${driverId} not found` }, HttpStatus.NOT_FOUND);
-      }
-
-      // In a real implementation, we would call the external Samsara API here
-      // For POC, we return a reference to the mock API endpoint
-      return {
-        driver_id: driver.driverId,
-        name: driver.name,
-        message: `HOS data available at GET /external/hos/${driverId}`,
-        note: 'Call the external mock API to get live HOS data',
-      };
-    } catch (error) {
-      this.logger.error(`Get HOS failed: ${error.message}`);
-      if (error instanceof HttpException) throw error;
-      throw new HttpException({ detail: 'Failed to fetch HOS data' }, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
 
   @Get(':driver_id')
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.DRIVER)
@@ -278,6 +241,33 @@ export class DriversController {
       if (error instanceof HttpException) throw error;
       this.logger.error(`Get driver failed: ${error.message}`);
       throw new HttpException({ detail: 'Failed to fetch driver' }, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get(':driverId/hos')
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
+  @ApiOperation({ summary: 'Get live HOS data for driver from integration (with cache fallback)' })
+  @ApiParam({ name: 'driverId', description: 'Driver ID' })
+  async getDriverHOS(
+    @Param('driverId') driverId: string,
+    @CurrentUser() user: any,
+  ) {
+    this.logger.log(`Fetch HOS for driver ${driverId} by user ${user.userId}`);
+
+    try {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
+      const hosData = await this.integrationManager.getDriverHOS(tenant.id, driverId);
+
+      return hosData;
+    } catch (error) {
+      this.logger.error(`Get driver HOS failed: ${error.message}`);
+      throw new HttpException(
+        { detail: error.message || 'Failed to fetch driver HOS' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

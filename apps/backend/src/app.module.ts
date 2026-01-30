@@ -31,6 +31,7 @@ import { ScenariosController } from './api/scenarios/scenarios.controller';
 import { ExternalMockController } from './api/external-mock/external-mock.controller';
 import { AlertsController } from './api/alerts/alerts.controller';
 import { SessionController } from './api/session/session.controller';
+import { IntegrationsModule } from './api/integrations/integrations.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { SessionController } from './api/session/session.controller';
     PrismaModule,
     DatabaseModule,
     AuthModule,
+    IntegrationsModule,
   ],
   providers: [
     // Global guards (applied to all routes by default)

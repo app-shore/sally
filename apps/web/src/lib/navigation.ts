@@ -1,4 +1,4 @@
-import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon } from 'lucide-react';
+import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3 } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -6,6 +6,14 @@ export interface NavItem {
   icon: LucideIcon;
   roles?: ('DISPATCHER' | 'DRIVER' | 'ADMIN')[];
 }
+
+export interface NavSeparator {
+  type: 'separator';
+  label: string;
+  roles?: ('DISPATCHER' | 'DRIVER' | 'ADMIN')[];
+}
+
+export type NavigationItem = NavItem | NavSeparator;
 
 /**
  * Centralized navigation configuration for SALLY
@@ -17,27 +25,40 @@ export interface NavItem {
  * - Keep labels concise but descriptive (2-3 words max)
  * - Focus on action and outcomes
  */
-export const navigationConfig = {
+export const navigationConfig: Record<string, NavigationItem[]> = {
   dispatcher: [
     { label: 'Command Center', href: '/dispatcher/overview', icon: Home },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Active Routes', href: '/dispatcher/active-routes', icon: Truck },
-    { label: 'Settings', href: '/settings', icon: Settings },
-  ] as const,
+    { type: 'separator', label: 'Configuration' } as NavSeparator,
+    { label: 'Fleet', href: '/settings/fleet', icon: Package },
+    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
+    { label: 'Preferences', href: '/settings', icon: Settings },
+  ],
 
   driver: [
     { label: 'My Routes', href: '/driver/dashboard', icon: Home },
     { label: 'Today\'s Route', href: '/driver/current-route', icon: Map },
     { label: 'Dispatch Messages', href: '/driver/messages', icon: MessageSquare },
-    { label: 'Settings', href: '/settings', icon: Settings },
-  ] as const,
+    { type: 'separator', label: 'Configuration' } as NavSeparator,
+    { label: 'Preferences', href: '/settings', icon: Settings },
+  ],
 
   admin: [
-    { label: 'System Overview', href: '/admin/dashboard', icon: Home },
-    { label: 'User Management', href: '/admin/users', icon: Settings },
-    { label: 'Settings', href: '/settings', icon: Settings },
-  ] as const,
-} as const;
+    // Admin-specific pages
+    { label: 'System Overview', href: '/admin/dashboard', icon: BarChart3 },
+    { label: 'User Management', href: '/admin/users', icon: Users },
+    { type: 'separator', label: 'Operations' } as NavSeparator,
+    // All dispatcher capabilities
+    { label: 'Command Center', href: '/dispatcher/overview', icon: Home },
+    { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
+    { label: 'Active Routes', href: '/dispatcher/active-routes', icon: Truck },
+    { type: 'separator', label: 'Configuration' } as NavSeparator,
+    { label: 'Fleet', href: '/settings/fleet', icon: Package },
+    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
+    { label: 'Preferences', href: '/settings', icon: Settings },
+  ],
+};
 
 /**
  * Public routes that don't require authentication
@@ -57,7 +78,7 @@ export const protectedRoutePatterns = [
 /**
  * Get navigation items based on user role
  */
-export function getNavigationForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | undefined) {
+export function getNavigationForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | undefined): NavigationItem[] {
   if (!role) return [];
 
   const roleKey = role.toLowerCase() as keyof typeof navigationConfig;

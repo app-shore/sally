@@ -63,15 +63,17 @@ export function CommandPalette() {
 
           {/* Navigation */}
           <CommandGroup heading="Navigation">
-            {navItems.map((item) => {
-              const Icon = item.icon;
+            {navItems.filter((item) => !('type' in item)).map((item) => {
+              // Type guard: we filtered out separators, so this is NavItem
+              const navItem = item as import('@/lib/navigation').NavItem;
+              const Icon = navItem.icon;
               return (
                 <CommandItem
-                  key={item.href}
-                  onSelect={() => runCommand(() => router.push(item.href))}
+                  key={navItem.href}
+                  onSelect={() => runCommand(() => router.push(navItem.href))}
                 >
                   <Icon className="mr-2 h-4 w-4" />
-                  <span>{item.label}</span>
+                  <span>{navItem.label}</span>
                 </CommandItem>
               );
             })}

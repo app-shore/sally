@@ -39,7 +39,7 @@ export async function listAlerts(params?: ListAlertsParams): Promise<Alert[]> {
   }
 
   const query = queryParams.toString();
-  const url = `/api/v1/alerts${query ? `?${query}` : ''}`;
+  const url = `/alerts${query ? `?${query}` : ''}`;
 
   return api.get<Alert[]>(url);
 }

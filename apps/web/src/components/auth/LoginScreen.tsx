@@ -129,7 +129,7 @@ function EmailStep({ email, setEmail, onSubmit, isLoading, error }: EmailStepPro
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12"
       >
-        <h1 className="text-6xl font-bold tracking-tight mb-2">SALLY</h1>
+        <h1 className="text-6xl font-bold tracking-tight mb-2 font-space-grotesk">SALLY</h1>
         <p className="text-xl text-muted-foreground">
           Intelligent Dispatch & Driver Coordination
         </p>

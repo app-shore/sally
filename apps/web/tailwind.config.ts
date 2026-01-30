@@ -10,6 +10,11 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'space-grotesk': ['var(--font-space-grotesk)'],
+        'sora': ['var(--font-sora)'],
+        'outfit': ['var(--font-outfit)'],
+      },
       colors: {
         // Keep shadcn variables for compatibility
         border: "hsl(var(--border))",

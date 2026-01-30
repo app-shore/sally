@@ -8,7 +8,7 @@ import { useSessionStore } from '@/lib/store/sessionStore';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { getNavigationForRole } from '@/lib/navigation';
+import { getNavigationForRole, type NavItem } from '@/lib/navigation';
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -77,40 +77,41 @@ export function AppSidebar({
         <ScrollArea className="flex-1 px-3 py-4">
           <nav className="space-y-1">
             {navItems.map((item, index) => {
-              const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
-              const showSeparator = user?.role !== 'DRIVER' && index === 3; // After Active Routes
-              const Icon = item.icon;
+              // Check if this is a separator
+              if ('type' in item && item.type === 'separator') {
+                return (
+                  <div key={`separator-${index}`} className="my-2">
+                    <Separator />
+                    {!isCollapsed && (
+                      <p className="text-xs text-muted-foreground px-3 py-2">{item.label}</p>
+                    )}
+                  </div>
+                );
+              }
+
+              // Regular nav item (type guard ensures this is NavItem)
+              const navItem = item as NavItem;
+              const isActive = pathname === navItem.href || pathname?.startsWith(navItem.href + '/');
+              const Icon = navItem.icon;
 
               return (
-                <div key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={onClose}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2 rounded-md transition-colors',
-                      'text-sm font-medium',
-                      isActive
-                        ? 'bg-black text-white dark:bg-white dark:text-black'
-                        : 'text-foreground hover:bg-gray-100 dark:hover:bg-gray-800',
-                      isCollapsed && 'justify-center'
-                    )}
-                    title={isCollapsed ? item.label : undefined}
-                  >
-                    <Icon className={cn('h-5 w-5', isCollapsed && 'mx-auto')} />
-                    {!isCollapsed && <span>{item.label}</span>}
-                  </Link>
-                  {showSeparator && !isCollapsed && (
-                    <div className="my-2">
-                      <Separator />
-                      <p className="text-xs text-muted-foreground px-3 py-2">Tools</p>
-                    </div>
+                <Link
+                  key={navItem.href}
+                  href={navItem.href}
+                  onClick={onClose}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2 rounded-md transition-colors',
+                    'text-sm font-medium',
+                    isActive
+                      ? 'bg-black text-white dark:bg-white dark:text-black'
+                      : 'text-foreground hover:bg-gray-100 dark:hover:bg-gray-800',
+                    isCollapsed && 'justify-center'
                   )}
-                  {showSeparator && isCollapsed && (
-                    <div className="my-2">
-                      <Separator />
-                    </div>
-                  )}
-                </div>
+                  title={isCollapsed ? navItem.label : undefined}
+                >
+                  <Icon className={cn('h-5 w-5', isCollapsed && 'mx-auto')} />
+                  {!isCollapsed && <span>{navItem.label}</span>}
+                </Link>
               );
             })}
           </nav>

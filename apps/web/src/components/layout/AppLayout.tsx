@@ -87,7 +87,8 @@ export function AppLayout({ children }: AppLayoutProps) {
             sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
           )}
         >
-          <div className="max-w-7xl mx-auto p-4 md:p-8">
+          {/* Remove max-w-7xl constraint - let pages control their own width */}
+          <div className="p-4 md:p-8">
             {children}
           </div>
         </main>

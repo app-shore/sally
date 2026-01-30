@@ -7,11 +7,12 @@ import { z } from 'zod';
 import { DEFAULT_MVP_SOURCES, formatDataSourceBadge } from '../../utils/data-sources';
 
 const StopInputSchema = z.object({
-  stop_id: z.string().min(1),
+  stop_id: z.union([z.string(), z.number()]).transform(val => String(val)),
   name: z.string().min(1),
   lat: z.number().min(-90).max(90),
   lon: z.number().min(-180).max(180),
   location_type: z.enum(['warehouse', 'customer', 'distribution_center', 'truck_stop', 'service_area', 'fuel_station']),
+  action_type: z.enum(['pickup', 'delivery']).optional(),
   is_origin: z.boolean().default(false),
   is_destination: z.boolean().default(false),
   earliest_arrival: z.string().optional(),
@@ -21,8 +22,8 @@ const StopInputSchema = z.object({
 });
 
 const RoutePlanningRequestSchema = z.object({
-  driver_id: z.string().min(1),
-  vehicle_id: z.string().min(1),
+  driver_id: z.union([z.string(), z.number()]).transform(val => String(val)),
+  vehicle_id: z.union([z.string(), z.number()]).transform(val => String(val)),
   driver_state: z.object({
     hours_driven: z.number().min(0).max(11),
     on_duty_time: z.number().min(0).max(14),

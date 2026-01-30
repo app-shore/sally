@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+import { apiClient } from './client';
 
 export interface Driver {
   id: string;
@@ -12,6 +12,13 @@ export interface Driver {
     cycle_remaining: number;
     break_required: boolean;
   };
+  // External sync metadata
+  external_driver_id?: string;
+  external_source?: string;
+  hos_data_source?: string;
+  hos_data_synced_at?: string;
+  hos_manual_override?: boolean;
+  last_synced_at?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -31,68 +38,50 @@ export interface UpdateDriverRequest {
 }
 
 export async function listDrivers(): Promise<Driver[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/drivers`);
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to fetch drivers' }));
-    throw new Error(error.detail || 'Failed to fetch drivers');
-  }
-
-  return response.json();
+  return apiClient<Driver[]>('/drivers');
 }
 
 export async function getDriver(driverId: string): Promise<Driver> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/drivers/${driverId}`);
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to fetch driver' }));
-    throw new Error(error.detail || 'Failed to fetch driver');
-  }
-
-  return response.json();
+  return apiClient<Driver>(`/drivers/${driverId}`);
 }
 
 export async function createDriver(data: CreateDriverRequest): Promise<Driver> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/drivers`, {
+  return apiClient<Driver>('/drivers', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to create driver' }));
-    throw new Error(error.detail || 'Failed to create driver');
-  }
-
-  return response.json();
 }
 
 export async function updateDriver(driverId: string, data: UpdateDriverRequest): Promise<Driver> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/drivers/${driverId}`, {
+  return apiClient<Driver>(`/drivers/${driverId}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to update driver' }));
-    throw new Error(error.detail || 'Failed to update driver');
-  }
-
-  return response.json();
 }
 
 export async function deleteDriver(driverId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/drivers/${driverId}`, {
+  return apiClient<void>(`/drivers/${driverId}`, {
     method: 'DELETE',
   });
+}
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to delete driver' }));
-    throw new Error(error.detail || 'Failed to delete driver');
-  }
+/**
+ * Fetch live HOS data for a driver from external integration
+ * Falls back to cached data if integration is unavailable
+ */
+export async function getDriverHOS(driverId: string): Promise<{
+  driver_id: string;
+  hours_driven: number;
+  on_duty_time: number;
+  hours_since_break: number;
+  duty_status: string;
+  last_updated: string;
+  data_source: string;
+  cached?: boolean;
+  stale?: boolean;
+  cache_age_seconds?: number;
+}> {
+  return apiClient(`/api/v1/drivers/${driverId}/hos`, {
+    method: 'GET',
+  });
 }

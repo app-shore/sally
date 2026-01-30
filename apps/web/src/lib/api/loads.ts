@@ -2,9 +2,8 @@
  * API client functions for loads
  */
 
+import { apiClient } from './client';
 import type { Load, LoadListItem, LoadCreate } from "@/lib/types/load";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export async function getLoads(params?: {
   status?: string;
@@ -12,47 +11,28 @@ export async function getLoads(params?: {
   limit?: number;
   offset?: number;
 }): Promise<LoadListItem[]> {
-  const url = new URL(`${API_BASE}/loads/`);
+  const queryParams = new URLSearchParams();
 
   if (params) {
-    if (params.status) url.searchParams.set("status", params.status);
-    if (params.customer_name) url.searchParams.set("customer_name", params.customer_name);
-    if (params.limit) url.searchParams.set("limit", params.limit.toString());
-    if (params.offset) url.searchParams.set("offset", params.offset.toString());
+    if (params.status) queryParams.set("status", params.status);
+    if (params.customer_name) queryParams.set("customer_name", params.customer_name);
+    if (params.limit) queryParams.set("limit", params.limit.toString());
+    if (params.offset) queryParams.set("offset", params.offset.toString());
   }
 
-  const response = await fetch(url.toString());
+  const queryString = queryParams.toString();
+  const url = queryString ? `/loads/?${queryString}` : '/loads/';
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch loads: ${response.statusText}`);
-  }
-
-  return response.json();
+  return apiClient<LoadListItem[]>(url);
 }
 
 export async function getLoad(loadId: string): Promise<Load> {
-  const response = await fetch(`${API_BASE}/loads/${loadId}`);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch load: ${response.statusText}`);
-  }
-
-  return response.json();
+  return apiClient<Load>(`/loads/${loadId}`);
 }
 
 export async function createLoad(data: LoadCreate): Promise<Load> {
-  const response = await fetch(`${API_BASE}/loads/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+  return apiClient<Load>('/loads/', {
+    method: 'POST',
     body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || `Failed to create load: ${response.statusText}`);
-  }
-
-  return response.json();
 }

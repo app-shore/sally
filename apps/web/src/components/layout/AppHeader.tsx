@@ -41,8 +41,9 @@ export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHead
           {/* Logo - clickable to home */}
           <Link
             href="/"
-            className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity"
+            className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity font-space-grotesk"
             title="Back to Home"
+            data-sally-logo
           >
             SALLY
           </Link>

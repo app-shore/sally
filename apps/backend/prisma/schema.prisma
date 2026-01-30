@@ -32,6 +32,7 @@ model Tenant {
   vehicles              Vehicle[]
   routePlans            RoutePlan[]
   alerts                Alert[]
+  integrationConfigs    IntegrationConfig[]
 
   @@index([tenantId])
   @@index([subdomain])
@@ -92,12 +93,32 @@ model Driver {
   id                    Int          @id @default(autoincrement())
   driverId              String       @map("driver_id") @db.VarChar(50)
   name                  String       @db.VarChar(100)
+  licenseNumber         String?      @map("license_number") @db.VarChar(50)
+  phone                 String?      @db.VarChar(50)
+  email                 String?      @db.VarChar(255)
   isActive              Boolean      @default(true) @map("is_active")
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
   // HOS fields REMOVED - these are fetched from Samsara mock API on-demand
   // Removed: hoursDrivenToday, onDutyTimeToday, hoursSinceBreak, currentDutyStatus
+
+  // External system linkage (for integration sync)
+  externalDriverId      String?      @map("external_driver_id") @db.VarChar(100)
+  externalSource        String?      @map("external_source") @db.VarChar(50)
+
+  // Cached HOS data (from ELD)
+  hosData               Json?        @map("hos_data")
+  hosDataSyncedAt       DateTime?    @map("hos_data_synced_at") @db.Timestamptz
+  hosDataSource         String?      @map("hos_data_source") @db.VarChar(50)
+
+  // Manual override tracking
+  hosManualOverride     Boolean      @default(false) @map("hos_manual_override")
+  hosOverrideBy         String?      @map("hos_override_by") @db.VarChar(50)
+  hosOverrideAt         DateTime?    @map("hos_override_at") @db.Timestamptz
+  hosOverrideReason     String?      @map("hos_override_reason") @db.Text
+
+  lastSyncedAt          DateTime?    @map("last_synced_at") @db.Timestamptz
 
   tenant                Tenant       @relation(fields: [tenantId], references: [id])
   tenantId              Int          @map("tenant_id")
@@ -107,6 +128,7 @@ model Driver {
   scenarios             Scenario[]
 
   @@unique([driverId, tenantId])
+  @@unique([externalDriverId, tenantId])
   @@index([tenantId])
   @@map("drivers")
 }
@@ -351,4 +373,95 @@ model Alert {
   @@index([createdAt])
   @@index([tenantId])
   @@map("alerts")
+}
+
+// ============================================================================
+// INTEGRATION MODELS
+// ============================================================================
+
+enum IntegrationType {
+  TMS
+  HOS_ELD
+  FUEL_PRICE
+  WEATHER
+  TELEMATICS
+}
+
+enum IntegrationVendor {
+  MCLEOD_TMS
+  TMW_TMS
+  SAMSARA_ELD
+  KEEPTRUCKIN_ELD
+  MOTIVE_ELD
+  GASBUDDY_FUEL
+  OPENWEATHER
+  MOCK_SAMSARA
+}
+
+enum IntegrationStatus {
+  NOT_CONFIGURED
+  CONFIGURED
+  ACTIVE
+  ERROR
+  DISABLED
+}
+
+model IntegrationConfig {
+  id                    Int                  @id @default(autoincrement())
+  integrationId         String               @unique @map("integration_id") @db.VarChar(50)
+
+  tenant                Tenant               @relation(fields: [tenantId], references: [id])
+  tenantId              Int                  @map("tenant_id")
+
+  integrationType       IntegrationType      @map("integration_type")
+  vendor                IntegrationVendor
+  displayName           String               @map("display_name") @db.VarChar(200)
+  isEnabled             Boolean              @default(false) @map("is_enabled")
+  status                IntegrationStatus    @default(NOT_CONFIGURED)
+
+  // Encrypted credentials (JSON stored as text)
+  credentials           Json?
+
+  // Sync settings
+  syncIntervalSeconds   Int?                 @map("sync_interval_seconds")
+
+  // Health monitoring
+  lastSyncAt            DateTime?            @map("last_sync_at") @db.Timestamptz
+  lastSuccessAt         DateTime?            @map("last_success_at") @db.Timestamptz
+  lastErrorAt           DateTime?            @map("last_error_at") @db.Timestamptz
+  lastErrorMessage      String?              @map("last_error_message") @db.Text
+
+  createdAt             DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  syncLogs              IntegrationSyncLog[]
+
+  @@unique([tenantId, integrationType, vendor])
+  @@index([tenantId])
+  @@index([status])
+  @@map("integration_configs")
+}
+
+model IntegrationSyncLog {
+  id                    Int                  @id @default(autoincrement())
+  logId                 String               @unique @map("log_id") @db.VarChar(50)
+
+  integration           IntegrationConfig    @relation(fields: [integrationId], references: [id])
+  integrationId         Int                  @map("integration_id")
+
+  syncType              String               @map("sync_type") @db.VarChar(20)
+  startedAt             DateTime             @map("started_at") @db.Timestamptz
+  completedAt           DateTime?            @map("completed_at") @db.Timestamptz
+
+  status                String               @db.VarChar(20)
+  recordsProcessed      Int                  @default(0) @map("records_processed")
+  recordsCreated        Int                  @default(0) @map("records_created")
+  recordsUpdated        Int                  @default(0) @map("records_updated")
+
+  errorDetails          Json?                @map("error_details")
+
+  createdAt             DateTime             @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([integrationId, startedAt])
+  @@map("integration_sync_logs")
 }

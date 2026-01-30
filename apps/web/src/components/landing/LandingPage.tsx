@@ -32,7 +32,7 @@ export function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
           >
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 text-gradient">
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 text-gradient font-space-grotesk">
               SALLY
             </h1>
             <p className="text-2xl md:text-3xl text-foreground mb-4 font-semibold tracking-tight">
@@ -371,7 +371,7 @@ export function LandingPage() {
                   whileHover={{ scale: 1.05 }}
                   className="relative z-10 bg-black dark:bg-white text-white dark:text-black px-12 py-8 rounded-lg text-center"
                 >
-                  <div className="text-4xl font-bold mb-2">SALLY</div>
+                  <div className="text-4xl font-bold mb-2 font-space-grotesk">SALLY</div>
                   <div className="text-sm text-gray-400 dark:text-gray-600">Intelligence Layer</div>
                 </motion.div>
               </div>
