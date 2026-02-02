@@ -1,6 +1,7 @@
 import { PrismaClient, UserRole } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
+import { seedFeatureFlags } from './seeds/feature-flags.seed';
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://sally_user:sally_password@localhost:5432/sally';
 const pool = new pg.Pool({ connectionString });
@@ -1390,6 +1391,9 @@ async function main() {
   console.log('  Driver:      maria.garcia@xyzlogistics.com (user_xyz_drv_002 - driver_102)');
   console.log('  Driver:      david.lee@xyzlogistics.com (user_xyz_drv_003 - driver_103)');
   console.log('─────────────────────────────────────');
+
+  // Seed feature flags
+  await seedFeatureFlags();
 }
 
 main()
