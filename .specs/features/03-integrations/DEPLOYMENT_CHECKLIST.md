@@ -58,21 +58,28 @@
   - `JWT_REFRESH_SECRET` set (production value, not dev default)
   - Secrets stored securely (password manager, AWS Secrets Manager, etc.)
 
-### Email Alert Configuration
+### Email Alert Configuration (Resend)
 
-- [ ] **SMTP credentials** obtained and tested
-  - `SMTP_HOST`: ___________
-  - `SMTP_PORT`: ___________
-  - `SMTP_SECURE`: true/false
-  - `SMTP_USER`: ___________
-  - `SMTP_PASSWORD`: ___________ (use app password for Gmail)
-  - `SMTP_FROM`: "SALLY Alerts <noreply@sally.com>"
+- [ ] **Resend API key** obtained and tested
+  - Sign up at: https://resend.com/onboarding
+  - Get API key from: https://resend.com/api-keys
+  - `SMTP_HOST`: smtp.resend.com
+  - `SMTP_PORT`: 465
+  - `SMTP_USER`: resend
+  - `SMTP_PASS`: re_123456789_YourResendAPIKey
+  - `ALERT_FROM_EMAIL`: alerts@sally.app (must be verified domain)
+
+- [ ] **Domain verification completed**
+  - Add DNS records in Resend dashboard
+  - Verify domain ownership
+  - Test sending from verified domain
 
 - [ ] **Test email sent successfully**
-  - Send test alert email
+  - Send test alert email via Resend
   - Verify delivery to: ___________
   - Check spam folder if not received
   - Verify email formatting and links work
+  - Confirm delivery logs in Resend dashboard
 
 ### Database Preparation
 

@@ -58,11 +58,11 @@ private getApiKeyFromCredentials(credentials: any): string {
 
 **Kept in `.env.example`:**
 ```bash
-# Email Alerting (infrastructure secret)
-SMTP_HOST="smtp.sendgrid.net"
-SMTP_PORT="587"
-SMTP_USER="apikey"
-SMTP_PASS="your-sendgrid-api-key"
+# Email Alerting (using Resend - https://resend.com)
+SMTP_HOST="smtp.resend.com"
+SMTP_PORT="465"
+SMTP_USER="resend"
+SMTP_PASS="re_123456789_YourResendAPIKey"
 ALERT_FROM_EMAIL="alerts@sally.app"
 
 # Credentials Encryption (already existed, needed)
