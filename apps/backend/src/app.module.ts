@@ -17,6 +17,7 @@ import { RestStopFinderService } from './services/rest-stop-finder/rest-stop-fin
 import { FuelStopOptimizerService } from './services/fuel-stop-optimizer/fuel-stop-optimizer.service';
 import { RoutePlanningEngineService } from './services/route-planning-engine/route-planning-engine.service';
 import { DynamicUpdateHandlerService } from './services/dynamic-update-handler/dynamic-update-handler.service';
+import { DriversActivationService } from './api/drivers/drivers-activation.service';
 
 // Controllers
 import { HealthController } from './health/health.controller';
@@ -34,6 +35,9 @@ import { SessionController } from './api/session/session.controller';
 import { IntegrationsModule } from './api/integrations/integrations.module';
 import { PreferencesModule } from './api/preferences/preferences.module';
 import { TenantsModule } from './api/tenants/tenants.module';
+import { UserInvitationsModule } from './api/user-invitations/user-invitations.module';
+import { UsersModule } from './api/users/users.module';
+import { ServicesModule } from './common/services/services.module';
 
 @Module({
   imports: [
@@ -45,9 +49,12 @@ import { TenantsModule } from './api/tenants/tenants.module';
     PrismaModule,
     DatabaseModule,
     AuthModule,
+    ServicesModule,
     IntegrationsModule,
     PreferencesModule,
     TenantsModule,
+    UserInvitationsModule,
+    UsersModule,
   ],
   providers: [
     // Global guards (applied to all routes by default)
@@ -71,6 +78,7 @@ import { TenantsModule } from './api/tenants/tenants.module';
     FuelStopOptimizerService,
     RoutePlanningEngineService,
     DynamicUpdateHandlerService,
+    DriversActivationService,
   ],
   controllers: [
     HealthController,

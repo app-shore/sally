@@ -18,8 +18,16 @@ import {
 import { ROICalculator } from './ROICalculator';
 import { MonitoringDashboard } from './MonitoringDashboard';
 import { ComparisonTable } from './ComparisonRow';
+import { useSessionStore } from '@/lib/store/sessionStore';
+import { getDefaultRouteForRole } from '@/lib/navigation';
 
 export function LandingPage() {
+  const { isAuthenticated, user } = useSessionStore();
+
+  // Get the appropriate destination for "Get Started" button
+  const getStartedUrl = isAuthenticated && user
+    ? getDefaultRouteForRole(user.role as any)
+    : '/login';
   return (
     <div className="min-h-screen bg-background smooth-scroll">
       {/* Section 1: Hero */}
@@ -49,18 +57,18 @@ export function LandingPage() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <Link href="/login">
+              <Link href={getStartedUrl}>
                 <Button
                   size="lg"
-                  className="bg-black hover:bg-gray-800 text-white px-8 py-6 text-lg h-auto rounded-lg transition-all hover:scale-105"
+                  className="px-8 py-6 text-lg h-auto rounded-lg transition-all hover:scale-105"
                 >
-                  Get Started
+                  {isAuthenticated ? 'Go to App' : 'Get Started'}
                 </Button>
               </Link>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-foreground text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 px-8 py-6 text-lg h-auto rounded-lg transition-all hover:scale-105"
+                className="border-2 border-foreground text-foreground hover:bg-muted px-8 py-6 text-lg h-auto rounded-lg transition-all hover:scale-105"
                 onClick={() => {
                   document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
                 }}
@@ -89,7 +97,7 @@ export function LandingPage() {
       </section>
 
       {/* Section 2: The Problem */}
-      <section className="py-32 bg-gray-50 dark:bg-gray-900">
+      <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-20">
@@ -144,7 +152,7 @@ export function LandingPage() {
                 <div className="w-full border-t-2 border-dashed border-gray-300 dark:border-gray-700" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-gray-50 dark:bg-gray-900 px-6 py-2 text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                <span className="bg-muted px-6 py-2 text-sm font-medium text-muted-foreground uppercase tracking-wide">
                   Communication Breakdown
                 </span>
               </div>
@@ -200,7 +208,7 @@ export function LandingPage() {
       </section>
 
       {/* Section 4: Key Features */}
-      <section className="py-32 bg-gray-50 dark:bg-gray-900">
+      <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-20">
@@ -265,7 +273,7 @@ export function LandingPage() {
             <div className="grid lg:grid-cols-3 gap-16 relative">
               <ScrollReveal delay={0}>
                 <div className="relative bg-background p-8 border-2 border-border rounded-lg text-center hover-lift">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-black dark:bg-white text-white dark:text-black rounded-full text-2xl font-bold mb-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-full text-2xl font-bold mb-6">
                     1
                   </div>
                   <h3 className="text-2xl font-bold text-foreground mb-4">Input & Plan</h3>
@@ -277,7 +285,7 @@ export function LandingPage() {
 
               <ScrollReveal delay={0.2}>
                 <div className="relative bg-background p-8 border-2 border-border rounded-lg text-center hover-lift">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-black dark:bg-white text-white dark:text-black rounded-full text-2xl font-bold mb-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-full text-2xl font-bold mb-6">
                     2
                   </div>
                   <h3 className="text-2xl font-bold text-foreground mb-4">Monitor 24/7</h3>
@@ -289,7 +297,7 @@ export function LandingPage() {
 
               <ScrollReveal delay={0.4}>
                 <div className="relative bg-background p-8 border-2 border-border rounded-lg text-center hover-lift">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-black dark:bg-white text-white dark:text-black rounded-full text-2xl font-bold mb-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-full text-2xl font-bold mb-6">
                     3
                   </div>
                   <h3 className="text-2xl font-bold text-foreground mb-4">Adapt & Update</h3>
@@ -304,13 +312,13 @@ export function LandingPage() {
       </section>
 
       {/* Section 6: Continuous Monitoring */}
-      <section className="py-32 bg-gradient-to-b from-gray-900 to-black dark:from-gray-100 dark:to-white text-white dark:text-black">
+      <section className="py-32 bg-gradient-to-b from-foreground to-foreground/90 text-primary-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
               Always Watching. Always Ready.
             </h2>
-            <p className="text-xl text-gray-400 dark:text-gray-600 text-center max-w-3xl mx-auto mb-20">
+            <p className="text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-20">
               SALLY monitors every active route continuously to catch and prevent issues before they impact your operations
             </p>
           </ScrollReveal>
@@ -320,7 +328,7 @@ export function LandingPage() {
       </section>
 
       {/* Section 7: ROI Calculator */}
-      <section className="py-32 bg-gray-50 dark:bg-gray-900">
+      <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
@@ -352,7 +360,7 @@ export function LandingPage() {
       </section>
 
       {/* Section 9: Integration Ecosystem */}
-      <section className="py-32 bg-gray-50 dark:bg-gray-900">
+      <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
@@ -369,10 +377,10 @@ export function LandingPage() {
               <div className="flex items-center justify-center mb-20">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="relative z-10 bg-black dark:bg-white text-white dark:text-black px-12 py-8 rounded-lg text-center"
+                  className="relative z-10 bg-primary text-primary-foreground px-12 py-8 rounded-lg text-center"
                 >
                   <div className="text-4xl font-bold mb-2 font-space-grotesk">SALLY</div>
-                  <div className="text-sm text-gray-400 dark:text-gray-600">Intelligence Layer</div>
+                  <div className="text-sm text-muted-foreground">Intelligence Layer</div>
                 </motion.div>
               </div>
 
@@ -400,13 +408,13 @@ export function LandingPage() {
       </section>
 
       {/* Section 10: Final CTA */}
-      <section className="py-32 bg-black dark:bg-white text-white dark:text-black">
+      <section className="py-32 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <ScrollReveal>
             <h2 className="text-6xl md:text-7xl font-bold tracking-tight mb-6">
               Route drivers,<br />not trucks
             </h2>
-            <p className="text-2xl text-gray-400 dark:text-gray-600 mb-12">
+            <p className="text-2xl text-muted-foreground mb-12">
               Join fleets who understand that drivers have hours, not infinite time
             </p>
 
@@ -414,12 +422,12 @@ export function LandingPage() {
               whileHover={{ scale: 1.05 }}
               className="inline-block"
             >
-              <Link href="/route-planner">
+              <Link href={getStartedUrl}>
                 <Button
                   size="lg"
-                  className="bg-background text-foreground hover:bg-gray-100 px-12 py-8 text-xl h-auto rounded-lg"
+                  className="bg-background text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 px-12 py-8 text-xl h-auto rounded-lg"
                 >
-                  Get Started Today
+                  {isAuthenticated ? 'Go to Dashboard' : 'Start Free Trial'}
                 </Button>
               </Link>
             </motion.div>
@@ -440,7 +448,7 @@ function PainPoint({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-3">
       <svg
-        className="w-5 h-5 text-gray-400 dark:text-gray-600 mt-0.5 flex-shrink-0"
+        className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -473,7 +481,7 @@ function IntegrationCard({
         {examples.map((example) => (
           <span
             key={example}
-            className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs rounded-full"
+            className="px-3 py-1 bg-muted text-gray-700 dark:text-gray-300 text-xs rounded-full"
           >
             {example}
           </span>

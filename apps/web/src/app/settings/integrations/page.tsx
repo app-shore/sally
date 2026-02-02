@@ -6,21 +6,9 @@ import { useSessionStore } from '@/lib/store/sessionStore';
 import { ConnectionsTab } from '@/components/settings/ConnectionsTab';
 
 export default function IntegrationsPage() {
-  const router = useRouter();
   const { isAuthenticated, user } = useSessionStore();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/');
-      return;
-    }
-
-    // Only allow DISPATCHER and ADMIN roles
-    if (user?.role === 'DRIVER') {
-      router.push('/settings');
-    }
-  }, [isAuthenticated, user, router]);
-
+  // Auth is handled by layout-client, just check role
   if (!isAuthenticated || user?.role === 'DRIVER') {
     return null;
   }

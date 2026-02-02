@@ -11,7 +11,7 @@ interface ChatStore {
 
 export const useChatStore = create<ChatStore>((set) => ({
   isOpen: false,
-  isDocked: false,
+  isDocked: true, // Always docked to right (no floating mode)
   setIsOpen: (isOpen) => set({ isOpen }),
   setIsDocked: (isDocked) => set({ isDocked }),
   toggleChat: () => set((state) => ({ isOpen: !state.isOpen })),

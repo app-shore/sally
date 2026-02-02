@@ -124,7 +124,7 @@ export function IntegrationOnboarding({ onComplete, onSkip }: IntegrationOnboard
                   <div className="flex items-center gap-2">
                     <h4 className="font-semibold">{category.title}</h4>
                     {category.recommended && (
-                      <Badge variant="secondary" className="text-xs">Recommended</Badge>
+                      <Badge variant="muted" className="text-xs">Recommended</Badge>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">{category.description}</p>

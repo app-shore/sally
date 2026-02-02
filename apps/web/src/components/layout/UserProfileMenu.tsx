@@ -52,7 +52,7 @@ export function UserProfileMenu() {
               {user ? `${user.firstName} ${user.lastName}` : 'User'}
             </p>
             <p className="text-xs text-muted-foreground">{user?.email}</p>
-            <Badge variant="secondary" className="w-fit text-xs mt-1">
+            <Badge variant="muted" className="w-fit text-xs mt-1">
               {getRoleLabel(user?.role)}
             </Badge>
             {user?.tenantName && (

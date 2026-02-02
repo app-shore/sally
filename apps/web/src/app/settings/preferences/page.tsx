@@ -45,22 +45,8 @@ export default function PreferencesPage() {
           </CardHeader>
         </Card>
       ) : (
-        <Tabs defaultValue="general" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="general">General</TabsTrigger>
-            {isDriver && <TabsTrigger value="driver">Driver</TabsTrigger>}
-          </TabsList>
 
-          <TabsContent value="general">
-            <UserPreferencesTab />
-          </TabsContent>
-
-          {isDriver && (
-            <TabsContent value="driver">
-              <DriverPreferencesTab />
-            </TabsContent>
-          )}
-        </Tabs>
+        isDriver ?  <DriverPreferencesTab /> : <UserPreferencesTab />
       )}
     </div>
   );

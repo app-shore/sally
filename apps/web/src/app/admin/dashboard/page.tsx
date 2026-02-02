@@ -1,28 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSessionStore } from '@/lib/store/sessionStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, Users, Truck, Activity, Database, Server, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function AdminDashboard() {
-  const router = useRouter();
-  const { isAuthenticated, user } = useSessionStore();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/');
-    } else if (user?.role !== 'ADMIN') {
-      router.push('/');
-    }
-  }, [isAuthenticated, user, router]);
-
-  if (!isAuthenticated || user?.role !== 'ADMIN') {
-    return null;
-  }
-
+  // Auth is handled by layout-client.tsx
   return (
     <div className="space-y-6">
       <div>
@@ -169,7 +152,7 @@ export default function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                 <div>
@@ -180,7 +163,7 @@ export default function AdminDashboard() {
               <Badge variant="default" className="bg-green-500 text-white">Operational</Badge>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                 <div>
@@ -191,7 +174,7 @@ export default function AdminDashboard() {
               <Badge variant="default" className="bg-green-500 text-white">Operational</Badge>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                 <div>
@@ -202,7 +185,7 @@ export default function AdminDashboard() {
               <Badge variant="default" className="bg-green-500 text-white">Operational</Badge>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
               <div className="flex items-center gap-3">
                 <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                 <div>
@@ -210,7 +193,7 @@ export default function AdminDashboard() {
                   <div className="text-sm text-muted-foreground">Mock mode - simulated data</div>
                 </div>
               </div>
-              <Badge variant="secondary" className="bg-yellow-500 text-white">Mock Mode</Badge>
+              <Badge variant="muted" className="bg-yellow-500 text-white">Mock Mode</Badge>
             </div>
           </div>
         </CardContent>

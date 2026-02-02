@@ -276,7 +276,8 @@ export class AuthService {
 
     // Generate SALLY JWT tokens
     const { accessToken, refreshToken } = await this.jwtTokenService.generateTokenPair({
-      sub: user.userId,
+      id: user.id,
+      userId: user.userId,
       email: user.email,
       role: user.role,
       tenantId: user.tenant?.tenantId,

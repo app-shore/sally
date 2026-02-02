@@ -92,7 +92,7 @@ export function LoadSelector() {
             <span>📦 {loadDetails.weight_lbs.toLocaleString()} lbs</span>
             <span>🏭 {loadDetails.commodity_type}</span>
             <span>📏 ~{estimateDistance(loadDetails.stops.length)} mi</span>
-            <Badge variant="secondary">{loadDetails.stops.length} stops</Badge>
+            <Badge variant="muted">{loadDetails.stops.length} stops</Badge>
           </div>
           {loadDetails.stops.length > 0 && (
             <div className="mt-2 pt-2 border-t border-border">

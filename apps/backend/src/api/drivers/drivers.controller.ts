@@ -5,6 +5,7 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';
+import { DriversActivationService } from './drivers-activation.service';
 
 @ApiTags('Drivers')
 @ApiBearerAuth()
@@ -15,6 +16,7 @@ export class DriversController {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(IntegrationManagerService) private readonly integrationManager: IntegrationManagerService,
+    private readonly driversActivationService: DriversActivationService,
   ) {}
 
   /**
@@ -48,7 +50,7 @@ export class DriversController {
   }
 
   @Get()
-  @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'List all active drivers (basic info only, HOS fetched from external API)' })
   async listDrivers(@CurrentUser() user: any) {
     this.logger.log(`List drivers requested by user ${user.userId} in tenant ${user.tenantId}`);
@@ -87,7 +89,7 @@ export class DriversController {
   }
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Create a new driver (basic info only)' })
   @ApiBody({
     schema: {
@@ -108,12 +110,18 @@ export class DriversController {
         where: { tenantId: user.tenantId },
       });
 
+      // NOTE: Manual drivers are immediately ACTIVE
+      // Drivers synced from external sources (TMS/ELD) should be created with:
+      //   status: 'PENDING_ACTIVATION', isActive: false, externalSource: 'SAMSARA'
+      //   and require manual activation via /drivers/:id/activate endpoint
       const driver = await this.prisma.driver.create({
         data: {
           driverId: body.driver_id,
           name: body.name,
+          status: 'ACTIVE',
           isActive: true,
           tenantId: tenant.id,
+          syncStatus: 'MANUAL_ENTRY',
         },
       });
 
@@ -135,7 +143,7 @@ export class DriversController {
   }
 
   @Put(':driver_id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Update driver basic info' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
   @ApiBody({
@@ -191,7 +199,7 @@ export class DriversController {
   }
 
   @Delete(':driver_id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Soft delete driver (set isActive=false)' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
   async deleteDriver(@CurrentUser() user: any, @Param('driver_id') driverId: string) {
@@ -235,7 +243,7 @@ export class DriversController {
 
 
   @Get(':driver_id')
-  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.DRIVER)
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER, UserRole.DRIVER)
   @ApiOperation({ summary: 'Get driver by ID' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
   @ApiResponse({
@@ -298,7 +306,7 @@ export class DriversController {
   }
 
   @Get(':driverId/hos')
-  @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Get live HOS data for driver from integration (with cache fallback)' })
   @ApiParam({ name: 'driverId', description: 'Driver ID' })
   async getDriverHOS(
@@ -320,6 +328,157 @@ export class DriversController {
       throw new HttpException(
         { detail: error.message || 'Failed to fetch driver HOS' },
         HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Get pending drivers (ADMIN only)
+   */
+  @Get('pending/list')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'Get all pending drivers awaiting activation' })
+  async getPendingDrivers(@CurrentUser() user: any) {
+    this.logger.log(`Get pending drivers by user ${user.userId}`);
+
+    try {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
+      return this.driversActivationService.getPendingDrivers(tenant.id);
+    } catch (error) {
+      this.logger.error(`Get pending drivers failed: ${error.message}`);
+      throw new HttpException(
+        { detail: 'Failed to fetch pending drivers' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Get inactive drivers (ADMIN only)
+   */
+  @Get('inactive/list')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'Get all inactive drivers' })
+  async getInactiveDrivers(@CurrentUser() user: any) {
+    this.logger.log(`Get inactive drivers by user ${user.userId}`);
+
+    try {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
+      return this.driversActivationService.getInactiveDrivers(tenant.id);
+    } catch (error) {
+      this.logger.error(`Get inactive drivers failed: ${error.message}`);
+      throw new HttpException(
+        { detail: 'Failed to fetch inactive drivers' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Activate a driver (ADMIN only)
+   */
+  @Post(':driver_id/activate')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'Activate a pending driver' })
+  @ApiParam({ name: 'driver_id', description: 'Driver ID' })
+  async activateDriver(
+    @Param('driver_id') driverId: string,
+    @CurrentUser() user: any,
+  ) {
+    this.logger.log(`Activate driver ${driverId} by user ${user.userId}`);
+
+    try {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
+      return this.driversActivationService.activateDriver(driverId, {
+        id: user.id,
+        tenant: { id: tenant.id },
+      });
+    } catch (error) {
+      this.logger.error(`Activate driver failed: ${error.message}`);
+      throw new HttpException(
+        { detail: error.message || 'Failed to activate driver' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Deactivate a driver (ADMIN only)
+   */
+  @Post(':driver_id/deactivate')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'Deactivate an active driver' })
+  @ApiParam({ name: 'driver_id', description: 'Driver ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        reason: { type: 'string' },
+      },
+      required: ['reason'],
+    },
+  })
+  async deactivateDriver(
+    @Param('driver_id') driverId: string,
+    @CurrentUser() user: any,
+    @Body('reason') reason: string,
+  ) {
+    this.logger.log(`Deactivate driver ${driverId} by user ${user.userId}`);
+
+    try {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
+      return this.driversActivationService.deactivateDriver(driverId, {
+        id: user.id,
+        tenant: { id: tenant.id },
+      }, reason);
+    } catch (error) {
+      this.logger.error(`Deactivate driver failed: ${error.message}`);
+      throw new HttpException(
+        { detail: error.message || 'Failed to deactivate driver' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Reactivate a driver (ADMIN only)
+   */
+  @Post(':driver_id/reactivate')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'Reactivate an inactive driver' })
+  @ApiParam({ name: 'driver_id', description: 'Driver ID' })
+  async reactivateDriver(
+    @Param('driver_id') driverId: string,
+    @CurrentUser() user: any,
+  ) {
+    this.logger.log(`Reactivate driver ${driverId} by user ${user.userId}`);
+
+    try {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: user.tenantId },
+      });
+
+      return this.driversActivationService.reactivateDriver(driverId, {
+        id: user.id,
+        tenant: { id: tenant.id },
+      });
+    } catch (error) {
+      this.logger.error(`Reactivate driver failed: ${error.message}`);
+      throw new HttpException(
+        { detail: error.message || 'Failed to reactivate driver' },
+        HttpStatus.BAD_REQUEST,
       );
     }
   }

@@ -1,16 +1,16 @@
-import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route } from 'lucide-react';
+import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2 } from 'lucide-react';
 
 export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
-  roles?: ('DISPATCHER' | 'DRIVER' | 'ADMIN')[];
+  roles?: ('DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER')[];
 }
 
 export interface NavSeparator {
   type: 'separator';
   label: string;
-  roles?: ('DISPATCHER' | 'DRIVER' | 'ADMIN')[];
+  roles?: ('DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER')[];
 }
 
 export type NavigationItem = NavItem | NavSeparator;
@@ -29,9 +29,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
   dispatcher: [
     { label: 'Command Center', href: '/dispatcher/overview', icon: Home },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
-    { label: 'Active Routes', href: '/dispatcher/active-routes', icon: Truck },
+    { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Truck },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Route Planning', href: '/settings/route-planning', icon: Route },
+    { label: 'Route Planner', href: '/settings/route-planning', icon: Route },
     { label: 'Fleet', href: '/settings/fleet', icon: Package },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
     { label: 'Preferences', href: '/settings/preferences', icon: Settings },
@@ -46,19 +46,44 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
   ],
 
   admin: [
-    // Admin-specific pages
-    { label: 'System Overview', href: '/admin/dashboard', icon: BarChart3 },
-    { label: 'User Management', href: '/admin/users', icon: Users },
+    // Admin/Management Section - High-level admin functions
+    { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
+    { label: 'Team', href: '/users', icon: Users },
+    { label: 'Drivers', href: '/drivers', icon: Truck },
     { type: 'separator', label: 'Operations' } as NavSeparator,
-    // All dispatcher capabilities
-    { label: 'Command Center', href: '/dispatcher/overview', icon: Home },
+    // Dispatcher operations
+    { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
-    { label: 'Active Routes', href: '/dispatcher/active-routes', icon: Truck },
+    { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Route Planning', href: '/settings/route-planning', icon: Route },
+    { label: 'Route Planner', href: '/settings/route-planning', icon: Route },
     { label: 'Fleet', href: '/settings/fleet', icon: Package },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
     { label: 'Preferences', href: '/settings/preferences', icon: Settings },
+  ],
+
+  // OWNER has same capabilities as ADMIN plus full user management control
+  owner: [
+    // Admin/Management Section - High-level admin functions
+    { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
+    { label: 'Team', href: '/users', icon: Users },
+    { label: 'Drivers', href: '/drivers', icon: Truck },
+    { type: 'separator', label: 'Operations' } as NavSeparator,
+    // Dispatcher operations
+    { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
+    { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
+    { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
+    { type: 'separator', label: 'Configuration' } as NavSeparator,
+    { label: 'Route Planner', href: '/settings/route-planning', icon: Route },
+    { label: 'Fleet', href: '/settings/fleet', icon: Package },
+    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
+    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
+  ],
+
+  super_admin: [
+    { label: 'Tenant Management', href: '/admin/tenants', icon: Building2 },
+    // User and driver management is handled by tenant OWNER/ADMIN users
+    // We can add more SUPER_ADMIN features later (analytics, billing, etc.)
   ],
 };
 
@@ -75,12 +100,14 @@ export const protectedRoutePatterns = [
   '/driver',
   '/admin',
   '/settings',
+  '/users',
+  '/drivers',
 ] as const;
 
 /**
  * Get navigation items based on user role
  */
-export function getNavigationForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | undefined): NavigationItem[] {
+export function getNavigationForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER' | 'SUPER_ADMIN' | undefined): NavigationItem[] {
   if (!role) return [];
 
   const roleKey = role.toLowerCase() as keyof typeof navigationConfig;
@@ -104,14 +131,18 @@ export function isPublicRoute(pathname: string): boolean {
 /**
  * Get default route for user role
  */
-export function getDefaultRouteForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | undefined): string {
+export function getDefaultRouteForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER' | 'SUPER_ADMIN' | undefined): string {
   switch (role) {
+    case 'SUPER_ADMIN':
+      return '/admin/tenants';
+    case 'OWNER':
+      return '/admin/dashboard';
+    case 'ADMIN':
+      return '/admin/dashboard';
     case 'DISPATCHER':
       return '/dispatcher/overview';
     case 'DRIVER':
       return '/driver/dashboard';
-    case 'ADMIN':
-      return '/admin/dashboard';
     default:
       return '/login';
   }

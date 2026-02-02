@@ -210,7 +210,7 @@ export function ConnectionsTab() {
         {totalIntegrations > 0 && (
           <div className="flex gap-2 mt-3">
             <Badge variant="outline">{activeIntegrations} Active</Badge>
-            <Badge variant="secondary">{totalIntegrations} Total</Badge>
+            <Badge variant="muted">{totalIntegrations} Total</Badge>
           </div>
         )}
       </div>
@@ -345,7 +345,7 @@ export function ConnectionsTab() {
                         <div className="flex items-center gap-3">
                           <span className="font-medium text-foreground">{vendor.name}</span>
                           {isConnected && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="muted" className="text-xs">
                               Connected
                             </Badge>
                           )}

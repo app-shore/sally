@@ -2,7 +2,7 @@
  * API client with JWT authentication and automatic token refresh
  */
 
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useAuthStore } from '@/stores/auth-store';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -17,7 +17,9 @@ export async function apiClient<T = any>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const { accessToken, refreshToken } = useSessionStore.getState();
+  // Get token from authStore directly (not a React hook, so use store access)
+  const authState = useAuthStore.getState();
+  const accessToken = authState.accessToken;
 
   // Add Authorization header
   const headers = {
@@ -32,30 +34,15 @@ export async function apiClient<T = any>(
     credentials: 'include', // Include httpOnly cookies
   });
 
-  // Handle 401 (token expired) - try to refresh
-  if (response.status === 401 && accessToken) {
-    try {
-      // Refresh access token
-      await refreshToken();
-
-      // Retry original request with new token
-      const newToken = useSessionStore.getState().accessToken;
-      response = await fetch(`${API_BASE_URL}${url}`, {
-        ...options,
-        headers: {
-          ...headers,
-          Authorization: `Bearer ${newToken}`,
-        },
-        credentials: 'include',
-      });
-    } catch (refreshError) {
-      // Refresh failed - redirect to login
-      useSessionStore.getState().logout();
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
-      throw new ApiError(401, 'Session expired. Please login again.');
+  // Handle 401 (token expired) - redirect to login
+  // Firebase handles token refresh automatically, so if we get 401, session is invalid
+  if (response.status === 401) {
+    const authState = useAuthStore.getState();
+    await authState.signOut();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
     }
+    throw new ApiError(401, 'Session expired. Please login again.');
   }
 
   // Handle other errors

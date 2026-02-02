@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSessionStore } from '@/lib/store/sessionStore';
 import { getDriver, type Driver } from '@/lib/api/drivers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,17 +12,14 @@ export default function DriverDashboardPage() {
   const [driver, setDriver] = useState<Driver | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const { isAuthenticated, user } = useSessionStore();
+  const { user } = useSessionStore();
 
   useEffect(() => {
-    if (!isAuthenticated || user?.role !== 'DRIVER' || !user?.driverId) {
-      router.push('/');
-      return;
+    // Auth is handled by layout-client.tsx
+    if (user?.driverId) {
+      loadDriver();
     }
-
-    loadDriver();
-  }, [isAuthenticated, user, router]);
+  }, [user]);
 
   const loadDriver = async () => {
     if (!user?.driverId) return;
@@ -39,10 +35,6 @@ export default function DriverDashboardPage() {
       setIsLoading(false);
     }
   };
-
-  if (!isAuthenticated || user?.role !== 'DRIVER') {
-    return null;
-  }
 
   if (isLoading) {
     return (

@@ -71,8 +71,8 @@ export class PreferencesService {
 
   async getDispatcherPreferences(userIdString: string, userRole: string, tenantIdString: string) {
     // Check role
-    if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN') {
-      throw new ForbiddenException('Only dispatchers and admins can access route planning preferences');
+    if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN' && userRole !== 'OWNER') {
+      throw new ForbiddenException('Only dispatchers, admins, and owners can access route planning preferences');
     }
 
     // Get tenant numeric ID
@@ -102,8 +102,8 @@ export class PreferencesService {
 
   async updateDispatcherPreferences(userIdString: string, userRole: string, tenantIdString: string, dto: UpdateDispatcherPreferencesDto) {
     // Check role
-    if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN') {
-      throw new ForbiddenException('Only dispatchers and admins can update route planning preferences');
+    if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN' && userRole !== 'OWNER') {
+      throw new ForbiddenException('Only dispatchers, admins, and owners can update route planning preferences');
     }
 
     // Get tenant numeric ID
@@ -225,8 +225,8 @@ export class PreferencesService {
     }
 
     if (scope === 'dispatcher') {
-      if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN') {
-        throw new ForbiddenException('Only dispatchers and admins can reset route planning preferences');
+      if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN' && userRole !== 'OWNER') {
+        throw new ForbiddenException('Only dispatchers, admins, and owners can reset route planning preferences');
       }
 
       // Get tenant numeric ID

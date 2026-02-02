@@ -27,7 +27,7 @@ export function FeatureCard({ icon, title, description, delay = 0 }: FeatureCard
           whileHover={{ scale: 1.1, rotate: 5 }}
           transition={{ type: 'spring', stiffness: 400, damping: 17 }}
         >
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-black dark:bg-white text-white dark:text-black rounded-lg">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-lg">
             {icon}
           </div>
         </motion.div>
@@ -41,7 +41,7 @@ export function FeatureCard({ icon, title, description, delay = 0 }: FeatureCard
         </p>
 
         {/* Hover indicator */}
-        <div className="absolute bottom-0 left-8 right-8 h-0.5 bg-black dark:bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+        <div className="absolute bottom-0 left-8 right-8 h-0.5 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
       </div>
     </motion.div>
   );

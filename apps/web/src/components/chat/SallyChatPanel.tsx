@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Message {
   id: string;
@@ -15,8 +16,6 @@ interface SallyChatPanelProps {
   isOpen: boolean;
   onClose: () => void;
   userType?: 'customer' | 'dispatcher' | 'driver'; // Context-aware chat experience
-  isDocked?: boolean; // Whether panel is docked to the side
-  onToggleDock?: () => void; // Toggle between docked and floating
 }
 
 // Context-aware suggested questions based on user type
@@ -48,8 +47,6 @@ export function SallyChatPanel({
   isOpen,
   onClose,
   userType = 'customer',
-  isDocked = false,
-  onToggleDock,
 }: SallyChatPanelProps) {
   // Context-aware initial messages
   const getInitialMessage = (): string => {
@@ -74,7 +71,7 @@ export function SallyChatPanel({
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -193,35 +190,18 @@ export function SallyChatPanel({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop - only show when not docked */}
-          {!isDocked && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/20 z-40 backdrop-blur-sm"
-              onClick={onClose}
-            />
-          )}
-
-          {/* Chat Panel */}
-          <motion.div
-            initial={{ x: isDocked ? 0 : '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: isDocked ? 0 : '100%' }}
-            transition={isDocked ? {} : { type: 'spring', damping: 30, stiffness: 300 }}
-            className={`fixed right-0 top-0 h-full w-full sm:w-[480px] bg-background shadow-2xl flex flex-col ${
-              isDocked ? 'z-30' : 'z-50'
-            }`}
+          {/* Chat Panel - Always docked to right, no overlay or shadow */}
+          <div
+            className="fixed right-0 top-0 h-full w-full sm:w-[480px] bg-background flex flex-col z-30 border-l border-border"
           >
             {/* Header */}
-            <div className="bg-black text-white p-4 flex items-center justify-between">
+            <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between border-b border-border">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-white/10 dark:bg-black/10 rounded-full flex items-center justify-center">
                   <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
                     <path
                       d="M 16 8 Q 10 8, 10 12 Q 10 14, 13 15 Q 19 16, 19 19 Q 19 22, 16 22 Q 12 22, 10 19"
-                      stroke="#fff"
+                      stroke="currentColor"
                       strokeWidth="2.5"
                       strokeLinecap="round"
                       fill="none"
@@ -230,53 +210,17 @@ export function SallyChatPanel({
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">SALLY</h3>
-                  <div className="flex items-center gap-2 text-xs text-gray-300 dark:text-gray-400">
-                    <div className="w-2 h-2 bg-green-400 rounded-full" />
+                  <div className="flex items-center gap-2 text-xs text-gray-300 dark:text-gray-600">
+                    <div className="w-2 h-2 bg-green-400 dark:bg-green-600 rounded-full" />
                     <span>AI Assistant Online</span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {/* Dock/Undock button */}
-                {onToggleDock && (
-                  <button
-                    onClick={onToggleDock}
-                    className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
-                    title={isDocked ? 'Undock panel' : 'Dock panel to side'}
-                  >
-                    {isDocked ? (
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        {/* Undock icon - window with arrow pointing out */}
-                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                        <path d="M9 9l6 6m0-6l-6 6" />
-                      </svg>
-                    ) : (
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        {/* Dock icon - panel aligned to right */}
-                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                        <path d="M15 3v18" />
-                      </svg>
-                    )}
-                  </button>
-                )}
                 {/* Close button */}
                 <button
                   onClick={onClose}
-                  className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
+                  className="w-8 h-8 rounded-full hover:bg-white/10 dark:hover:bg-black/10 flex items-center justify-center transition-colors"
                   title="Close chat"
                 >
                   <svg
@@ -294,7 +238,7 @@ export function SallyChatPanel({
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted">
               {messages.map((message) => (
                 <motion.div
                   key={message.id}
@@ -305,7 +249,7 @@ export function SallyChatPanel({
                   <div
                     className={`max-w-[85%] rounded-lg p-3 ${
                       message.role === 'user'
-                        ? 'bg-black text-white'
+                        ? 'bg-primary text-primary-foreground'
                         : 'bg-card text-foreground border border-border'
                     }`}
                   >
@@ -386,30 +330,40 @@ export function SallyChatPanel({
                   e.preventDefault();
                   handleSend();
                 }}
-                className="flex gap-2"
+                className="flex flex-col gap-2"
               >
-                <input
+                <Textarea
                   ref={inputRef}
-                  type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask me anything about SALLY..."
-                  className="flex-1 px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                  className="min-h-[100px] resize-none"
                   disabled={isTyping}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
                 />
-                <Button
-                  type="submit"
-                  disabled={!input.trim() || isTyping}
-                  className="bg-black hover:bg-gray-800 text-white px-6"
-                >
-                  Send
-                </Button>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    Press Enter to send, Shift+Enter for new line
+                  </p>
+                  <Button
+                    type="submit"
+                    disabled={!input.trim() || isTyping}
+                    className="bg-primary hover:bg-gray-800 dark:hover:bg-gray-200 text-primary-foreground px-6"
+                  >
+                    Send
+                  </Button>
+                </div>
               </form>
               <p className="text-xs text-muted-foreground mt-2 text-center">
                 SALLY AI can make mistakes. Verify important information.
               </p>
             </div>
-          </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

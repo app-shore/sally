@@ -32,23 +32,8 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const alertCount = alerts.length;
 
-  // Check authentication and redirect if needed
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/');
-      return;
-    }
-
-    // Role-based route protection
-    const role = user?.role;
-    if (pathname?.startsWith('/dispatcher') && role !== 'DISPATCHER' && role !== 'ADMIN') {
-      router.push('/driver/dashboard');
-    } else if (pathname?.startsWith('/driver') && role !== 'DRIVER') {
-      router.push('/dispatcher/overview');
-    } else if (pathname?.startsWith('/admin') && role !== 'ADMIN') {
-      router.push('/dispatcher/overview');
-    }
-  }, [isAuthenticated, user, pathname, router]);
+  // Auth is already checked by layout-client.tsx
+  // No need to check again here
 
   // Close sidebar on route change (mobile)
   useEffect(() => {

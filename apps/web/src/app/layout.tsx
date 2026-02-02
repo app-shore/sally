@@ -28,7 +28,7 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: "SALLY Dashboard",
-  description: "Dispatch & Driver Coordination Platform",
+  description: "Your Fleet Operations Assistant",
 };
 
 export default function RootLayout({

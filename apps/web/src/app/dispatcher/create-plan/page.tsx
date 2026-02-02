@@ -46,14 +46,8 @@ export default function CreatePlanPage() {
     stops.length >= 2
   );
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN')) {
-      router.push('/');
-    }
-  }, [isAuthenticated, user, router]);
-
-  if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN')) {
+  // Auth is handled by layout-client, just check role
+  if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN' && user?.role !== 'OWNER')) {
     return null;
   }
 

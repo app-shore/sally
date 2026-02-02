@@ -1,54 +1,55 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { GlobalSallyChat } from '@/components/chat/GlobalSallyChat';
 import { useChatStore } from '@/lib/store/chatStore';
-import { useSessionStore } from '@/lib/store/sessionStore';
-import { isProtectedRoute } from '@/lib/navigation';
+import { useAuthStore } from '@/stores/auth-store';
+import { isProtectedRoute, getDefaultRouteForRole } from '@/lib/navigation';
 
 export function LayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isDocked } = useChatStore();
-  const { isAuthenticated, refreshToken, isLoading, restoreSession } = useSessionStore();
-  const [isRestoring, setIsRestoring] = useState(true);
+  const { isOpen } = useChatStore();
+  const { isAuthenticated, _hasHydrated, isInitialized, accessToken, user } = useAuthStore();
 
-  // Determine if current page requires authentication using centralized logic
   const requiresAuth = pathname ? isProtectedRoute(pathname) : false;
 
-  // Restore session on page load
-  useEffect(() => {
-    async function restore() {
-      // First try to restore from localStorage
-      restoreSession();
+  console.log('[LayoutClient] Render:', {
+    pathname,
+    requiresAuth,
+    isAuthenticated,
+    _hasHydrated,
+    isInitialized,
+    hasAccessToken: !!accessToken,
+  });
 
-      // Then try to refresh token if not authenticated
-      if (!isAuthenticated) {
-        try {
-          await refreshToken();
-          console.log('Session restored from refresh token');
-        } catch (error) {
-          console.log('No valid session to restore');
-        }
-      }
-      setIsRestoring(false);
+  // Single auth check - redirect if needed
+  useEffect(() => {
+    if (!_hasHydrated) return; // Wait for storage to load
+    if (!pathname) return; // Wait for pathname to be set
+
+    console.log('[LayoutClient] Auth check:', { requiresAuth, isAuthenticated, pathname, userRole: user?.role });
+
+    // Redirect unauthenticated users from protected routes to login
+    if (requiresAuth && !isAuthenticated) {
+      console.log('[LayoutClient] Redirecting to login');
+      router.push('/login');
+      return;
     }
 
-    restore();
-  }, []);
-
-  // Redirect to login if trying to access protected page without auth
-  useEffect(() => {
-    if (requiresAuth && !isAuthenticated && !isRestoring) {
-      router.push('/');
+    // Only redirect authenticated users from login page (allow viewing landing page)
+    if (isAuthenticated && pathname === '/login') {
+      const defaultRoute = getDefaultRouteForRole(user?.role as any);
+      console.log('[LayoutClient] Redirecting authenticated user from login to:', defaultRoute);
+      router.push(defaultRoute);
     }
-  }, [requiresAuth, isAuthenticated, isRestoring, pathname, router]);
+  }, [_hasHydrated, requiresAuth, isAuthenticated, pathname, user?.role, router]);
 
-  // Show loading spinner while restoring session
-  if (isRestoring || isLoading) {
+  // Loading state
+  if (!_hasHydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground" />
@@ -56,23 +57,13 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Protected pages use AppLayout (authenticated UI)
-  if (requiresAuth) {
-    return (
-      <>
-        <div className={`sally-chat-container ${isDocked ? 'docked' : ''}`}>
-          <AppLayout>{children}</AppLayout>
-        </div>
-        <GlobalSallyChat />
-      </>
-    );
-  }
+  // Render layout based on route type
+  const Layout = requiresAuth ? AppLayout : PublicLayout;
 
-  // Public pages use PublicLayout (landing, login)
   return (
     <>
-      <div className={`sally-chat-container ${isDocked ? 'docked' : ''}`}>
-        <PublicLayout>{children}</PublicLayout>
+      <div className={`sally-chat-container ${isOpen ? 'docked' : ''}`}>
+        <Layout>{children}</Layout>
       </div>
       <GlobalSallyChat />
     </>

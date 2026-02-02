@@ -24,6 +24,7 @@ export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHead
     if (user?.role === 'DISPATCHER') roleView = 'Dispatcher View';
     if (user?.role === 'DRIVER') roleView = 'Driver View';
     if (user?.role === 'ADMIN') roleView = 'Admin View';
+    if (user?.role === 'OWNER') roleView = 'Admin View';
 
     return `${tenantName} • ${roleView}`;
   };
@@ -36,7 +37,7 @@ export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHead
           {/* Mobile hamburger */}
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors md:hidden"
+            className="p-2 rounded-md hover:bg-muted transition-colors md:hidden"
             aria-label="Toggle sidebar"
           >
             <Menu className="h-5 w-5" />
@@ -46,7 +47,7 @@ export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHead
           <Link
             href="/"
             className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity font-space-grotesk"
-            title="Back to Home"
+            title="Go to Home"
             data-sally-logo
           >
             SALLY
@@ -63,7 +64,7 @@ export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHead
 
         {/* Center section - Role badge (desktop only) */}
         <div className="hidden md:block">
-          <Badge variant="secondary" className="text-sm font-medium">
+          <Badge variant="muted" className="text-sm font-medium">
             {getRoleLabel()}
           </Badge>
         </div>
@@ -79,7 +80,7 @@ export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHead
           {/* Notifications bell */}
           <button
             onClick={onOpenAlerts}
-            className="relative p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="relative p-2 rounded-md hover:bg-muted transition-colors"
             aria-label="View alerts"
           >
             <Bell className={`h-5 w-5 ${alertCount > 0 ? 'animate-pulse text-red-600' : ''}`} />

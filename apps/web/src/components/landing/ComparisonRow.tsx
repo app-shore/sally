@@ -115,7 +115,7 @@ export function ComparisonTable() {
       >
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 dark:bg-gray-900 border-b border-border">
+            <tr className="bg-muted border-b border-border">
               <th className="py-4 px-6 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Feature
               </th>
