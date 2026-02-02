@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EmailService } from '../../common/services/email.service';
 
 export enum AlertSeverity {
   INFO = 'INFO',
@@ -19,20 +19,11 @@ export interface Alert {
 @Injectable()
 export class AlertService {
   private readonly logger = new Logger(AlertService.name);
-  private transporter: nodemailer.Transporter;
 
-  constructor(private prisma: PrismaService) {
-    const smtpPort = parseInt(process.env.SMTP_PORT || '465');
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: smtpPort,
-      secure: smtpPort === 465, // true for 465 (SSL), false for 587 (TLS)
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-  }
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   async sendAlert(
     alert: Alert,
@@ -52,12 +43,15 @@ export class AlertService {
     const html = this.formatAlertEmail(alert);
 
     try {
-      await this.transporter.sendMail({
-        from: process.env.ALERT_FROM_EMAIL || 'alerts@sally.app',
-        to: recipients.join(', '),
-        subject,
-        html,
-      });
+      // Send to each recipient individually (Resend best practice)
+      for (const recipient of recipients) {
+        await this.emailService.sendEmail({
+          to: recipient,
+          subject,
+          html,
+          // from is optional - EmailService uses EMAIL_FROM from config
+        });
+      }
 
       this.logger.log(`Alert sent to ${recipients.length} recipients: ${alert.title}`);
     } catch (error) {
