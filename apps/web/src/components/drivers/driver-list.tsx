@@ -74,7 +74,7 @@ export function DriverList({ onActivateClick, onDeactivateClick }: DriverListPro
 
   const getStatusBadge = (status: string, isActive: boolean) => {
     if (status === 'PENDING_ACTIVATION') {
-      return <Badge variant="secondary">Pending</Badge>;
+      return <Badge variant="muted">Pending</Badge>;
     }
     if (status === 'ACTIVE' && isActive) {
       return <Badge variant="default">Active</Badge>;
@@ -82,7 +82,7 @@ export function DriverList({ onActivateClick, onDeactivateClick }: DriverListPro
     if (status === 'INACTIVE' || !isActive) {
       return <Badge variant="outline">Inactive</Badge>;
     }
-    return <Badge variant="secondary">{status}</Badge>;
+    return <Badge variant="muted">{status}</Badge>;
   };
 
   return (

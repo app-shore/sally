@@ -24,9 +24,9 @@ export default function DriversPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">Driver Management</h1>
+        <h1 className="text-3xl font-bold text-foreground">Drivers</h1>
         <p className="text-muted-foreground">
-          Activate and manage driver accounts
+          Activate and coordinate your driver team
         </p>
       </div>
 

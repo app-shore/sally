@@ -12,7 +12,7 @@ import { isProtectedRoute, getDefaultRouteForRole } from '@/lib/navigation';
 export function LayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isDocked } = useChatStore();
+  const { isOpen } = useChatStore();
   const { isAuthenticated, _hasHydrated, isInitialized, accessToken, user } = useAuthStore();
 
   const requiresAuth = pathname ? isProtectedRoute(pathname) : false;
@@ -29,6 +29,7 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
   // Single auth check - redirect if needed
   useEffect(() => {
     if (!_hasHydrated) return; // Wait for storage to load
+    if (!pathname) return; // Wait for pathname to be set
 
     console.log('[LayoutClient] Auth check:', { requiresAuth, isAuthenticated, pathname, userRole: user?.role });
 
@@ -39,10 +40,10 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Redirect authenticated users from login/root to their dashboard
-    if (isAuthenticated && (pathname === '/login' || pathname === '/')) {
+    // Only redirect authenticated users from login page (allow viewing landing page)
+    if (isAuthenticated && pathname === '/login') {
       const defaultRoute = getDefaultRouteForRole(user?.role as any);
-      console.log('[LayoutClient] Redirecting authenticated user to:', defaultRoute);
+      console.log('[LayoutClient] Redirecting authenticated user from login to:', defaultRoute);
       router.push(defaultRoute);
     }
   }, [_hasHydrated, requiresAuth, isAuthenticated, pathname, user?.role, router]);
@@ -61,7 +62,7 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div className={`sally-chat-container ${isDocked ? 'docked' : ''}`}>
+      <div className={`sally-chat-container ${isOpen ? 'docked' : ''}`}>
         <Layout>{children}</Layout>
       </div>
       <GlobalSallyChat />

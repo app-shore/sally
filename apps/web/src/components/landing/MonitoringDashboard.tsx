@@ -182,7 +182,7 @@ export function MonitoringDashboard() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="absolute z-10 bottom-full left-0 right-0 mb-2 p-3 bg-white dark:bg-gray-900 text-black dark:text-white text-xs rounded-lg shadow-card-lg border border-gray-200 dark:border-gray-700"
+                    className="absolute z-10 bottom-full left-0 right-0 mb-2 p-3 bg-background text-black dark:text-white text-xs rounded-lg shadow-card-lg border border-gray-200 dark:border-gray-700"
                   >
                     {trigger.description}
                     <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white dark:border-t-gray-900" />

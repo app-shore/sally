@@ -174,12 +174,12 @@ export function UserList({ onInviteClick }: UserListProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>User Management</CardTitle>
-          {/* Only ADMIN can invite users. SUPER_ADMIN manages tenants via tenant registration */}
+          <CardTitle></CardTitle>
+          {/* Only OWNER/ADMIN can invite users. SUPER_ADMIN manages tenants via tenant registration */}
           {!isSuperAdmin && (
             <Button onClick={onInviteClick}>
               <UserPlus className="mr-2 h-4 w-4" />
-              Invite User
+              Invite Team Member
             </Button>
           )}
         </div>
@@ -216,7 +216,7 @@ export function UserList({ onInviteClick }: UserListProps) {
                       const canManage = currentUser?.role === 'OWNER' || (currentUser?.role === 'ADMIN' && !isAdmin);
                       const userName = `${user.firstName} ${user.lastName}`;
                       return (
-                        <TableRow key={user.id}>
+                        <TableRow key={user.userId}>
                           <TableCell className="font-medium">
                             {userName}
                             {isOwner && (
@@ -305,7 +305,7 @@ export function UserList({ onInviteClick }: UserListProps) {
                     const canManage = currentUser?.role === 'OWNER' || (currentUser?.role === 'ADMIN' && !isAdmin);
                     const userName = `${user.firstName} ${user.lastName}`;
                     return (
-                      <TableRow key={user.id}>
+                      <TableRow key={user.userId}>
                         <TableCell className="font-medium">
                           {userName}
                           {isOwner && (
@@ -375,7 +375,7 @@ export function UserList({ onInviteClick }: UserListProps) {
                   </TableHeader>
                   <TableBody>
                     {pendingInvitations.map((invitation: any) => (
-                      <TableRow key={invitation.id}>
+                      <TableRow key={invitation.invitationId}>
                         <TableCell className="font-medium">
                           {invitation.firstName} {invitation.lastName}
                         </TableCell>

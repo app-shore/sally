@@ -69,7 +69,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
             {/* Login/Logout */}
             {!isAuthenticated ? (
               <Link href="/login">
-                <Button size="sm" className="bg-black hover:bg-gray-800 text-white dark:bg-white dark:text-black dark:hover:bg-gray-200">
+                <Button size="sm">
                   <LogIn className="h-4 w-4 mr-2" />
                   Login
                 </Button>
@@ -85,7 +85,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="md:hidden p-2 rounded-md hover:bg-muted transition-colors"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -98,7 +98,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
             <div className="flex flex-col p-2 space-y-1">
               {/* Theme toggle on mobile */}
               <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <span className="text-sm font-medium text-muted-foreground">
                   Theme
                 </span>
                 <ThemeToggle />
@@ -109,7 +109,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 <Link href="/login" className="w-full">
                   <Button
                     size="sm"
-                    className="w-full bg-black hover:bg-gray-800 text-white dark:bg-white dark:text-black"
+                    className="w-full"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <LogIn className="h-4 w-4 mr-2" />

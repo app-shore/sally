@@ -133,7 +133,7 @@ export function DriverSelector() {
               <div className="flex items-center gap-2">
                 <span className="font-medium">{driver.name}</span>
                 {driver.id === suggestedDriverId && (
-                  <Badge variant="secondary">✨ Suggested</Badge>
+                  <Badge variant="muted">✨ Suggested</Badge>
                 )}
                 {driver.current_hos && (
                   <span className="text-muted-foreground text-xs">

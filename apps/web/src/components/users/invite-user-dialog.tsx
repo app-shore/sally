@@ -94,9 +94,9 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite New User</DialogTitle>
+          <DialogTitle>Invite Team Member</DialogTitle>
           <DialogDescription>
-            Send an invitation to a new user to join your organization
+            Send an invitation to join your team
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>

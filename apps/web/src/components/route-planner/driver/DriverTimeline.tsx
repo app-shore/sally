@@ -70,8 +70,8 @@ export default function DriverTimeline({ plan }: DriverTimelineProps) {
       default:
         return {
           bg: "bg-gray-50 dark:bg-gray-950/20",
-          border: "border-gray-200 dark:border-gray-800",
-          icon: "text-gray-600 dark:text-gray-400",
+          border: "border-border",
+          icon: "text-muted-foreground",
         };
     }
   };
@@ -203,8 +203,8 @@ export default function DriverTimeline({ plan }: DriverTimelineProps) {
 
             {/* END marker */}
             <div className="relative pl-16">
-              <div className="absolute left-0 p-3 rounded-full bg-gray-50 dark:bg-gray-950/20 border-2 border-gray-200 dark:border-gray-800">
-                <MapPin className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+              <div className="absolute left-0 p-3 rounded-full bg-gray-50 dark:bg-gray-950/20 border-2 border-border">
+                <MapPin className="h-6 w-6 text-muted-foreground" />
               </div>
               <div className="min-h-[44px]">
                 <div className="text-sm font-semibold text-foreground mb-1">

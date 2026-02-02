@@ -165,7 +165,7 @@ export function TenantList() {
                       </TableCell>
                       <TableCell>{tenant.dotNumber}</TableCell>
                       <TableCell>
-                        <Badge variant="secondary">
+                        <Badge variant="muted">
                           {tenant.fleetSize?.replace('SIZE_', '')}
                         </Badge>
                       </TableCell>

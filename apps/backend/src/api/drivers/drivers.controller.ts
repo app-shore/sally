@@ -50,7 +50,7 @@ export class DriversController {
   }
 
   @Get()
-  @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'List all active drivers (basic info only, HOS fetched from external API)' })
   async listDrivers(@CurrentUser() user: any) {
     this.logger.log(`List drivers requested by user ${user.userId} in tenant ${user.tenantId}`);
@@ -89,7 +89,7 @@ export class DriversController {
   }
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Create a new driver (basic info only)' })
   @ApiBody({
     schema: {
@@ -143,7 +143,7 @@ export class DriversController {
   }
 
   @Put(':driver_id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Update driver basic info' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
   @ApiBody({
@@ -199,7 +199,7 @@ export class DriversController {
   }
 
   @Delete(':driver_id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Soft delete driver (set isActive=false)' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
   async deleteDriver(@CurrentUser() user: any, @Param('driver_id') driverId: string) {
@@ -243,7 +243,7 @@ export class DriversController {
 
 
   @Get(':driver_id')
-  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.DRIVER)
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER, UserRole.DRIVER)
   @ApiOperation({ summary: 'Get driver by ID' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
   @ApiResponse({
@@ -306,7 +306,7 @@ export class DriversController {
   }
 
   @Get(':driverId/hos')
-  @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Get live HOS data for driver from integration (with cache fallback)' })
   @ApiParam({ name: 'driverId', description: 'Driver ID' })
   async getDriverHOS(
@@ -336,7 +336,7 @@ export class DriversController {
    * Get pending drivers (ADMIN only)
    */
   @Get('pending/list')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Get all pending drivers awaiting activation' })
   async getPendingDrivers(@CurrentUser() user: any) {
     this.logger.log(`Get pending drivers by user ${user.userId}`);
@@ -360,7 +360,7 @@ export class DriversController {
    * Get inactive drivers (ADMIN only)
    */
   @Get('inactive/list')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Get all inactive drivers' })
   async getInactiveDrivers(@CurrentUser() user: any) {
     this.logger.log(`Get inactive drivers by user ${user.userId}`);
@@ -384,7 +384,7 @@ export class DriversController {
    * Activate a driver (ADMIN only)
    */
   @Post(':driver_id/activate')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Activate a pending driver' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
   async activateDriver(
@@ -415,7 +415,7 @@ export class DriversController {
    * Deactivate a driver (ADMIN only)
    */
   @Post(':driver_id/deactivate')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Deactivate an active driver' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
   @ApiBody({
@@ -456,7 +456,7 @@ export class DriversController {
    * Reactivate a driver (ADMIN only)
    */
   @Post(':driver_id/reactivate')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Reactivate an inactive driver' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
   async reactivateDriver(

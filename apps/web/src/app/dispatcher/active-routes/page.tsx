@@ -8,16 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 export default function ActiveRoutesPage() {
-  const router = useRouter();
   const { isAuthenticated, user } = useSessionStore();
 
-  useEffect(() => {
-    if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN')) {
-      router.push('/');
-    }
-  }, [isAuthenticated, user, router]);
-
-  if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN')) {
+  // Auth is handled by layout-client, just check role
+  if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN' && user?.role !== 'OWNER')) {
     return null;
   }
 
@@ -57,7 +51,7 @@ export default function ActiveRoutesPage() {
       case 'in_transit':
         return <Badge variant="default">In Transit</Badge>;
       case 'rest_stop':
-        return <Badge variant="secondary">Rest Stop</Badge>;
+        return <Badge variant="muted">Rest Stop</Badge>;
       case 'completed':
         return <Badge variant="outline">Completed</Badge>;
       default:
@@ -104,7 +98,7 @@ export default function ActiveRoutesPage() {
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
                     <div
-                      className="bg-black dark:bg-white h-2 rounded-full transition-all"
+                      className="bg-primary h-2 rounded-full transition-all"
                       style={{ width: `${route.progress}%` }}
                     />
                   </div>

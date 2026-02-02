@@ -110,7 +110,7 @@ export function ROICalculator() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-black dark:bg-white text-white dark:text-black p-6 rounded-lg"
+            className="bg-primary text-primary-foreground p-6 rounded-lg"
           >
             <div className="text-sm font-medium mb-2 text-gray-300 dark:text-gray-700">
               Annual Violation Cost Savings
@@ -118,14 +118,14 @@ export function ROICalculator() {
             <div className="text-4xl font-bold tracking-tight">
               {formatCurrency(displayedSavings)}
             </div>
-            <div className="text-xs text-gray-400 dark:text-gray-600 mt-2">
+            <div className="text-xs text-muted-foreground mt-2">
               Based on $12,000 per violation (industry average)
             </div>
           </motion.div>
 
           {/* Time savings */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-border">
+            <div className="bg-muted p-4 rounded-lg border border-border">
               <div className="text-xs font-medium text-muted-foreground mb-1">
                 Time Saved Annually
               </div>
@@ -137,7 +137,7 @@ export function ROICalculator() {
               </div>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-border">
+            <div className="bg-muted p-4 rounded-lg border border-border">
               <div className="text-xs font-medium text-muted-foreground mb-1">
                 Efficiency Gain
               </div>
@@ -167,7 +167,7 @@ export function ROICalculator() {
                   whileInView={{ width: '85%' }}
                   viewport={{ once: true }}
                   transition={{ duration: 1, delay: 0.2 }}
-                  className="h-full bg-black dark:bg-white"
+                  className="h-full bg-primary"
                 />
               </div>
             </div>

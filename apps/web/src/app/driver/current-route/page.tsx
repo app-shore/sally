@@ -8,15 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Clock, Fuel, Moon } from 'lucide-react';
 
 export default function CurrentRoutePage() {
-  const router = useRouter();
   const { isAuthenticated, user } = useSessionStore();
 
-  useEffect(() => {
-    if (!isAuthenticated || user?.role !== 'DRIVER') {
-      router.push('/');
-    }
-  }, [isAuthenticated, user, router]);
-
+  // Auth is handled by layout-client, just check role
   if (!isAuthenticated || user?.role !== 'DRIVER') {
     return null;
   }
@@ -60,7 +54,7 @@ export default function CurrentRoutePage() {
       case 'in_progress':
         return <Badge variant="default">Current</Badge>;
       case 'upcoming':
-        return <Badge variant="secondary">Upcoming</Badge>;
+        return <Badge variant="muted">Upcoming</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -101,7 +95,7 @@ export default function CurrentRoutePage() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3">
                 <div
-                  className="bg-black dark:bg-white h-3 rounded-full transition-all"
+                  className="bg-primary h-3 rounded-full transition-all"
                   style={{ width: `${mockRoute.progress}%` }}
                 />
               </div>
@@ -129,7 +123,7 @@ export default function CurrentRoutePage() {
                 <div className="flex flex-col items-center">
                   <div className={`rounded-full p-2 ${
                     stop.status === 'completed' ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300' :
-                    stop.status === 'in_progress' ? 'bg-black text-white dark:bg-white dark:text-black' :
+                    stop.status === 'in_progress' ? 'bg-primary text-primary-foreground' :
                     'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500'
                   }`}>
                     {getStopIcon(stop.type)}
@@ -166,7 +160,7 @@ export default function CurrentRoutePage() {
           <CardTitle>Route Map</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+          <div className="h-80 bg-muted rounded-lg flex items-center justify-center">
             <div className="text-center text-muted-foreground">
               <p className="text-lg font-medium">Interactive Map</p>
               <p className="text-sm mt-1">Real-time route visualization coming soon</p>

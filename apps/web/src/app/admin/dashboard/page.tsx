@@ -152,7 +152,7 @@ export default function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                 <div>
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
               <Badge variant="default" className="bg-green-500 text-white">Operational</Badge>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                 <div>
@@ -174,7 +174,7 @@ export default function AdminDashboard() {
               <Badge variant="default" className="bg-green-500 text-white">Operational</Badge>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                 <div>
@@ -185,7 +185,7 @@ export default function AdminDashboard() {
               <Badge variant="default" className="bg-green-500 text-white">Operational</Badge>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
               <div className="flex items-center gap-3">
                 <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                 <div>
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
                   <div className="text-sm text-muted-foreground">Mock mode - simulated data</div>
                 </div>
               </div>
-              <Badge variant="secondary" className="bg-yellow-500 text-white">Mock Mode</Badge>
+              <Badge variant="muted" className="bg-yellow-500 text-white">Mock Mode</Badge>
             </div>
           </div>
         </CardContent>

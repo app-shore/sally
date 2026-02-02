@@ -91,7 +91,7 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold text-foreground">Alerts</h2>
                 {alerts.length > 0 && (
-                  <Badge variant="secondary">{alerts.length}</Badge>
+                  <Badge variant="muted">{alerts.length}</Badge>
                 )}
               </div>
               <Button

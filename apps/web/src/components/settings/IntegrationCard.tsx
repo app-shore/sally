@@ -73,14 +73,14 @@ export function IntegrationCard({ integration, onConfigure, onRefresh }: Integra
       color: 'text-yellow-600 dark:text-yellow-400',
     },
     NOT_CONFIGURED: {
-      icon: <Circle className="h-4 w-4 text-gray-400 dark:text-gray-600" />,
+      icon: <Circle className="h-4 w-4 text-muted-foreground" />,
       text: 'Not Connected',
-      color: 'text-gray-600 dark:text-gray-400',
+      color: 'text-muted-foreground',
     },
     DISABLED: {
-      icon: <Circle className="h-4 w-4 text-gray-400 dark:text-gray-600" />,
+      icon: <Circle className="h-4 w-4 text-muted-foreground" />,
       text: 'Disabled',
-      color: 'text-gray-600 dark:text-gray-400',
+      color: 'text-muted-foreground',
     },
   };
 

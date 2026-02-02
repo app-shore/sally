@@ -48,7 +48,7 @@ export function AppSidebar({
         className={cn(
           'fixed left-0 top-16 h-[calc(100vh-4rem)] z-40 transition-all duration-300 ease-in-out',
           'border-r border-border flex flex-col',
-          user?.role === 'DRIVER' ? 'bg-gray-50 dark:bg-gray-900' : 'bg-background',
+          user?.role === 'DRIVER' ? 'bg-muted' : 'bg-background',
           // Mobile: slide in/out
           isOpen ? 'translate-x-0' : '-translate-x-full',
           // Desktop: always visible, width changes based on collapse state
@@ -62,7 +62,7 @@ export function AppSidebar({
         <div className="hidden md:flex justify-end p-2 border-b border-border">
           <button
             onClick={onToggleCollapse}
-            className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded-md hover:bg-muted transition-colors"
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? (
@@ -104,7 +104,7 @@ export function AppSidebar({
                     'text-sm font-medium',
                     isActive
                       ? 'bg-black text-white dark:bg-white dark:text-black'
-                      : 'text-foreground hover:bg-gray-100 dark:hover:bg-gray-800',
+                      : 'text-foreground hover:bg-muted',
                     isCollapsed && 'justify-center'
                   )}
                   title={isCollapsed ? navItem.label : undefined}

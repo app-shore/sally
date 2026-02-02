@@ -46,7 +46,7 @@ export function CommandPalette() {
       {/* Command palette trigger button */}
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-muted transition-colors"
       >
         <Command className="h-4 w-4" />
         <span className="hidden sm:inline">Search</span>

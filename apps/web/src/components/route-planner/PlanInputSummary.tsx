@@ -17,7 +17,7 @@ export function PlanInputSummary() {
   const snapshot = currentPlan.input_snapshot;
 
   return (
-    <Card className="p-4 bg-gray-50 dark:bg-gray-900 border-border">
+    <Card className="p-4 bg-muted border-border">
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h4 className="text-sm font-semibold text-foreground">Plan Input Summary</h4>

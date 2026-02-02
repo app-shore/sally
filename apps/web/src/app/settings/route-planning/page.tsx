@@ -21,7 +21,7 @@ export default function RoutePlanningPage() {
   const [formData, setFormData] = useState<Partial<DispatcherPreferences>>(dispatcherPreferences || {});
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const isDispatcher = user?.role === 'DISPATCHER' || user?.role === 'ADMIN';
+  const isDispatcher = user?.role === 'DISPATCHER' || user?.role === 'ADMIN' || user?.role === 'OWNER';
 
   useEffect(() => {
     if (user) {

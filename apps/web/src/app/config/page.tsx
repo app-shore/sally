@@ -49,13 +49,11 @@ export default function ConfigPage() {
   const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
-    if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN')) {
-      router.push('/');
-      return;
+    // Auth is handled by layout-client, just check role and load data
+    if (isAuthenticated && (user?.role === 'DISPATCHER' || user?.role === 'ADMIN' || user?.role === 'OWNER')) {
+      loadData();
     }
-
-    loadData();
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user]);
 
   const loadData = async () => {
     try {

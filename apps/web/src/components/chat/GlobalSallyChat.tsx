@@ -6,7 +6,7 @@ import { useChatStore } from '@/lib/store/chatStore';
 import { usePathname } from 'next/navigation';
 
 export function GlobalSallyChat() {
-  const { isOpen, isDocked, setIsOpen, toggleDock } = useChatStore();
+  const { isOpen, setIsOpen } = useChatStore();
   const pathname = usePathname();
 
   // Determine user type based on path
@@ -24,13 +24,11 @@ export function GlobalSallyChat() {
         isOpen={isOpen}
       />
 
-      {/* Chat Panel */}
+      {/* Chat Panel - Always docked to right */}
       <SallyChatPanel
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         userType={getUserType()}
-        isDocked={isDocked}
-        onToggleDock={toggleDock}
       />
     </>
   );

@@ -8,15 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Info, MessageSquare } from 'lucide-react';
 
 export default function MessagesPage() {
-  const router = useRouter();
   const { isAuthenticated, user } = useSessionStore();
 
-  useEffect(() => {
-    if (!isAuthenticated || user?.role !== 'DRIVER') {
-      router.push('/');
-    }
-  }, [isAuthenticated, user, router]);
-
+  // Auth is handled by layout-client, just check role
   if (!isAuthenticated || user?.role !== 'DRIVER') {
     return null;
   }
@@ -70,7 +64,7 @@ export default function MessagesPage() {
       case 'medium':
         return <Badge variant="default">Medium</Badge>;
       case 'low':
-        return <Badge variant="secondary">Low</Badge>;
+        return <Badge variant="muted">Low</Badge>;
       default:
         return <Badge variant="outline">{priority}</Badge>;
     }

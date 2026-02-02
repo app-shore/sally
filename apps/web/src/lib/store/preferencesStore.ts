@@ -88,7 +88,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
       set({ userPreferences: userPrefs });
 
       // Load role-specific preferences
-      if (userRole === 'DISPATCHER' || userRole === 'ADMIN') {
+      if (userRole === 'DISPATCHER' || userRole === 'ADMIN' || userRole === 'OWNER') {
         const dispatcherPrefs = await getDispatcherPreferences();
         set({ dispatcherPreferences: dispatcherPrefs });
       }

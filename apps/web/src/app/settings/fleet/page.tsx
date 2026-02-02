@@ -55,19 +55,11 @@ export default function FleetPage() {
   const { isAuthenticated, user } = useSessionStore();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/');
-      return;
+    // Auth is handled by layout-client, just check role and load data
+    if (isAuthenticated && user?.role !== 'DRIVER') {
+      loadData();
     }
-
-    // Only allow DISPATCHER and ADMIN roles
-    if (user?.role === 'DRIVER') {
-      router.push('/settings');
-      return;
-    }
-
-    loadData();
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user]);
 
   const loadData = async () => {
     try {
@@ -279,7 +271,7 @@ function DriversTab({
                   <TableCell className="text-foreground">{driver.license_number}</TableCell>
                   <TableCell>
                     {driver.external_source ? (
-                      <Badge variant="secondary" className="gap-1">
+                      <Badge variant="muted" className="gap-1">
                         <span className="text-xs">🔗</span>
                         {getSourceLabel(driver.external_source)}
                       </Badge>
@@ -592,7 +584,7 @@ function VehiclesTab({
                   <TableCell className="text-foreground">{vehicle.mpg ? `${vehicle.mpg} mpg` : '-'}</TableCell>
                   <TableCell>
                     {vehicle.external_source ? (
-                      <Badge variant="secondary" className="gap-1">
+                      <Badge variant="muted" className="gap-1">
                         <span className="text-xs">🔗</span>
                         {getSourceLabel(vehicle.external_source)}
                       </Badge>
@@ -1008,7 +1000,7 @@ function LoadsTab() {
                       </TableCell>
                       <TableCell>
                         {load.external_source ? (
-                          <Badge variant="secondary" className="gap-1">
+                          <Badge variant="muted" className="gap-1">
                             <span className="text-xs">🔗</span>
                             {getSourceLabel(load.external_source)}
                           </Badge>

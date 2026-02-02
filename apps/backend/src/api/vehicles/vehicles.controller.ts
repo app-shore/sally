@@ -44,7 +44,7 @@ export class VehiclesController {
   }
 
   @Get()
-  @Roles(UserRole.DISPATCHER, UserRole.ADMIN)
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'List all active vehicles' })
   async listVehicles(@CurrentUser() user: any) {
     this.logger.log(`List vehicles requested by user ${user.userId} in tenant ${user.tenantId}`);
@@ -83,7 +83,7 @@ export class VehiclesController {
   }
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Create a new vehicle' })
   @ApiBody({
     schema: {
@@ -149,7 +149,7 @@ export class VehiclesController {
   }
 
   @Put(':vehicle_id')
-  @Roles(UserRole.ADMIN, UserRole.DISPATCHER)
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.DISPATCHER)
   @ApiOperation({ summary: 'Update vehicle' })
   @ApiParam({ name: 'vehicle_id', description: 'Vehicle ID' })
   @ApiBody({
@@ -223,7 +223,7 @@ export class VehiclesController {
   }
 
   @Delete(':vehicle_id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Soft delete vehicle (set isActive=false)' })
   @ApiParam({ name: 'vehicle_id', description: 'Vehicle ID' })
   async deleteVehicle(@CurrentUser() user: any, @Param('vehicle_id') vehicleId: string) {
