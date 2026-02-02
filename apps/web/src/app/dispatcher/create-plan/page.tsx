@@ -9,18 +9,30 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSessionStore } from '@/lib/store/sessionStore';
 import { useRoutePlanStore } from '@/lib/store/routePlanStore';
+import { useOnboardingStore } from '@/lib/store/onboardingStore';
 import { useRoutePlanning } from '@/lib/hooks/useRoutePlanning';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LoadSelector } from '@/components/route-planner/shared/LoadSelector';
 import { DriverSelector } from '@/components/route-planner/shared/DriverSelector';
 import { VehicleSelector } from '@/components/route-planner/shared/VehicleSelector';
+import { OnboardingBlocker } from '@/components/onboarding/OnboardingBlocker';
 import RoutePlanningCockpit from '@/components/route-planner/core/RoutePlanningCockpit';
 import RoutePlanningCockpitSkeleton from '@/components/route-planner/core/RoutePlanningCockpitSkeleton';
+import { FeatureGuard } from '@/components/feature-flags/FeatureGuard';
 
 export default function CreatePlanPage() {
+  return (
+    <FeatureGuard featureKey="route_planning_enabled">
+      <CreatePlanPageContent />
+    </FeatureGuard>
+  );
+}
+
+function CreatePlanPageContent() {
   const router = useRouter();
   const { isAuthenticated, user } = useSessionStore();
+  const { criticalItemsComplete, incompleteCriticalItems } = useOnboardingStore();
 
   const {
     currentPlan,
@@ -51,6 +63,11 @@ export default function CreatePlanPage() {
     return null;
   }
 
+  // Block route planning if critical onboarding items incomplete
+  if (!criticalItemsComplete) {
+    return <OnboardingBlocker incompleteCriticalItems={incompleteCriticalItems} />;
+  }
+
   const handleGeneratePlan = () => {
     // Form should already be valid due to button disabled state
     if (!isFormValid) {
@@ -73,11 +90,9 @@ export default function CreatePlanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Full-width container (max-w-[1400px] with edge breathing room) */}
-      <div className="max-w-[1400px] mx-auto space-y-6">
-        {/* Page Header */}
-        <div className="mb-6">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Create Route Plan</h1>
           <p className="text-muted-foreground mt-1">
             Plan optimized routes with zero HOS violations and automatic rest stop insertion
@@ -180,7 +195,6 @@ export default function CreatePlanPage() {
             <RoutePlanningCockpit />
           </div>
         )}
-      </div>
     </div>
   );
 }
