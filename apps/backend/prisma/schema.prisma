@@ -771,3 +771,23 @@ model DriverPreferences {
   @@index([driverId])
   @@map("driver_preferences")
 }
+
+// ============================================================================
+// FEATURE FLAGS MODEL
+// ============================================================================
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique @db.VarChar(100)
+  name        String   @db.VarChar(200)
+  description String?  @db.Text
+  enabled     Boolean  @default(false)
+  category    String   @default("general") @db.VarChar(50)  // general | dispatcher | driver | admin
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([key])
+  @@index([category])
+  @@index([enabled])
+  @@map("feature_flags")
+}
