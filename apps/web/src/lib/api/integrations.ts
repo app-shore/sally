@@ -5,7 +5,7 @@ export type IntegrationType = 'TMS' | 'HOS_ELD' | 'FUEL_PRICE' | 'WEATHER' | 'TE
 export type IntegrationVendor =
   | 'MCLEOD_TMS'
   | 'TMW_TMS'
-  | 'TRUCKBASE_TMS'
+  | 'PROJECT44_TMS'
   | 'SAMSARA_ELD'
   | 'KEEPTRUCKIN_ELD'
   | 'MOTIVE_ELD'

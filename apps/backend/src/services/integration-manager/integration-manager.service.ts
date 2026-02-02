@@ -6,7 +6,7 @@ import { AlertService, AlertSeverity } from '../alerts/alert.service';
 import { SamsaraHOSAdapter } from '../adapters/hos/samsara-hos.adapter';
 import { HOSData } from '../adapters/hos/hos-adapter.interface';
 import { McLeodTMSAdapter } from '../adapters/tms/mcleod-tms.adapter';
-import { TruckbaseTMSAdapter } from '../adapters/tms/truckbase-tms.adapter';
+import { Project44TMSAdapter } from '../adapters/tms/project44-tms.adapter';
 import { GasBuddyFuelAdapter } from '../adapters/fuel/gasbuddy-fuel.adapter';
 import { FuelFinderAdapter } from '../adapters/fuel/fuelfinder-fuel.adapter';
 import { OpenWeatherAdapter } from '../adapters/weather/openweather.adapter';
@@ -32,7 +32,7 @@ export class IntegrationManagerService {
     private alertService: AlertService,
     private samsaraAdapter: SamsaraHOSAdapter,
     private mcleodAdapter: McLeodTMSAdapter,
-    private truckbaseAdapter: TruckbaseTMSAdapter,
+    private project44Adapter: Project44TMSAdapter,
     private gasBuddyAdapter: GasBuddyFuelAdapter,
     private fuelFinderAdapter: FuelFinderAdapter,
     private openWeatherAdapter: OpenWeatherAdapter,
@@ -166,9 +166,9 @@ export class IntegrationManagerService {
         success = await this.samsaraAdapter.testConnection(apiKey);
       } else if (integration.vendor === 'MCLEOD_TMS' || integration.vendor === 'TMW_TMS') {
         success = await this.mcleodAdapter.testConnection(apiKey, '');
-      } else if (integration.vendor === 'TRUCKBASE_TMS') {
+      } else if (integration.vendor === 'PROJECT44_TMS') {
         const apiSecret = this.getApiSecretFromCredentials(integration.credentials);
-        success = await this.truckbaseAdapter.testConnection(apiKey, apiSecret);
+        success = await this.project44Adapter.testConnection(apiKey, apiSecret);
       } else if (integration.vendor === 'GASBUDDY_FUEL') {
         success = await this.gasBuddyAdapter.testConnection(apiKey);
       } else if (integration.vendor === 'FUELFINDER_FUEL') {

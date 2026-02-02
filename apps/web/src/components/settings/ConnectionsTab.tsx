@@ -59,7 +59,7 @@ const CATEGORIES = [
     icon: Package,
     color: 'purple',
     vendors: [
-      { vendor: 'TRUCKBASE_TMS' as const, name: 'Truckbase', enabled: true },
+      { vendor: 'PROJECT44_TMS' as const, name: 'project44', enabled: true },
       { vendor: 'MCLEOD_TMS' as const, name: 'McLeod', enabled: false, comingSoon: true },
       { vendor: 'TMW_TMS' as const, name: 'TMW Systems', enabled: false, comingSoon: true },
     ] as VendorConfig[]

@@ -10,7 +10,7 @@ import { RetryModule } from '../../services/retry/retry.module';
 import { AlertModule } from '../../services/alerts/alert.module';
 import { SamsaraHOSAdapter } from '../../services/adapters/hos/samsara-hos.adapter';
 import { McLeodTMSAdapter } from '../../services/adapters/tms/mcleod-tms.adapter';
-import { TruckbaseTMSAdapter } from '../../services/adapters/tms/truckbase-tms.adapter';
+import { Project44TMSAdapter } from '../../services/adapters/tms/project44-tms.adapter';
 import { GasBuddyFuelAdapter } from '../../services/adapters/fuel/gasbuddy-fuel.adapter';
 import { FuelFinderAdapter } from '../../services/adapters/fuel/fuelfinder-fuel.adapter';
 import { OpenWeatherAdapter } from '../../services/adapters/weather/openweather.adapter';
@@ -26,7 +26,7 @@ import { OpenWeatherAdapter } from '../../services/adapters/weather/openweather.
     // Adapters
     SamsaraHOSAdapter,
     McLeodTMSAdapter,
-    TruckbaseTMSAdapter,
+    Project44TMSAdapter,
     GasBuddyFuelAdapter,
     FuelFinderAdapter,
     OpenWeatherAdapter,
