@@ -58,28 +58,30 @@
   - `JWT_REFRESH_SECRET` set (production value, not dev default)
   - Secrets stored securely (password manager, AWS Secrets Manager, etc.)
 
-### Email Alert Configuration (Resend)
+### Email Configuration (Resend)
 
-- [ ] **Resend API key** obtained and tested
+- [ ] **Resend API key** obtained and configured
   - Sign up at: https://resend.com/onboarding
   - Get API key from: https://resend.com/api-keys
-  - `SMTP_HOST`: smtp.resend.com
-  - `SMTP_PORT`: 465
-  - `SMTP_USER`: resend
-  - `SMTP_PASS`: re_123456789_YourResendAPIKey
-  - `ALERT_FROM_EMAIL`: alerts@sally.app (must be verified domain)
+  - Environment variables:
+    - `RESEND_API_KEY`: re_123456789_YourResendAPIKey (recommended)
+    - `EMAIL_FROM`: alerts@sally.app (must be verified domain)
+    - Alternative SMTP fallback available if needed
 
 - [ ] **Domain verification completed**
-  - Add DNS records in Resend dashboard
-  - Verify domain ownership
-  - Test sending from verified domain
+  - Add domain `sally.app` in Resend dashboard
+  - Add DNS records (TXT, MX) provided by Resend
+  - Verify domain ownership (usually < 5 minutes)
+  - Confirm status shows "Verified" ✅
 
-- [ ] **Test email sent successfully**
-  - Send test alert email via Resend
+- [ ] **EmailService tested**
+  - EmailService uses Resend API (simpler than SMTP)
+  - Test email sent successfully
   - Verify delivery to: ___________
   - Check spam folder if not received
-  - Verify email formatting and links work
+  - Verify email formatting and HTML rendering
   - Confirm delivery logs in Resend dashboard
+  - EmailService automatically falls back to console mode in dev
 
 ### Database Preparation
 
