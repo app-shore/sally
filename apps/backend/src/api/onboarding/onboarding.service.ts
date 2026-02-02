@@ -114,19 +114,18 @@ export class OnboardingService {
   }
 
   private async checkTmsIntegration(tenantId: number) {
-    // TODO: Re-enable when integration model is added to schema
-    // const integration = await this.prisma.integration.findFirst({
-    //   where: {
-    //     tenantId,
-    //     type: 'TMS',
-    //     status: 'connected',
-    //   },
-    // });
+    const integration = await this.prisma.integrationConfig.findFirst({
+      where: {
+        tenantId,
+        integrationType: 'TMS',
+        status: 'CONNECTED',
+      },
+    });
 
     return {
-      connected: false,
-      connectedSystem: null,
-      connectedAt: null,
+      connected: !!integration,
+      connectedSystem: integration?.vendor || null,
+      connectedAt: integration?.lastSyncAt?.toISOString() || null,
     };
   }
 
@@ -201,36 +200,34 @@ export class OnboardingService {
   }
 
   private async checkEldIntegration(tenantId: number) {
-    // TODO: Re-enable when integration model is added to schema
-    // const integration = await this.prisma.integration.findFirst({
-    //   where: {
-    //     tenantId,
-    //     type: 'ELD',
-    //     status: 'connected',
-    //   },
-    // });
+    const integration = await this.prisma.integrationConfig.findFirst({
+      where: {
+        tenantId,
+        integrationType: 'HOS_ELD',
+        status: 'CONNECTED',
+      },
+    });
 
     return {
-      connected: false,
-      connectedSystem: null,
-      availableProviders: ['samsara', 'keeptruckin', 'motive'],
+      connected: !!integration,
+      connectedSystem: integration?.vendor || null,
+      availableProviders: ['SAMSARA_ELD', 'KEEPTRUCKIN_ELD', 'MOTIVE_ELD'],
     };
   }
 
   private async checkFuelIntegration(tenantId: number) {
-    // TODO: Re-enable when integration model is added to schema
-    // const integration = await this.prisma.integration.findFirst({
-    //   where: {
-    //     tenantId,
-    //     type: 'FUEL',
-    //     status: 'connected',
-    //   },
-    // });
+    const integration = await this.prisma.integrationConfig.findFirst({
+      where: {
+        tenantId,
+        integrationType: 'FUEL_PRICE',
+        status: 'CONNECTED',
+      },
+    });
 
     return {
-      connected: false,
-      connectedSystem: null,
-      availableProviders: ['wex', 'comdata'],
+      connected: !!integration,
+      connectedSystem: integration?.vendor || null,
+      availableProviders: ['WEX_FUEL', 'COMDATA_FUEL'],
     };
   }
 

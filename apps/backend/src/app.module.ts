@@ -40,6 +40,7 @@ import { UsersModule } from './api/users/users.module';
 import { ServicesModule } from './common/services/services.module';
 import { OnboardingModule } from './api/onboarding/onboarding.module';
 import { FeatureFlagsModule } from './api/feature-flags/feature-flags.module';
+import { CacheModule } from './cache/cache.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { FeatureFlagsModule } from './api/feature-flags/feature-flags.module';
       load: [configuration],
       envFilePath: '.env',
     }),
+    CacheModule,
     PrismaModule,
     DatabaseModule,
     AuthModule,
