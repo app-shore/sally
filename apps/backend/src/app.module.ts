@@ -38,6 +38,8 @@ import { TenantsModule } from './api/tenants/tenants.module';
 import { UserInvitationsModule } from './api/user-invitations/user-invitations.module';
 import { UsersModule } from './api/users/users.module';
 import { ServicesModule } from './common/services/services.module';
+import { OnboardingModule } from './api/onboarding/onboarding.module';
+import { FeatureFlagsModule } from './api/feature-flags/feature-flags.module';
 
 @Module({
   imports: [
@@ -55,6 +57,8 @@ import { ServicesModule } from './common/services/services.module';
     TenantsModule,
     UserInvitationsModule,
     UsersModule,
+    OnboardingModule,
+    FeatureFlagsModule,
   ],
   providers: [
     // Global guards (applied to all routes by default)
