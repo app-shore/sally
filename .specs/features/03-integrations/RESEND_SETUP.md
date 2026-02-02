@@ -64,43 +64,47 @@ Visit: https://resend.com/api-keys
 Add to `apps/backend/.env`:
 
 ```bash
-# Email Alerting (using Resend - https://resend.com)
-SMTP_HOST="smtp.resend.com"
-SMTP_PORT="465"
-SMTP_USER="resend"
-SMTP_PASS="re_123456789_YourActualResendAPIKey"
-ALERT_FROM_EMAIL="alerts@sally.app"
+# Email Configuration (using Resend - https://resend.com)
+# Resend API (recommended - simpler and more reliable)
+RESEND_API_KEY="re_123456789_YourActualResendAPIKey"
+EMAIL_FROM="alerts@sally.app"
+
+# Alternative: SMTP fallback (only if Resend API not available)
+# SMTP_HOST="smtp.resend.com"
+# SMTP_PORT="465"
+# SMTP_USER="resend"
+# SMTP_PASSWORD="re_123456789_YourActualResendAPIKey"
 ```
 
 **Important:**
-- `SMTP_PASS` = Your Resend API key (starts with `re_`)
-- `ALERT_FROM_EMAIL` must use your verified domain
-- Port 465 uses SSL (secure connection)
+- **Use RESEND_API_KEY** (recommended) - simpler configuration
+- `EMAIL_FROM` must use your verified domain
+- SMTP fallback available if needed
+- EmailService automatically chooses best method (Resend API > SMTP > Console)
 
 ---
 
 ## Testing Email Delivery
 
-### Manual Test (via Node.js)
+### Manual Test (via EmailService)
+
+**Option 1: Test via API endpoint** (recommended)
+
+Create a test endpoint or use existing health check to send test email.
+
+**Option 2: Test via Node.js script**
 
 Create a test script: `apps/backend/test-email.js`
 
 ```javascript
-const nodemailer = require('nodemailer');
+// Using Resend SDK directly (matches EmailService)
+const { Resend } = require('resend');
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.resend.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: 'resend',
-    pass: process.env.SMTP_PASS, // Your Resend API key
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function sendTestEmail() {
   try {
-    const info = await transporter.sendMail({
+    const data = await resend.emails.send({
       from: 'alerts@sally.app',
       to: 'your-email@example.com', // Replace with your email
       subject: 'Test Alert from SALLY',
@@ -112,7 +116,7 @@ async function sendTestEmail() {
     });
 
     console.log('✅ Email sent successfully!');
-    console.log('Message ID:', info.messageId);
+    console.log('Email ID:', data.id);
   } catch (error) {
     console.error('❌ Failed to send email:', error);
   }
@@ -124,7 +128,8 @@ sendTestEmail();
 Run test:
 ```bash
 cd apps/backend
-SMTP_PASS="your-resend-api-key" node test-email.js
+npm install resend  # if not already installed
+RESEND_API_KEY="your-resend-api-key" node test-email.js
 ```
 
 ### Check Delivery in Resend Dashboard
