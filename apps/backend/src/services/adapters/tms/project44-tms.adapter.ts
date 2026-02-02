@@ -1,6 +1,51 @@
 import { ITMSAdapter, LoadData } from './tms-adapter.interface';
 
 /**
+ * Driver data from project44 TMS
+ */
+export interface DriverData {
+  driver_id: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  email?: string;
+  license_number?: string;
+  license_state?: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'ON_DUTY' | 'OFF_DUTY';
+  current_location?: {
+    latitude: number;
+    longitude: number;
+    city?: string;
+    state?: string;
+  };
+  assigned_vehicle_id?: string;
+  data_source: string;
+}
+
+/**
+ * Vehicle data from project44 TMS
+ */
+export interface VehicleData {
+  vehicle_id: string;
+  unit_number: string;
+  make: string;
+  model: string;
+  year: number;
+  vin?: string;
+  license_plate?: string;
+  license_state?: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE';
+  current_location?: {
+    latitude: number;
+    longitude: number;
+    city?: string;
+    state?: string;
+  };
+  assigned_driver_id?: string;
+  data_source: string;
+}
+
+/**
  * project44 TMS Adapter
  *
  * Integrates with project44 API to fetch load/shipment data.
@@ -26,9 +71,18 @@ export class Project44TMSAdapter implements ITMSAdapter {
 
   /**
    * Test connection to project44 API
+   *
+   * In mock mode: Only succeeds if credentials are provided (any non-empty values)
+   * This makes it feel like a real connection test
    */
   async testConnection(clientId: string, clientSecret: string): Promise<boolean> {
+    // Validate credentials are provided (even in mock mode)
+    if (!clientId || !clientSecret) {
+      return false;
+    }
+
     if (this.useMockData) {
+      // In mock mode, accept any non-empty credentials
       return true;
     }
 
@@ -43,8 +97,15 @@ export class Project44TMSAdapter implements ITMSAdapter {
 
   /**
    * Get all active loads from project44
+   *
+   * In mock mode: Only returns data if credentials are provided
    */
   async getActiveLoads(clientId: string, clientSecret: string): Promise<LoadData[]> {
+    // Validate credentials are provided
+    if (!clientId || !clientSecret) {
+      throw new Error('project44 credentials not configured');
+    }
+
     if (this.useMockData) {
       return this.getMockLoads();
     }
@@ -75,8 +136,15 @@ export class Project44TMSAdapter implements ITMSAdapter {
 
   /**
    * Get specific load by ID
+   *
+   * In mock mode: Only returns data if credentials are provided
    */
   async getLoad(clientId: string, clientSecret: string, loadId: string): Promise<LoadData> {
+    // Validate credentials are provided
+    if (!clientId || !clientSecret) {
+      throw new Error('project44 credentials not configured');
+    }
+
     if (this.useMockData) {
       const mockLoads = this.getMockLoads();
       const load = mockLoads.find((l) => l.load_id === loadId);
@@ -110,10 +178,95 @@ export class Project44TMSAdapter implements ITMSAdapter {
 
   /**
    * Sync all loads (fetch and return IDs)
+   *
+   * In mock mode: Only returns data if credentials are provided
    */
   async syncAllLoads(clientId: string, clientSecret: string): Promise<string[]> {
+    // Validate credentials are provided
+    if (!clientId || !clientSecret) {
+      throw new Error('project44 credentials not configured');
+    }
+
     const loads = await this.getActiveLoads(clientId, clientSecret);
     return loads.map((load) => load.load_id);
+  }
+
+  /**
+   * Get all drivers from project44
+   *
+   * In mock mode: Only returns data if credentials are provided
+   */
+  async getDrivers(clientId: string, clientSecret: string): Promise<DriverData[]> {
+    // Validate credentials are provided
+    if (!clientId || !clientSecret) {
+      throw new Error('project44 credentials not configured');
+    }
+
+    if (this.useMockData) {
+      return this.getMockDrivers();
+    }
+
+    try {
+      const token = await this.getOAuthToken(clientId, clientSecret);
+
+      const response = await fetch(`${this.baseUrl}/drivers`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`project44 API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const drivers = data.data || [];
+
+      return drivers.map((driver: any) => this.transformDriverData(driver));
+    } catch (error) {
+      console.error('Failed to fetch drivers from project44:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all vehicles from project44
+   *
+   * In mock mode: Only returns data if credentials are provided
+   */
+  async getVehicles(clientId: string, clientSecret: string): Promise<VehicleData[]> {
+    // Validate credentials are provided
+    if (!clientId || !clientSecret) {
+      throw new Error('project44 credentials not configured');
+    }
+
+    if (this.useMockData) {
+      return this.getMockVehicles();
+    }
+
+    try {
+      const token = await this.getOAuthToken(clientId, clientSecret);
+
+      const response = await fetch(`${this.baseUrl}/vehicles`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`project44 API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const vehicles = data.data || [];
+
+      return vehicles.map((vehicle: any) => this.transformVehicleData(vehicle));
+    } catch (error) {
+      console.error('Failed to fetch vehicles from project44:', error);
+      throw error;
+    }
   }
 
   /**
@@ -156,6 +309,55 @@ export class Project44TMSAdapter implements ITMSAdapter {
   }
 
   /**
+   * Transform project44 driver data to DriverData format
+   */
+  private transformDriverData(p44Driver: any): DriverData {
+    return {
+      driver_id: p44Driver.id || p44Driver.driverId,
+      first_name: p44Driver.firstName || '',
+      last_name: p44Driver.lastName || '',
+      phone: p44Driver.phone || p44Driver.phoneNumber || '',
+      email: p44Driver.email,
+      license_number: p44Driver.licenseNumber,
+      license_state: p44Driver.licenseState,
+      status: this.mapDriverStatus(p44Driver.status),
+      current_location: p44Driver.currentLocation ? {
+        latitude: p44Driver.currentLocation.latitude,
+        longitude: p44Driver.currentLocation.longitude,
+        city: p44Driver.currentLocation.city,
+        state: p44Driver.currentLocation.state,
+      } : undefined,
+      assigned_vehicle_id: p44Driver.assignedVehicleId,
+      data_source: 'project44_tms',
+    };
+  }
+
+  /**
+   * Transform project44 vehicle data to VehicleData format
+   */
+  private transformVehicleData(p44Vehicle: any): VehicleData {
+    return {
+      vehicle_id: p44Vehicle.id || p44Vehicle.vehicleId,
+      unit_number: p44Vehicle.unitNumber || p44Vehicle.number || '',
+      make: p44Vehicle.make || '',
+      model: p44Vehicle.model || '',
+      year: p44Vehicle.year || 0,
+      vin: p44Vehicle.vin,
+      license_plate: p44Vehicle.licensePlate,
+      license_state: p44Vehicle.licenseState,
+      status: this.mapVehicleStatus(p44Vehicle.status),
+      current_location: p44Vehicle.currentLocation ? {
+        latitude: p44Vehicle.currentLocation.latitude,
+        longitude: p44Vehicle.currentLocation.longitude,
+        city: p44Vehicle.currentLocation.city,
+        state: p44Vehicle.currentLocation.state,
+      } : undefined,
+      assigned_driver_id: p44Vehicle.assignedDriverId,
+      data_source: 'project44_tms',
+    };
+  }
+
+  /**
    * Transform project44 load data to SALLY LoadData format
    */
   private transformLoadData(p44Load: any): LoadData {
@@ -192,7 +394,7 @@ export class Project44TMSAdapter implements ITMSAdapter {
   }
 
   /**
-   * Map project44 status to SALLY status
+   * Map project44 load status to SALLY status
    */
   private mapStatus(p44Status: string): string {
     const statusMap: Record<string, string> = {
@@ -205,6 +407,39 @@ export class Project44TMSAdapter implements ITMSAdapter {
     };
 
     return statusMap[p44Status] || 'ASSIGNED';
+  }
+
+  /**
+   * Map project44 driver status
+   */
+  private mapDriverStatus(p44Status: string): 'ACTIVE' | 'INACTIVE' | 'ON_DUTY' | 'OFF_DUTY' {
+    const statusMap: Record<string, 'ACTIVE' | 'INACTIVE' | 'ON_DUTY' | 'OFF_DUTY'> = {
+      'ACTIVE': 'ACTIVE',
+      'INACTIVE': 'INACTIVE',
+      'ON_DUTY': 'ON_DUTY',
+      'OFF_DUTY': 'OFF_DUTY',
+      'AVAILABLE': 'ACTIVE',
+      'UNAVAILABLE': 'INACTIVE',
+    };
+
+    return statusMap[p44Status] || 'ACTIVE';
+  }
+
+  /**
+   * Map project44 vehicle status
+   */
+  private mapVehicleStatus(p44Status: string): 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE' {
+    const statusMap: Record<string, 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE'> = {
+      'ACTIVE': 'ACTIVE',
+      'INACTIVE': 'INACTIVE',
+      'IN_SERVICE': 'IN_SERVICE',
+      'OUT_OF_SERVICE': 'OUT_OF_SERVICE',
+      'AVAILABLE': 'ACTIVE',
+      'UNAVAILABLE': 'INACTIVE',
+      'MAINTENANCE': 'OUT_OF_SERVICE',
+    };
+
+    return statusMap[p44Status] || 'ACTIVE';
   }
 
   /**
@@ -360,6 +595,207 @@ export class Project44TMSAdapter implements ITMSAdapter {
         assigned_driver_id: 'DRV-005',
         status: 'DELIVERED',
         total_miles: 173,
+        data_source: 'project44_tms',
+      },
+    ];
+  }
+
+  /**
+   * Generate mock driver data matching project44 response format
+   */
+  private getMockDrivers(): DriverData[] {
+    return [
+      {
+        driver_id: 'DRV-001',
+        first_name: 'John',
+        last_name: 'Martinez',
+        phone: '+1-555-0101',
+        email: 'john.martinez@example.com',
+        license_number: 'D1234567',
+        license_state: 'AZ',
+        status: 'ON_DUTY',
+        current_location: {
+          latitude: 35.5,
+          longitude: -113.5,
+          city: 'Kingman',
+          state: 'AZ',
+        },
+        assigned_vehicle_id: 'VEH-101',
+        data_source: 'project44_tms',
+      },
+      {
+        driver_id: 'DRV-002',
+        first_name: 'Sarah',
+        last_name: 'Thompson',
+        phone: '+1-555-0102',
+        email: 'sarah.thompson@example.com',
+        license_number: 'D2345678',
+        license_state: 'CA',
+        status: 'ON_DUTY',
+        current_location: {
+          latitude: 33.9731,
+          longitude: -118.2479,
+          city: 'Los Angeles',
+          state: 'CA',
+        },
+        assigned_vehicle_id: 'VEH-102',
+        data_source: 'project44_tms',
+      },
+      {
+        driver_id: 'DRV-003',
+        first_name: 'Michael',
+        last_name: 'Johnson',
+        phone: '+1-555-0103',
+        email: 'michael.johnson@example.com',
+        license_number: 'D3456789',
+        license_state: 'TX',
+        status: 'ON_DUTY',
+        current_location: {
+          latitude: 32.7767,
+          longitude: -96.797,
+          city: 'Dallas',
+          state: 'TX',
+        },
+        assigned_vehicle_id: 'VEH-103',
+        data_source: 'project44_tms',
+      },
+      {
+        driver_id: 'DRV-004',
+        first_name: 'Emily',
+        last_name: 'Rodriguez',
+        phone: '+1-555-0104',
+        email: 'emily.rodriguez@example.com',
+        license_number: 'D4567890',
+        license_state: 'GA',
+        status: 'OFF_DUTY',
+        current_location: {
+          latitude: 33.749,
+          longitude: -84.388,
+          city: 'Atlanta',
+          state: 'GA',
+        },
+        assigned_vehicle_id: 'VEH-104',
+        data_source: 'project44_tms',
+      },
+      {
+        driver_id: 'DRV-005',
+        first_name: 'David',
+        last_name: 'Chen',
+        phone: '+1-555-0105',
+        email: 'david.chen@example.com',
+        license_number: 'D5678901',
+        license_state: 'WA',
+        status: 'ACTIVE',
+        current_location: {
+          latitude: 45.5152,
+          longitude: -122.6784,
+          city: 'Portland',
+          state: 'OR',
+        },
+        assigned_vehicle_id: 'VEH-105',
+        data_source: 'project44_tms',
+      },
+    ];
+  }
+
+  /**
+   * Generate mock vehicle data matching project44 response format
+   */
+  private getMockVehicles(): VehicleData[] {
+    return [
+      {
+        vehicle_id: 'VEH-101',
+        unit_number: '101',
+        make: 'Freightliner',
+        model: 'Cascadia',
+        year: 2022,
+        vin: '1FUJGLDR7NLAA1234',
+        license_plate: 'AZ12345',
+        license_state: 'AZ',
+        status: 'IN_SERVICE',
+        current_location: {
+          latitude: 35.5,
+          longitude: -113.5,
+          city: 'Kingman',
+          state: 'AZ',
+        },
+        assigned_driver_id: 'DRV-001',
+        data_source: 'project44_tms',
+      },
+      {
+        vehicle_id: 'VEH-102',
+        unit_number: '102',
+        make: 'Kenworth',
+        model: 'T680',
+        year: 2023,
+        vin: '1XKYDP9X2NJ345678',
+        license_plate: 'CA67890',
+        license_state: 'CA',
+        status: 'IN_SERVICE',
+        current_location: {
+          latitude: 33.9731,
+          longitude: -118.2479,
+          city: 'Los Angeles',
+          state: 'CA',
+        },
+        assigned_driver_id: 'DRV-002',
+        data_source: 'project44_tms',
+      },
+      {
+        vehicle_id: 'VEH-103',
+        unit_number: '103',
+        make: 'Peterbilt',
+        model: '579',
+        year: 2022,
+        vin: '1XPBDP9X7ND456789',
+        license_plate: 'TX45678',
+        license_state: 'TX',
+        status: 'IN_SERVICE',
+        current_location: {
+          latitude: 32.7767,
+          longitude: -96.797,
+          city: 'Dallas',
+          state: 'TX',
+        },
+        assigned_driver_id: 'DRV-003',
+        data_source: 'project44_tms',
+      },
+      {
+        vehicle_id: 'VEH-104',
+        unit_number: '104',
+        make: 'Volvo',
+        model: 'VNL 760',
+        year: 2021,
+        vin: '4V4NC9TH5MN567890',
+        license_plate: 'GA23456',
+        license_state: 'GA',
+        status: 'ACTIVE',
+        current_location: {
+          latitude: 33.749,
+          longitude: -84.388,
+          city: 'Atlanta',
+          state: 'GA',
+        },
+        assigned_driver_id: 'DRV-004',
+        data_source: 'project44_tms',
+      },
+      {
+        vehicle_id: 'VEH-105',
+        unit_number: '105',
+        make: 'International',
+        model: 'LT Series',
+        year: 2023,
+        vin: '3AKJHHDR8NSJK6789',
+        license_plate: 'WA78901',
+        license_state: 'WA',
+        status: 'IN_SERVICE',
+        current_location: {
+          latitude: 45.5152,
+          longitude: -122.6784,
+          city: 'Portland',
+          state: 'OR',
+        },
+        assigned_driver_id: 'DRV-005',
         data_source: 'project44_tms',
       },
     ];
