@@ -14,7 +14,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'ADMIN' | 'DISPATCHER' | 'DRIVER' | 'SUPER_ADMIN';
+  role: 'OWNER' | 'ADMIN' | 'DISPATCHER' | 'DRIVER' | 'SUPER_ADMIN';
   tenantId?: string;
   tenantName?: string;
   driverId?: string;
@@ -28,9 +28,13 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  _hasHydrated: boolean;
+  isInitialized: boolean;
 
   // Actions
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<User | null>;
+  setHasHydrated: (state: boolean) => void;
+  setInitialized: (state: boolean) => void;
   signUp: (email: string, password: string) => Promise<FirebaseUser>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -51,6 +55,8 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
+      _hasHydrated: false,
+      isInitialized: false,
 
       // Sign in with email/password
       signIn: async (email: string, password: string) => {
@@ -65,9 +71,13 @@ export const useAuthStore = create<AuthState>()(
           set({
             firebaseUser: userCredential.user,
             isLoading: false,
+            isInitialized: true,
           });
+
+          // Return the user object for redirect logic
+          return get().user;
         } catch (error) {
-          set({ isLoading: false });
+          set({ isLoading: false, isInitialized: false });
           throw error;
         }
       },
@@ -131,6 +141,8 @@ export const useAuthStore = create<AuthState>()(
       setFirebaseUser: (firebaseUser) => set({ firebaseUser }),
       setTokens: (accessToken, refreshToken) =>
         set({ accessToken, refreshToken }),
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
+      setInitialized: (state) => set({ isInitialized: state }),
       clearAuth: () =>
         set({
           user: null,
@@ -138,6 +150,7 @@ export const useAuthStore = create<AuthState>()(
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
+          isInitialized: false,
         }),
     }),
     {
@@ -148,6 +161,13 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+        // If we have valid auth data after hydration, mark as initialized
+        if (state?.accessToken && state?.user) {
+          state?.setInitialized(true);
+        }
+      },
     },
   ),
 );

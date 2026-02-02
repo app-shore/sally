@@ -8,7 +8,7 @@ export interface JwtPayload {
   sub: string; // userId
   email: string;
   role: string;
-  tenantId: string;
+  tenantId?: string; // Optional - SUPER_ADMIN has no tenant
   driverId?: string;
   iat: number;
   exp: number;
@@ -41,7 +41,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User not found or inactive');
     }
 
-    if (!user.tenant.isActive) {
+    // Check tenant is active (skip for SUPER_ADMIN who has no tenant)
+    if (user.tenant && !user.tenant.isActive) {
       throw new UnauthorizedException('Tenant is inactive');
     }
 
@@ -50,8 +51,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       userId: user.userId,
       email: user.email,
       role: user.role,
-      tenantId: user.tenant.tenantId,
-      tenantName: user.tenant.companyName,
+      tenantId: user.tenant?.tenantId,
+      tenantName: user.tenant?.companyName,
       driverId: user.driver?.driverId,
       driverName: user.driver?.name,
       isActive: user.isActive,

@@ -3,8 +3,10 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EmailService } from '../../common/services/email.service';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { generateId } from '../../common/utils/id-generator';
 import { customAlphabet } from 'nanoid';
@@ -13,13 +15,65 @@ const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 32);
 
 @Injectable()
 export class UserInvitationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   /**
    * Invite a new user to the tenant
    */
   async inviteUser(dto: InviteUserDto, currentUser: any) {
-    const tenantId = currentUser.tenant.id;
+    console.log('[InviteUser] Current user:', {
+      userId: currentUser.userId,
+      email: currentUser.email,
+      role: currentUser.role,
+      tenantId: currentUser.tenantId,
+    });
+
+    // SUPER_ADMIN cannot invite users (they have no tenant)
+    if (currentUser.role === 'SUPER_ADMIN') {
+      throw new ForbiddenException('Super admins cannot invite users. User invitations are managed by tenant owners/admins.');
+    }
+
+    if (!currentUser.tenantId) {
+      throw new BadRequestException('User must belong to a tenant to invite other users');
+    }
+
+    // Role-based invitation restrictions
+    if (dto.role === 'SUPER_ADMIN') {
+      throw new ForbiddenException('Cannot invite users with SUPER_ADMIN role');
+    }
+
+    if (dto.role === 'OWNER') {
+      throw new ForbiddenException('Cannot invite users with OWNER role. Each tenant can only have one owner.');
+    }
+
+    // ADMIN cannot invite other ADMINs (only OWNER can)
+    if (currentUser.role === 'ADMIN' && dto.role === 'ADMIN') {
+      throw new ForbiddenException('Only the tenant owner can invite additional admins');
+    }
+
+    // Get tenant database ID from tenantId string
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { tenantId: currentUser.tenantId },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    const tenantId = tenant.id;
+
+    // Get current user's database ID
+    const invitingUser = await this.prisma.user.findUnique({
+      where: { userId: currentUser.userId },
+      select: { id: true },
+    });
+
+    if (!invitingUser) {
+      throw new NotFoundException('Inviting user not found');
+    }
 
     // Check if user already exists
     const existingUser = await this.prisma.user.findFirst({
@@ -73,30 +127,70 @@ export class UserInvitationsService {
     const token = nanoid();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    return this.prisma.userInvitation.create({
+    const invitation = await this.prisma.userInvitation.create({
       data: {
         invitationId: generateId('inv'),
-        tenantId,
+        tenant: {
+          connect: { id: tenantId },
+        },
+        invitedByUser: {
+          connect: { id: invitingUser.id },
+        },
+        ...(driverIdInt && {
+          driver: {
+            connect: { id: driverIdInt },
+          },
+        }),
         email: dto.email,
         firstName: dto.firstName,
         lastName: dto.lastName,
         role: dto.role,
-        driverId: driverIdInt,
         token,
-        invitedBy: currentUser.id,
         status: 'PENDING',
         expiresAt,
       },
+      include: {
+        tenant: true,
+        invitedByUser: true,
+      },
     });
+
+    // Send invitation email
+    const invitedByName = `${invitation.invitedByUser.firstName} ${invitation.invitedByUser.lastName}`;
+
+    await this.emailService.sendUserInvitation(
+      invitation.email,
+      invitation.firstName,
+      invitation.lastName,
+      invitedByName,
+      invitation.tenant.companyName,
+      token,
+    );
+
+    return invitation;
   }
 
   /**
    * Get all invitations for a tenant
+   * If tenantIdString is undefined, returns all invitations (for SUPER_ADMIN)
    */
-  async getInvitations(tenantId: number, status?: string) {
+  async getInvitations(tenantIdString?: string, status?: string) {
+    let tenantDbId: number | undefined;
+
+    // If tenant ID string provided, look up database ID
+    if (tenantIdString) {
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { tenantId: tenantIdString },
+      });
+      if (!tenant) {
+        throw new NotFoundException('Tenant not found');
+      }
+      tenantDbId = tenant.id;
+    }
+
     return this.prisma.userInvitation.findMany({
       where: {
-        tenantId,
+        ...(tenantDbId && { tenantId: tenantDbId }),
         ...(status && { status: status as any }),
       },
       include: {
@@ -178,7 +272,16 @@ export class UserInvitationsService {
   /**
    * Cancel invitation
    */
-  async cancelInvitation(invitationId: string, tenantId: number, reason?: string) {
+  async cancelInvitation(invitationId: string, tenantIdString: string, reason?: string) {
+    // Get tenant database ID from tenantId string
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { tenantId: tenantIdString },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
     const invitation = await this.prisma.userInvitation.findUnique({
       where: { invitationId },
     });
@@ -187,7 +290,7 @@ export class UserInvitationsService {
       throw new NotFoundException('Invitation not found');
     }
 
-    if (invitation.tenantId !== tenantId) {
+    if (invitation.tenantId !== tenant.id) {
       throw new BadRequestException('Invitation does not belong to your organization');
     }
 

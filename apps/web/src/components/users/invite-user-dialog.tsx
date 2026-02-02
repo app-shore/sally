@@ -36,9 +36,12 @@ interface InviteUserDialogProps {
 }
 
 export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) {
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+
+  // Only OWNER can invite ADMIN users
+  const isOwner = user?.role === 'OWNER';
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
@@ -155,7 +158,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  {isOwner && <SelectItem value="ADMIN">Admin</SelectItem>}
                   <SelectItem value="DISPATCHER">Dispatcher</SelectItem>
                   <SelectItem value="DRIVER">Driver</SelectItem>
                 </SelectContent>
@@ -163,6 +166,11 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
               {errors.role && (
                 <p className="text-sm text-red-500 dark:text-red-400 mt-1">
                   {errors.role.message}
+                </p>
+              )}
+              {!isOwner && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Only the tenant owner can invite admin users
                 </p>
               )}
             </div>

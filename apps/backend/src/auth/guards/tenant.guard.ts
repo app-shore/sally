@@ -25,6 +25,11 @@ export class TenantGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
+    // SUPER_ADMIN users don't have a tenant - skip tenant check for them
+    if (user?.role === 'SUPER_ADMIN') {
+      return true;
+    }
+
     if (!user || !user.tenantId) {
       throw new UnauthorizedException('Tenant context missing');
     }

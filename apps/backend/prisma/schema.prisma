@@ -14,6 +14,7 @@ enum UserRole {
   DISPATCHER
   DRIVER
   ADMIN
+  OWNER           // Tenant owner - created during registration, cannot be deleted
   SUPER_ADMIN
 }
 

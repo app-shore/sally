@@ -1,27 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, TrendingUp, Clock, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DispatcherOverviewPage() {
-  const router = useRouter();
-  const { isAuthenticated, user } = useSessionStore();
-
-  useEffect(() => {
-    if (!isAuthenticated || user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN') {
-      router.push('/');
-    }
-  }, [isAuthenticated, user, router]);
-
-  if (!isAuthenticated || user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN') {
-    return null;
-  }
-
+  // Auth is handled by layout-client.tsx
   return (
     <div className="space-y-6">
       <div>

@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, IsEnum, IsOptional, IsNumber } from 'class-validator';
 import { UserRole } from '@prisma/client';
 
 export class InviteUserDto {
@@ -15,6 +15,14 @@ export class InviteUserDto {
 
   @IsEnum(UserRole)
   role: UserRole;
+
+  /**
+   * Optional tenant ID (required for SUPER_ADMIN inviting users)
+   * For ADMIN users, this is automatically set to their tenant
+   */
+  @IsOptional()
+  @IsNumber()
+  tenantId?: number;
 
   /**
    * Optional driver ID to link (for DRIVER role only)

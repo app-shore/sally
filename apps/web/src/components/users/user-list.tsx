@@ -22,7 +22,7 @@ interface UserListProps {
 }
 
 export function UserList({ onInviteClick }: UserListProps) {
-  const { accessToken } = useAuth();
+  const { accessToken, user: currentUser, isSuperAdmin } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('all');
 
@@ -77,9 +77,78 @@ export function UserList({ onInviteClick }: UserListProps) {
     },
   });
 
+  // Deactivate user mutation
+  const deactivateUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await fetch(`${apiUrl}/users/${userId}/deactivate`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to deactivate user');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+
+  // Activate user mutation
+  const activateUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await fetch(`${apiUrl}/users/${userId}/activate`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to activate user');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await fetch(`${apiUrl}/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to delete user');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+
   const handleCancelInvitation = (invitationId: string) => {
     if (confirm('Cancel this invitation?')) {
       cancelInvitationMutation.mutate(invitationId);
+    }
+  };
+
+  const handleDeactivateUser = (userId: string, userName: string) => {
+    if (confirm(`Deactivate ${userName}? They will no longer be able to access the system.`)) {
+      deactivateUserMutation.mutate(userId);
+    }
+  };
+
+  const handleActivateUser = (userId: string, userName: string) => {
+    if (confirm(`Activate ${userName}? They will regain access to the system.`)) {
+      activateUserMutation.mutate(userId);
+    }
+  };
+
+  const handleDeleteUser = (userId: string, userName: string) => {
+    if (confirm(`Permanently deactivate ${userName}? This action cannot be undone.`)) {
+      deleteUserMutation.mutate(userId);
     }
   };
 
@@ -88,6 +157,8 @@ export function UserList({ onInviteClick }: UserListProps) {
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
+      case 'OWNER':
+        return 'default';
       case 'ADMIN':
         return 'default';
       case 'DISPATCHER':
@@ -104,10 +175,13 @@ export function UserList({ onInviteClick }: UserListProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>User Management</CardTitle>
-          <Button onClick={onInviteClick}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Invite User
-          </Button>
+          {/* Only ADMIN can invite users. SUPER_ADMIN manages tenants via tenant registration */}
+          {!isSuperAdmin && (
+            <Button onClick={onInviteClick}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite User
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -131,32 +205,80 @@ export function UserList({ onInviteClick }: UserListProps) {
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Last Login</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users?.map((user: any) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">
-                          {user.firstName} {user.lastName}
-                        </TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <Badge variant={getRoleBadgeVariant(user.role)}>
-                            {user.role}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={user.isActive ? 'default' : 'secondary'}>
-                            {user.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {user.lastLoginAt
-                            ? new Date(user.lastLoginAt).toLocaleDateString()
-                            : 'Never'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {users?.map((user: any) => {
+                      const isCurrentUser = user.userId === currentUser?.userId;
+                      const isOwner = user.role === 'OWNER';
+                      const isAdmin = user.role === 'ADMIN';
+                      const canManage = currentUser?.role === 'OWNER' || (currentUser?.role === 'ADMIN' && !isAdmin);
+                      const userName = `${user.firstName} ${user.lastName}`;
+                      return (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium">
+                            {userName}
+                            {isOwner && (
+                              <span className="ml-2 text-xs text-muted-foreground">(Owner)</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>
+                            <Badge variant={getRoleBadgeVariant(user.role)}>
+                              {user.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.isActive ? 'default' : 'secondary'}>
+                              {user.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {user.lastLoginAt
+                              ? new Date(user.lastLoginAt).toLocaleDateString()
+                              : 'Never'}
+                          </TableCell>
+                          <TableCell>
+                            {isOwner ? (
+                              <span className="text-xs text-muted-foreground">Protected</span>
+                            ) : !canManage ? (
+                              <span className="text-xs text-muted-foreground">No Permission</span>
+                            ) : (
+                              <div className="flex gap-2">
+                                {user.isActive ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleDeactivateUser(user.userId, userName)}
+                                    disabled={deactivateUserMutation.isPending || isCurrentUser}
+                                  >
+                                    Deactivate
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleActivateUser(user.userId, userName)}
+                                    disabled={activateUserMutation.isPending}
+                                  >
+                                    Activate
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteUser(user.userId, userName)}
+                                  disabled={deleteUserMutation.isPending || isCurrentUser}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
@@ -172,27 +294,64 @@ export function UserList({ onInviteClick }: UserListProps) {
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Last Login</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {activeUsers.map((user: any) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">
-                        {user.firstName} {user.lastName}
-                      </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>
-                        <Badge variant={getRoleBadgeVariant(user.role)}>
-                          {user.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {user.lastLoginAt
-                          ? new Date(user.lastLoginAt).toLocaleDateString()
-                          : 'Never'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {activeUsers.map((user: any) => {
+                    const isCurrentUser = user.userId === currentUser?.userId;
+                    const isOwner = user.role === 'OWNER';
+                    const isAdmin = user.role === 'ADMIN';
+                    const canManage = currentUser?.role === 'OWNER' || (currentUser?.role === 'ADMIN' && !isAdmin);
+                    const userName = `${user.firstName} ${user.lastName}`;
+                    return (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">
+                          {userName}
+                          {isOwner && (
+                            <span className="ml-2 text-xs text-muted-foreground">(Owner)</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <Badge variant={getRoleBadgeVariant(user.role)}>
+                            {user.role}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {user.lastLoginAt
+                            ? new Date(user.lastLoginAt).toLocaleDateString()
+                            : 'Never'}
+                        </TableCell>
+                        <TableCell>
+                          {isOwner ? (
+                            <span className="text-xs text-muted-foreground">Protected</span>
+                          ) : !canManage ? (
+                            <span className="text-xs text-muted-foreground">No Permission</span>
+                          ) : (
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDeactivateUser(user.userId, userName)}
+                                disabled={deactivateUserMutation.isPending || isCurrentUser}
+                              >
+                                Deactivate
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteUser(user.userId, userName)}
+                                disabled={deleteUserMutation.isPending || isCurrentUser}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

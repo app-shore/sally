@@ -76,22 +76,22 @@ export class TenantsService {
         },
       });
 
-      // Create admin user
-      const adminUser = await tx.user.create({
+      // Create owner user (cannot be deleted)
+      const ownerUser = await tx.user.create({
         data: {
           userId: generateId('user'),
           tenantId: tenant.id,
           email: dto.email,
           firstName: dto.firstName,
           lastName: dto.lastName,
-          role: 'ADMIN',
+          role: 'OWNER', // Owner role - created during registration, cannot be deleted
           firebaseUid: dto.firebaseUid,
           emailVerified: false,
           isActive: false, // Inactive until tenant approved
         },
       });
 
-      return { tenant, adminUser };
+      return { tenant, ownerUser };
     });
 
     // TODO: Send notification email to SALLY admin team
@@ -111,12 +111,13 @@ export class TenantsService {
       where: status ? { status: status as TenantStatus } : undefined,
       include: {
         users: {
-          where: { role: 'ADMIN' },
+          where: { role: { in: ['OWNER', 'ADMIN'] } },
           select: {
             userId: true,
             email: true,
             firstName: true,
             lastName: true,
+            role: true,
           },
         },
         _count: {
@@ -136,7 +137,7 @@ export class TenantsService {
   async approveTenant(tenantId: string, approvedBy: string) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { tenantId },
-      include: { users: { where: { role: 'ADMIN' } } },
+      include: { users: { where: { role: { in: ['OWNER', 'ADMIN'] } } } },
     });
 
     if (!tenant) {

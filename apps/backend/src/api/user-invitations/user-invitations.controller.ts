@@ -21,9 +21,10 @@ export class UserInvitationsController {
   ) {}
 
   /**
-   * Invite a new user (ADMIN only)
+   * Invite a new user (OWNER and ADMIN)
+   * SUPER_ADMIN manages tenants through tenant registration, not user invitations
    */
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Post()
   async inviteUser(
     @Body() dto: InviteUserDto,
@@ -33,16 +34,17 @@ export class UserInvitationsController {
   }
 
   /**
-   * Get all invitations for tenant (ADMIN only)
+   * Get all invitations for tenant (OWNER and ADMIN only)
+   * SUPER_ADMIN manages tenants, not individual users
    */
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Get()
   async getInvitations(
     @CurrentUser() currentUser: any,
     @Query('status') status?: string,
   ) {
     return this.userInvitationsService.getInvitations(
-      currentUser.tenant.id,
+      currentUser.tenantId,
       status,
     );
   }
@@ -69,9 +71,9 @@ export class UserInvitationsController {
   }
 
   /**
-   * Cancel invitation (ADMIN only)
+   * Cancel invitation (OWNER and ADMIN)
    */
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Delete(':invitationId')
   async cancelInvitation(
     @Param('invitationId') invitationId: string,
@@ -80,7 +82,7 @@ export class UserInvitationsController {
   ) {
     return this.userInvitationsService.cancelInvitation(
       invitationId,
-      currentUser.tenant.id,
+      currentUser.tenantId,
       reason,
     );
   }

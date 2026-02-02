@@ -236,7 +236,7 @@ See `.docs/DARK_THEME_IMPLEMENTATION.md` for complete implementation details.
 ## Product Framing (CRITICAL)
 
 ### Primary Product
-**SALLY is a Dispatch & Driver Coordination Platform**
+**SALLY - Your Fleet Operations Assistant**
 
 Core capabilities:
 1. Route planning with stop sequence optimization (TSP/VRP)
@@ -260,7 +260,7 @@ Core capabilities:
 ### Correct Language
 
 **CORRECT:**
-- "SALLY is a dispatch & driver coordination platform"
+- "SALLY - Your Fleet Operations Assistant"
 - "The platform generates optimized routes and alerts dispatchers when intervention is needed"
 - "REST optimization is called by the route planner"
 - "The system automatically inserts rest stops where needed"

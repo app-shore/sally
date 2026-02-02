@@ -12,6 +12,7 @@ type LoginStep = 'email' | 'tenant-select' | 'loading';
 
 export function LoginScreen() {
   const router = useRouter();
+  const sessionStore = useSessionStore();
   const [step, setStep] = useState<LoginStep>('email');
   const [email, setEmail] = useState('');
   const [users, setUsers] = useState<UserLookupResult[]>([]);
@@ -56,7 +57,7 @@ export function LoginScreen() {
 
     try {
       const response = await loginAPI({ user_id: userId });
-      useSessionStore.getState().login(response.accessToken, response.user);
+      sessionStore.login(response.accessToken, response.user);
 
       // Redirect based on role
       if (response.user.role === 'DRIVER') {

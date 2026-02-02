@@ -32,7 +32,7 @@ async function bootstrap() {
   // Swagger/OpenAPI documentation
   const swaggerConfig = new DocumentBuilder()
     .setTitle('SALLY Backend API')
-    .setDescription('Dispatch & Driver Coordination Platform API with Multi-Tenant Auth')
+    .setDescription('Your Fleet Operations Assistant - API with Multi-Tenant Auth')
     .setVersion('1.0.0')
     .addBearerAuth()
     .addTag('Authentication', 'JWT-based authentication with multi-tenancy')

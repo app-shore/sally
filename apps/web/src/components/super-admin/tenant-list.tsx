@@ -27,7 +27,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 
 export function TenantList() {
-  const { accessToken } = useAuth();
+  const { accessToken, isInitialized } = useAuth();
   const queryClient = useQueryClient();
   const [selectedTenant, setSelectedTenant] = useState<any>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -35,19 +35,33 @@ export function TenantList() {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
-  // Fetch tenants
-  const { data: tenants, isLoading } = useQuery({
+  // Debug logging
+  console.log('[TenantList] Render:', {
+    isInitialized,
+    hasAccessToken: !!accessToken,
+    accessTokenLength: accessToken?.length,
+    localStorage: localStorage.getItem('auth-storage') ? 'exists' : 'missing',
+  });
+
+  // Fetch tenants - only when auth is fully initialized
+  const { data: tenants, isLoading, error } = useQuery({
     queryKey: ['tenants', 'pending'],
     queryFn: async () => {
+      console.log('[TenantList] Making API call with token:', accessToken?.substring(0, 20) + '...');
       const response = await fetch(`${apiUrl}/tenants?status=PENDING_APPROVAL`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-      if (!response.ok) throw new Error('Failed to fetch tenants');
+      console.log('[TenantList] Response status:', response.status);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[TenantList] API Error:', errorText);
+        throw new Error('Failed to fetch tenants');
+      }
       return response.json();
     },
-    enabled: !!accessToken,
+    enabled: isInitialized && !!accessToken,
   });
 
   // Approve tenant mutation
@@ -102,6 +116,11 @@ export function TenantList() {
       });
     }
   };
+
+  // Wait for auth initialization
+  if (!isInitialized) {
+    return <div className="text-muted-foreground">Initializing...</div>;
+  }
 
   if (isLoading) {
     return <div className="text-muted-foreground">Loading tenants...</div>;

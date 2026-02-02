@@ -39,10 +39,44 @@ export function LoginForm() {
     setError(null);
 
     try {
-      await signIn(data.email, data.password);
-      router.push('/dashboard');
+      console.log('[LoginForm] Starting sign in...');
+      const user = await signIn(data.email, data.password);
+      console.log('[LoginForm] Sign in complete, user:', user);
+
+      // Wait a tick to ensure Zustand persist has written to localStorage
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify token is in storage
+      const storage = localStorage.getItem('auth-storage');
+      console.log('[LoginForm] Storage after sign in:', storage);
+
+      if (!storage || !JSON.parse(storage).state?.accessToken) {
+        console.error('[LoginForm] Token not in storage!');
+        throw new Error('Authentication state not properly saved');
+      }
+
+      const storedState = JSON.parse(storage).state;
+      console.log('[LoginForm] Token verified in storage:', {
+        hasAccessToken: !!storedState.accessToken,
+        tokenLength: storedState.accessToken?.length,
+        isAuthenticated: storedState.isAuthenticated,
+        isInitialized: storedState.isInitialized,
+      });
+
+      // Redirect based on role using client-side navigation
+      const redirectMap = {
+        SUPER_ADMIN: '/admin/tenants',
+        OWNER: '/admin/dashboard',
+        ADMIN: '/admin/dashboard',
+        DISPATCHER: '/dispatcher/overview',
+        DRIVER: '/driver/dashboard',
+      };
+
+      const redirectUrl = redirectMap[user?.role as keyof typeof redirectMap] || '/onboarding';
+      console.log('[LoginForm] Redirecting to:', redirectUrl);
+      router.push(redirectUrl); // Client-side navigation preserves state
     } catch (err: any) {
-      // Handle specific Firebase errors
+      // Handle errors
       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
         setError('Invalid email or password');
       } else if (err.message?.includes('pending approval')) {

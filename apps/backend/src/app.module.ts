@@ -36,6 +36,8 @@ import { IntegrationsModule } from './api/integrations/integrations.module';
 import { PreferencesModule } from './api/preferences/preferences.module';
 import { TenantsModule } from './api/tenants/tenants.module';
 import { UserInvitationsModule } from './api/user-invitations/user-invitations.module';
+import { UsersModule } from './api/users/users.module';
+import { ServicesModule } from './common/services/services.module';
 
 @Module({
   imports: [
@@ -47,10 +49,12 @@ import { UserInvitationsModule } from './api/user-invitations/user-invitations.m
     PrismaModule,
     DatabaseModule,
     AuthModule,
+    ServicesModule,
     IntegrationsModule,
     PreferencesModule,
     TenantsModule,
     UserInvitationsModule,
+    UsersModule,
   ],
   providers: [
     // Global guards (applied to all routes by default)

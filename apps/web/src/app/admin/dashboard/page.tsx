@@ -1,28 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSessionStore } from '@/lib/store/sessionStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, Users, Truck, Activity, Database, Server, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function AdminDashboard() {
-  const router = useRouter();
-  const { isAuthenticated, user } = useSessionStore();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/');
-    } else if (user?.role !== 'ADMIN') {
-      router.push('/');
-    }
-  }, [isAuthenticated, user, router]);
-
-  if (!isAuthenticated || user?.role !== 'ADMIN') {
-    return null;
-  }
-
+  // Auth is handled by layout-client.tsx
   return (
     <div className="space-y-6">
       <div>

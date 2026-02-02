@@ -1,11 +1,18 @@
-import { create } from 'zustand';
+/**
+ * Legacy sessionStore - Now a wrapper around the new authStore
+ *
+ * This maintains backward compatibility with existing code while
+ * using the new Firebase authentication system under the hood.
+ */
+
+import { useAuthStore } from '@/stores/auth-store';
 
 interface User {
   userId: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: 'DISPATCHER' | 'DRIVER' | 'ADMIN';
+  role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | 'SUPER_ADMIN';
   tenantId: string;
   tenantName: string;
   driverId?: string;
@@ -30,104 +37,41 @@ interface SessionActions {
 
 type SessionStore = SessionState & SessionActions;
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+/**
+ * Wrapper hook that delegates to authStore
+ */
+export const useSessionStore = (): SessionStore => {
+  const authStore = useAuthStore();
 
-export const useSessionStore = create<SessionStore>()((set, get) => ({
-  user: null,
-  accessToken: null,
-  isAuthenticated: false,
-  isLoading: false,
+  return {
+    // Map authStore state to sessionStore interface
+    user: authStore.user as User | null,
+    accessToken: authStore.accessToken,
+    isAuthenticated: authStore.isAuthenticated,
+    isLoading: authStore.isLoading,
 
-  login: (accessToken, user) => {
-    set({
-      accessToken,
-      user,
-      isAuthenticated: true,
-    });
-  },
+    // Delegate actions to authStore
+    login: (accessToken: string, user: User) => {
+      authStore.setTokens(accessToken, authStore.refreshToken || '');
+      authStore.setUser(user);
+    },
 
-  logout: async () => {
-    const { accessToken } = get();
-    if (accessToken) {
-      try {
-        await fetch(`${API_URL}/auth/logout`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${accessToken}` },
-          credentials: 'include',
-        });
-      } catch (error) {
-        console.error('Logout error:', error);
-      }
-    }
+    logout: async () => {
+      await authStore.signOut();
+    },
 
-    // Clear localStorage
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
+    refreshToken: async () => {
+      // No-op: Firebase handles token refresh automatically
+      // This is here for backward compatibility
+      return Promise.resolve();
+    },
 
-    set({
-      user: null,
-      accessToken: null,
-      isAuthenticated: false,
-    });
-  },
+    setLoading: (loading: boolean) => {
+      // No-op: authStore manages its own loading state
+    },
 
-  refreshToken: async () => {
-    try {
-      set({ isLoading: true });
-      const response = await fetch(`${API_URL}/auth/refresh`, {
-        method: 'POST',
-        credentials: 'include', // Send httpOnly refresh token cookie
-      });
-
-      if (!response.ok) {
-        throw new Error('Refresh failed');
-      }
-
-      const data = await response.json();
-      set({
-        accessToken: data.accessToken,
-        user: data.user,
-        isAuthenticated: true,
-      });
-
-      // Update localStorage
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-    } catch (error) {
-      // Refresh failed, clear session
-      set({
-        user: null,
-        accessToken: null,
-        isAuthenticated: false,
-      });
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  setLoading: (loading) => set({ isLoading: loading }),
-
-  restoreSession: () => {
-    // Restore from localStorage on page load
-    const accessToken = localStorage.getItem('accessToken');
-    const userStr = localStorage.getItem('user');
-
-    if (accessToken && userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        set({
-          accessToken,
-          user,
-          isAuthenticated: true,
-        });
-      } catch (error) {
-        console.error('Failed to restore session:', error);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
-      }
-    }
-  },
-}));
+    restoreSession: () => {
+      // No-op: Zustand persist handles this automatically
+    },
+  };
+};
