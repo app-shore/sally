@@ -7,8 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, AlertCircle } from 'lucide-react';
+import { FeatureGuard } from '@/components/feature-flags/FeatureGuard';
 
 export default function DriverDashboardPage() {
+  return (
+    <FeatureGuard featureKey="driver_dashboard_enabled">
+      <DriverDashboardPageContent />
+    </FeatureGuard>
+  );
+}
+
+function DriverDashboardPageContent() {
   const [driver, setDriver] = useState<Driver | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

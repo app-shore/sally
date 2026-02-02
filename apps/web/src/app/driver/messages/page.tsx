@@ -6,8 +6,17 @@ import { useSessionStore } from '@/lib/store/sessionStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Info, MessageSquare } from 'lucide-react';
+import { FeatureGuard } from '@/components/feature-flags/FeatureGuard';
 
 export default function MessagesPage() {
+  return (
+    <FeatureGuard featureKey="driver_messages_enabled">
+      <MessagesPageContent />
+    </FeatureGuard>
+  );
+}
+
+function MessagesPageContent() {
   const { isAuthenticated, user } = useSessionStore();
 
   // Auth is handled by layout-client, just check role

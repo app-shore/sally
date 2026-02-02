@@ -6,8 +6,17 @@ import { useSessionStore } from '@/lib/store/sessionStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Clock, Fuel, Moon } from 'lucide-react';
+import { FeatureGuard } from '@/components/feature-flags/FeatureGuard';
 
 export default function CurrentRoutePage() {
+  return (
+    <FeatureGuard featureKey="driver_current_route_enabled">
+      <CurrentRoutePageContent />
+    </FeatureGuard>
+  );
+}
+
+function CurrentRoutePageContent() {
   const { isAuthenticated, user } = useSessionStore();
 
   // Auth is handled by layout-client, just check role
