@@ -6,8 +6,17 @@ import { useSessionStore } from '@/lib/store/sessionStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { FeatureGuard } from '@/components/feature-flags/FeatureGuard';
 
 export default function ActiveRoutesPage() {
+  return (
+    <FeatureGuard featureKey="live_tracking_enabled">
+      <ActiveRoutesPageContent />
+    </FeatureGuard>
+  );
+}
+
+function ActiveRoutesPageContent() {
   const { isAuthenticated, user } = useSessionStore();
 
   // Auth is handled by layout-client, just check role

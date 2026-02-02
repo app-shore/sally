@@ -5,8 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, TrendingUp, Clock, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { FeatureGuard } from '@/components/feature-flags/FeatureGuard';
 
 export default function DispatcherOverviewPage() {
+  return (
+    <FeatureGuard featureKey="command_center_enabled">
+      <DispatcherOverviewPageContent />
+    </FeatureGuard>
+  );
+}
+
+function DispatcherOverviewPageContent() {
   // Auth is handled by layout-client.tsx
   return (
     <div className="space-y-6">
