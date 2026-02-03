@@ -17,8 +17,9 @@ RUN npm config set fetch-retry-maxtimeout 600000 && \
 FROM node:20-alpine AS builder
 WORKDIR /workspace
 
-# Copy node_modules from deps stage
+# Copy node_modules from deps stage (includes all workspace dependencies)
 COPY --from=deps /workspace/node_modules ./node_modules
+COPY --from=deps /workspace/apps/backend/node_modules ./apps/backend/node_modules
 
 # Copy source code
 COPY package*.json ./
