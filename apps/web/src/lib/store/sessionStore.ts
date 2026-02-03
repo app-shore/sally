@@ -12,7 +12,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | 'SUPER_ADMIN';
+  role: 'OWNER' | 'DISPATCHER' | 'DRIVER' | 'ADMIN' | 'SUPER_ADMIN';
   tenantId: string;
   tenantName: string;
   driverId?: string;

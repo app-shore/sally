@@ -18,7 +18,7 @@ interface AlertsPanelProps {
 const priorityConfig = {
   critical: { icon: AlertCircle, color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-50 dark:bg-red-950', badgeVariant: 'destructive' as const },
   high: { icon: AlertTriangle, color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-950', badgeVariant: 'default' as const },
-  medium: { icon: Info, color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-yellow-50 dark:bg-yellow-950', badgeVariant: 'secondary' as const },
+  medium: { icon: Info, color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-yellow-50 dark:bg-yellow-950', badgeVariant: 'default' as const },
   low: { icon: Info, color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-950', badgeVariant: 'outline' as const },
 };
 
@@ -110,7 +110,7 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
                 <Button
                   key={filter}
                   onClick={() => setSelectedFilter(filter)}
-                  variant={selectedFilter === filter ? 'default' : 'secondary'}
+                  variant={selectedFilter === filter ? 'default' : 'outline'}
                   size="sm"
                   className="whitespace-nowrap"
                 >

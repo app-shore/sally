@@ -147,7 +147,7 @@ export default function SetupHubPage() {
               <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <CardTitle>Recommended - Highly Recommended</CardTitle>
             </div>
-            <Badge variant={status.recommendedComplete ? 'default' : 'secondary'}>
+            <Badge variant={status.recommendedComplete ? 'default' : 'muted'}>
               {status.recommendedComplete ? 'Complete' : `${status.items.recommended.filter(i => !i.complete).length} remaining`}
             </Badge>
           </div>

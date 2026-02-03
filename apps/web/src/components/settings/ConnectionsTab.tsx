@@ -294,7 +294,7 @@ export function ConnectionsTab() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold text-foreground">{integration.display_name}</h4>
-                        <Badge variant={integration.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                        <Badge variant={integration.status === 'ACTIVE' ? 'default' : 'muted'}>
                           {integration.status}
                         </Badge>
                       </div>

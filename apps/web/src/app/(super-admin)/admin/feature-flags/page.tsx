@@ -220,7 +220,7 @@ export default function FeatureFlagsAdminPage() {
                     <Label htmlFor={flag.key} className="text-base font-semibold cursor-pointer">
                       {flag.name}
                     </Label>
-                    <Badge variant={localFlags[flag.key] ? 'default' : 'secondary'} className="text-xs">
+                    <Badge variant={localFlags[flag.key] ? 'default' : 'muted'} className="text-xs">
                       {localFlags[flag.key] ? 'Enabled' : 'Disabled'}
                     </Badge>
                     {savingFlags.has(flag.key) && (

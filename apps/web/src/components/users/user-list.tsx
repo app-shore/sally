@@ -162,11 +162,11 @@ export function UserList({ onInviteClick }: UserListProps) {
       case 'ADMIN':
         return 'default';
       case 'DISPATCHER':
-        return 'secondary';
+        return 'muted';
       case 'DRIVER':
         return 'outline';
       default:
-        return 'secondary';
+        return 'muted';
     }
   };
 
@@ -230,7 +230,7 @@ export function UserList({ onInviteClick }: UserListProps) {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={user.isActive ? 'default' : 'secondary'}>
+                            <Badge variant={user.isActive ? 'default' : 'muted'}>
                               {user.isActive ? 'Active' : 'Inactive'}
                             </Badge>
                           </TableCell>

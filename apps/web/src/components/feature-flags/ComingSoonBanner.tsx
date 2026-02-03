@@ -36,7 +36,7 @@ export function ComingSoonBanner({ title, description, features, category }: Com
                 Coming Soon
               </Badge>
               {category && (
-                <Badge variant="secondary" className="text-xs capitalize">
+                <Badge variant="muted" className="text-xs capitalize">
                   {category}
                 </Badge>
               )}

@@ -874,13 +874,13 @@ function LoadsTab() {
     }
   };
 
-  function getStatusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  function getStatusVariant(status: string): "default" | "muted" | "destructive" | "outline" {
+    const variants: Record<string, "default" | "muted" | "destructive" | "outline"> = {
       pending: "outline",      // Gray - Not yet planned
-      planned: "secondary",    // Light gray - Planned but not started
-      active: "secondary",     // Light gray - At dock/loading/unloading
+      planned: "muted",    // Light gray - Planned but not started
+      active: "muted",     // Light gray - At dock/loading/unloading
       in_transit: "default",   // Blue - Actively moving on road
-      completed: "secondary",  // Light gray - Delivered
+      completed: "muted",  // Light gray - Delivered
       cancelled: "destructive", // Red - Cancelled
     };
     return variants[status] || "outline";
@@ -1067,7 +1067,7 @@ function LoadsTab() {
                                         <div className="space-y-1 flex-1">
                                           <div className="flex items-center gap-2">
                                             <Badge
-                                              variant={stop.action_type === 'pickup' ? 'default' : 'secondary'}
+                                              variant={stop.action_type === 'pickup' ? 'default' : 'muted'}
                                               className="text-xs"
                                             >
                                               {stop.action_type === 'pickup' ? '📦 Pickup' : '📍 Delivery'}
