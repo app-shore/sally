@@ -9,8 +9,8 @@ COPY turbo.json* ./
 COPY packages ./packages
 COPY apps/backend ./apps/backend
 
-# Install all workspace dependencies from root
-RUN npm install
+# Install all workspace dependencies from root with retry logic
+RUN npm install --network-timeout=600000 || npm install --network-timeout=600000 || npm install --network-timeout=600000
 
 # Generate Prisma client and build backend
 WORKDIR /workspace/apps/backend
