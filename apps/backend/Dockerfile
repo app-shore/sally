@@ -48,9 +48,11 @@ COPY --from=builder /workspace/apps/backend/prisma ./prisma
 
 # Copy ALL node_modules from BUILDER (includes generated Prisma Client)
 COPY --from=builder /workspace/node_modules ./node_modules
+
+# Copy backend-specific node_modules and merge (overwrite to ensure backend deps take precedence)
 COPY --from=builder /workspace/apps/backend/node_modules ./node_modules_backend
-# Merge backend-specific node_modules into main node_modules
-RUN cp -rn /app/node_modules_backend/* /app/node_modules/ && rm -rf /app/node_modules_backend
+RUN cp -rf /app/node_modules_backend/* /app/node_modules/ 2>/dev/null || true && \
+    rm -rf /app/node_modules_backend
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
