@@ -143,6 +143,15 @@ export async function triggerSync(integrationId: string): Promise<SyncResponse> 
 }
 
 /**
+ * Trigger fleet-wide sync (all enabled integrations for tenant)
+ */
+export async function syncFleet(): Promise<{ message: string }> {
+  return apiClient<{ message: string }>('/fleet/sync', {
+    method: 'POST',
+  });
+}
+
+/**
  * Get sync history for an integration
  */
 export async function getSyncHistory(
