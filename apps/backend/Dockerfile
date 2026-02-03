@@ -46,8 +46,11 @@ COPY --from=builder /workspace/apps/backend/package*.json ./
 COPY --from=builder /workspace/apps/backend/dist ./dist
 COPY --from=builder /workspace/apps/backend/prisma ./prisma
 
-# Copy ALL node_modules from deps stage (includes all workspace dependencies)
+# Copy ALL node_modules (workspace root + backend-specific dependencies)
 COPY --from=deps /workspace/node_modules ./node_modules
+COPY --from=deps /workspace/apps/backend/node_modules ./node_modules_backend
+# Merge backend-specific node_modules into main node_modules
+RUN cp -rn /app/node_modules_backend/* /app/node_modules/ && rm -rf /app/node_modules_backend
 
 # Copy and set up entrypoint script
 COPY --from=builder /workspace/apps/backend/docker-entrypoint.sh ./
