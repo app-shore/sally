@@ -132,15 +132,45 @@ export default function FeatureFlagsAdminPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-          <Flag className="h-8 w-8" />
-          Feature Flags Management
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Enable or disable features across the platform. Changes affect all tenants immediately.
-        </p>
+      {/* Header with Actions */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+            <Flag className="h-8 w-8" />
+            Feature Flags Management
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Enable or disable features across the platform.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="default"
+            onClick={handleReset}
+            disabled={!hasChanges || isSaving}
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Reset
+          </Button>
+          <Button
+            size="default"
+            onClick={handleSave}
+            disabled={!hasChanges || isSaving}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Card */}
@@ -176,55 +206,22 @@ export default function FeatureFlagsAdminPage() {
         </CardContent>
       </Card>
 
-      {/* Action Buttons */}
+
+      {/* Unsaved Changes Warning */}
       {hasChanges && (
-        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                  You have unsaved changes
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleReset}
-                  disabled={isSaving}
-                >
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Reset
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+          <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+            You have unsaved changes - click Save Changes button above to apply
+          </p>
+        </div>
       )}
+
 
       {/* Dispatcher Features */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span className="text-2xl">{getCategoryIcon('dispatcher')}</span>
             Dispatcher Features
           </CardTitle>
           <CardDescription>
@@ -268,7 +265,6 @@ export default function FeatureFlagsAdminPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span className="text-2xl">{getCategoryIcon('driver')}</span>
             Driver Features
           </CardTitle>
           <CardDescription>
@@ -312,7 +308,6 @@ export default function FeatureFlagsAdminPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span className="text-2xl">{getCategoryIcon('admin')}</span>
             Admin Features
           </CardTitle>
           <CardDescription>
@@ -362,9 +357,7 @@ export default function FeatureFlagsAdminPage() {
                 Important Notes
               </p>
               <ul className="text-sm text-orange-700 dark:text-orange-300 space-y-1 list-disc list-inside">
-                <li>Changes affect all tenants immediately after saving</li>
                 <li>Frontend cache (5min) and backend cache (30s) may cause brief delay</li>
-                <li>Users may need to refresh their browser to see changes</li>
                 <li>Disabling a feature will show "Coming Soon" banners to users</li>
               </ul>
             </div>
