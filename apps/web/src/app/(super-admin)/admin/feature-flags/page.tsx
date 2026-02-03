@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { useFeatureFlags } from '@/lib/hooks/useFeatureFlags';
 import { useFeatureFlagsStore } from '@/lib/store/featureFlagsStore';
 import { updateFeatureFlag } from '@/lib/api/featureFlags';
-import { Loader2, Save, RotateCcw, XCircle, Flag } from 'lucide-react';
+import { Loader2, XCircle, Flag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function FeatureFlagsAdminPage() {
@@ -20,8 +20,7 @@ export default function FeatureFlagsAdminPage() {
   const { toast } = useToast();
 
   const [localFlags, setLocalFlags] = useState<Record<string, boolean>>({});
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [savingFlags, setSavingFlags] = useState<Set<string>>(new Set());
 
   // Initialize local state from store
   useEffect(() => {
@@ -31,12 +30,6 @@ export default function FeatureFlagsAdminPage() {
     });
     setLocalFlags(initialState);
   }, [flags]);
-
-  // Check for changes
-  useEffect(() => {
-    const changed = flags.some(flag => localFlags[flag.key] !== flag.enabled);
-    setHasChanges(changed);
-  }, [localFlags, flags]);
 
   // Auth check - SUPER_ADMIN only (affects all tenants globally)
   if (!isAuthenticated || user?.role !== 'SUPER_ADMIN') {
@@ -55,49 +48,49 @@ export default function FeatureFlagsAdminPage() {
     );
   }
 
-  const handleToggle = (key: string, enabled: boolean) => {
+  const handleToggle = async (key: string, enabled: boolean) => {
+    // Optimistically update local state
     setLocalFlags(prev => ({
       ...prev,
       [key]: enabled,
     }));
-  };
 
-  const handleSave = async () => {
-    setIsSaving(true);
+    // Mark flag as saving
+    setSavingFlags(prev => new Set(prev).add(key));
+
     try {
-      // Update all changed flags
-      const changedFlags = flags.filter(flag => localFlags[flag.key] !== flag.enabled);
+      // Save to backend
+      await updateFeatureFlag(key, enabled);
 
-      await Promise.all(
-        changedFlags.map(flag =>
-          updateFeatureFlag(flag.key, localFlags[flag.key])
-        )
-      );
-
+      // Show success toast
+      const flag = flags.find(f => f.key === key);
       toast({
-        title: 'Success',
-        description: `Updated ${changedFlags.length} feature flag${changedFlags.length !== 1 ? 's' : ''}`,
+        title: 'Feature Flag Updated',
+        description: `${flag?.name || key} has been ${enabled ? 'enabled' : 'disabled'}`,
       });
 
       // Refetch to sync with backend
       await refetch();
     } catch (err) {
+      // Revert on error
+      setLocalFlags(prev => ({
+        ...prev,
+        [key]: !enabled,
+      }));
+
       toast({
         title: 'Error',
-        description: err instanceof Error ? err.message : 'Failed to update feature flags',
+        description: err instanceof Error ? err.message : 'Failed to update feature flag',
         variant: 'destructive',
       });
     } finally {
-      setIsSaving(false);
+      // Remove from saving state
+      setSavingFlags(prev => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
     }
-  };
-
-  const handleReset = () => {
-    const initialState: Record<string, boolean> = {};
-    flags.forEach(flag => {
-      initialState[flag.key] = flag.enabled;
-    });
-    setLocalFlags(initialState);
   };
 
   const getCategoryIcon = (category: string) => {
@@ -132,45 +125,15 @@ export default function FeatureFlagsAdminPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Actions */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-            <Flag className="h-8 w-8" />
-            Feature Flags Management
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Enable or disable features across the platform.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="default"
-            onClick={handleReset}
-            disabled={!hasChanges || isSaving}
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
-          <Button
-            size="default"
-            onClick={handleSave}
-            disabled={!hasChanges || isSaving}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </>
-            )}
-          </Button>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+          <Flag className="h-8 w-8" />
+          Feature Flags Management
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Enable or disable features across the platform. Changes are saved automatically.
+        </p>
       </div>
 
       {/* Stats Card */}
@@ -195,27 +158,13 @@ export default function FeatureFlagsAdminPage() {
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {hasChanges ? Object.keys(localFlags).filter(key => {
-                  const flag = flags.find(f => f.key === key);
-                  return flag && localFlags[key] !== flag.enabled;
-                }).length : 0}
+                {savingFlags.size}
               </p>
-              <p className="text-sm text-muted-foreground">Pending Changes</p>
+              <p className="text-sm text-muted-foreground">Saving</p>
             </div>
           </div>
         </CardContent>
       </Card>
-
-
-      {/* Unsaved Changes Warning */}
-      {hasChanges && (
-        <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-          <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-            You have unsaved changes - click Save Changes button above to apply
-          </p>
-        </div>
-      )}
 
 
       {/* Dispatcher Features */}
@@ -241,9 +190,10 @@ export default function FeatureFlagsAdminPage() {
                     <Badge variant={localFlags[flag.key] ? 'default' : 'secondary'} className="text-xs">
                       {localFlags[flag.key] ? 'Enabled' : 'Disabled'}
                     </Badge>
-                    {localFlags[flag.key] !== flag.enabled && (
+                    {savingFlags.has(flag.key) && (
                       <Badge variant="outline" className="text-xs border-blue-500 text-blue-600 dark:text-blue-400">
-                        Modified
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Saving
                       </Badge>
                     )}
                   </div>
@@ -254,6 +204,7 @@ export default function FeatureFlagsAdminPage() {
                   id={flag.key}
                   checked={localFlags[flag.key] || false}
                   onCheckedChange={(checked) => handleToggle(flag.key, checked)}
+                  disabled={savingFlags.has(flag.key)}
                 />
               </div>
             </div>
@@ -284,9 +235,10 @@ export default function FeatureFlagsAdminPage() {
                     <Badge variant={localFlags[flag.key] ? 'default' : 'secondary'} className="text-xs">
                       {localFlags[flag.key] ? 'Enabled' : 'Disabled'}
                     </Badge>
-                    {localFlags[flag.key] !== flag.enabled && (
+                    {savingFlags.has(flag.key) && (
                       <Badge variant="outline" className="text-xs border-blue-500 text-blue-600 dark:text-blue-400">
-                        Modified
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Saving
                       </Badge>
                     )}
                   </div>
@@ -297,6 +249,7 @@ export default function FeatureFlagsAdminPage() {
                   id={flag.key}
                   checked={localFlags[flag.key] || false}
                   onCheckedChange={(checked) => handleToggle(flag.key, checked)}
+                  disabled={savingFlags.has(flag.key)}
                 />
               </div>
             </div>
@@ -327,9 +280,10 @@ export default function FeatureFlagsAdminPage() {
                     <Badge variant={localFlags[flag.key] ? 'default' : 'secondary'} className="text-xs">
                       {localFlags[flag.key] ? 'Enabled' : 'Disabled'}
                     </Badge>
-                    {localFlags[flag.key] !== flag.enabled && (
+                    {savingFlags.has(flag.key) && (
                       <Badge variant="outline" className="text-xs border-blue-500 text-blue-600 dark:text-blue-400">
-                        Modified
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Saving
                       </Badge>
                     )}
                   </div>
@@ -340,6 +294,7 @@ export default function FeatureFlagsAdminPage() {
                   id={flag.key}
                   checked={localFlags[flag.key] || false}
                   onCheckedChange={(checked) => handleToggle(flag.key, checked)}
+                  disabled={savingFlags.has(flag.key)}
                 />
               </div>
             </div>
@@ -357,6 +312,7 @@ export default function FeatureFlagsAdminPage() {
                 Important Notes
               </p>
               <ul className="text-sm text-orange-700 dark:text-orange-300 space-y-1 list-disc list-inside">
+                <li>Changes are saved automatically when you toggle a feature flag</li>
                 <li>Frontend cache (5min) and backend cache (30s) may cause brief delay</li>
                 <li>Disabling a feature will show "Coming Soon" banners to users</li>
               </ul>
