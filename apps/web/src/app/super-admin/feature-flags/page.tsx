@@ -12,7 +12,7 @@ import { useFeatureFlags } from '@/lib/hooks/useFeatureFlags';
 import { useFeatureFlagsStore } from '@/lib/store/featureFlagsStore';
 import { updateFeatureFlag } from '@/lib/api/featureFlags';
 import { Loader2, Save, RotateCcw, XCircle, Flag } from 'lucide-react';
-import { useToast } from '@/lib/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export default function FeatureFlagsAdminPage() {
   const { isAuthenticated, user } = useSessionStore();
