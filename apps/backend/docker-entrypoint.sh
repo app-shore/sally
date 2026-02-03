@@ -10,20 +10,17 @@ echo "================================"
 
 # Debug: Check if DATABASE_URL is set
 if [ -z "$DATABASE_URL" ]; then
-  echo "❌ ERROR: DATABASE_URL environment variable is not set!"
-  echo "Please configure DATABASE_URL in CapRover App Configs"
-  exit 1
+  echo "⚠️  WARNING: DATABASE_URL environment variable is not set!"
+  echo "Database operations will fail"
+else
+  echo "✅ DATABASE_URL is configured"
 fi
 
-echo "✅ DATABASE_URL is configured"
-
-# Run database migrations
-echo "📦 Running database migrations..."
-npx prisma migrate deploy
-
-echo "✅ Migrations complete!"
+echo ""
+echo "⚠️  AUTO-MIGRATIONS DISABLED"
+echo "   Run migrations manually: docker exec -it <container-id> npx prisma migrate deploy"
 echo ""
 
-# Start the application
+# Start the application (skip migrations)
 echo "🎯 Starting application..."
 exec node dist/main
