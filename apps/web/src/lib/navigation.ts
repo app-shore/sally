@@ -70,7 +70,6 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { label: 'Team', href: '/users', icon: Users },
     { label: 'Drivers', href: '/drivers', icon: Truck },
-    { label: 'Feature Flags', href: '/admin/feature-flags', icon: Flag },
 
     { type: 'separator', label: 'Operations' } as NavSeparator,
     // Dispatcher operations

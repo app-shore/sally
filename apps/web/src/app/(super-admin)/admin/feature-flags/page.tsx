@@ -38,8 +38,8 @@ export default function FeatureFlagsAdminPage() {
     setHasChanges(changed);
   }, [localFlags, flags]);
 
-  // Auth check - SUPER_ADMIN or OWNER only
-  if (!isAuthenticated || (user?.role !== 'SUPER_ADMIN' && user?.role !== 'OWNER')) {
+  // Auth check - SUPER_ADMIN only (affects all tenants globally)
+  if (!isAuthenticated || user?.role !== 'SUPER_ADMIN') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md">
@@ -47,7 +47,7 @@ export default function FeatureFlagsAdminPage() {
             <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <p className="text-lg font-semibold">Access Denied</p>
             <p className="text-sm text-muted-foreground mt-2">
-              Only super admins and system owners can manage feature flags
+              Only super admins can manage global feature flags
             </p>
           </CardContent>
         </Card>
