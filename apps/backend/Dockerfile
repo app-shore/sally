@@ -56,7 +56,7 @@ RUN cp -rf /app/node_modules_backend/* /app/node_modules/ 2>/dev/null || true &&
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:8000/health || exit 1
+  CMD wget -qO- http://localhost:8000/api/v1/health || exit 1
 
 EXPOSE 8000
 CMD ["node", "dist/main"]
