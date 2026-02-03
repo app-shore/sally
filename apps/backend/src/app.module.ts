@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import configuration from './config/configuration';
 import { DatabaseModule } from './database/database.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { SyncModule } from './services/sync/sync.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TenantGuard } from './auth/guards/tenant.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
@@ -46,10 +48,12 @@ import { ServicesModule } from './common/services/services.module';
       load: [configuration],
       envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     DatabaseModule,
     AuthModule,
     ServicesModule,
+    SyncModule,
     IntegrationsModule,
     PreferencesModule,
     TenantsModule,

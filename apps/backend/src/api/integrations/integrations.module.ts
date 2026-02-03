@@ -3,6 +3,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { IntegrationsController } from './integrations.controller';
 import { IntegrationsService } from './integrations.service';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { SyncModule } from '../../services/sync/sync.module';
 import { CredentialsService } from '../../services/credentials/credentials.service';
 import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';
 import { IntegrationSchedulerService } from '../../services/integration-manager/integration-scheduler.service';
@@ -16,7 +17,7 @@ import { FuelFinderAdapter } from '../../services/adapters/fuel/fuelfinder-fuel.
 import { OpenWeatherAdapter } from '../../services/adapters/weather/openweather.adapter';
 
 @Module({
-  imports: [PrismaModule, ScheduleModule.forRoot(), RetryModule, AlertModule],
+  imports: [PrismaModule, SyncModule, ScheduleModule.forRoot(), RetryModule, AlertModule],
   controllers: [IntegrationsController],
   providers: [
     IntegrationsService,
