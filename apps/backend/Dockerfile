@@ -24,12 +24,13 @@ WORKDIR /app
 # Copy package files
 COPY --from=builder /workspace/apps/backend/package*.json ./
 
-# Copy built application and dependencies
+# Copy built application and Prisma schema
 COPY --from=builder /workspace/apps/backend/dist ./dist
 COPY --from=builder /workspace/apps/backend/prisma ./prisma
 
-# Copy node_modules from workspace root (includes all dependencies)
+# Copy ALL node_modules from builder (includes all workspace dependencies)
 COPY --from=builder /workspace/node_modules ./node_modules
+COPY --from=builder /workspace/apps/backend/node_modules ./node_modules_backend
 
 # Copy and set up entrypoint script
 COPY --from=builder /workspace/apps/backend/docker-entrypoint.sh ./
