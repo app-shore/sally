@@ -1,4 +1,4 @@
-import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2 } from 'lucide-react';
+import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2, Rocket, Flag } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -47,6 +47,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
 
   admin: [
     // Admin/Management Section - High-level admin functions
+    { label: 'Setup Hub', href: '/setup-hub', icon: Rocket },
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { label: 'Team', href: '/users', icon: Users },
     { label: 'Drivers', href: '/drivers', icon: Truck },
@@ -65,9 +66,12 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
   // OWNER has same capabilities as ADMIN plus full user management control
   owner: [
     // Admin/Management Section - High-level admin functions
+    { label: 'Setup Hub', href: '/setup-hub', icon: Rocket },
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { label: 'Team', href: '/users', icon: Users },
     { label: 'Drivers', href: '/drivers', icon: Truck },
+    { label: 'Feature Flags', href: '/super-admin/feature-flags', icon: Flag },
+
     { type: 'separator', label: 'Operations' } as NavSeparator,
     // Dispatcher operations
     { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
@@ -82,6 +86,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
 
   super_admin: [
     { label: 'Tenant Management', href: '/admin/tenants', icon: Building2 },
+    { label: 'Feature Flags', href: '/super-admin/feature-flags', icon: Flag },
     // User and driver management is handled by tenant OWNER/ADMIN users
     // We can add more SUPER_ADMIN features later (analytics, billing, etc.)
   ],
@@ -102,6 +107,7 @@ export const protectedRoutePatterns = [
   '/settings',
   '/users',
   '/drivers',
+  '/setup-hub',
 ] as const;
 
 /**
