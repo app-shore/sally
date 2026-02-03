@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query, HttpStatus, HttpException, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Public } from '../../auth/decorators/public.decorator';
+import { MOCK_TMS_VEHICLES, MOCK_TMS_DRIVERS } from './__tests__/mock-tms.data';
 
 interface HOSData {
   driver_id: string;
@@ -195,6 +196,80 @@ export class ExternalMockController {
       alerts: [],
       data_source: 'OpenWeatherMap API (Mock)',
     };
+  }
+
+  @Public()
+  @Get('tms/vehicles')
+  @ApiOperation({ summary: 'Get vehicles from mock Project44 TMS API' })
+  async getTmsVehicles() {
+    this.logger.log('Mock TMS vehicles data requested');
+
+    // Simulate API latency
+    await this.simulateLatency();
+
+    return {
+      vehicles: MOCK_TMS_VEHICLES,
+      data_source: 'Project44 TMS API (Mock)',
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Public()
+  @Get('tms/vehicles/:vehicleId')
+  @ApiOperation({ summary: 'Get single vehicle from mock Project44 TMS API' })
+  @ApiParam({ name: 'vehicleId', description: 'Vehicle ID (e.g., TMS-V001)' })
+  async getTmsVehicle(@Param('vehicleId') vehicleId: string) {
+    this.logger.log(`Mock TMS vehicle data requested for: ${vehicleId}`);
+
+    // Simulate API latency
+    await this.simulateLatency();
+
+    const vehicle = MOCK_TMS_VEHICLES.find((v) => v.id === vehicleId);
+    if (!vehicle) {
+      throw new HttpException(
+        { detail: `Vehicle ${vehicleId} not found in mock TMS system` },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return vehicle;
+  }
+
+  @Public()
+  @Get('tms/drivers')
+  @ApiOperation({ summary: 'Get drivers from mock Project44 TMS API' })
+  async getTmsDrivers() {
+    this.logger.log('Mock TMS drivers data requested');
+
+    // Simulate API latency
+    await this.simulateLatency();
+
+    return {
+      drivers: MOCK_TMS_DRIVERS,
+      data_source: 'Project44 TMS API (Mock)',
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Public()
+  @Get('tms/drivers/:driverId')
+  @ApiOperation({ summary: 'Get single driver from mock Project44 TMS API' })
+  @ApiParam({ name: 'driverId', description: 'Driver ID (e.g., TMS-D001)' })
+  async getTmsDriver(@Param('driverId') driverId: string) {
+    this.logger.log(`Mock TMS driver data requested for: ${driverId}`);
+
+    // Simulate API latency
+    await this.simulateLatency();
+
+    const driver = MOCK_TMS_DRIVERS.find((d) => d.id === driverId);
+    if (!driver) {
+      throw new HttpException(
+        { detail: `Driver ${driverId} not found in mock TMS system` },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return driver;
   }
 
   private async simulateLatency(): Promise<void> {
