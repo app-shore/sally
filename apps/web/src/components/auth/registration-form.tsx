@@ -338,7 +338,7 @@ export function RegistrationForm() {
                     <Input
                       id="subdomain"
                       {...register('subdomain')}
-                      placeholder="your-company"
+                      placeholder="acme-trucking"
                       onBlur={(e) => checkSubdomain(e.target.value)}
                       disabled={isLoading}
                       autoComplete="off"
@@ -348,6 +348,18 @@ export function RegistrationForm() {
                       .sally.com
                     </span>
                   </div>
+
+                  {/* Helper text - always visible */}
+                  {!errors.subdomain && !subdomainAvailable && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-sm text-muted-foreground mt-2 ml-2"
+                    >
+                      Your unique URL (e.g., acme-trucking.sally.com)
+                    </motion.p>
+                  )}
+
                   <AnimatePresence mode="wait">
                     {subdomainAvailable === false && (
                       <motion.p
@@ -356,7 +368,7 @@ export function RegistrationForm() {
                         exit={{ opacity: 0, y: -5 }}
                         className="text-sm text-red-500 dark:text-red-400 mt-2 ml-2"
                       >
-                        Subdomain not available
+                        Subdomain not available - try another
                       </motion.p>
                     )}
                     {subdomainAvailable === true && (
@@ -366,7 +378,7 @@ export function RegistrationForm() {
                         exit={{ opacity: 0, y: -5 }}
                         className="text-sm text-green-600 dark:text-green-400 mt-2 ml-2"
                       >
-                        ✓ Subdomain available
+                        ✓ Available! Your team will access SALLY at {subdomain}.sally.com
                       </motion.p>
                     )}
                     {errors.subdomain && (
@@ -387,12 +399,24 @@ export function RegistrationForm() {
                   <Input
                     id="dotNumber"
                     {...register('dotNumber')}
-                    placeholder="DOT Number (8 digits)"
+                    placeholder="12345678"
                     maxLength={8}
                     disabled={isLoading}
                     autoComplete="off"
                     className="relative w-full text-lg py-5 px-6 border-2 transition-all duration-200 bg-background rounded-lg focus:scale-[1.01] focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 border-border focus:border-foreground"
                   />
+
+                  {/* Helper text - always visible when no error */}
+                  {!errors.dotNumber && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-sm text-muted-foreground mt-2 ml-2"
+                    >
+                      US DOT Number (8 digits)
+                    </motion.p>
+                  )}
+
                   <AnimatePresence mode="wait">
                     {errors.dotNumber && (
                       <motion.p

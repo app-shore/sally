@@ -139,7 +139,7 @@ export default function FeatureFlagsAdminPage() {
       {/* Stats Card */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
               <p className="text-3xl font-bold text-foreground">{flags.length}</p>
               <p className="text-sm text-muted-foreground">Total Flags</p>
@@ -155,12 +155,6 @@ export default function FeatureFlagsAdminPage() {
                 {flags.filter(f => !localFlags[f.key]).length}
               </p>
               <p className="text-sm text-muted-foreground">Disabled</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {savingFlags.size}
-              </p>
-              <p className="text-sm text-muted-foreground">Saving</p>
             </div>
           </div>
         </CardContent>
@@ -187,15 +181,9 @@ export default function FeatureFlagsAdminPage() {
                     <Label htmlFor={flag.key} className="text-base font-semibold cursor-pointer">
                       {flag.name}
                     </Label>
-                    <Badge variant={localFlags[flag.key] ? 'default' : 'secondary'} className="text-xs">
+                    <Badge variant={localFlags[flag.key] ? 'default' : 'muted'} className="text-xs">
                       {localFlags[flag.key] ? 'Enabled' : 'Disabled'}
                     </Badge>
-                    {savingFlags.has(flag.key) && (
-                      <Badge variant="outline" className="text-xs border-blue-500 text-blue-600 dark:text-blue-400">
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        Saving
-                      </Badge>
-                    )}
                   </div>
                   <p className="text-sm text-muted-foreground">{flag.description}</p>
                   <p className="text-xs text-muted-foreground mt-1 font-mono">Key: {flag.key}</p>
@@ -277,7 +265,7 @@ export default function FeatureFlagsAdminPage() {
                     <Label htmlFor={flag.key} className="text-base font-semibold cursor-pointer">
                       {flag.name}
                     </Label>
-                    <Badge variant={localFlags[flag.key] ? 'default' : 'secondary'} className="text-xs">
+                    <Badge variant={localFlags[flag.key] ? 'default' : 'muted'} className="text-xs">
                       {localFlags[flag.key] ? 'Enabled' : 'Disabled'}
                     </Badge>
                     {savingFlags.has(flag.key) && (
@@ -303,7 +291,7 @@ export default function FeatureFlagsAdminPage() {
       </Card>
 
       {/* Warning Card */}
-      <Card className="border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/20">
+      <Card className="border-orange-200 ">
         <CardContent className="pt-6">
           <div className="flex gap-3">
             <div className="text-orange-500 mt-0.5">⚠️</div>
@@ -311,7 +299,7 @@ export default function FeatureFlagsAdminPage() {
               <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
                 Important Notes
               </p>
-              <ul className="text-sm text-orange-700 dark:text-orange-300 space-y-1 list-disc list-inside">
+              <ul className="text-sm space-y-1 list-disc list-inside">
                 <li>Changes are saved automatically when you toggle a feature flag</li>
                 <li>Frontend cache (5min) and backend cache (30s) may cause brief delay</li>
                 <li>Disabling a feature will show "Coming Soon" banners to users</li>

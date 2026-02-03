@@ -82,7 +82,7 @@ export class SamsaraHOSAdapter implements IHOSAdapter {
       const data = await response.json();
       console.log('data', data);
       return response.ok;
-    } catch {
+    } catch (error) {
       return false;
     }
   }
