@@ -1,7 +1,7 @@
-import { Controller, Get, Param, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Get, Param, Put, Body, HttpStatus, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { FeatureFlagsService } from './feature-flags.service';
-import { FeatureFlagDto, FeatureFlagsResponse } from './dto/feature-flag.dto';
+import { FeatureFlagDto, FeatureFlagsResponse, UpdateFeatureFlagDto } from './dto/feature-flag.dto';
 import { Public } from '../../auth/decorators/public.decorator';
 
 @ApiTags('Feature Flags')
@@ -61,5 +61,19 @@ export class FeatureFlagsController {
   async isEnabled(@Param('key') key: string): Promise<{ key: string; enabled: boolean }> {
     const enabled = await this.featureFlagsService.isEnabled(key);
     return { key, enabled };
+  }
+
+  @Put(':key')
+  @ApiOperation({ summary: 'Update feature flag enabled status' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Feature flag updated successfully',
+    type: FeatureFlagDto,
+  })
+  async updateFlag(
+    @Param('key') key: string,
+    @Body() updateDto: UpdateFeatureFlagDto,
+  ): Promise<FeatureFlagDto> {
+    return this.featureFlagsService.toggleFlag(key, updateDto.enabled);
   }
 }

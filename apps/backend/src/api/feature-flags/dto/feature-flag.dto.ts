@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsBoolean } from 'class-validator';
 
 export class FeatureFlagDto {
   @ApiProperty({ example: 'route_planning_enabled' })
@@ -20,4 +21,10 @@ export class FeatureFlagDto {
 export class FeatureFlagsResponse {
   @ApiProperty({ type: [FeatureFlagDto] })
   flags: FeatureFlagDto[];
+}
+
+export class UpdateFeatureFlagDto {
+  @ApiProperty({ example: true, description: 'Enable or disable the feature' })
+  @IsBoolean()
+  enabled: boolean;
 }

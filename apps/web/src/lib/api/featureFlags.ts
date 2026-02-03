@@ -66,3 +66,22 @@ export async function checkFeatureEnabled(key: string): Promise<boolean> {
   const data: FeatureFlagEnabledResponse = await response.json();
   return data.enabled;
 }
+
+/**
+ * Update a feature flag's enabled status
+ */
+export async function updateFeatureFlag(key: string, enabled: boolean): Promise<FeatureFlag> {
+  const response = await fetch(`${API_BASE_URL}/feature-flags/${key}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ enabled }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update feature '${key}': ${response.statusText}`);
+  }
+
+  return response.json();
+}
