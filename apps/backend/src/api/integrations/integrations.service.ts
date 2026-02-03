@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CredentialsService } from '../../services/credentials/credentials.service';
 import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';
+import { SyncService } from '../../services/sync/sync.service';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
 import { UpdateIntegrationDto } from './dto/update-integration.dto';
 import { randomUUID } from 'crypto';
@@ -12,6 +13,7 @@ export class IntegrationsService {
     private prisma: PrismaService,
     private credentials: CredentialsService,
     private integrationManager: IntegrationManagerService,
+    private syncService: SyncService,
   ) {}
 
   /**
@@ -232,16 +234,8 @@ export class IntegrationsService {
       throw new NotFoundException('Integration not found');
     }
 
-    // For now, just sync all drivers for this tenant
-    await this.integrationManager.syncAllDriversForTenant(integration.tenantId);
-
-    // Update last sync time
-    await this.prisma.integrationConfig.update({
-      where: { integrationId },
-      data: {
-        lastSyncAt: new Date(),
-      },
-    });
+    // Use new SyncService for TMS/ELD sync
+    await this.syncService.syncIntegration(integration.id);
 
     return {
       success: true,
