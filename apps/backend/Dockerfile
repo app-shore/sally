@@ -31,9 +31,13 @@ COPY --from=builder /workspace/apps/backend/prisma ./prisma
 # Copy node_modules from workspace root (includes all dependencies)
 COPY --from=builder /workspace/node_modules ./node_modules
 
+# Copy and set up entrypoint script
+COPY --from=builder /workspace/apps/backend/docker-entrypoint.sh ./
+RUN chmod +x ./docker-entrypoint.sh
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO- http://localhost:8000/health || exit 1
 
 EXPOSE 8000
-CMD ["node", "dist/main"]
+CMD ["./docker-entrypoint.sh"]
