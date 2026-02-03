@@ -70,7 +70,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { label: 'Team', href: '/users', icon: Users },
     { label: 'Drivers', href: '/drivers', icon: Truck },
-    { label: 'Feature Flags', href: '/super-admin/feature-flags', icon: Flag },
+    { label: 'Feature Flags', href: '/admin/feature-flags', icon: Flag },
 
     { type: 'separator', label: 'Operations' } as NavSeparator,
     // Dispatcher operations
@@ -86,7 +86,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
 
   super_admin: [
     { label: 'Tenant Management', href: '/admin/tenants', icon: Building2 },
-    { label: 'Feature Flags', href: '/super-admin/feature-flags', icon: Flag },
+    { label: 'Feature Flags', href: '/admin/feature-flags', icon: Flag },
     // User and driver management is handled by tenant OWNER/ADMIN users
     // We can add more SUPER_ADMIN features later (analytics, billing, etc.)
   ],
