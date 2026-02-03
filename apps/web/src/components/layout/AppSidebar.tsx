@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { getNavigationForRole, type NavItem } from '@/lib/navigation';
+import { useOnboardingStore } from '@/lib/store/onboardingStore';
+import { CheckCircle2 } from 'lucide-react';
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -29,9 +31,41 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname();
   const { user } = useSessionStore();
+  const { status, criticalIncompleteCount, recommendedIncompleteCount } = useOnboardingStore();
 
   // Get navigation items from centralized config
   const navItems = getNavigationForRole(user?.role);
+
+  // Setup Hub badge logic
+  const getSetupHubBadge = () => {
+    if (!status) return null;
+
+    if (!status.criticalComplete && criticalIncompleteCount > 0) {
+      // Critical incomplete: red badge with count
+      return (
+        <Badge variant="destructive" className="h-5 min-w-5 px-1">
+          {criticalIncompleteCount}
+        </Badge>
+      );
+    }
+
+    if (!status.recommendedComplete && recommendedIncompleteCount > 0) {
+      // Only recommended incomplete: amber badge
+      return (
+        <Badge className="h-5 min-w-5 px-1 bg-amber-500 text-white dark:bg-amber-600">
+          {recommendedIncompleteCount}
+        </Badge>
+      );
+    }
+
+    // All complete: green checkmark
+    if (status.criticalComplete && status.recommendedComplete && status.optionalComplete) {
+      return <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />;
+    }
+
+    // Default: no badge if status is loading or incomplete
+    return null;
+  };
 
   return (
     <>
@@ -93,6 +127,8 @@ export function AppSidebar({
               const navItem = item as NavItem;
               const isActive = pathname === navItem.href || pathname?.startsWith(navItem.href + '/');
               const Icon = navItem.icon;
+              const isSetupHub = navItem.href === '/setup-hub';
+              const showBadge = isSetupHub && (user?.role === 'OWNER' || user?.role === 'ADMIN');
 
               return (
                 <Link
@@ -111,6 +147,9 @@ export function AppSidebar({
                 >
                   <Icon className={cn('h-5 w-5', isCollapsed && 'mx-auto')} />
                   {!isCollapsed && <span>{navItem.label}</span>}
+                  {!isCollapsed && showBadge && (
+                    <div className="ml-auto">{getSetupHubBadge()}</div>
+                  )}
                 </Link>
               );
             })}

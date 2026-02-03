@@ -98,13 +98,13 @@ export default function RoutePlanningPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-5xl">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
+    <div className="space-y-6">
+      <div>
+        <div className="flex items-center gap-3">
           <Route className="h-6 w-6 text-foreground" />
-          <h1 className="text-2xl font-bold">Route Planning Configuration</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Route Planning Configuration</h1>
         </div>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mt-1">
           Configure how SALLY plans routes for your organization. These settings apply to all dispatchers and route planning operations.
         </p>
       </div>

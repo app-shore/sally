@@ -64,12 +64,6 @@ export function ComingSoonBanner({ title, description, features, category }: Com
                 </li>
               ))}
             </ul>
-
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-border">
-              <p className="text-sm text-muted-foreground text-center">
-                We're working hard to bring you this feature. Check back soon for updates!
-              </p>
-            </div>
           </CardContent>
         )}
       </Card>

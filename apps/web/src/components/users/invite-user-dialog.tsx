@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
+import { useOnboardingStore } from '@/lib/store/onboardingStore';
 
 const inviteSchema = z.object({
   email: z.string().email('Valid email is required'),
@@ -38,6 +39,7 @@ interface InviteUserDialogProps {
 export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) {
   const { accessToken, user } = useAuth();
   const queryClient = useQueryClient();
+  const { refetchStatus } = useOnboardingStore();
   const [error, setError] = useState<string | null>(null);
 
   // Only OWNER can invite ADMIN users
@@ -77,6 +79,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      refetchStatus(); // Update onboarding status
       reset();
       onOpenChange(false);
     },

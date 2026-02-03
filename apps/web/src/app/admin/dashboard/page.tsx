@@ -2,10 +2,17 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { OnboardingWidget } from '@/components/onboarding/OnboardingWidget';
+import { useOnboardingStore } from '@/lib/store/onboardingStore';
+import { useAuth } from '@/hooks/use-auth';
 import { BarChart3, Users, Truck, Activity, Database, Server, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function AdminDashboard() {
   // Auth is handled by layout-client.tsx
+  const { user } = useAuth();
+  const { status } = useOnboardingStore();
+  const showOnboardingWidget = (user?.role === 'OWNER' || user?.role === 'ADMIN') && status;
+
   return (
     <div className="space-y-6">
       <div>
@@ -14,6 +21,11 @@ export default function AdminDashboard() {
           Monitor system health, performance metrics, and user activity
         </p>
       </div>
+
+      {/* Onboarding Widget - Prominent placement at top */}
+      {showOnboardingWidget && (
+        <OnboardingWidget status={status} />
+      )}
 
       {/* System Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

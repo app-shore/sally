@@ -118,7 +118,7 @@ export class OnboardingService {
       where: {
         tenantId,
         integrationType: 'TMS',
-        status: 'CONNECTED',
+        status: 'ACTIVE',
       },
     });
 
@@ -204,7 +204,7 @@ export class OnboardingService {
       where: {
         tenantId,
         integrationType: 'HOS_ELD',
-        status: 'CONNECTED',
+        status: 'ACTIVE',
       },
     });
 
@@ -220,7 +220,7 @@ export class OnboardingService {
       where: {
         tenantId,
         integrationType: 'FUEL_PRICE',
-        status: 'CONNECTED',
+        status: 'ACTIVE',
       },
     });
 

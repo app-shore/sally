@@ -77,8 +77,10 @@ export default function ConfigPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Configuration</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Configuration</h1>
+      </div>
 
       <Tabs defaultValue="drivers" className="space-y-4">
         <TabsList>

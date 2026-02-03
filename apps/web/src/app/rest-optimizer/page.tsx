@@ -38,7 +38,7 @@ export default function RestOptimizerPage() {
   };
 
   return (
-    <div className="flex flex-1 overflow-hidden flex-col lg:flex-row p-3 sm:p-4 md:p-6">
+    <div className="flex flex-1 overflow-hidden flex-col lg:flex-row">
       {/* Desktop Resizable Sidebar */}
       <div className="hidden lg:block">
         <ResizableSidebar defaultWidth={340} minWidth={300} maxWidth={700}>

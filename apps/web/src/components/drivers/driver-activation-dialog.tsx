@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
+import { useOnboardingStore } from '@/lib/store/onboardingStore';
 
 interface DriverActivationDialogProps {
   open: boolean;
@@ -31,6 +32,7 @@ export function DriverActivationDialog({
 }: DriverActivationDialogProps) {
   const { accessToken } = useAuth();
   const queryClient = useQueryClient();
+  const { refetchStatus } = useOnboardingStore();
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -66,6 +68,7 @@ export function DriverActivationDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drivers'] });
+      refetchStatus(); // Update onboarding status
       setReason('');
       onOpenChange(false);
     },

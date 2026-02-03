@@ -51,7 +51,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       userId: user.userId,
       email: user.email,
       role: user.role,
-      tenantId: user.tenant?.tenantId,
+      tenantId: user.tenant?.tenantId, // String tenant ID (for display)
+      tenantDbId: user.tenant?.id, // Numeric database ID (for queries)
       tenantName: user.tenant?.companyName,
       driverId: user.driver?.driverId,
       driverName: user.driver?.name,

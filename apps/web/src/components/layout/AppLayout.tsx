@@ -5,7 +5,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import { AppSidebar } from './AppSidebar';
 import { AppHeader } from './AppHeader';
 import { AlertsPanel } from './AlertsPanel';
+import { OnboardingBanner } from '@/components/onboarding/OnboardingBanner';
 import { useSessionStore } from '@/lib/store/sessionStore';
+import { useOnboardingStore } from '@/lib/store/onboardingStore';
 import { useQuery } from '@tanstack/react-query';
 import { listAlerts } from '@/lib/api/alerts';
 import { cn } from '@/lib/utils';
@@ -18,9 +20,17 @@ export function AppLayout({ children }: AppLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, user } = useSessionStore();
+  const {
+    criticalItemsComplete,
+    criticalIncompleteCount,
+    dismissBanner,
+    isBannerDismissed,
+    fetchStatus
+  } = useOnboardingStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [alertsPanelOpen, setAlertsPanelOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Fetch alert count
   const { data: alerts = [] } = useQuery({
@@ -35,10 +45,33 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Auth is already checked by layout-client.tsx
   // No need to check again here
 
+  // Initialize onboarding store for OWNER/ADMIN
+  useEffect(() => {
+    if (isAuthenticated && (user?.role === 'OWNER' || user?.role === 'ADMIN')) {
+      fetchStatus();
+    }
+  }, [isAuthenticated, user?.role, fetchStatus]);
+
+  // Check banner dismissal on mount
+  useEffect(() => {
+    setBannerDismissed(isBannerDismissed());
+  }, [isBannerDismissed]);
+
   // Close sidebar on route change (mobile)
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
+
+  const handleDismissBanner = () => {
+    dismissBanner();
+    setBannerDismissed(true);
+  };
+
+  const showOnboardingBanner =
+    !bannerDismissed &&
+    !criticalItemsComplete &&
+    (user?.role === 'OWNER' || user?.role === 'ADMIN') &&
+    pathname !== '/setup-hub';
 
   if (!isAuthenticated) {
     return null; // Will redirect in useEffect
@@ -52,6 +85,14 @@ export function AppLayout({ children }: AppLayoutProps) {
         alertCount={alertCount}
         onOpenAlerts={() => setAlertsPanelOpen(true)}
       />
+
+      {/* Onboarding Banner - Below header */}
+      {showOnboardingBanner && (
+        <OnboardingBanner
+          incompleteCount={criticalIncompleteCount}
+          onDismiss={handleDismissBanner}
+        />
+      )}
 
       {/* Content area with sidebar */}
       <div className="flex flex-1 overflow-hidden">

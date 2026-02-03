@@ -19,11 +19,15 @@ import { redisStore } from 'cache-manager-redis-yet';
           };
         }
 
+        const store = await redisStore({
+          url: redisUrl,
+          ttl: 300, // 5 minutes default TTL
+        });
+
         return {
-          store: await redisStore({
-            url: redisUrl,
-            ttl: 300, // 5 minutes default TTL
-          }),
+          store,
+          ttl: 300,
+          max: 100,
         };
       },
     }),

@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ConfigureIntegrationForm } from './ConfigureIntegrationForm';
+import { useOnboardingStore } from '@/lib/store/onboardingStore';
 
 // Vendor configuration with availability status
 interface VendorConfig {
@@ -84,6 +85,7 @@ const CATEGORIES = [
 ];
 
 export function ConnectionsTab() {
+  const { refetchStatus } = useOnboardingStore();
   const [integrations, setIntegrations] = useState<IntegrationConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +112,7 @@ export function ConnectionsTab() {
     try {
       const data = await listIntegrations();
       setIntegrations(data);
+      refetchStatus(); // Update onboarding status after loading integrations
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load integrations');
     } finally {
