@@ -252,9 +252,9 @@ export function HeroRouteBackground() {
         preserveAspectRatio="xMidYMid slice"
       >
         <defs>
-          {/* Fine grid pattern */}
+          {/* Fine grid pattern - Light mode */}
           <pattern
-            id="hero-grid"
+            id="hero-grid-light"
             width="60"
             height="60"
             patternUnits="userSpaceOnUse"
@@ -267,24 +267,49 @@ export function HeroRouteBackground() {
             />
           </pattern>
 
-          {/* Gradient for routes */}
-          <linearGradient id="route-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          {/* Fine grid pattern - Dark mode */}
+          <pattern
+            id="hero-grid-dark"
+            width="60"
+            height="60"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M 60 0 L 0 0 0 60"
+              fill="none"
+              stroke="#404040"
+              strokeWidth="0.5"
+            />
+          </pattern>
+
+          {/* Gradient for routes - Light mode */}
+          <linearGradient id="route-gradient-light" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#000" stopOpacity="0.02" />
             <stop offset="50%" stopColor="#000" stopOpacity="0.08" />
             <stop offset="100%" stopColor="#000" stopOpacity="0.02" />
           </linearGradient>
+
+          {/* Gradient for routes - Dark mode */}
+          <linearGradient id="route-gradient-dark" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#fff" stopOpacity="0.05" />
+            <stop offset="50%" stopColor="#fff" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#fff" stopOpacity="0.05" />
+          </linearGradient>
         </defs>
 
-        {/* Grid background */}
-        <rect width="100%" height="100%" fill="url(#hero-grid)" opacity="0.3" />
+        {/* Grid background - Light mode */}
+        <rect width="100%" height="100%" fill="url(#hero-grid-light)" opacity="0.3" className="dark:hidden" />
 
-        {/* Multiple animated route paths */}
+        {/* Grid background - Dark mode */}
+        <rect width="100%" height="100%" fill="url(#hero-grid-dark)" opacity="0.4" className="hidden dark:block" />
+
+        {/* Multiple animated route paths - Light mode */}
         {routes.map((route, index) => (
           <motion.path
-            key={`route-${index}`}
+            key={`route-light-${index}`}
             d={route.d}
             fill="none"
-            stroke="url(#route-gradient)"
+            stroke="url(#route-gradient-light)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeDasharray="1200"
@@ -297,12 +322,36 @@ export function HeroRouteBackground() {
               repeat: Infinity,
               repeatDelay: 3,
             }}
+            className="dark:hidden"
           />
         ))}
 
-        {/* Network nodes */}
+        {/* Multiple animated route paths - Dark mode */}
+        {routes.map((route, index) => (
+          <motion.path
+            key={`route-dark-${index}`}
+            d={route.d}
+            fill="none"
+            stroke="url(#route-gradient-dark)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeDasharray="1200"
+            initial={{ strokeDashoffset: 1200 }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{
+              duration: route.duration,
+              delay: route.delay,
+              ease: 'easeInOut',
+              repeat: Infinity,
+              repeatDelay: 3,
+            }}
+            className="hidden dark:block"
+          />
+        ))}
+
+        {/* Network nodes - Light mode */}
         {nodes.map((node, index) => (
-          <motion.g key={`node-${index}`}>
+          <motion.g key={`node-light-${index}`} className="dark:hidden">
             {/* Pulse ring */}
             <motion.circle
               cx={node.x}
@@ -342,13 +391,82 @@ export function HeroRouteBackground() {
           </motion.g>
         ))}
 
-        {/* Traveling dots on routes for extra dynamism */}
+        {/* Network nodes - Dark mode */}
+        {nodes.map((node, index) => (
+          <motion.g key={`node-dark-${index}`} className="hidden dark:block">
+            {/* Pulse ring */}
+            <motion.circle
+              cx={node.x}
+              cy={node.y}
+              r="4"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="1"
+              opacity="0.15"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{
+                scale: [1, 2.5, 1],
+                opacity: [0.15, 0, 0.15],
+              }}
+              transition={{
+                duration: 3,
+                delay: node.delay,
+                repeat: Infinity,
+                ease: 'easeOut',
+              }}
+            />
+            {/* Node center */}
+            <motion.circle
+              cx={node.x}
+              cy={node.y}
+              r="3"
+              fill="#fff"
+              opacity="0.2"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{
+                duration: 0.3,
+                delay: node.delay,
+                type: 'spring',
+              }}
+            />
+          </motion.g>
+        ))}
+
+        {/* Traveling dots on routes for extra dynamism - Light mode */}
         {[0, 2, 4].map((routeIndex) => (
           <motion.circle
-            key={`dot-${routeIndex}`}
+            key={`dot-light-${routeIndex}`}
             r="3"
             fill="#000"
             opacity="0.2"
+            className="dark:hidden"
+            initial={{ offsetDistance: '0%', scale: 0 }}
+            animate={{
+              offsetDistance: '100%',
+              scale: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: routes[routeIndex].duration,
+              delay: routes[routeIndex].delay + 1,
+              ease: 'linear',
+              repeat: Infinity,
+              repeatDelay: 3,
+            }}
+            style={{
+              offsetPath: `path('${routes[routeIndex].d}')`,
+            }}
+          />
+        ))}
+
+        {/* Traveling dots on routes for extra dynamism - Dark mode */}
+        {[0, 2, 4].map((routeIndex) => (
+          <motion.circle
+            key={`dot-dark-${routeIndex}`}
+            r="3"
+            fill="#fff"
+            opacity="0.3"
+            className="hidden dark:block"
             initial={{ offsetDistance: '0%', scale: 0 }}
             animate={{
               offsetDistance: '100%',

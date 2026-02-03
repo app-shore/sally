@@ -114,48 +114,8 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* System Performance */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Performance Metrics
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">API Response Time</span>
-                <span className="text-sm font-semibold text-green-600 dark:text-green-400">125ms</span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-green-600 dark:bg-green-400 h-2 rounded-full" style={{ width: '15%' }}></div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Database Query Time</span>
-                <span className="text-sm font-semibold text-green-600 dark:text-green-400">45ms</span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-green-600 dark:bg-green-400 h-2 rounded-full" style={{ width: '10%' }}></div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Memory Usage</span>
-                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">2.3 GB / 8 GB</span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full" style={{ width: '29%' }}></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Service Health */}
-      <Card>
+ {/* Service Health */}
+ <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Database className="h-5 w-5" />
@@ -196,20 +156,12 @@ export default function AdminDashboard() {
               </div>
               <Badge variant="default" className="bg-green-500 text-white">Operational</Badge>
             </div>
-
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                <div>
-                  <div className="font-medium text-foreground">External API Integrations</div>
-                  <div className="text-sm text-muted-foreground">Mock mode - simulated data</div>
-                </div>
-              </div>
-              <Badge variant="muted" className="bg-yellow-500 text-white">Mock Mode</Badge>
-            </div>
           </div>
         </CardContent>
       </Card>
+      </div>
+
+
     </div>
   );
 }

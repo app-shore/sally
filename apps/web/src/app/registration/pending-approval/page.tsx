@@ -1,30 +1,111 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle } from 'lucide-react';
+'use client';
+
+import { motion } from 'framer-motion';
+import { HeroRouteBackground } from '@/components/landing/AnimatedRoute';
+import Link from 'next/link';
 
 export default function PendingApprovalPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-            <div>
-              <CardTitle>Registration Complete!</CardTitle>
-              <CardDescription>Your account is pending approval</CardDescription>
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background p-4">
+      {/* Animated Background */}
+      <HeroRouteBackground />
+
+      {/* Content */}
+      <div className="relative z-20">
+        {/* Subtle backdrop for better contrast */}
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-2xl -z-10" />
+
+        <div className="w-full max-w-[600px] mx-auto relative isolate text-center">
+          {/* Success Icon Animation */}
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{
+              duration: 0.5,
+              ease: [0.34, 1.56, 0.64, 1], // Spring easing
+              delay: 0.1
+            }}
+            className="mb-8"
+          >
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 mb-6">
+              <svg
+                className="w-12 h-12 text-green-600 dark:text-green-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <motion.path
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Alert>
-            <AlertDescription className="text-foreground">
-              Thank you for registering with SALLY! Our team will review your application
-              and approve your account within 24-48 hours. You&apos;ll receive an email once
-              your account is activated.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
+          </motion.div>
+
+          {/* SALLY Wordmark */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-6"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tighter mb-3 text-gradient font-space-grotesk">
+              SALLY
+            </h1>
+          </motion.div>
+
+          {/* Success Message */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="space-y-4 mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+              Registration Complete!
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Your account is pending approval
+            </p>
+          </motion.div>
+
+          {/* Details */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="max-w-md mx-auto mb-12"
+          >
+            <div className="p-6 border-2 border-border rounded-lg bg-muted/30">
+              <p className="text-base text-foreground leading-relaxed">
+                Thank you for registering! Our team will review your application and approve your account within <span className="font-semibold">24-48 hours</span>.
+              </p>
+              <p className="text-base text-muted-foreground mt-4">
+                You&apos;ll receive an email once your account is activated.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Back to Login Link */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+          >
+            <Link
+              href="/login"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors underline"
+            >
+              Return to sign in
+            </Link>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

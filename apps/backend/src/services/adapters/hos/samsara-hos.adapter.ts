@@ -13,7 +13,7 @@ import { IHOSAdapter, HOSData } from './hos-adapter.interface';
 @Injectable()
 export class SamsaraHOSAdapter implements IHOSAdapter {
   private readonly baseUrl = 'https://api.samsara.com';
-  private readonly useMockData = true; // Set to false when ready for real API calls
+  private readonly useMockData = false; // Set to false when ready for real API calls
 
   /**
    * Get driver HOS data from Samsara ELD
@@ -67,6 +67,10 @@ export class SamsaraHOSAdapter implements IHOSAdapter {
       return apiKey && apiKey.length > 10;
     }
 
+
+    console.log('apiKey', apiKey);
+    console.log('Testing connection to Samsara API');
+
     // Real API test (Phase 2)
     try {
       const response = await fetch(`${this.baseUrl}/v1/fleet/drivers`, {
@@ -75,6 +79,8 @@ export class SamsaraHOSAdapter implements IHOSAdapter {
           'Content-Type': 'application/json',
         },
       });
+      const data = await response.json();
+      console.log('data', data);
       return response.ok;
     } catch {
       return false;
