@@ -52,13 +52,9 @@ COPY --from=deps /workspace/apps/backend/node_modules ./node_modules_backend
 # Merge backend-specific node_modules into main node_modules
 RUN cp -rn /app/node_modules_backend/* /app/node_modules/ && rm -rf /app/node_modules_backend
 
-# Copy and set up entrypoint script
-COPY --from=builder /workspace/apps/backend/docker-entrypoint.sh ./
-RUN chmod +x ./docker-entrypoint.sh
-
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO- http://localhost:8000/health || exit 1
 
 EXPOSE 8000
-CMD ["./docker-entrypoint.sh"]
+CMD ["node", "dist/main"]
