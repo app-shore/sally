@@ -95,10 +95,10 @@ export class IntegrationManagerService {
             throw new Error('No active HOS integration configured');
           }
 
-          const apiKey = this.getApiKeyFromCredentials(integration.credentials);
+          const apiToken = this.getCredentialField(integration.credentials, 'apiToken');
 
           return await this.samsaraAdapter.getDriverHOS(
-            apiKey,
+            apiToken,
             driver.externalDriverId || driverId,
           );
         },
@@ -157,24 +157,33 @@ export class IntegrationManagerService {
     }
 
     try {
-      const apiKey = this.getApiKeyFromCredentials(integration.credentials);
-
       let success = false;
 
-      // Test connection based on vendor
+      // Test connection based on vendor - use dynamic credential field names
       if (integration.vendor === 'SAMSARA_ELD' || integration.vendor === 'KEEPTRUCKIN_ELD' || integration.vendor === 'MOTIVE_ELD') {
-        success = await this.samsaraAdapter.testConnection(apiKey);
+        // These vendors use 'apiToken' field
+        const apiToken = this.getCredentialField(integration.credentials, 'apiToken');
+        success = await this.samsaraAdapter.testConnection(apiToken);
       } else if (integration.vendor === 'MCLEOD_TMS' || integration.vendor === 'TMW_TMS') {
-        success = await this.mcleodAdapter.testConnection(apiKey, '');
+        // These vendors use 'apiKey' and 'baseUrl' fields
+        const apiKey = this.getCredentialField(integration.credentials, 'apiKey');
+        const baseUrl = this.getCredentialField(integration.credentials, 'baseUrl');
+        success = await this.mcleodAdapter.testConnection(apiKey, baseUrl);
       } else if (integration.vendor === 'PROJECT44_TMS') {
-        const apiSecret = this.getApiSecretFromCredentials(integration.credentials);
-        success = await this.project44Adapter.testConnection(apiKey, apiSecret);
-      } else if (integration.vendor === 'GASBUDDY_FUEL') {
-        success = await this.gasBuddyAdapter.testConnection(apiKey);
-      } else if (integration.vendor === 'FUELFINDER_FUEL') {
-        success = await this.fuelFinderAdapter.testConnection(apiKey);
-      } else if (integration.vendor === 'OPENWEATHER') {
-        success = await this.openWeatherAdapter.testConnection(apiKey);
+        // This vendor uses 'clientId' and 'clientSecret' fields
+        const clientId = this.getCredentialField(integration.credentials, 'clientId');
+        const clientSecret = this.getCredentialField(integration.credentials, 'clientSecret');
+        success = await this.project44Adapter.testConnection(clientId, clientSecret);
+      } else if (integration.vendor === 'GASBUDDY_FUEL' || integration.vendor === 'FUELFINDER_FUEL' || integration.vendor === 'OPENWEATHER') {
+        // These vendors use 'apiKey' field
+        const apiKey = this.getCredentialField(integration.credentials, 'apiKey');
+        if (integration.vendor === 'GASBUDDY_FUEL') {
+          success = await this.gasBuddyAdapter.testConnection(apiKey);
+        } else if (integration.vendor === 'FUELFINDER_FUEL') {
+          success = await this.fuelFinderAdapter.testConnection(apiKey);
+        } else {
+          success = await this.openWeatherAdapter.testConnection(apiKey);
+        }
       } else {
         throw new Error(`Unsupported vendor: ${integration.vendor}`);
       }
@@ -275,35 +284,33 @@ export class IntegrationManagerService {
   }
 
   /**
-   * Extract API key from encrypted credentials JSON
+   * Extract and decrypt a specific credential field
    */
-  private getApiKeyFromCredentials(credentials: any): string {
-    if (!credentials || !credentials.apiKey) {
-      throw new Error('Invalid credentials - apiKey missing');
+  private getCredentialField(credentials: any, fieldName: string): string {
+    if (!credentials || !credentials[fieldName]) {
+      throw new Error(`Invalid credentials - ${fieldName} missing`);
     }
 
     try {
-      return this.credentials.decrypt(credentials.apiKey);
+      return this.credentials.decrypt(credentials[fieldName]);
     } catch {
       // If not encrypted, return as-is (for development)
-      return credentials.apiKey;
+      return credentials[fieldName];
     }
   }
 
   /**
-   * Extract API secret from encrypted credentials JSON (for Truckbase)
+   * Extract API key from encrypted credentials JSON (legacy - kept for backward compatibility)
+   */
+  private getApiKeyFromCredentials(credentials: any): string {
+    return this.getCredentialField(credentials, 'apiKey');
+  }
+
+  /**
+   * Extract API secret from encrypted credentials JSON (legacy - kept for backward compatibility)
    */
   private getApiSecretFromCredentials(credentials: any): string {
-    if (!credentials || !credentials.apiSecret) {
-      throw new Error('Invalid credentials - apiSecret missing');
-    }
-
-    try {
-      return this.credentials.decrypt(credentials.apiSecret);
-    } catch {
-      // If not encrypted, return as-is (for development)
-      return credentials.apiSecret;
-    }
+    return this.getCredentialField(credentials, 'apiSecret');
   }
 
   /**

@@ -258,7 +258,7 @@ export function ConfigureIntegrationForm({
                   <Input
                     id={field.name}
                     name={field.name}
-                    type={field.type === 'password' && !showPasswords[field.name] ? 'password' : field.type}
+                    type={field.type === 'password' ? (showPasswords[field.name] ? 'text' : 'password') : field.type}
                     placeholder={field.placeholder}
                     required={field.required}
                     value={formData.credentials[field.name] || ''}
