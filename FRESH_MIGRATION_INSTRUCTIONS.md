@@ -37,31 +37,14 @@
 
 ## 📋 Deploy to CapRover
 
-### Step 1: Apply Fresh Migration to CapRover Database
-
-SSH into CapRover server and run:
-
-```bash
-# Get postgres container ID
-CONTAINER_ID=$(docker ps | grep sally-db | awk '{print $1}')
-
-# Drop existing database (BE CAREFUL - THIS DELETES ALL DATA)
-docker exec $CONTAINER_ID psql -U sally_user -d postgres -c "DROP DATABASE IF EXISTS sally;"
-
-# Create fresh database
-docker exec $CONTAINER_ID psql -U sally_user -d postgres -c "CREATE DATABASE sally;"
-
-# Exit - We'll apply migration via app deployment
-```
-
-### Step 2: Deploy Backend to CapRover
+### Step 1: Commit the Fresh Migration
 
 From your local machine:
 
 ```bash
 cd /Users/ajay-admin/sally
 
-# Commit the fresh migration
+# Commit the fresh migration and fixes
 git add apps/backend/prisma/migrations/20260204062550_initial_schema/
 git add apps/backend/prisma.config.ts
 git add apps/backend/src/
@@ -74,12 +57,60 @@ git commit -m "feat: fresh migration with Prisma 7 config
 - All 23 tables including integration tables
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-
-# Deploy to CapRover
-git push caprover main
 ```
 
-### Step 3: Apply Migration on CapRover
+### Step 2: Drop and Recreate CapRover Database
+
+SSH into CapRover server and run:
+
+```bash
+# Get postgres container ID
+CONTAINER_ID=$(docker ps | grep sally-db | awk '{print $1}')
+
+# Drop existing database (BE CAREFUL - THIS DELETES ALL DATA)
+docker exec $CONTAINER_ID psql -U sally_user -d postgres -c "DROP DATABASE IF EXISTS sally;"
+
+# Create fresh database
+docker exec $CONTAINER_ID psql -U sally_user -d postgres -c "CREATE DATABASE sally;"
+```
+
+### Step 3: Deploy Backend to CapRover
+
+From your local machine:
+
+**Option A: Using CapRover CLI (Recommended)**
+```bash
+cd /Users/ajay-admin/sally
+
+# Deploy using CapRover CLI
+caprover deploy
+
+# Follow prompts to select sally-api app
+# Wait for deployment to complete
+# You should see: "Deploy completed successfully!"
+```
+
+**Option B: Using Git Push (if caprover remote is configured)**
+```bash
+cd /Users/ajay-admin/sally
+
+# Deploy to CapRover (this pushes the new migration files to the server)
+git push caprover main
+
+# Wait for deployment to complete
+# You should see: "Build successfully pushed!"
+```
+
+**Option C: Using CapRover Web Interface**
+1. Go to your CapRover dashboard
+2. Click on "sally-api" app
+3. Go to "Deployment" tab
+4. Under "Method 3: Deploy from Github/Bitbucket/Gitlab"
+5. Click "Force Build" to trigger deployment from your connected repo
+
+### Step 4: Apply Migration on CapRover
+
+**IMPORTANT:** Only do this AFTER Step 3 deployment completes, so the container has the latest migration files.
 
 SSH into CapRover and run:
 
@@ -97,7 +128,7 @@ docker exec $BACKEND_CONTAINER npx prisma migrate deploy
 # All migrations have been successfully applied.
 ```
 
-### Step 4: Verify Deployment
+### Step 5: Verify Deployment
 
 ```bash
 # Check backend logs

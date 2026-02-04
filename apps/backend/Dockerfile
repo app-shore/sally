@@ -17,6 +17,9 @@ RUN npm config set fetch-retry-maxtimeout 600000 && \
 FROM node:20-alpine AS builder
 WORKDIR /workspace
 
+# Accept DATABASE_URL as build argument (optional, uses placeholder if not provided)
+ARG DATABASE_URL
+
 # Copy node_modules from deps stage (includes all workspace dependencies)
 COPY --from=deps /workspace/node_modules ./node_modules
 COPY --from=deps /workspace/apps/backend/node_modules ./apps/backend/node_modules
@@ -42,9 +45,10 @@ RUN apk add --no-cache wget
 # Copy package files
 COPY --from=builder /workspace/apps/backend/package*.json ./
 
-# Copy built application and Prisma schema
+# Copy built application, Prisma schema, and config
 COPY --from=builder /workspace/apps/backend/dist ./dist
 COPY --from=builder /workspace/apps/backend/prisma ./prisma
+COPY --from=builder /workspace/apps/backend/prisma.config.ts ./prisma.config.ts
 
 # Copy ALL node_modules from BUILDER (includes generated Prisma Client)
 COPY --from=builder /workspace/node_modules ./node_modules
