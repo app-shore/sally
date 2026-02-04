@@ -134,14 +134,29 @@ export class IntegrationsService {
     } else {
       numericTenantId = tenantId;
     }
-    // Encrypt credentials if provided
+
+    // Check if integration already exists
+    const existing = await this.prisma.integrationConfig.findFirst({
+      where: {
+        tenantId: numericTenantId,
+        integrationType: dto.integration_type,
+        vendor: dto.vendor,
+      },
+    });
+
+    if (existing) {
+      throw new BadRequestException(
+        `Integration already exists for ${vendorMeta.displayName}. Please edit the existing integration instead.`
+      );
+    }
+
+    // Encrypt credentials if provided (dynamically encrypt all credential fields)
     let encryptedCredentials = null;
     if (dto.credentials) {
-      encryptedCredentials = {
-        apiKey: dto.credentials.apiKey
-          ? this.credentials.encrypt(dto.credentials.apiKey)
-          : dto.credentials.apiKey,
-      };
+      encryptedCredentials = {};
+      for (const [key, value] of Object.entries(dto.credentials)) {
+        encryptedCredentials[key] = value ? this.credentials.encrypt(value) : value;
+      }
     }
 
     const integration = await this.prisma.integrationConfig.create({
@@ -182,14 +197,15 @@ export class IntegrationsService {
       throw new NotFoundException('Integration not found');
     }
 
-    // Encrypt credentials if provided
+    // Encrypt credentials if provided (dynamically encrypt all credential fields)
     let encryptedCredentials = existing.credentials;
     if (dto.credentials) {
-      encryptedCredentials = {
-        apiKey: dto.credentials.apiKey
-          ? this.credentials.encrypt(dto.credentials.apiKey)
-          : (existing.credentials as any)?.apiKey,
-      };
+      encryptedCredentials = { ...(existing.credentials as any) };
+      for (const [key, value] of Object.entries(dto.credentials)) {
+        if (value) {
+          encryptedCredentials[key] = this.credentials.encrypt(value);
+        }
+      }
     }
 
     const updated = await this.prisma.integrationConfig.update({
