@@ -390,6 +390,93 @@ SALLY - Smart Routes. Confident Dispatchers. Happy Drivers.
   }
 
   /**
+   * Send tenant rejection notification email
+   */
+  async sendTenantRejectionEmail(
+    email: string,
+    firstName: string,
+    companyName: string,
+    rejectionReason: string,
+  ): Promise<void> {
+    const subject = `Update on your SALLY registration`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #000; color: #fff; padding: 20px; text-align: center; }
+            .content { padding: 30px; background-color: #f9f9f9; }
+            .button {
+              display: inline-block;
+              padding: 12px 30px;
+              background-color: #666;
+              color: #fff;
+              text-decoration: none;
+              border-radius: 5px;
+              margin: 20px 0;
+            }
+            .reason-box {
+              background-color: #fff;
+              border-left: 4px solid #666;
+              padding: 15px;
+              margin: 20px 0;
+            }
+            .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>SALLY</h1>
+              <p>Smart Routes. Confident Dispatchers. Happy Drivers.</p>
+            </div>
+            <div class="content">
+              <h2>Hi ${firstName},</h2>
+              <p>Thank you for your interest in SALLY.</p>
+              <p>After reviewing your registration for <strong>${companyName}</strong>, we're unable to approve your account at this time.</p>
+              <div class="reason-box">
+                <strong>Reason:</strong><br>
+                ${rejectionReason}
+              </div>
+              <p>If you believe this is an error or would like to discuss this further, please don't hesitate to contact our support team.</p>
+              <div style="text-align: center;">
+                <a href="mailto:support@sally.com" class="button">Contact Support</a>
+              </div>
+              <p>We appreciate your understanding.</p>
+            </div>
+            <div class="footer">
+              <p>&copy; 2026 SALLY. All rights reserved.</p>
+              <p>Questions? Email us at support@sally.com</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+Hi ${firstName},
+
+Thank you for your interest in SALLY.
+
+After reviewing your registration for ${companyName}, we're unable to approve your account at this time.
+
+Reason: ${rejectionReason}
+
+If you believe this is an error or would like to discuss this further, please don't hesitate to contact our support team at support@sally.com.
+
+We appreciate your understanding.
+
+---
+SALLY - Smart Routes. Confident Dispatchers. Happy Drivers.
+    `.trim();
+
+    await this.sendEmail({ to: email, subject, html, text });
+  }
+
+  /**
    * Get login URL (subdomain-aware or single domain)
    */
   private getLoginUrl(subdomain: string): string {
