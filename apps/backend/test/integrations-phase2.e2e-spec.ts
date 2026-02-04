@@ -142,30 +142,31 @@ describe('Phase 2 Integration Tests (E2E)', () => {
 
   describe('Real API Integration - Truckbase TMS', () => {
     let truckbaseIntegrationId: string;
-    let truckbaseDbId: number;
+    let project44DbId: number;
 
-    it('should create Truckbase integration', async () => {
+    it('should create project44 integration', async () => {
       const response = await request(app.getHttpServer())
         .post('/integrations')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           integration_type: 'TMS',
-          vendor: 'TRUCKBASE_TMS',
-          display_name: 'E2E Test Truckbase',
+          vendor: 'PROJECT44_TMS',
+          display_name: 'E2E Test project44',
           credentials: {
-            apiKey: process.env.TRUCKBASE_API_KEY || 'test_api_key',
+            clientId: process.env.PROJECT44_CLIENT_ID || 'test_client_id',
+            clientSecret: process.env.PROJECT44_CLIENT_SECRET || 'test_client_secret',
           },
           sync_frequency_minutes: 30,
           enabled: true,
         });
 
       expect(response.status).toBe(201);
-      expect(response.body.vendor).toBe('TRUCKBASE_TMS');
-      truckbaseDbId = response.body.id;
+      expect(response.body.vendor).toBe('PROJECT44_TMS');
+      project44DbId = response.body.id;
       truckbaseIntegrationId = response.body.integrationId;
     });
 
-    it('should test Truckbase connection', async () => {
+    it('should test project44 connection', async () => {
       const response = await request(app.getHttpServer())
         .post(`/integrations/${truckbaseIntegrationId}/test`)
         .set('Authorization', `Bearer ${accessToken}`);

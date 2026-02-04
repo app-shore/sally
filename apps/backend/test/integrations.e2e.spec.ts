@@ -83,22 +83,23 @@ describe('Integrations E2E Test', () => {
       expect(response.body.tenant_id).toBe(tenantId);
     });
 
-    it('should create Truckbase TMS integration', async () => {
+    it('should create project44 TMS integration', async () => {
       const response = await request(app.getHttpServer())
         .post('/integrations')
         .set('Authorization', `Bearer ${jwtToken}`)
         .send({
           integration_type: 'TMS',
-          vendor: 'TRUCKBASE_TMS',
-          display_name: 'E2E Test Truckbase',
+          vendor: 'PROJECT44_TMS',
+          display_name: 'E2E Test project44',
           credentials: {
-            apiKey: process.env.TRUCKBASE_API_KEY || 'test-api-key',
+            clientId: process.env.PROJECT44_CLIENT_ID || 'test-client-id',
+            clientSecret: process.env.PROJECT44_CLIENT_SECRET || 'test-client-secret',
           },
         });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
-      expect(response.body.vendor).toBe('TRUCKBASE_TMS');
+      expect(response.body.vendor).toBe('PROJECT44_TMS');
       expect(response.body.integration_type).toBe('TMS');
     });
 

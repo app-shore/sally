@@ -6,6 +6,20 @@
 
 ---
 
+## Implementation Status
+
+- ✅ **Backend Vendor Registry** - Implemented 2026-02-04
+  - `GET /integrations/vendors` endpoint
+  - Dynamic credential validation
+  - 9 vendors supported (PROJECT44_TMS, SAMSARA_ELD, MCLEOD_TMS, TMW_TMS, KEEPTRUCKIN_ELD, MOTIVE_ELD, GASBUDDY_FUEL, FUELFINDER_FUEL, OPENWEATHER)
+
+- ✅ **Dynamic Frontend Rendering** - Implemented 2026-02-04
+  - Vendor selection from backend
+  - Credential fields from backend
+  - Test Connection button with toast notifications
+
+---
+
 ## Executive Summary
 
 Design a **configuration-driven integration architecture** that allows SALLY to connect with multiple external systems (TMS, ELD, Fuel APIs, Weather, Telematics) while maintaining:
@@ -1062,6 +1076,75 @@ Before shipping, verify every screen passes Apple's design standards:
 - Advanced sync settings
 
 **Value:** Enterprise-ready, self-service onboarding
+
+---
+
+## Adding a New Integration Vendor
+
+To add a new vendor (e.g., "Omnitracs ELD"):
+
+### 1. Add to Backend Registry
+
+**File:** `apps/backend/src/api/integrations/vendor-registry.ts`
+
+```typescript
+OMNITRACS_ELD: {
+  id: 'OMNITRACS_ELD',
+  displayName: 'Omnitracs',
+  description: 'Omnitracs ELD integration',
+  integrationType: IntegrationType.HOS_ELD,
+  credentialFields: [
+    {
+      name: 'apiKey',
+      label: 'API Key',
+      type: 'password',
+      required: true,
+      helpText: 'API key from Omnitracs portal',
+    },
+  ],
+  helpUrl: 'https://developers.omnitracs.com',
+}
+```
+
+### 2. Add to Prisma Enum
+
+**File:** `apps/backend/prisma/schema.prisma`
+
+```prisma
+enum IntegrationVendor {
+  // ... existing vendors
+  OMNITRACS_ELD
+}
+```
+
+### 3. Create Migration
+
+```bash
+cd apps/backend
+npx prisma migrate dev --name add_omnitracs_vendor
+```
+
+### 4. Create Adapter
+
+**File:** `apps/backend/src/services/adapters/eld/omnitracs-eld.adapter.ts`
+
+Implement `IEldAdapter` interface with vendor-specific API calls.
+
+### 5. Register Adapter
+
+**File:** `apps/backend/src/services/integration-manager/integration-manager.service.ts`
+
+Add adapter to the integration manager's adapter map.
+
+### 6. That's It!
+
+**Frontend automatically picks up the new vendor.** No UI changes needed:
+- Vendor appears in selection dialog
+- Credential fields render dynamically
+- Help text shows automatically
+- Validation works automatically
+
+**Key Benefit:** Single source of truth in backend. Adding vendors is fast and safe.
 
 ---
 
