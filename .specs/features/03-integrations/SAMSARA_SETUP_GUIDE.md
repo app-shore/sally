@@ -192,7 +192,7 @@ samsara_api_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456
 
 ```bash
 # Set your API token
-export SAMSARA_API_TOKEN="samsara_api_your_actual_token_here"
+export SAMSARA_API_TOKEN="samsara_api_lgUZIbVRbztwD0VbBVaYhO3FRzfZMn"
 
 # Test: Get list of drivers
 curl -X GET "https://api.samsara.com/fleet/drivers" \
