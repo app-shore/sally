@@ -75,6 +75,7 @@ model Tenant {
   integrationConfigs    IntegrationConfig[]
   fleetOperationsSettings FleetOperationsSettings?
   invitations           UserInvitation[]
+  notifications         Notification[]
 
   @@index([tenantId])
   @@index([subdomain])
@@ -128,6 +129,7 @@ model User {
   driversActivated  Driver[]         @relation("ActivatedBy")
   driversDeactivated Driver[]        @relation("DeactivatedBy")
   driversReactivated Driver[]        @relation("ReactivatedBy")
+  notifications     Notification[]
 
   @@index([tenantId])
   @@index([email])
@@ -186,6 +188,8 @@ model UserInvitation {
   cancellationReason    String?       @map("cancellation_reason")
 
   createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  notifications         Notification[]
 
   @@index([tenantId])
   @@index([token])
@@ -808,4 +812,63 @@ model FeatureFlag {
   @@index([category])
   @@index([enabled])
   @@map("feature_flags")
+}
+
+// ============================================================================
+// NOTIFICATION MODELS
+// ============================================================================
+
+enum NotificationType {
+  USER_INVITATION
+  TENANT_REGISTRATION_CONFIRMATION
+  TENANT_APPROVED
+  TENANT_REJECTED
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS      // Future
+  PUSH     // Future
+  IN_APP   // Future
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model Notification {
+  id              Int                 @id @default(autoincrement())
+  notificationId  String              @unique @default(cuid()) @map("notification_id") @db.VarChar(50)
+
+  // Notification details
+  type            NotificationType
+  channel         NotificationChannel @default(EMAIL)
+  recipient       String              @db.VarChar(255)
+  status          NotificationStatus  @default(PENDING)
+
+  // Related entities (nullable - depends on notification type)
+  tenantId        Int?                @map("tenant_id")
+  tenant          Tenant?             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId          Int?                @map("user_id")
+  user            User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitationId    Int?                @map("invitation_id")
+  invitation      UserInvitation?     @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  metadata        Json?               // Flexible field for additional data
+  errorMessage    String?             @map("error_message") @db.Text
+  sentAt          DateTime?           @map("sent_at")
+
+  // Timestamps
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("notifications")
 }
