@@ -396,8 +396,8 @@ export class Project44TMSAdapter implements ITMSAdapter {
   /**
    * Map project44 load status to SALLY status
    */
-  private mapStatus(p44Status: string): string {
-    const statusMap: Record<string, string> = {
+  private mapStatus(p44Status: string): 'UNASSIGNED' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED' {
+    const statusMap: Record<string, 'UNASSIGNED' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED'> = {
       'CREATED': 'ASSIGNED',
       'ACTIVE': 'ASSIGNED',
       'IN_TRANSIT': 'IN_TRANSIT',

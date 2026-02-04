@@ -11,7 +11,7 @@ export enum IntegrationType {
 export enum IntegrationVendor {
   MCLEOD_TMS = 'MCLEOD_TMS',
   TMW_TMS = 'TMW_TMS',
-  TRUCKBASE_TMS = 'TRUCKBASE_TMS',
+  PROJECT44_TMS = 'PROJECT44_TMS',
   SAMSARA_ELD = 'SAMSARA_ELD',
   KEEPTRUCKIN_ELD = 'KEEPTRUCKIN_ELD',
   MOTIVE_ELD = 'MOTIVE_ELD',
