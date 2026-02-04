@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useSessionStore } from '@/lib/store/sessionStore';
 import { usePreferencesStore } from '@/lib/store/preferencesStore';
-import { DispatcherPreferences } from '@/lib/api/preferences';
+import { OperationsSettings } from '@/lib/api/preferences';
 import { Loader2, Save, RotateCcw, Route } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useRouter } from 'next/navigation';
@@ -17,8 +17,8 @@ import { useRouter } from 'next/navigation';
 export default function RoutePlanningPage() {
   const router = useRouter();
   const { user } = useSessionStore();
-  const { dispatcherPreferences, updateDispatcherPrefs, resetToDefaults, loadAllPreferences, isSaving } = usePreferencesStore();
-  const [formData, setFormData] = useState<Partial<DispatcherPreferences>>(dispatcherPreferences || {});
+  const { operationsSettings, updateOperationsSettings, resetToDefaults, loadAllPreferences, isSaving } = usePreferencesStore();
+  const [formData, setFormData] = useState<Partial<OperationsSettings>>(operationsSettings || {});
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const isDispatcher = user?.role === 'DISPATCHER' || user?.role === 'ADMIN' || user?.role === 'OWNER';
@@ -37,10 +37,10 @@ export default function RoutePlanningPage() {
   }, [user, isDispatcher, router]);
 
   useEffect(() => {
-    if (dispatcherPreferences) {
-      setFormData(dispatcherPreferences);
+    if (operationsSettings) {
+      setFormData(operationsSettings);
     }
-  }, [dispatcherPreferences]);
+  }, [operationsSettings]);
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -48,7 +48,7 @@ export default function RoutePlanningPage() {
 
   const handleSave = async () => {
     try {
-      await updateDispatcherPrefs(formData);
+      await updateOperationsSettings(formData);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
@@ -59,9 +59,9 @@ export default function RoutePlanningPage() {
   const handleReset = async () => {
     if (confirm('Reset all route planning preferences to defaults?')) {
       try {
-        await resetToDefaults('dispatcher');
+        await resetToDefaults('operations');
         // Reload from store after reset
-        const resetPrefs = usePreferencesStore.getState().dispatcherPreferences;
+        const resetPrefs = usePreferencesStore.getState().operationsSettings;
         if (resetPrefs) {
           setFormData(resetPrefs);
         }
@@ -85,7 +85,7 @@ export default function RoutePlanningPage() {
     return null; // Will redirect in useEffect
   }
 
-  if (!dispatcherPreferences) {
+  if (!operationsSettings) {
     return (
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-5xl">
         <Card>
@@ -102,17 +102,17 @@ export default function RoutePlanningPage() {
       <div>
         <div className="flex items-center gap-3">
           <Route className="h-6 w-6 text-foreground" />
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Route Planning Configuration</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Fleet Operations Configuration</h1>
         </div>
         <p className="text-muted-foreground mt-1">
-          Configure how SALLY plans routes for your organization. These settings apply to all dispatchers and route planning operations.
+          Configure how SALLY manages fleet operations for your organization. These settings apply to route planning, monitoring, and dispatcher workflows.
         </p>
       </div>
 
       <div className="space-y-6">
         {saveSuccess && (
           <Alert>
-            <AlertDescription>Route planning preferences saved successfully!</AlertDescription>
+            <AlertDescription>Operations settings saved successfully!</AlertDescription>
           </Alert>
         )}
 
