@@ -96,7 +96,60 @@ export class NotificationService {
     metadata: any,
     emailSender: () => Promise<void>,
   ): Promise<Notification> {
-    // TODO: Implement in next task
-    throw new Error('Not implemented');
+    // Extract tenant ID from metadata
+    const tenantId = metadata.tenantId || null;
+    const userId = metadata.userId || null;
+    const invitationId = metadata.invitationId || null;
+
+    // Create notification record with PENDING status
+    const notification = await this.prisma.notification.create({
+      data: {
+        type,
+        channel: NotificationChannel.EMAIL,
+        recipient,
+        status: NotificationStatus.PENDING,
+        tenantId,
+        userId,
+        invitationId,
+        metadata,
+      },
+    });
+
+    try {
+      // Attempt to send email
+      await emailSender();
+
+      // Update notification status to SENT
+      const updatedNotification = await this.prisma.notification.update({
+        where: { id: notification.id },
+        data: {
+          status: NotificationStatus.SENT,
+          sentAt: new Date(),
+        },
+      });
+
+      this.logger.log(
+        `Notification sent successfully: ${type} to ${recipient}`,
+      );
+
+      return updatedNotification;
+    } catch (error) {
+      // Update notification status to FAILED with error message
+      const failedNotification = await this.prisma.notification.update({
+        where: { id: notification.id },
+        data: {
+          status: NotificationStatus.FAILED,
+          errorMessage: error.message,
+        },
+      });
+
+      this.logger.error(
+        `Failed to send notification: ${type} to ${recipient}`,
+        error.message,
+      );
+
+      // Don't throw - allow business logic to continue
+      return failedNotification;
+    }
   }
 }
