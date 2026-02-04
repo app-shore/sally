@@ -160,11 +160,11 @@ export class TenantsService {
         },
       });
 
-      // Activate admin user(s)
+      // Activate owner and admin user(s)
       await tx.user.updateMany({
         where: {
           tenantId: tenant.id,
-          role: 'ADMIN',
+          role: { in: ['OWNER', 'ADMIN'] },
         },
         data: {
           isActive: true,
