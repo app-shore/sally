@@ -1,6 +1,6 @@
 import { IsOptional, IsNumber, IsInt, IsBoolean, IsString, IsArray, IsIn, Min, Max } from 'class-validator';
 
-export class UpdateDispatcherPreferencesDto {
+export class UpdateOperationsSettingsDto {
   // HOS Defaults
   @IsOptional()
   @IsNumber()
