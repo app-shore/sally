@@ -1,4 +1,36 @@
 /**
+ * Standard Vehicle data format for SALLY
+ * All TMS adapters must transform vendor-specific formats to this structure
+ */
+export interface VehicleData {
+  vehicle_id: string;
+  unit_number: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  vin?: string;
+  license_plate?: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE';
+  data_source: string;
+}
+
+/**
+ * Standard Driver data format for SALLY
+ * All TMS adapters must transform vendor-specific formats to this structure
+ */
+export interface DriverData {
+  driver_id: string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  email?: string;
+  license_number?: string;
+  license_state?: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE';
+  data_source: string;
+}
+
+/**
  * Standard Load data format for SALLY
  * All TMS adapters must transform vendor-specific formats to this structure
  */
@@ -44,6 +76,22 @@ export interface LoadData {
  * Interface that all TMS adapters must implement
  */
 export interface ITMSAdapter {
+  /**
+   * Fetch vehicles from TMS
+   * @param apiKey - Primary credential (API key, client ID, etc.)
+   * @param apiSecret - Secondary credential (API secret, etc.)
+   * @returns Array of vehicles
+   */
+  getVehicles(apiKey: string, apiSecret: string): Promise<VehicleData[]>;
+
+  /**
+   * Fetch drivers from TMS
+   * @param apiKey - Primary credential (API key, client ID, etc.)
+   * @param apiSecret - Secondary credential (API secret, etc.)
+   * @returns Array of drivers
+   */
+  getDrivers(apiKey: string, apiSecret: string): Promise<DriverData[]>;
+
   /**
    * Fetch load details by ID
    * @param apiKey - Encrypted API key or credentials

@@ -19,8 +19,11 @@ import {
   deleteIntegration,
   getVendorRegistry,
   type VendorMetadata,
+  testConnection,
+  triggerSync,
 } from '@/lib/api/integrations';
-import { Loader2, Plus, Gauge, Package, Droplet, Cloud, Trash2, Lock } from 'lucide-react';
+import { Loader2, Plus, Gauge, Package, Droplet, Cloud, Trash2, Lock, CheckCircle2, RefreshCw, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -107,6 +110,10 @@ export function ConnectionsTab() {
     integration: IntegrationConfig | null;
   }>({ open: false, integration: null });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [testingIds, setTestingIds] = useState<Set<string>>(new Set());
+  const [syncingIds, setSyncingIds] = useState<Set<string>>(new Set());
+  const [testResults, setTestResults] = useState<Record<string, { success: boolean; message: string }>>({});
+  const { toast } = useToast();
 
   useEffect(() => {
     loadIntegrations();
@@ -192,6 +199,81 @@ export function ConnectionsTab() {
     loadIntegrations();
   };
 
+  const handleTestConnection = async (integration: IntegrationConfig) => {
+    setTestingIds(prev => new Set(prev).add(integration.id));
+    // Clear previous test result for this integration
+    setTestResults(prev => {
+      const next = { ...prev };
+      delete next[integration.id];
+      return next;
+    });
+
+    try {
+      const result = await testConnection(integration.id);
+      // Store test result to display inline
+      setTestResults(prev => ({
+        ...prev,
+        [integration.id]: result,
+      }));
+
+      // Update integration status in state without full refresh
+      if (result.success) {
+        setIntegrations(prev => prev.map(int =>
+          int.id === integration.id
+            ? { ...int, status: 'ACTIVE' as const, last_success_at: new Date().toISOString() }
+            : int
+        ));
+      }
+    } catch (err) {
+      // Store error result
+      setTestResults(prev => ({
+        ...prev,
+        [integration.id]: {
+          success: false,
+          message: err instanceof Error ? err.message : 'Failed to test connection',
+        },
+      }));
+    } finally {
+      setTestingIds(prev => {
+        const next = new Set(prev);
+        next.delete(integration.id);
+        return next;
+      });
+    }
+  };
+
+  const handleSync = async (integration: IntegrationConfig) => {
+    setSyncingIds(prev => new Set(prev).add(integration.id));
+    try {
+      const result = await triggerSync(integration.id);
+      toast({
+        title: 'Sync Completed',
+        description: result.message || 'Data synchronized successfully',
+        duration: 5000,
+      });
+
+      // Update integration last_sync_at in state without full refresh
+      setIntegrations(prev => prev.map(int =>
+        int.id === integration.id
+          ? { ...int, last_sync_at: new Date().toISOString() }
+          : int
+      ));
+    } catch (err) {
+      toast({
+        title: 'Sync Failed',
+        description: err instanceof Error ? err.message : 'Failed to sync data',
+        variant: 'destructive',
+        duration: 5000,
+      });
+    } finally {
+      setSyncingIds(prev => {
+        const next = new Set(prev);
+        next.delete(integration.id);
+        return next;
+      });
+    }
+  };
+
   // Get connected vendor IDs to filter out from "Add New" section
   const connectedVendors = new Set(integrations.map(int => int.vendor));
 
@@ -199,7 +281,7 @@ export function ConnectionsTab() {
   const dynamicCategories = [
     {
       type: 'HOS_ELD' as IntegrationType,
-      label: 'Hours of Service (ELD)',
+      label: 'ELD',
       icon: Gauge,
       color: 'blue',
       vendors: vendors.filter(v => v.integrationType === 'HOS_ELD'),
@@ -338,22 +420,56 @@ export function ConnectionsTab() {
               {integrationsByCategory
                 .find(c => c.type === selectedCategory)
                 ?.integrations.map((integration) => (
-                  <div
-                    key={integration.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-foreground">{integration.display_name}</h4>
-                        <Badge variant={integration.status === 'ACTIVE' ? 'default' : 'muted'}>
-                          {integration.status}
-                        </Badge>
+                  <div key={integration.id} className="space-y-2">
+                    <div className="flex items-center justify-between p-4 rounded-lg border border-border">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-foreground">{integration.display_name}</h4>
+                          <Badge variant={integration.status === 'ACTIVE' ? 'default' : 'muted'}>
+                            {integration.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {integration.vendor.replace(/_/g, ' ')}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {integration.vendor.replace(/_/g, ' ')}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
+                      <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleTestConnection(integration)}
+                        disabled={testingIds.has(integration.id)}
+                      >
+                        {testingIds.has(integration.id) ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            Testing...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="h-4 w-4 mr-1" />
+                            Test
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleSync(integration)}
+                        disabled={syncingIds.has(integration.id)}
+                      >
+                        {syncingIds.has(integration.id) ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            Syncing...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-1" />
+                            Sync
+                          </>
+                        )}
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
@@ -372,6 +488,35 @@ export function ConnectionsTab() {
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </div>
+                    </div>
+
+                    {/* Test Result Display */}
+                    {testResults[integration.id] && (
+                      <div
+                        className={`p-3 rounded-lg border ${
+                          testResults[integration.id].success
+                            ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900'
+                            : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {testResults[integration.id].success ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                          ) : (
+                            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                          )}
+                          <p
+                            className={`text-sm ${
+                              testResults[integration.id].success
+                                ? 'text-green-800 dark:text-green-200'
+                                : 'text-red-800 dark:text-red-200'
+                            }`}
+                          >
+                            {testResults[integration.id].message}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
 

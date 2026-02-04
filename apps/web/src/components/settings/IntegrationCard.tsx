@@ -3,18 +3,15 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import {
   type IntegrationConfig,
   type IntegrationType,
   getIntegrationTypeLabel,
   formatRelativeTime,
-  testConnection,
-  triggerSync,
   getVendorRegistry,
   type VendorMetadata,
 } from '@/lib/api/integrations';
-import { AlertCircle, CheckCircle2, Circle, Loader2, Link as LinkIcon } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Circle, Link as LinkIcon } from 'lucide-react';
 
 interface IntegrationCardProps {
   integration: IntegrationConfig;
@@ -23,10 +20,6 @@ interface IntegrationCardProps {
 }
 
 export function IntegrationCard({ integration, onConfigure, onRefresh }: IntegrationCardProps) {
-  const { toast } = useToast();
-  const [isTesting, setIsTesting] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [vendors, setVendors] = useState<VendorMetadata[]>([]);
 
   // Fetch vendor registry
@@ -44,54 +37,6 @@ export function IntegrationCard({ integration, onConfigure, onRefresh }: Integra
 
   // Get vendor metadata
   const vendorMeta = vendors.find(v => v.id === integration.vendor);
-
-  const handleTest = async () => {
-    setIsTesting(true);
-    setTestResult(null);
-    try {
-      const result = await testConnection(integration.id);
-      setTestResult(result);
-
-      if (result.success) {
-        toast({
-          title: "Connection successful",
-          description: `✅ ${vendorMeta?.displayName || integration.vendor} connection is working`,
-        });
-        onRefresh();
-      } else {
-        toast({
-          title: "Connection failed",
-          description: `❌ ${result.message || 'Unknown error'}`,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Connection test failed';
-      setTestResult({
-        success: false,
-        message: errorMessage,
-      });
-      toast({
-        title: "Connection failed",
-        description: `❌ ${errorMessage}`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  const handleSync = async () => {
-    setIsSyncing(true);
-    try {
-      await triggerSync(integration.id);
-      onRefresh();
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Sync failed');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const statusConfig = {
     ACTIVE: {
@@ -166,26 +111,6 @@ export function IntegrationCard({ integration, onConfigure, onRefresh }: Integra
                 {getConfigureHelpText(integration.integration_type)}
               </div>
             )}
-
-            {testResult && (
-              <div
-                className={`mt-3 p-3 rounded-md border ${
-                  testResult.success
-                    ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900'
-                    : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900'
-                }`}
-              >
-                <p
-                  className={`text-sm ${
-                    testResult.success
-                      ? 'text-green-800 dark:text-green-200'
-                      : 'text-red-800 dark:text-red-200'
-                  }`}
-                >
-                  {testResult.message}
-                </p>
-              </div>
-            )}
           </div>
 
           <div className="flex gap-2 ml-4">
@@ -199,43 +124,13 @@ export function IntegrationCard({ integration, onConfigure, onRefresh }: Integra
                 Connect
               </Button>
             ) : (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onConfigure(integration)}
-                >
-                  Configure
-                </Button>
-                {integration.status === 'ACTIVE' && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleTest}
-                      disabled={isTesting}
-                    >
-                      {isTesting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        'Test'
-                      )}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSync}
-                      disabled={isSyncing}
-                    >
-                      {isSyncing ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        'Sync'
-                      )}
-                    </Button>
-                  </>
-                )}
-              </>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onConfigure(integration)}
+              >
+                Configure
+              </Button>
             )}
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ITMSAdapter, LoadData } from './tms-adapter.interface';
+import { ITMSAdapter, LoadData, VehicleData, DriverData } from './tms-adapter.interface';
 
 /**
  * Truckbase TMS Adapter
@@ -100,6 +100,54 @@ export class TruckbaseTMSAdapter implements ITMSAdapter {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Get vehicles from Truckbase TMS
+   */
+  async getVehicles(apiKey: string, apiSecret: string): Promise<VehicleData[]> {
+    if (this.useMockData) {
+      return [
+        {
+          vehicle_id: 'TB_VEH_001',
+          unit_number: 'TRUCK-TB-001',
+          make: 'Peterbilt',
+          model: '579',
+          year: 2023,
+          vin: '1XPCD40X8TD123456',
+          license_plate: 'AZ-TB-789',
+          status: 'ACTIVE',
+          data_source: 'truckbase_tms',
+        },
+      ];
+    }
+
+    // Real API call (Phase 2)
+    throw new Error('Real Truckbase API integration not implemented yet');
+  }
+
+  /**
+   * Get drivers from Truckbase TMS
+   */
+  async getDrivers(apiKey: string, apiSecret: string): Promise<DriverData[]> {
+    if (this.useMockData) {
+      return [
+        {
+          driver_id: 'TB_DRV_001',
+          first_name: 'David',
+          last_name: 'Wilson',
+          phone: '+15551234503',
+          email: 'david.w@example.com',
+          license_number: 'D9876543',
+          license_state: 'AZ',
+          status: 'ACTIVE',
+          data_source: 'truckbase_tms',
+        },
+      ];
+    }
+
+    // Real API call (Phase 2)
+    throw new Error('Real Truckbase API integration not implemented yet');
   }
 
   /**

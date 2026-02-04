@@ -14,7 +14,7 @@ interface EldVehicleData {
   eldVendor?: string;
   eldId?: string;
   serial?: string;
-  gateway?: { serial: string; model: string };
+  gateway?: { serial?: string; model?: string };
   esn?: string;
   make?: string;
   model?: string;

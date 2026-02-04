@@ -8,6 +8,11 @@ import { DriverMatcher } from './matching/driver-matcher';
 import { VehicleMerger } from './merging/vehicle-merger';
 import { DriverMerger } from './merging/driver-merger';
 import { AutoSyncJob } from '../../jobs/auto-sync.job';
+import { CredentialsService } from '../credentials/credentials.service';
+import { AdapterFactoryService } from '../adapters/adapter-factory.service';
+import { Project44TMSAdapter } from '../adapters/tms/project44-tms.adapter';
+import { McLeodTMSAdapter } from '../adapters/tms/mcleod-tms.adapter';
+import { SamsaraELDAdapter } from '../adapters/eld/samsara-eld.adapter';
 
 @Module({
   imports: [PrismaModule],
@@ -20,6 +25,14 @@ import { AutoSyncJob } from '../../jobs/auto-sync.job';
     VehicleMerger,
     DriverMerger,
     AutoSyncJob,
+    CredentialsService,
+    // Adapter Factory
+    AdapterFactoryService,
+    // TMS Adapters
+    Project44TMSAdapter,
+    McLeodTMSAdapter,
+    // ELD Adapters
+    SamsaraELDAdapter,
   ],
   exports: [SyncService],
 })

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ITMSAdapter, LoadData } from './tms-adapter.interface';
+import { ITMSAdapter, LoadData, VehicleData, DriverData } from './tms-adapter.interface';
 
 /**
  * McLeod TMS Adapter
@@ -73,6 +73,78 @@ export class McLeodTMSAdapter implements ITMSAdapter {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Get vehicles from McLeod TMS
+   * Currently returns mock data
+   */
+  async getVehicles(apiKey: string, apiSecret: string): Promise<VehicleData[]> {
+    if (this.useMockData) {
+      return [
+        {
+          vehicle_id: 'MCLEOD_VEH_001',
+          unit_number: 'TRUCK-ML-001',
+          make: 'Freightliner',
+          model: 'Cascadia',
+          year: 2022,
+          vin: '1FUJGBDV4KLBP7529',
+          license_plate: 'TX-ML-123',
+          status: 'ACTIVE',
+          data_source: 'mcleod_tms',
+        },
+        {
+          vehicle_id: 'MCLEOD_VEH_002',
+          unit_number: 'TRUCK-ML-002',
+          make: 'Kenworth',
+          model: 'T680',
+          year: 2023,
+          vin: '1XKYDP9X3MR123456',
+          license_plate: 'TX-ML-456',
+          status: 'ACTIVE',
+          data_source: 'mcleod_tms',
+        },
+      ];
+    }
+
+    // Real API call (Phase 2)
+    throw new Error('Real McLeod API integration not implemented yet');
+  }
+
+  /**
+   * Get drivers from McLeod TMS
+   * Currently returns mock data
+   */
+  async getDrivers(apiKey: string, apiSecret: string): Promise<DriverData[]> {
+    if (this.useMockData) {
+      return [
+        {
+          driver_id: 'MCLEOD_DRV_001',
+          first_name: 'Robert',
+          last_name: 'Johnson',
+          phone: '+15551234501',
+          email: 'robert.j@example.com',
+          license_number: 'D7654321',
+          license_state: 'TX',
+          status: 'ACTIVE',
+          data_source: 'mcleod_tms',
+        },
+        {
+          driver_id: 'MCLEOD_DRV_002',
+          first_name: 'Maria',
+          last_name: 'Garcia',
+          phone: '+15551234502',
+          email: 'maria.g@example.com',
+          license_number: 'D8765432',
+          license_state: 'TX',
+          status: 'ACTIVE',
+          data_source: 'mcleod_tms',
+        },
+      ];
+    }
+
+    // Real API call (Phase 2)
+    throw new Error('Real McLeod API integration not implemented yet');
   }
 
   /**
