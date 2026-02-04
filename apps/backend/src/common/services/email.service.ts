@@ -288,6 +288,108 @@ SALLY - Smart Routes. Confident Dispatchers. Happy Drivers.
   }
 
   /**
+   * Send tenant approval notification email
+   */
+  async sendTenantApprovalEmail(
+    email: string,
+    firstName: string,
+    companyName: string,
+    subdomain: string,
+  ): Promise<void> {
+    const loginUrl = this.getLoginUrl(subdomain);
+    const displayUrl = this.getDisplayUrl(subdomain);
+    const subdomainInstructions = this.getSubdomainInstructionText(subdomain);
+
+    const subject = `Welcome to SALLY - Your account is now active!`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #000; color: #fff; padding: 20px; text-align: center; }
+            .content { padding: 30px; background-color: #f9f9f9; }
+            .button {
+              display: inline-block;
+              padding: 12px 30px;
+              background-color: #000;
+              color: #fff;
+              text-decoration: none;
+              border-radius: 5px;
+              margin: 20px 0;
+            }
+            .info-box {
+              background-color: #fff;
+              border: 2px solid #000;
+              padding: 15px;
+              margin: 20px 0;
+              border-radius: 5px;
+            }
+            .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>SALLY</h1>
+              <p>Smart Routes. Confident Dispatchers. Happy Drivers.</p>
+            </div>
+            <div class="content">
+              <h2>Congratulations, ${firstName}! 🎉</h2>
+              <p>Your account for <strong>${companyName}</strong> has been approved and is now active.</p>
+              <p>You can now access SALLY and start managing your fleet operations.</p>
+              <div style="text-align: center;">
+                <a href="${loginUrl}" class="button">Login to SALLY</a>
+              </div>
+              <div class="info-box">
+                <strong>Your team's URL:</strong><br>
+                ${displayUrl}
+                <br><br>
+                <span style="color: #666; font-size: 14px;">${subdomainInstructions}</span>
+              </div>
+              <h3>Next steps:</h3>
+              <ul>
+                <li>Invite your dispatchers and drivers</li>
+                <li>Set up your first route</li>
+                <li>Explore the dashboard and features</li>
+              </ul>
+              <p>Welcome aboard! If you have any questions, our support team is here to help.</p>
+            </div>
+            <div class="footer">
+              <p>&copy; 2026 SALLY. All rights reserved.</p>
+              <p>Need help? Contact us at support@sally.com</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+Hi ${firstName},
+
+Congratulations! Your account for ${companyName} has been approved and is now active.
+
+Login to SALLY: ${loginUrl}
+
+Your team's URL: ${displayUrl}
+
+Next steps:
+• Invite your dispatchers and drivers
+• Set up your first route
+• Explore the dashboard and features
+
+Welcome aboard! If you have any questions, our support team is here to help.
+
+---
+SALLY - Smart Routes. Confident Dispatchers. Happy Drivers.
+    `.trim();
+
+    await this.sendEmail({ to: email, subject, html, text });
+  }
+
+  /**
    * Get login URL (subdomain-aware or single domain)
    */
   private getLoginUrl(subdomain: string): string {
