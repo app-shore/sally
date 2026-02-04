@@ -18,31 +18,116 @@ export enum DataSource {
   STOP_TMS = 'stop_tms',
 }
 
-const DATA_SOURCE_LABELS: Record<string, { current: string; future: string | null; badge_color: string }> = {
-  [DataSource.DISTANCE_STATIC]: { current: 'Static Haversine Distance', future: 'Google Maps Directions API', badge_color: 'gray' },
-  [DataSource.DISTANCE_LIVE]: { current: 'Google Maps Directions API', future: null, badge_color: 'green' },
-  [DataSource.TRAFFIC_NONE]: { current: 'No Traffic Data', future: 'Google Maps Traffic API', badge_color: 'gray' },
-  [DataSource.TRAFFIC_LIVE]: { current: 'Live Traffic API', future: null, badge_color: 'green' },
-  [DataSource.DOCK_TIME_ESTIMATE]: { current: 'Default Estimate', future: 'TMS Historical Data', badge_color: 'gray' },
-  [DataSource.DOCK_TIME_HISTORICAL]: { current: 'TMS Historical Data', future: null, badge_color: 'green' },
-  [DataSource.DOCK_TIME_MANUAL]: { current: 'Manual Entry', future: 'TMS Integration', badge_color: 'gray' },
-  [DataSource.HOS_MANUAL]: { current: 'Manual Entry', future: 'ELD API (Samsara, KeepTruckin)', badge_color: 'gray' },
-  [DataSource.HOS_ELD_API]: { current: 'ELD API', future: null, badge_color: 'green' },
-  [DataSource.FUEL_MANUAL]: { current: 'Manual Entry', future: 'Telematics API', badge_color: 'gray' },
-  [DataSource.FUEL_TELEMATICS]: { current: 'Telematics API', future: null, badge_color: 'green' },
-  [DataSource.FUEL_PRICE_MANUAL]: { current: 'Manual Entry (Updated Weekly)', future: 'GasBuddy API', badge_color: 'gray' },
-  [DataSource.FUEL_PRICE_API]: { current: 'GasBuddy API', future: null, badge_color: 'green' },
-  [DataSource.WEATHER_NONE]: { current: 'No Weather Data', future: 'OpenWeatherMap API', badge_color: 'gray' },
-  [DataSource.WEATHER_API]: { current: 'OpenWeatherMap API', future: null, badge_color: 'green' },
-  [DataSource.STOP_MANUAL]: { current: 'Manual Entry', future: 'TMS API', badge_color: 'gray' },
-  [DataSource.STOP_TMS]: { current: 'TMS API', future: null, badge_color: 'green' },
+const DATA_SOURCE_LABELS: Record<
+  string,
+  { current: string; future: string | null; badge_color: string }
+> = {
+  [DataSource.DISTANCE_STATIC]: {
+    current: 'Static Haversine Distance',
+    future: 'Google Maps Directions API',
+    badge_color: 'gray',
+  },
+  [DataSource.DISTANCE_LIVE]: {
+    current: 'Google Maps Directions API',
+    future: null,
+    badge_color: 'green',
+  },
+  [DataSource.TRAFFIC_NONE]: {
+    current: 'No Traffic Data',
+    future: 'Google Maps Traffic API',
+    badge_color: 'gray',
+  },
+  [DataSource.TRAFFIC_LIVE]: {
+    current: 'Live Traffic API',
+    future: null,
+    badge_color: 'green',
+  },
+  [DataSource.DOCK_TIME_ESTIMATE]: {
+    current: 'Default Estimate',
+    future: 'TMS Historical Data',
+    badge_color: 'gray',
+  },
+  [DataSource.DOCK_TIME_HISTORICAL]: {
+    current: 'TMS Historical Data',
+    future: null,
+    badge_color: 'green',
+  },
+  [DataSource.DOCK_TIME_MANUAL]: {
+    current: 'Manual Entry',
+    future: 'TMS Integration',
+    badge_color: 'gray',
+  },
+  [DataSource.HOS_MANUAL]: {
+    current: 'Manual Entry',
+    future: 'ELD API (Samsara, KeepTruckin)',
+    badge_color: 'gray',
+  },
+  [DataSource.HOS_ELD_API]: {
+    current: 'ELD API',
+    future: null,
+    badge_color: 'green',
+  },
+  [DataSource.FUEL_MANUAL]: {
+    current: 'Manual Entry',
+    future: 'Telematics API',
+    badge_color: 'gray',
+  },
+  [DataSource.FUEL_TELEMATICS]: {
+    current: 'Telematics API',
+    future: null,
+    badge_color: 'green',
+  },
+  [DataSource.FUEL_PRICE_MANUAL]: {
+    current: 'Manual Entry (Updated Weekly)',
+    future: 'GasBuddy API',
+    badge_color: 'gray',
+  },
+  [DataSource.FUEL_PRICE_API]: {
+    current: 'GasBuddy API',
+    future: null,
+    badge_color: 'green',
+  },
+  [DataSource.WEATHER_NONE]: {
+    current: 'No Weather Data',
+    future: 'OpenWeatherMap API',
+    badge_color: 'gray',
+  },
+  [DataSource.WEATHER_API]: {
+    current: 'OpenWeatherMap API',
+    future: null,
+    badge_color: 'green',
+  },
+  [DataSource.STOP_MANUAL]: {
+    current: 'Manual Entry',
+    future: 'TMS API',
+    badge_color: 'gray',
+  },
+  [DataSource.STOP_TMS]: {
+    current: 'TMS API',
+    future: null,
+    badge_color: 'green',
+  },
 };
 
-export function getDataSourceInfo(source: DataSource): { current: string; future: string | null; badge_color: string } {
-  return DATA_SOURCE_LABELS[source] || { current: 'Unknown', future: null, badge_color: 'gray' };
+export function getDataSourceInfo(source: DataSource): {
+  current: string;
+  future: string | null;
+  badge_color: string;
+} {
+  return (
+    DATA_SOURCE_LABELS[source] || {
+      current: 'Unknown',
+      future: null,
+      badge_color: 'gray',
+    }
+  );
 }
 
-export function formatDataSourceBadge(source: DataSource): { label: string; color: string; tooltip: string } {
+export function formatDataSourceBadge(source: DataSource): {
+  label: string;
+  color: string;
+  tooltip: string;
+} {
   const info = getDataSourceInfo(source);
   return {
     label: info.current,

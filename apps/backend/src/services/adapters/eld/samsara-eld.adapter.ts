@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { IELDAdapter, ELDVehicleData, ELDDriverData } from './eld-adapter.interface';
+import {
+  IELDAdapter,
+  ELDVehicleData,
+  ELDDriverData,
+} from './eld-adapter.interface';
 import axios from 'axios';
 
 /**

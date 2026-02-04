@@ -62,7 +62,10 @@ export class EmailService {
   }
 
   async sendEmail(options: SendEmailOptions): Promise<void> {
-    const fromEmail = options.from || this.configService.get<string>('EMAIL_FROM') || 'noreply@sally.com';
+    const fromEmail =
+      options.from ||
+      this.configService.get<string>('EMAIL_FROM') ||
+      'noreply@sally.com';
 
     try {
       switch (this.emailProvider) {
@@ -77,7 +80,9 @@ export class EmailService {
           break;
       }
 
-      this.logger.log(`Email sent successfully to ${options.to} via ${this.emailProvider}`);
+      this.logger.log(
+        `Email sent successfully to ${options.to} via ${this.emailProvider}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to send email to ${options.to}:`, error);
       throw error;
@@ -90,7 +95,7 @@ export class EmailService {
     }
 
     await this.resendClient.emails.send({
-      from: options.from!,
+      from: options.from,
       to: options.to,
       subject: options.subject,
       html: options.html,
@@ -136,7 +141,8 @@ export class EmailService {
     companyName: string,
     invitationToken: string,
   ): Promise<void> {
-    const appUrl = this.configService.get<string>('APP_URL') || 'http://localhost:3000';
+    const appUrl =
+      this.configService.get<string>('APP_URL') || 'http://localhost:3000';
     const acceptUrl = `${appUrl}/accept-invitation?token=${invitationToken}`;
 
     const subject = `You're invited to join ${companyName} on SALLY`;

@@ -36,7 +36,9 @@ export class RetryService {
 
         // Don't retry non-retryable errors
         if (!this.isRetryable(error, retryableErrors)) {
-          this.logger.warn(`${context}: Non-retryable error, failing immediately`);
+          this.logger.warn(
+            `${context}: Non-retryable error, failing immediately`,
+          );
           throw error;
         }
 

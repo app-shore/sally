@@ -10,7 +10,13 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiBody,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
   LoginDto,
@@ -38,7 +44,8 @@ export class AuthController {
   @Post('lookup-user')
   @ApiOperation({
     summary: 'Lookup user by email or phone to detect tenant(s)',
-    description: 'Used for simplified login flow - returns user(s) with tenant information',
+    description:
+      'Used for simplified login flow - returns user(s) with tenant information',
   })
   @ApiBody({ type: UserLookupDto })
   @ApiResponse({
@@ -46,8 +53,13 @@ export class AuthController {
     description: 'User(s) found',
     type: UserLookupResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'No user found with this email/phone' })
-  async lookupUser(@Body() lookupDto: UserLookupDto): Promise<UserLookupResponseDto> {
+  @ApiResponse({
+    status: 404,
+    description: 'No user found with this email/phone',
+  })
+  async lookupUser(
+    @Body() lookupDto: UserLookupDto,
+  ): Promise<UserLookupResponseDto> {
     return this.authService.lookupUser(lookupDto);
   }
 
@@ -56,11 +68,18 @@ export class AuthController {
   @ApiOperation({
     summary: 'List available tenants (fleet companies)',
     deprecated: true,
-    description: 'DEPRECATED: Use POST /auth/lookup-user instead for simplified login flow',
+    description:
+      'DEPRECATED: Use POST /auth/lookup-user instead for simplified login flow',
   })
-  @ApiResponse({ status: 200, description: 'List of tenants', type: [TenantDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'List of tenants',
+    type: [TenantDto],
+  })
   async listTenants(): Promise<TenantDto[]> {
-    this.logger.warn('[DEPRECATED] GET /auth/tenants is deprecated. Use POST /auth/lookup-user instead.');
+    this.logger.warn(
+      '[DEPRECATED] GET /auth/tenants is deprecated. Use POST /auth/lookup-user instead.',
+    );
     return this.authService.listTenants();
   }
 
@@ -69,14 +88,21 @@ export class AuthController {
   @ApiOperation({
     summary: 'List users for a tenant (for login user selection)',
     deprecated: true,
-    description: 'DEPRECATED: Use POST /auth/lookup-user instead for simplified login flow',
+    description:
+      'DEPRECATED: Use POST /auth/lookup-user instead for simplified login flow',
   })
-  @ApiResponse({ status: 200, description: 'List of users', type: [UserSummaryDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users',
+    type: [UserSummaryDto],
+  })
   async listUsersForTenant(
     @Param('tenant_id') tenantId: string,
     @Query('role') role?: UserRole,
   ): Promise<UserSummaryDto[]> {
-    this.logger.warn('[DEPRECATED] GET /auth/tenants/:tenant_id/users is deprecated. Use POST /auth/lookup-user instead.');
+    this.logger.warn(
+      '[DEPRECATED] GET /auth/tenants/:tenant_id/users is deprecated. Use POST /auth/lookup-user instead.',
+    );
     return this.authService.listUsersForTenant(tenantId, role);
   }
 
@@ -90,7 +116,10 @@ export class AuthController {
     status: 200,
     description: 'Token exchange successful',
   })
-  @ApiResponse({ status: 401, description: 'Invalid Firebase token or user not found' })
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid Firebase token or user not found',
+  })
   async exchangeFirebaseToken(@Body() dto: FirebaseExchangeDto) {
     return this.authService.exchangeFirebaseToken(dto);
   }
@@ -99,7 +128,8 @@ export class AuthController {
   @Post('login')
   @ApiOperation({
     summary: 'Login (mock authentication for POC)',
-    description: 'Login with user_id. tenant_id is optional (userId is globally unique)',
+    description:
+      'Login with user_id. tenant_id is optional (userId is globally unique)',
   })
   @ApiResponse({
     status: 200,

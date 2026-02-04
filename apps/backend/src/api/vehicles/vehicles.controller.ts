@@ -1,5 +1,22 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus, HttpException, Logger } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  HttpStatus,
+  HttpException,
+  Logger,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { PrismaService } from '../../database/prisma.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -19,7 +36,7 @@ export class VehiclesController {
   private async validateNotExternal(
     vehicleId: string,
     tenantId: number,
-    operation: string
+    operation: string,
   ) {
     const vehicle = await this.prisma.vehicle.findFirst({
       where: { vehicleId, tenantId },
@@ -28,7 +45,7 @@ export class VehiclesController {
     if (!vehicle) {
       throw new HttpException(
         { detail: `Vehicle not found: ${vehicleId}` },
-        HttpStatus.NOT_FOUND
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -36,9 +53,9 @@ export class VehiclesController {
       throw new HttpException(
         {
           detail: `Cannot ${operation} vehicle from external source: ${vehicle.externalSource}. This is a read-only integration record.`,
-          external_source: vehicle.externalSource
+          external_source: vehicle.externalSource,
         },
-        HttpStatus.FORBIDDEN
+        HttpStatus.FORBIDDEN,
       );
     }
   }
@@ -47,7 +64,9 @@ export class VehiclesController {
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'List all active vehicles' })
   async listVehicles(@CurrentUser() user: any) {
-    this.logger.log(`List vehicles requested by user ${user.userId} in tenant ${user.tenantId}`);
+    this.logger.log(
+      `List vehicles requested by user ${user.userId} in tenant ${user.tenantId}`,
+    );
 
     try {
       // Get tenant ID from authenticated user
@@ -78,7 +97,10 @@ export class VehiclesController {
       }));
     } catch (error) {
       this.logger.error(`List vehicles failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to fetch vehicles' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to fetch vehicles' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -109,7 +131,9 @@ export class VehiclesController {
       mpg?: number;
     },
   ) {
-    this.logger.log(`Create vehicle: ${body.vehicle_id} - ${body.unit_number} by user ${user.userId}`);
+    this.logger.log(
+      `Create vehicle: ${body.vehicle_id} - ${body.unit_number} by user ${user.userId}`,
+    );
 
     try {
       // Get tenant ID from authenticated user
@@ -142,9 +166,15 @@ export class VehiclesController {
     } catch (error) {
       this.logger.error(`Create vehicle failed: ${error.message}`);
       if (error.code === 'P2002') {
-        throw new HttpException({ detail: 'Vehicle ID already exists' }, HttpStatus.CONFLICT);
+        throw new HttpException(
+          { detail: 'Vehicle ID already exists' },
+          HttpStatus.CONFLICT,
+        );
       }
-      throw new HttpException({ detail: 'Failed to create vehicle' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to create vehicle' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -183,7 +213,10 @@ export class VehiclesController {
       });
 
       if (!tenant) {
-        throw new HttpException({ detail: 'Tenant not found' }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          { detail: 'Tenant not found' },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       // Validate vehicle is not from external source
@@ -198,8 +231,12 @@ export class VehiclesController {
         },
         data: {
           ...(body.unit_number ? { unitNumber: body.unit_number } : {}),
-          ...(body.fuel_capacity_gallons !== undefined ? { fuelCapacityGallons: body.fuel_capacity_gallons } : {}),
-          ...(body.current_fuel_gallons !== undefined ? { currentFuelGallons: body.current_fuel_gallons } : {}),
+          ...(body.fuel_capacity_gallons !== undefined
+            ? { fuelCapacityGallons: body.fuel_capacity_gallons }
+            : {}),
+          ...(body.current_fuel_gallons !== undefined
+            ? { currentFuelGallons: body.current_fuel_gallons }
+            : {}),
           ...(body.mpg !== undefined ? { mpg: body.mpg } : {}),
         },
       });
@@ -218,7 +255,10 @@ export class VehiclesController {
         throw error;
       }
       this.logger.error(`Update vehicle failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to update vehicle' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to update vehicle' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -226,7 +266,10 @@ export class VehiclesController {
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Soft delete vehicle (set isActive=false)' })
   @ApiParam({ name: 'vehicle_id', description: 'Vehicle ID' })
-  async deleteVehicle(@CurrentUser() user: any, @Param('vehicle_id') vehicleId: string) {
+  async deleteVehicle(
+    @CurrentUser() user: any,
+    @Param('vehicle_id') vehicleId: string,
+  ) {
     this.logger.log(`Delete vehicle: ${vehicleId} by user ${user.userId}`);
 
     try {
@@ -236,7 +279,10 @@ export class VehiclesController {
       });
 
       if (!tenant) {
-        throw new HttpException({ detail: 'Tenant not found' }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          { detail: 'Tenant not found' },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       // Validate vehicle is not from external source
@@ -261,7 +307,10 @@ export class VehiclesController {
         throw error;
       }
       this.logger.error(`Delete vehicle failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to delete vehicle' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to delete vehicle' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

@@ -22,7 +22,9 @@ export class DriversActivationService {
     }
 
     if (driver.tenantId !== currentUser.tenant.id) {
-      throw new BadRequestException('Driver does not belong to your organization');
+      throw new BadRequestException(
+        'Driver does not belong to your organization',
+      );
     }
 
     if (driver.status === 'ACTIVE') {
@@ -59,7 +61,9 @@ export class DriversActivationService {
     }
 
     if (driver.tenantId !== currentUser.tenant.id) {
-      throw new BadRequestException('Driver does not belong to your organization');
+      throw new BadRequestException(
+        'Driver does not belong to your organization',
+      );
     }
 
     if (driver.status !== 'ACTIVE') {
@@ -91,7 +95,9 @@ export class DriversActivationService {
     }
 
     if (driver.tenantId !== currentUser.tenant.id) {
-      throw new BadRequestException('Driver does not belong to your organization');
+      throw new BadRequestException(
+        'Driver does not belong to your organization',
+      );
     }
 
     if (driver.status !== 'INACTIVE') {

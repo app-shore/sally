@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateUserPreferencesDto } from './dto/user-preferences.dto';
 import { UpdateOperationsSettingsDto } from './dto/operations-settings.dto';
@@ -38,7 +43,10 @@ export class PreferencesService {
     return preferences;
   }
 
-  async updateUserPreferences(userIdString: string, dto: UpdateUserPreferencesDto) {
+  async updateUserPreferences(
+    userIdString: string,
+    dto: UpdateUserPreferencesDto,
+  ) {
     // Get numeric user ID
     const user = await this.prisma.user.findUnique({
       where: { userId: userIdString },
@@ -69,10 +77,20 @@ export class PreferencesService {
   // OPERATIONS SETTINGS (FLEET-WIDE)
   // ============================================================================
 
-  async getOperationsSettings(userIdString: string, userRole: string, tenantIdString: string) {
+  async getOperationsSettings(
+    userIdString: string,
+    userRole: string,
+    tenantIdString: string,
+  ) {
     // Check role
-    if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN' && userRole !== 'OWNER') {
-      throw new ForbiddenException('Only dispatchers, admins, and owners can access operations settings');
+    if (
+      userRole !== 'DISPATCHER' &&
+      userRole !== 'ADMIN' &&
+      userRole !== 'OWNER'
+    ) {
+      throw new ForbiddenException(
+        'Only dispatchers, admins, and owners can access operations settings',
+      );
     }
 
     // Get tenant numeric ID
@@ -100,10 +118,21 @@ export class PreferencesService {
     return settings;
   }
 
-  async updateOperationsSettings(userIdString: string, userRole: string, tenantIdString: string, dto: UpdateOperationsSettingsDto) {
+  async updateOperationsSettings(
+    userIdString: string,
+    userRole: string,
+    tenantIdString: string,
+    dto: UpdateOperationsSettingsDto,
+  ) {
     // Check role
-    if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN' && userRole !== 'OWNER') {
-      throw new ForbiddenException('Only dispatchers, admins, and owners can update operations settings');
+    if (
+      userRole !== 'DISPATCHER' &&
+      userRole !== 'ADMIN' &&
+      userRole !== 'OWNER'
+    ) {
+      throw new ForbiddenException(
+        'Only dispatchers, admins, and owners can update operations settings',
+      );
     }
 
     // Get tenant numeric ID
@@ -139,7 +168,9 @@ export class PreferencesService {
   async getDriverPreferences(userIdString: string, userRole: string) {
     // Check role
     if (userRole !== 'DRIVER' && userRole !== 'ADMIN') {
-      throw new ForbiddenException('Only drivers and admins can access driver preferences');
+      throw new ForbiddenException(
+        'Only drivers and admins can access driver preferences',
+      );
     }
 
     // Get numeric user ID and driver ID
@@ -170,10 +201,16 @@ export class PreferencesService {
     return preferences;
   }
 
-  async updateDriverPreferences(userIdString: string, userRole: string, dto: UpdateDriverPreferencesDto) {
+  async updateDriverPreferences(
+    userIdString: string,
+    userRole: string,
+    dto: UpdateDriverPreferencesDto,
+  ) {
     // Check role
     if (userRole !== 'DRIVER' && userRole !== 'ADMIN') {
-      throw new ForbiddenException('Only drivers and admins can update driver preferences');
+      throw new ForbiddenException(
+        'Only drivers and admins can update driver preferences',
+      );
     }
 
     // Get numeric user ID and driver ID
@@ -207,7 +244,12 @@ export class PreferencesService {
   // RESET TO DEFAULTS
   // ============================================================================
 
-  async resetToDefaults(userIdString: string, tenantIdString: string, scope: 'user' | 'operations' | 'driver', userRole: string) {
+  async resetToDefaults(
+    userIdString: string,
+    tenantIdString: string,
+    scope: 'user' | 'operations' | 'driver',
+    userRole: string,
+  ) {
     // Get numeric user ID
     const user = await this.prisma.user.findUnique({
       where: { userId: userIdString },
@@ -220,13 +262,23 @@ export class PreferencesService {
 
     if (scope === 'user') {
       // Delete and recreate with defaults
-      await this.prisma.userPreferences.delete({ where: { userId: user.id } }).catch(() => {});
-      return await this.prisma.userPreferences.create({ data: { userId: user.id } });
+      await this.prisma.userPreferences
+        .delete({ where: { userId: user.id } })
+        .catch(() => {});
+      return await this.prisma.userPreferences.create({
+        data: { userId: user.id },
+      });
     }
 
     if (scope === 'operations') {
-      if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN' && userRole !== 'OWNER') {
-        throw new ForbiddenException('Only dispatchers, admins, and owners can reset operations settings');
+      if (
+        userRole !== 'DISPATCHER' &&
+        userRole !== 'ADMIN' &&
+        userRole !== 'OWNER'
+      ) {
+        throw new ForbiddenException(
+          'Only dispatchers, admins, and owners can reset operations settings',
+        );
       }
 
       // Get tenant numeric ID
@@ -239,21 +291,31 @@ export class PreferencesService {
         throw new NotFoundException('Tenant not found');
       }
 
-      await this.prisma.fleetOperationsSettings.delete({ where: { tenantId: tenant.id } }).catch(() => {});
-      return await this.prisma.fleetOperationsSettings.create({ data: { tenantId: tenant.id } });
+      await this.prisma.fleetOperationsSettings
+        .delete({ where: { tenantId: tenant.id } })
+        .catch(() => {});
+      return await this.prisma.fleetOperationsSettings.create({
+        data: { tenantId: tenant.id },
+      });
     }
 
     if (scope === 'driver') {
       if (userRole !== 'DRIVER' && userRole !== 'ADMIN') {
-        throw new ForbiddenException('Only drivers and admins can reset driver preferences');
+        throw new ForbiddenException(
+          'Only drivers and admins can reset driver preferences',
+        );
       }
-      await this.prisma.driverPreferences.delete({ where: { userId: user.id } }).catch(() => {});
+      await this.prisma.driverPreferences
+        .delete({ where: { userId: user.id } })
+        .catch(() => {});
       return await this.prisma.driverPreferences.create({
         data: { userId: user.id, driverId: user.driverId || null },
       });
     }
 
-    throw new BadRequestException('Invalid scope. Must be: user, operations, or driver');
+    throw new BadRequestException(
+      'Invalid scope. Must be: user, operations, or driver',
+    );
   }
 
   // ============================================================================
@@ -263,36 +325,60 @@ export class PreferencesService {
   private validateUserPreferences(dto: UpdateUserPreferencesDto) {
     // Validate quiet hours format if provided
     if (dto.quietHoursStart && !this.isValidTimeFormat(dto.quietHoursStart)) {
-      throw new BadRequestException('quietHoursStart must be in HH:MM format (24h)');
+      throw new BadRequestException(
+        'quietHoursStart must be in HH:MM format (24h)',
+      );
     }
     if (dto.quietHoursEnd && !this.isValidTimeFormat(dto.quietHoursEnd)) {
-      throw new BadRequestException('quietHoursEnd must be in HH:MM format (24h)');
+      throw new BadRequestException(
+        'quietHoursEnd must be in HH:MM format (24h)',
+      );
     }
   }
 
   private validateOperationsSettings(dto: UpdateOperationsSettingsDto) {
     // Validate warning < critical for HOS thresholds
-    if (dto.driveHoursWarningPct !== undefined && dto.driveHoursCriticalPct !== undefined) {
+    if (
+      dto.driveHoursWarningPct !== undefined &&
+      dto.driveHoursCriticalPct !== undefined
+    ) {
       if (dto.driveHoursWarningPct >= dto.driveHoursCriticalPct) {
-        throw new BadRequestException('driveHoursWarningPct must be less than driveHoursCriticalPct');
+        throw new BadRequestException(
+          'driveHoursWarningPct must be less than driveHoursCriticalPct',
+        );
       }
     }
-    if (dto.onDutyWarningPct !== undefined && dto.onDutyCriticalPct !== undefined) {
+    if (
+      dto.onDutyWarningPct !== undefined &&
+      dto.onDutyCriticalPct !== undefined
+    ) {
       if (dto.onDutyWarningPct >= dto.onDutyCriticalPct) {
-        throw new BadRequestException('onDutyWarningPct must be less than onDutyCriticalPct');
+        throw new BadRequestException(
+          'onDutyWarningPct must be less than onDutyCriticalPct',
+        );
       }
     }
-    if (dto.sinceBreakWarningPct !== undefined && dto.sinceBreakCriticalPct !== undefined) {
+    if (
+      dto.sinceBreakWarningPct !== undefined &&
+      dto.sinceBreakCriticalPct !== undefined
+    ) {
       if (dto.sinceBreakWarningPct >= dto.sinceBreakCriticalPct) {
-        throw new BadRequestException('sinceBreakWarningPct must be less than sinceBreakCriticalPct');
+        throw new BadRequestException(
+          'sinceBreakWarningPct must be less than sinceBreakCriticalPct',
+        );
       }
     }
   }
 
   private validateDriverPreferences(dto: UpdateDriverPreferencesDto) {
     // Validate emergency contact format if provided
-    if (dto.emergencyContact && !this.isValidPhoneNumber(dto.emergencyContact)) {
-      throw new BadRequestException('emergencyContact must be a valid phone number');
+    if (
+      dto.emergencyContact &&
+      !this.isValidPhoneNumber(dto.emergencyContact)
+    ) {
+      throw new BadRequestException(
+        'emergencyContact must be a valid phone number',
+      );
     }
   }
 

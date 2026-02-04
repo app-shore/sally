@@ -41,7 +41,9 @@ describe('Phase 2 Integration Tests (E2E)', () => {
     });
 
     if (!tenant) {
-      throw new Error('Test tenant jyc_carriers not found. Run npm run db:seed first.');
+      throw new Error(
+        'Test tenant jyc_carriers not found. Run npm run db:seed first.',
+      );
     }
 
     tenantId = tenant.id;
@@ -52,7 +54,9 @@ describe('Phase 2 Integration Tests (E2E)', () => {
     });
 
     if (!user) {
-      throw new Error('No users found for tenant jyc_carriers. Run npm run db:seed first.');
+      throw new Error(
+        'No users found for tenant jyc_carriers. Run npm run db:seed first.',
+      );
     }
 
     // Login to get access token
@@ -63,11 +67,15 @@ describe('Phase 2 Integration Tests (E2E)', () => {
       });
 
     if (loginResponse.status !== 200) {
-      throw new Error(`Login failed with status ${loginResponse.status}: ${JSON.stringify(loginResponse.body)}`);
+      throw new Error(
+        `Login failed with status ${loginResponse.status}: ${JSON.stringify(loginResponse.body)}`,
+      );
     }
 
     if (!loginResponse.body.accessToken) {
-      throw new Error(`No access token in login response: ${JSON.stringify(loginResponse.body)}`);
+      throw new Error(
+        `No access token in login response: ${JSON.stringify(loginResponse.body)}`,
+      );
     }
 
     accessToken = loginResponse.body.accessToken;
@@ -140,7 +148,7 @@ describe('Phase 2 Integration Tests (E2E)', () => {
     });
   });
 
-  describe('Real API Integration - Truckbase TMS', () => {
+  describe('Real API Integration - project44 TMS', () => {
     let truckbaseIntegrationId: string;
     let project44DbId: number;
 
@@ -154,7 +162,8 @@ describe('Phase 2 Integration Tests (E2E)', () => {
           display_name: 'E2E Test project44',
           credentials: {
             clientId: process.env.PROJECT44_CLIENT_ID || 'test_client_id',
-            clientSecret: process.env.PROJECT44_CLIENT_SECRET || 'test_client_secret',
+            clientSecret:
+              process.env.PROJECT44_CLIENT_SECRET || 'test_client_secret',
           },
           sync_frequency_minutes: 30,
           enabled: true,

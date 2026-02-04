@@ -1,4 +1,10 @@
-import { IsString, IsEnum, IsOptional, IsObject, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsObject,
+  IsNumber,
+} from 'class-validator';
 
 export enum IntegrationType {
   TMS = 'TMS',

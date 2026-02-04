@@ -1,5 +1,5 @@
-import { RegistrationForm } from '@/components/auth/registration-form';
-import { HeroRouteBackground } from '@/components/landing/AnimatedRoute';
+import { RegistrationForm } from "@/components/auth/registration-form";
+import { HeroRouteBackground } from "@/components/landing/AnimatedRoute";
 
 export default function RegisterPage() {
   return (

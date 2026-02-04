@@ -56,12 +56,17 @@ export class OpenWeatherAdapter implements IWeatherAdapter {
           humidity_percent: data.main.humidity,
           precipitation_inches: data.rain?.['1h'] ? data.rain['1h'] / 25.4 : 0,
         },
-        road_conditions: this.assessRoadConditions(data.weather[0].main, data.main.temp),
+        road_conditions: this.assessRoadConditions(
+          data.weather[0].main,
+          data.main.temp,
+        ),
         last_updated: new Date().toISOString(),
         data_source: 'openweather',
       };
     } catch (error) {
-      throw new Error(`Failed to fetch weather from OpenWeather: ${error.message}`);
+      throw new Error(
+        `Failed to fetch weather from OpenWeather: ${error.message}`,
+      );
     }
   }
 
@@ -74,17 +79,23 @@ export class OpenWeatherAdapter implements IWeatherAdapter {
     waypoints: Array<{ latitude: number; longitude: number }>,
   ): Promise<WeatherData[]> {
     if (this.useMockData) {
-      return waypoints.map((wp) => this.getMockWeather(wp.latitude, wp.longitude));
+      return waypoints.map((wp) =>
+        this.getMockWeather(wp.latitude, wp.longitude),
+      );
     }
 
     // Real API call (Phase 2)
     try {
       const forecasts = await Promise.all(
-        waypoints.map((wp) => this.getCurrentWeather(apiKey, wp.latitude, wp.longitude)),
+        waypoints.map((wp) =>
+          this.getCurrentWeather(apiKey, wp.latitude, wp.longitude),
+        ),
       );
       return forecasts;
     } catch (error) {
-      throw new Error(`Failed to fetch route forecast from OpenWeather: ${error.message}`);
+      throw new Error(
+        `Failed to fetch route forecast from OpenWeather: ${error.message}`,
+      );
     }
   }
 
@@ -115,7 +126,8 @@ export class OpenWeatherAdapter implements IWeatherAdapter {
   private getMockWeather(latitude: number, longitude: number): WeatherData {
     // Generate varying conditions based on location (for variety in testing)
     const conditions = ['clear', 'cloudy', 'rain', 'fog'];
-    const conditionIndex = Math.floor((latitude + longitude) * 10) % conditions.length;
+    const conditionIndex =
+      Math.floor((latitude + longitude) * 10) % conditions.length;
     const condition = conditions[conditionIndex];
 
     const baseTemp = 72; // Base temperature
@@ -134,7 +146,8 @@ export class OpenWeatherAdapter implements IWeatherAdapter {
         conditions: condition,
         wind_speed_mph: condition === 'rain' ? 18 : 8,
         wind_direction: 'SW',
-        visibility_miles: condition === 'fog' ? 0.5 : condition === 'rain' ? 3 : 10,
+        visibility_miles:
+          condition === 'fog' ? 0.5 : condition === 'rain' ? 3 : 10,
         humidity_percent: condition === 'rain' ? 85 : 55,
         precipitation_inches: condition === 'rain' ? 0.15 : 0,
       },
@@ -160,7 +173,9 @@ export class OpenWeatherAdapter implements IWeatherAdapter {
                 event: 'Thunderstorm Warning',
                 description: 'Heavy rain and lightning expected',
                 start_time: new Date().toISOString(),
-                end_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+                end_time: new Date(
+                  Date.now() + 2 * 60 * 60 * 1000,
+                ).toISOString(),
               },
             ]
           : [],

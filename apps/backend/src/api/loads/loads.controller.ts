@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Body, Param, Query, HttpStatus, HttpException, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  Query,
+  HttpStatus,
+  HttpException,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { PrismaService } from '../../database/prisma.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,21 +22,24 @@ export class LoadsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new load with stops' })
-  async createLoad(@Body() body: {
-    load_number: string;
-    weight_lbs: number;
-    commodity_type: string;
-    special_requirements?: string;
-    customer_name: string;
-    stops: Array<{
-      stop_id: string;
-      sequence_order: number;
-      action_type: string;
-      earliest_arrival?: string;
-      latest_arrival?: string;
-      estimated_dock_hours: number;
-    }>;
-  }) {
+  async createLoad(
+    @Body()
+    body: {
+      load_number: string;
+      weight_lbs: number;
+      commodity_type: string;
+      special_requirements?: string;
+      customer_name: string;
+      stops: Array<{
+        stop_id: string;
+        sequence_order: number;
+        action_type: string;
+        earliest_arrival?: string;
+        latest_arrival?: string;
+        estimated_dock_hours: number;
+      }>;
+    },
+  ) {
     this.logger.log(`Create load requested: ${body.load_number}`);
 
     try {
@@ -84,11 +97,14 @@ export class LoadsController {
         },
       });
 
-      return this.formatLoadResponse(result!);
+      return this.formatLoadResponse(result);
     } catch (error) {
       if (error instanceof HttpException) throw error;
       this.logger.error(`Create load failed: ${error.message}`);
-      throw new HttpException({ detail: error.message || 'Failed to create load' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: error.message || 'Failed to create load' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -108,7 +124,9 @@ export class LoadsController {
       const loads = await this.prisma.load.findMany({
         where: {
           ...(status ? { status } : {}),
-          ...(customerName ? { customerName: { contains: customerName, mode: 'insensitive' } } : {}),
+          ...(customerName
+            ? { customerName: { contains: customerName, mode: 'insensitive' } }
+            : {}),
         },
         include: { stops: true },
         orderBy: { createdAt: 'desc' },
@@ -131,7 +149,10 @@ export class LoadsController {
       }));
     } catch (error) {
       this.logger.error(`List loads failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to fetch loads' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to fetch loads' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -152,14 +173,20 @@ export class LoadsController {
       });
 
       if (!load) {
-        throw new HttpException({ detail: `Load not found: ${loadId}` }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          { detail: `Load not found: ${loadId}` },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       return this.formatLoadResponse(load);
     } catch (error) {
       if (error instanceof HttpException) throw error;
       this.logger.error(`Get load failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to fetch load' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to fetch load' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 

@@ -36,7 +36,10 @@ export class DriverMerger {
    * - Admin wins: activation status (override both TMS and ELD)
    * - ELD fills gaps when TMS data is missing
    */
-  merge(tmsData: TmsDriverData = {}, eldData: EldDriverData = {}): MergedDriverData {
+  merge(
+    tmsData: TmsDriverData = {},
+    eldData: EldDriverData = {},
+  ): MergedDriverData {
     const merged: MergedDriverData = {
       // Operational data: TMS wins, ELD fills gaps
       firstName: tmsData.firstName,

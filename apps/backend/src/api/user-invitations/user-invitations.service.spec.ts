@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserInvitationsService } from './user-invitations.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 
 describe('UserInvitationsService', () => {
   let service: UserInvitationsService;
@@ -141,7 +145,9 @@ describe('UserInvitationsService', () => {
         email: mockInvitation.email,
       };
 
-      mockPrismaService.userInvitation.findUnique.mockResolvedValue(mockInvitation);
+      mockPrismaService.userInvitation.findUnique.mockResolvedValue(
+        mockInvitation,
+      );
       mockPrismaService.$transaction.mockImplementation(async (callback) => {
         return callback(mockPrismaService);
       });
@@ -176,7 +182,9 @@ describe('UserInvitationsService', () => {
         { id: 2, email: 'user2@example.com', status: 'ACCEPTED' },
       ];
 
-      mockPrismaService.userInvitation.findMany.mockResolvedValue(mockInvitations);
+      mockPrismaService.userInvitation.findMany.mockResolvedValue(
+        mockInvitations,
+      );
 
       const result = await service.getInvitations(1);
 
@@ -193,13 +201,19 @@ describe('UserInvitationsService', () => {
         status: 'PENDING',
       };
 
-      mockPrismaService.userInvitation.findUnique.mockResolvedValue(mockInvitation);
+      mockPrismaService.userInvitation.findUnique.mockResolvedValue(
+        mockInvitation,
+      );
       mockPrismaService.userInvitation.update.mockResolvedValue({
         ...mockInvitation,
         status: 'CANCELLED',
       });
 
-      const result = await service.cancelInvitation('inv_abc', 1, 'No longer needed');
+      const result = await service.cancelInvitation(
+        'inv_abc',
+        1,
+        'No longer needed',
+      );
 
       expect(result.status).toBe('CANCELLED');
     });

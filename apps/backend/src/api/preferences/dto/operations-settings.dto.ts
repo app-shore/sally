@@ -1,4 +1,14 @@
-import { IsOptional, IsNumber, IsInt, IsBoolean, IsString, IsArray, IsIn, Min, Max } from 'class-validator';
+import {
+  IsOptional,
+  IsNumber,
+  IsInt,
+  IsBoolean,
+  IsString,
+  IsArray,
+  IsIn,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class UpdateOperationsSettingsDto {
   // HOS Defaults

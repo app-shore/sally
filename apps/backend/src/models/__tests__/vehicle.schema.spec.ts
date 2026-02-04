@@ -9,7 +9,8 @@ describe('Vehicle Schema', () => {
 
   beforeAll(async () => {
     const connectionString =
-      process.env.DATABASE_URL || 'postgresql://sally_user:sally_password@localhost:5432/sally';
+      process.env.DATABASE_URL ||
+      'postgresql://sally_user:sally_password@localhost:5432/sally';
     pool = new pg.Pool({ connectionString });
     const adapter = new PrismaPg(pool);
     prisma = new PrismaClient({ adapter });
@@ -71,7 +72,10 @@ describe('Vehicle Schema', () => {
       },
     });
 
-    expect(vehicle.eldTelematicsMetadata).toHaveProperty('eldVendor', 'SAMSARA_ELD');
+    expect(vehicle.eldTelematicsMetadata).toHaveProperty(
+      'eldVendor',
+      'SAMSARA_ELD',
+    );
     expect(vehicle.eldTelematicsMetadata).toHaveProperty('eldId');
     expect(vehicle.eldTelematicsMetadata).toHaveProperty('serial');
   });

@@ -16,7 +16,12 @@ export interface DistanceResult {
  * Fast, accurate within ~10-15% of road distance
  * Road factor of 1.2 applied for better approximation
  */
-export function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+export function haversineDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
   // Earth radius in miles
   const R = 3959.0;
 
@@ -29,8 +34,10 @@ export function haversineDistance(lat1: number, lon1: number, lat2: number, lon2
   // Haversine formula
   const a =
     Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-    Math.cos(lat1Rad) * Math.cos(lat2Rad) *
-    Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+    Math.cos(lat1Rad) *
+      Math.cos(lat2Rad) *
+      Math.sin(deltaLon / 2) *
+      Math.sin(deltaLon / 2);
   const c = 2 * Math.asin(Math.sqrt(a));
 
   return R * c;
@@ -45,24 +52,29 @@ export async function calculateGoogleMapsDistance(
   originLat: number,
   originLon: number,
   destLat: number,
-  destLon: number
+  destLon: number,
 ): Promise<{ distanceMiles: number; durationHours: number }> {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
   if (!apiKey) {
-    throw new Error('GOOGLE_MAPS_API_KEY not configured. Use Haversine method or set API key.');
+    throw new Error(
+      'GOOGLE_MAPS_API_KEY not configured. Use Haversine method or set API key.',
+    );
   }
 
   try {
-    const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
-      params: {
-        origins: `${originLat},${originLon}`,
-        destinations: `${destLat},${destLon}`,
-        key: apiKey,
-        units: 'imperial', // Miles
+    const response = await axios.get(
+      'https://maps.googleapis.com/maps/api/distancematrix/json',
+      {
+        params: {
+          origins: `${originLat},${originLon}`,
+          destinations: `${destLat},${destLon}`,
+          key: apiKey,
+          units: 'imperial', // Miles
+        },
+        timeout: 5000, // 5 second timeout
       },
-      timeout: 5000, // 5 second timeout
-    });
+    );
 
     if (response.data.status !== 'OK') {
       throw new Error(`Google Maps API error: ${response.data.status}`);
@@ -104,21 +116,28 @@ export async function calculateDistance(
   lon1: number,
   lat2: number,
   lon2: number,
-  preferredMethod?: DistanceMethod
+  preferredMethod?: DistanceMethod,
 ): Promise<DistanceResult> {
-  const method = preferredMethod || (process.env.DISTANCE_CALCULATION_METHOD as DistanceMethod) || 'haversine';
+  const method =
+    preferredMethod ||
+    (process.env.DISTANCE_CALCULATION_METHOD as DistanceMethod) ||
+    'haversine';
 
   // If Google Maps is preferred and API key is available, try it first
   if (method === 'google_maps' && process.env.GOOGLE_MAPS_API_KEY) {
     try {
       const result = await calculateGoogleMapsDistance(lat1, lon1, lat2, lon2);
-      logger.log(`Distance calculated via Google Maps: ${result.distanceMiles.toFixed(1)} mi, ${result.durationHours.toFixed(2)} hrs`);
+      logger.log(
+        `Distance calculated via Google Maps: ${result.distanceMiles.toFixed(1)} mi, ${result.durationHours.toFixed(2)} hrs`,
+      );
       return {
         ...result,
         method: 'google_maps',
       };
     } catch (error) {
-      logger.warn(`Google Maps API failed, falling back to Haversine: ${error}`);
+      logger.warn(
+        `Google Maps API failed, falling back to Haversine: ${error}`,
+      );
       // Fall through to Haversine
     }
   }
@@ -128,7 +147,9 @@ export async function calculateDistance(
   const distanceMiles = straightLineDistance * 1.2; // Apply road factor
   const durationHours = estimateDriveTime(distanceMiles);
 
-  logger.debug(`Distance calculated via Haversine: ${distanceMiles.toFixed(1)} mi, ${durationHours.toFixed(2)} hrs`);
+  logger.debug(
+    `Distance calculated via Haversine: ${distanceMiles.toFixed(1)} mi, ${durationHours.toFixed(2)} hrs`,
+  );
 
   return {
     distanceMiles,
@@ -143,7 +164,7 @@ export async function calculateDistance(
  * For individual route planning, use calculateDistance() for Google Maps support
  */
 export function calculateDistanceMatrix(
-  stops: Array<{ stop_id: string; lat: number; lon: number }>
+  stops: Array<{ stop_id: string; lat: number; lon: number }>,
 ): Map<string, number> {
   const matrix = new Map<string, number>();
 
@@ -156,20 +177,34 @@ export function calculateDistanceMatrix(
       if (i === j) {
         matrix.set(key, 0.0);
       } else {
-        const distance = haversineDistance(stop1.lat, stop1.lon, stop2.lat, stop2.lon);
+        const distance = haversineDistance(
+          stop1.lat,
+          stop1.lon,
+          stop2.lat,
+          stop2.lon,
+        );
         // Apply road factor (straight-line * 1.2 for road routing approximation)
         matrix.set(key, distance * 1.2);
       }
     }
   }
 
-  logger.log(`Calculated distance matrix for ${stops.length} stops (using Haversine with 1.2x road factor)`);
+  logger.log(
+    `Calculated distance matrix for ${stops.length} stops (using Haversine with 1.2x road factor)`,
+  );
   return matrix;
 }
 
-export function estimateDriveTime(distanceMiles: number, roadType = 'highway'): number {
+export function estimateDriveTime(
+  distanceMiles: number,
+  roadType = 'highway',
+): number {
   // Average speeds by road type (mph)
-  const speeds: Record<string, number> = { interstate: 60, highway: 50, city: 30 };
+  const speeds: Record<string, number> = {
+    interstate: 60,
+    highway: 50,
+    city: 30,
+  };
   const avgSpeed = speeds[roadType] ?? 55; // Default to 55 mph
 
   return distanceMiles / avgSpeed;

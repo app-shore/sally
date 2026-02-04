@@ -9,7 +9,9 @@ export const initializeFirebase = () => {
     const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
     if (!projectId || !clientEmail || !privateKey) {
-      console.warn('Firebase credentials not configured. Using development mode.');
+      console.warn(
+        'Firebase credentials not configured. Using development mode.',
+      );
       return null;
     }
 

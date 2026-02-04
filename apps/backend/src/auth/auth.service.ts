@@ -255,11 +255,15 @@ export class AuthService {
     );
 
     if (!user) {
-      throw new UnauthorizedException('User not found. Please complete registration.');
+      throw new UnauthorizedException(
+        'User not found. Please complete registration.',
+      );
     }
 
     if (!user.isActive) {
-      throw new UnauthorizedException('Account is deactivated. Please contact support.');
+      throw new UnauthorizedException(
+        'Account is deactivated. Please contact support.',
+      );
     }
 
     if (user.tenant && user.tenant.status !== 'ACTIVE') {
@@ -275,14 +279,15 @@ export class AuthService {
     });
 
     // Generate SALLY JWT tokens
-    const { accessToken, refreshToken } = await this.jwtTokenService.generateTokenPair({
-      id: user.id,
-      userId: user.userId,
-      email: user.email,
-      role: user.role,
-      tenantId: user.tenant?.tenantId,
-      driverId: user.driver?.driverId,
-    });
+    const { accessToken, refreshToken } =
+      await this.jwtTokenService.generateTokenPair({
+        id: user.id,
+        userId: user.userId,
+        email: user.email,
+        role: user.role,
+        tenantId: user.tenant?.tenantId,
+        driverId: user.driver?.driverId,
+      });
 
     return {
       accessToken,

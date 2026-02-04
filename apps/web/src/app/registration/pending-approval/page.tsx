@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { HeroRouteBackground } from '@/components/landing/AnimatedRoute';
-import Link from 'next/link';
+import { motion } from "framer-motion";
+import { HeroRouteBackground } from "@/components/landing/AnimatedRoute";
+import Link from "next/link";
 
 export default function PendingApprovalPage() {
   return (
@@ -23,7 +23,7 @@ export default function PendingApprovalPage() {
             transition={{
               duration: 0.5,
               ease: [0.34, 1.56, 0.64, 1], // Spring easing
-              delay: 0.1
+              delay: 0.1,
             }}
             className="mb-8"
           >
@@ -83,7 +83,9 @@ export default function PendingApprovalPage() {
           >
             <div className="p-6 border-2 border-border rounded-lg bg-muted/30">
               <p className="text-base text-foreground leading-relaxed">
-                Thank you for registering! Our team will review your application and approve your account within <span className="font-semibold">24-48 hours</span>.
+                Thank you for registering! Our team will review your application
+                and approve your account within{" "}
+                <span className="font-semibold">24-48 hours</span>.
               </p>
               <p className="text-base text-muted-foreground mt-4">
                 You&apos;ll receive an email once your account is activated.

@@ -17,7 +17,13 @@ import { FuelFinderAdapter } from '../../services/adapters/fuel/fuelfinder-fuel.
 import { OpenWeatherAdapter } from '../../services/adapters/weather/openweather.adapter';
 
 @Module({
-  imports: [PrismaModule, SyncModule, ScheduleModule.forRoot(), RetryModule, AlertModule],
+  imports: [
+    PrismaModule,
+    SyncModule,
+    ScheduleModule.forRoot(),
+    RetryModule,
+    AlertModule,
+  ],
   controllers: [IntegrationsController],
   providers: [
     IntegrationsService,

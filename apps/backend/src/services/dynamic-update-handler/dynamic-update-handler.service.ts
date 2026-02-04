@@ -29,45 +29,89 @@ export class DynamicUpdateHandlerService {
 
   constructor(private readonly hosEngine: HOSRuleEngineService) {}
 
-  shouldReplan(currentPlan: unknown, triggerType: string, triggerData: Record<string, unknown>, priority: string): { replan_triggered: boolean; reason: string } {
+  shouldReplan(
+    currentPlan: unknown,
+    triggerType: string,
+    triggerData: Record<string, unknown>,
+    priority: string,
+  ): { replan_triggered: boolean; reason: string } {
     // Priority-based decision
     if (priority === 'CRITICAL') {
-      return { replan_triggered: true, reason: 'Critical safety/compliance issue' };
+      return {
+        replan_triggered: true,
+        reason: 'Critical safety/compliance issue',
+      };
     }
 
     if (priority === 'HIGH') {
       const impactHours = 1.5; // Placeholder
       if (impactHours > 1) {
-        return { replan_triggered: true, reason: `High impact: ${impactHours.toFixed(1)}h` };
+        return {
+          replan_triggered: true,
+          reason: `High impact: ${impactHours.toFixed(1)}h`,
+        };
       }
       return { replan_triggered: false, reason: 'Impact below threshold' };
     }
 
     if (priority === 'MEDIUM') {
-      return { replan_triggered: false, reason: 'Medium priority, ETA adjustment sufficient' };
+      return {
+        replan_triggered: false,
+        reason: 'Medium priority, ETA adjustment sufficient',
+      };
     }
 
     return { replan_triggered: false, reason: 'Low priority' };
   }
 
-  checkTrafficUpdates(planId: string, currentSegmentId: string): UpdateTrigger | null {
+  checkTrafficUpdates(
+    planId: string,
+    currentSegmentId: string,
+  ): UpdateTrigger | null {
     // MVP: Manual report (no live API)
     const trafficDelayMinutes = 0;
-    if (trafficDelayMinutes >= DynamicUpdateHandlerService.TRAFFIC_DELAY_THRESHOLD_MIN) {
+    if (
+      trafficDelayMinutes >=
+      DynamicUpdateHandlerService.TRAFFIC_DELAY_THRESHOLD_MIN
+    ) {
       const priority = trafficDelayMinutes > 60 ? 'HIGH' : 'MEDIUM';
-      const action = trafficDelayMinutes > 60 ? 'ADJUST_ROUTE_OR_INSERT_REST' : 'UPDATE_ETAS';
-      return { trigger_type: 'traffic_delay', priority, trigger_data: { segment_id: currentSegmentId, delay_minutes: trafficDelayMinutes }, action, reason: `Traffic delay of ${trafficDelayMinutes} minutes detected` };
+      const action =
+        trafficDelayMinutes > 60
+          ? 'ADJUST_ROUTE_OR_INSERT_REST'
+          : 'UPDATE_ETAS';
+      return {
+        trigger_type: 'traffic_delay',
+        priority,
+        trigger_data: {
+          segment_id: currentSegmentId,
+          delay_minutes: trafficDelayMinutes,
+        },
+        action,
+        reason: `Traffic delay of ${trafficDelayMinutes} minutes detected`,
+      };
     }
     return null;
   }
 
-  checkDockTimeChanges(planId: string, segmentId: string, estimatedDockHours: number, actualDockHours: number): UpdateTrigger | null {
+  checkDockTimeChanges(
+    planId: string,
+    segmentId: string,
+    estimatedDockHours: number,
+    actualDockHours: number,
+  ): UpdateTrigger | null {
     const variance = Math.abs(actualDockHours - estimatedDockHours);
-    if (variance >= DynamicUpdateHandlerService.DOCK_TIME_VARIANCE_THRESHOLD_HOURS) {
+    if (
+      variance >= DynamicUpdateHandlerService.DOCK_TIME_VARIANCE_THRESHOLD_HOURS
+    ) {
       return {
         trigger_type: 'dock_time_change',
         priority: 'CRITICAL',
-        trigger_data: { segment_id: segmentId, estimated_hours: estimatedDockHours, actual_hours: actualDockHours, variance_hours: variance },
+        trigger_data: {
+          segment_id: segmentId,
+          estimated_hours: estimatedDockHours,
+          actual_hours: actualDockHours,
+          variance_hours: variance,
+        },
         action: 'INSERT_REST_OR_SKIP_STOPS',
         reason: `Dock time exceeded estimate by ${variance.toFixed(1)} hours. Route feasibility may be affected.`,
       };
@@ -75,8 +119,13 @@ export class DynamicUpdateHandlerService {
     return null;
   }
 
-  checkLoadChanges(planId: string, changeType: string, stopData?: Record<string, unknown>): UpdateTrigger | null {
-    if (changeType !== 'load_added' && changeType !== 'load_cancelled') return null;
+  checkLoadChanges(
+    planId: string,
+    changeType: string,
+    stopData?: Record<string, unknown>,
+  ): UpdateTrigger | null {
+    if (changeType !== 'load_added' && changeType !== 'load_cancelled')
+      return null;
     return {
       trigger_type: changeType,
       priority: 'HIGH',
@@ -86,7 +135,11 @@ export class DynamicUpdateHandlerService {
     };
   }
 
-  checkDriverRestRequests(planId: string, driverId: string, restLocation?: Record<string, unknown>): UpdateTrigger | null {
+  checkDriverRestRequests(
+    planId: string,
+    driverId: string,
+    restLocation?: Record<string, unknown>,
+  ): UpdateTrigger | null {
     return {
       trigger_type: 'driver_rest_request',
       priority: 'HIGH',
@@ -96,7 +149,12 @@ export class DynamicUpdateHandlerService {
     };
   }
 
-  checkHosApproachingLimits(planId: string, driverId: string, driverHos: Record<string, number>, remainingRoute: Array<Record<string, number>>): UpdateTrigger | null {
+  checkHosApproachingLimits(
+    planId: string,
+    driverId: string,
+    driverHos: Record<string, number>,
+    remainingRoute: Array<Record<string, number>>,
+  ): UpdateTrigger | null {
     const hoursDriven = driverHos.hours_driven;
     const onDutyTime = driverHos.on_duty_time;
     const hoursSinceBreak = driverHos.hours_since_break;
@@ -105,15 +163,26 @@ export class DynamicUpdateHandlerService {
     const hoursUntilDutyLimit = 14 - onDutyTime;
     const hoursUntilBreakRequired = 8 - hoursSinceBreak;
 
-    const totalDriveNeeded = remainingRoute.reduce((sum, seg) => sum + (seg.drive_time_hours || 0), 0);
-    const totalDutyNeeded = remainingRoute.reduce((sum, seg) => sum + (seg.drive_time_hours || 0) + (seg.dock_time_hours || 0), 0);
+    const totalDriveNeeded = remainingRoute.reduce(
+      (sum, seg) => sum + (seg.drive_time_hours || 0),
+      0,
+    );
+    const totalDutyNeeded = remainingRoute.reduce(
+      (sum, seg) =>
+        sum + (seg.drive_time_hours || 0) + (seg.dock_time_hours || 0),
+      0,
+    );
 
     if (hoursUntilDriveLimit < totalDriveNeeded) {
       const shortfall = totalDriveNeeded - hoursUntilDriveLimit;
       return {
         trigger_type: 'hos_drive_limit_approaching',
         priority: 'HIGH',
-        trigger_data: { hours_remaining: hoursUntilDriveLimit, hours_needed: totalDriveNeeded, shortfall },
+        trigger_data: {
+          hours_remaining: hoursUntilDriveLimit,
+          hours_needed: totalDriveNeeded,
+          shortfall,
+        },
         action: 'INSERT_REST_STOP',
         reason: `Drive limit approaching: ${hoursUntilDriveLimit.toFixed(1)}h remaining, ${totalDriveNeeded.toFixed(1)}h needed. Shortfall: ${shortfall.toFixed(1)}h`,
       };
@@ -124,7 +193,11 @@ export class DynamicUpdateHandlerService {
       return {
         trigger_type: 'hos_duty_limit_approaching',
         priority: 'HIGH',
-        trigger_data: { hours_remaining: hoursUntilDutyLimit, hours_needed: totalDutyNeeded, shortfall },
+        trigger_data: {
+          hours_remaining: hoursUntilDutyLimit,
+          hours_needed: totalDutyNeeded,
+          shortfall,
+        },
         action: 'INSERT_REST_STOP',
         reason: `Duty limit approaching: ${hoursUntilDutyLimit.toFixed(1)}h remaining, ${totalDutyNeeded.toFixed(1)}h needed. Shortfall: ${shortfall.toFixed(1)}h`,
       };
@@ -143,7 +216,11 @@ export class DynamicUpdateHandlerService {
     return null;
   }
 
-  checkHosViolations(planId: string, driverId: string, driverHos: Record<string, number>): UpdateTrigger | null {
+  checkHosViolations(
+    planId: string,
+    driverId: string,
+    driverHos: Record<string, number>,
+  ): UpdateTrigger | null {
     if (driverHos.hours_driven > 11) {
       return {
         trigger_type: 'hos_violation_drive',

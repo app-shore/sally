@@ -12,8 +12,13 @@ describe('RetryService', () => {
 
     const result = await service.withRetry(
       operation,
-      { maxAttempts: 3, baseDelayMs: 100, maxDelayMs: 1000, exponentialBase: 2 },
-      'test-operation'
+      {
+        maxAttempts: 3,
+        baseDelayMs: 100,
+        maxDelayMs: 1000,
+        exponentialBase: 2,
+      },
+      'test-operation',
     );
 
     expect(result).toBe('success');
@@ -29,7 +34,7 @@ describe('RetryService', () => {
     const result = await service.withRetry(
       operation,
       { maxAttempts: 3, baseDelayMs: 10, maxDelayMs: 100, exponentialBase: 2 },
-      'test-operation'
+      'test-operation',
     );
 
     expect(result).toBe('success');
@@ -43,9 +48,14 @@ describe('RetryService', () => {
     await expect(
       service.withRetry(
         operation,
-        { maxAttempts: 3, baseDelayMs: 10, maxDelayMs: 100, exponentialBase: 2 },
-        'test-operation'
-      )
+        {
+          maxAttempts: 3,
+          baseDelayMs: 10,
+          maxDelayMs: 100,
+          exponentialBase: 2,
+        },
+        'test-operation',
+      ),
     ).rejects.toEqual(error);
 
     expect(operation).toHaveBeenCalledTimes(1);
@@ -57,9 +67,14 @@ describe('RetryService', () => {
     await expect(
       service.withRetry(
         operation,
-        { maxAttempts: 3, baseDelayMs: 10, maxDelayMs: 100, exponentialBase: 2 },
-        'test-operation'
-      )
+        {
+          maxAttempts: 3,
+          baseDelayMs: 10,
+          maxDelayMs: 100,
+          exponentialBase: 2,
+        },
+        'test-operation',
+      ),
     ).rejects.toThrow('ETIMEDOUT');
 
     expect(operation).toHaveBeenCalledTimes(3);

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { LoginForm } from '@/components/auth/login-form';
-import { useAuthStore } from '@/stores/auth-store';
-import { HeroRouteBackground } from '@/components/landing/AnimatedRoute';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { LoginForm } from "@/components/auth/login-form";
+import { useAuthStore } from "@/stores/auth-store";
+import { HeroRouteBackground } from "@/components/landing/AnimatedRoute";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,13 +16,14 @@ export default function LoginPage() {
     if (isAuthenticated && user) {
       // Redirect authenticated users to their home page
       const redirectMap = {
-        SUPER_ADMIN: '/admin/tenants',
-        ADMIN: '/users',
-        DISPATCHER: '/dispatcher/overview',
-        DRIVER: '/driver/dashboard',
+        SUPER_ADMIN: "/admin/tenants",
+        ADMIN: "/users",
+        DISPATCHER: "/dispatcher/overview",
+        DRIVER: "/driver/dashboard",
       };
 
-      const redirectUrl = redirectMap[user.role as keyof typeof redirectMap] || '/';
+      const redirectUrl =
+        redirectMap[user.role as keyof typeof redirectMap] || "/";
       router.push(redirectUrl);
     }
   }, [_hasHydrated, isAuthenticated, user, router]);

@@ -1,30 +1,34 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { DriverList } from '@/components/drivers/driver-list';
-import { DriverActivationDialog } from '@/components/drivers/driver-activation-dialog';
+import { useState } from "react";
+import { DriverList } from "@/components/drivers/driver-list";
+import { DriverActivationDialog } from "@/components/drivers/driver-activation-dialog";
 
 export default function DriversPage() {
   const [selectedDriver, setSelectedDriver] = useState<any>(null);
-  const [dialogMode, setDialogMode] = useState<'activate' | 'reactivate' | 'deactivate'>('activate');
+  const [dialogMode, setDialogMode] = useState<
+    "activate" | "reactivate" | "deactivate"
+  >("activate");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleActivateClick = (driver: any) => {
     setSelectedDriver(driver);
-    setDialogMode(driver.status === 'INACTIVE' ? 'reactivate' : 'activate');
+    setDialogMode(driver.status === "INACTIVE" ? "reactivate" : "activate");
     setDialogOpen(true);
   };
 
   const handleDeactivateClick = (driver: any) => {
     setSelectedDriver(driver);
-    setDialogMode('deactivate');
+    setDialogMode("deactivate");
     setDialogOpen(true);
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Drivers</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Drivers
+        </h1>
         <p className="text-muted-foreground mt-1">
           Activate and coordinate your driver team
         </p>

@@ -1,18 +1,24 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSessionStore } from '@/lib/store/sessionStore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { useFeatureFlags } from '@/lib/hooks/useFeatureFlags';
-import { useFeatureFlagsStore } from '@/lib/store/featureFlagsStore';
-import { updateFeatureFlag } from '@/lib/api/featureFlags';
-import { Loader2, XCircle, Flag } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { useSessionStore } from "@/lib/store/sessionStore";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useFeatureFlags } from "@/lib/hooks/useFeatureFlags";
+import { useFeatureFlagsStore } from "@/lib/store/featureFlagsStore";
+import { updateFeatureFlag } from "@/lib/api/featureFlags";
+import { Loader2, XCircle, Flag } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function FeatureFlagsAdminPage() {
   const { isAuthenticated, user } = useSessionStore();
@@ -25,14 +31,14 @@ export default function FeatureFlagsAdminPage() {
   // Initialize local state from store
   useEffect(() => {
     const initialState: Record<string, boolean> = {};
-    flags.forEach(flag => {
+    flags.forEach((flag) => {
       initialState[flag.key] = flag.enabled;
     });
     setLocalFlags(initialState);
   }, [flags]);
 
   // Auth check - SUPER_ADMIN only (affects all tenants globally)
-  if (!isAuthenticated || user?.role !== 'SUPER_ADMIN') {
+  if (!isAuthenticated || user?.role !== "SUPER_ADMIN") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md">
@@ -50,42 +56,43 @@ export default function FeatureFlagsAdminPage() {
 
   const handleToggle = async (key: string, enabled: boolean) => {
     // Optimistically update local state
-    setLocalFlags(prev => ({
+    setLocalFlags((prev) => ({
       ...prev,
       [key]: enabled,
     }));
 
     // Mark flag as saving
-    setSavingFlags(prev => new Set(prev).add(key));
+    setSavingFlags((prev) => new Set(prev).add(key));
 
     try {
       // Save to backend
       await updateFeatureFlag(key, enabled);
 
       // Show success toast
-      const flag = flags.find(f => f.key === key);
+      const flag = flags.find((f) => f.key === key);
       toast({
-        title: 'Feature Flag Updated',
-        description: `${flag?.name || key} has been ${enabled ? 'enabled' : 'disabled'}`,
+        title: "Feature Flag Updated",
+        description: `${flag?.name || key} has been ${enabled ? "enabled" : "disabled"}`,
       });
 
       // Refetch to sync with backend
       await refetch();
     } catch (err) {
       // Revert on error
-      setLocalFlags(prev => ({
+      setLocalFlags((prev) => ({
         ...prev,
         [key]: !enabled,
       }));
 
       toast({
-        title: 'Error',
-        description: err instanceof Error ? err.message : 'Failed to update feature flag',
-        variant: 'destructive',
+        title: "Error",
+        description:
+          err instanceof Error ? err.message : "Failed to update feature flag",
+        variant: "destructive",
       });
     } finally {
       // Remove from saving state
-      setSavingFlags(prev => {
+      setSavingFlags((prev) => {
         const next = new Set(prev);
         next.delete(key);
         return next;
@@ -95,21 +102,21 @@ export default function FeatureFlagsAdminPage() {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'dispatcher':
-        return '📊';
-      case 'driver':
-        return '🚛';
-      case 'admin':
-        return '⚙️';
+      case "dispatcher":
+        return "📊";
+      case "driver":
+        return "🚛";
+      case "admin":
+        return "⚙️";
       default:
-        return '🏳️';
+        return "🏳️";
     }
   };
 
   const categorizedFlags = {
-    dispatcher: flags.filter(f => f.category === 'dispatcher'),
-    driver: flags.filter(f => f.category === 'driver'),
-    admin: flags.filter(f => f.category === 'admin'),
+    dispatcher: flags.filter((f) => f.category === "dispatcher"),
+    driver: flags.filter((f) => f.category === "driver"),
+    admin: flags.filter((f) => f.category === "admin"),
   };
 
   if (isLoading) {
@@ -132,7 +139,8 @@ export default function FeatureFlagsAdminPage() {
           Feature Flags Management
         </h1>
         <p className="text-muted-foreground mt-1">
-          Enable or disable features across the platform. Changes are saved automatically.
+          Enable or disable features across the platform. Changes are saved
+          automatically.
         </p>
       </div>
 
@@ -141,25 +149,26 @@ export default function FeatureFlagsAdminPage() {
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <p className="text-3xl font-bold text-foreground">{flags.length}</p>
+              <p className="text-3xl font-bold text-foreground">
+                {flags.length}
+              </p>
               <p className="text-sm text-muted-foreground">Total Flags</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                {flags.filter(f => localFlags[f.key]).length}
+                {flags.filter((f) => localFlags[f.key]).length}
               </p>
               <p className="text-sm text-muted-foreground">Enabled</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-gray-600 dark:text-gray-400">
-                {flags.filter(f => !localFlags[f.key]).length}
+                {flags.filter((f) => !localFlags[f.key]).length}
               </p>
               <p className="text-sm text-muted-foreground">Disabled</p>
             </div>
           </div>
         </CardContent>
       </Card>
-
 
       {/* Dispatcher Features */}
       <Card>
@@ -178,15 +187,25 @@ export default function FeatureFlagsAdminPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Label htmlFor={flag.key} className="text-base font-semibold cursor-pointer">
+                    <Label
+                      htmlFor={flag.key}
+                      className="text-base font-semibold cursor-pointer"
+                    >
                       {flag.name}
                     </Label>
-                    <Badge variant={localFlags[flag.key] ? 'default' : 'muted'} className="text-xs">
-                      {localFlags[flag.key] ? 'Enabled' : 'Disabled'}
+                    <Badge
+                      variant={localFlags[flag.key] ? "default" : "muted"}
+                      className="text-xs"
+                    >
+                      {localFlags[flag.key] ? "Enabled" : "Disabled"}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">{flag.description}</p>
-                  <p className="text-xs text-muted-foreground mt-1 font-mono">Key: {flag.key}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {flag.description}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">
+                    Key: {flag.key}
+                  </p>
                 </div>
                 <Switch
                   id={flag.key}
@@ -217,21 +236,34 @@ export default function FeatureFlagsAdminPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Label htmlFor={flag.key} className="text-base font-semibold cursor-pointer">
+                    <Label
+                      htmlFor={flag.key}
+                      className="text-base font-semibold cursor-pointer"
+                    >
                       {flag.name}
                     </Label>
-                    <Badge variant={localFlags[flag.key] ? 'default' : 'muted'} className="text-xs">
-                      {localFlags[flag.key] ? 'Enabled' : 'Disabled'}
+                    <Badge
+                      variant={localFlags[flag.key] ? "default" : "muted"}
+                      className="text-xs"
+                    >
+                      {localFlags[flag.key] ? "Enabled" : "Disabled"}
                     </Badge>
                     {savingFlags.has(flag.key) && (
-                      <Badge variant="outline" className="text-xs border-blue-500 text-blue-600 dark:text-blue-400">
+                      <Badge
+                        variant="outline"
+                        className="text-xs border-blue-500 text-blue-600 dark:text-blue-400"
+                      >
                         <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                         Saving
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{flag.description}</p>
-                  <p className="text-xs text-muted-foreground mt-1 font-mono">Key: {flag.key}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {flag.description}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">
+                    Key: {flag.key}
+                  </p>
                 </div>
                 <Switch
                   id={flag.key}
@@ -262,21 +294,34 @@ export default function FeatureFlagsAdminPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Label htmlFor={flag.key} className="text-base font-semibold cursor-pointer">
+                    <Label
+                      htmlFor={flag.key}
+                      className="text-base font-semibold cursor-pointer"
+                    >
                       {flag.name}
                     </Label>
-                    <Badge variant={localFlags[flag.key] ? 'default' : 'muted'} className="text-xs">
-                      {localFlags[flag.key] ? 'Enabled' : 'Disabled'}
+                    <Badge
+                      variant={localFlags[flag.key] ? "default" : "muted"}
+                      className="text-xs"
+                    >
+                      {localFlags[flag.key] ? "Enabled" : "Disabled"}
                     </Badge>
                     {savingFlags.has(flag.key) && (
-                      <Badge variant="outline" className="text-xs border-blue-500 text-blue-600 dark:text-blue-400">
+                      <Badge
+                        variant="outline"
+                        className="text-xs border-blue-500 text-blue-600 dark:text-blue-400"
+                      >
                         <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                         Saving
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{flag.description}</p>
-                  <p className="text-xs text-muted-foreground mt-1 font-mono">Key: {flag.key}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {flag.description}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">
+                    Key: {flag.key}
+                  </p>
                 </div>
                 <Switch
                   id={flag.key}
@@ -300,9 +345,16 @@ export default function FeatureFlagsAdminPage() {
                 Important Notes
               </p>
               <ul className="text-sm space-y-1 list-disc list-inside">
-                <li>Changes are saved automatically when you toggle a feature flag</li>
-                <li>Frontend cache (5min) and backend cache (30s) may cause brief delay</li>
-                <li>Disabling a feature will show "Coming Soon" banners to users</li>
+                <li>
+                  Changes are saved automatically when you toggle a feature flag
+                </li>
+                <li>
+                  Frontend cache (5min) and backend cache (30s) may cause brief
+                  delay
+                </li>
+                <li>
+                  Disabling a feature will show "Coming Soon" banners to users
+                </li>
               </ul>
             </div>
           </div>

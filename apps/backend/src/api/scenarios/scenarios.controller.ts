@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Param, Query, HttpStatus, HttpException, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Query,
+  HttpStatus,
+  HttpException,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { PrismaService } from '../../database/prisma.service';
 
@@ -36,7 +45,10 @@ export class ScenariosController {
       }));
     } catch (error) {
       this.logger.error(`List scenarios failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to fetch scenarios' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to fetch scenarios' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -51,7 +63,10 @@ export class ScenariosController {
       });
 
       if (!scenario) {
-        throw new HttpException({ detail: `Scenario not found: ${scenarioId}` }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          { detail: `Scenario not found: ${scenarioId}` },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       return {
@@ -72,7 +87,10 @@ export class ScenariosController {
     } catch (error) {
       if (error instanceof HttpException) throw error;
       this.logger.error(`Get scenario failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to fetch scenario' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to fetch scenario' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -87,7 +105,10 @@ export class ScenariosController {
       });
 
       if (!scenario) {
-        throw new HttpException({ detail: `Scenario not found: ${scenarioId}` }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          { detail: `Scenario not found: ${scenarioId}` },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       // Extract driver_id and vehicle_id from templates
@@ -96,14 +117,18 @@ export class ScenariosController {
 
       return {
         driver_id: driverState.driver_id || driverState.driverId || 'DRV-001',
-        vehicle_id: vehicleState.vehicle_id || vehicleState.vehicleId || 'VEH-001',
+        vehicle_id:
+          vehicleState.vehicle_id || vehicleState.vehicleId || 'VEH-001',
         driver_state: scenario.driverStateTemplate,
         vehicle_state: scenario.vehicleStateTemplate,
       };
     } catch (error) {
       if (error instanceof HttpException) throw error;
       this.logger.error(`Instantiate scenario failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to instantiate scenario' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to instantiate scenario' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

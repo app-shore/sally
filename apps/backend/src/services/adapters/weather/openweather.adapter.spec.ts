@@ -14,7 +14,11 @@ describe('OpenWeatherAdapter - Real API', () => {
       return;
     }
 
-    const weather = await adapter.getCurrentWeather(realApiKey, 33.4484, -112.074);
+    const weather = await adapter.getCurrentWeather(
+      realApiKey,
+      33.4484,
+      -112.074,
+    );
 
     expect(weather).toBeDefined();
     expect(weather.current.temperature_f).toBeGreaterThan(0);

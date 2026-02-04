@@ -35,7 +35,10 @@ export class VehicleMerger {
    * - ELD wins: telematics data (serial, gateway, esn)
    * - ELD fills gaps when TMS data is missing
    */
-  merge(tmsData: TmsVehicleData = {}, eldData: EldVehicleData = {}): MergedVehicleData {
+  merge(
+    tmsData: TmsVehicleData = {},
+    eldData: EldVehicleData = {},
+  ): MergedVehicleData {
     const merged: MergedVehicleData = {
       // Operational data: TMS wins, ELD fills gaps
       make: tmsData.make || eldData.make,

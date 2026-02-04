@@ -54,9 +54,12 @@ describe('FirebaseAuthService', () => {
         tenantId: 1,
       };
 
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
+      jest
+        .spyOn(prismaService.user, 'findUnique')
+        .mockResolvedValue(mockUser as any);
 
-      const result = await service.findOrCreateUserByFirebaseUid('firebase-uid-123');
+      const result =
+        await service.findOrCreateUserByFirebaseUid('firebase-uid-123');
 
       expect(result).toEqual(mockUser);
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
@@ -71,7 +74,8 @@ describe('FirebaseAuthService', () => {
     it('should return null if user not found and no email provided', async () => {
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(null);
 
-      const result = await service.findOrCreateUserByFirebaseUid('firebase-uid-123');
+      const result =
+        await service.findOrCreateUserByFirebaseUid('firebase-uid-123');
 
       expect(result).toBeNull();
     });

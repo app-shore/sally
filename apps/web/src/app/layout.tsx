@@ -32,8 +32,16 @@ export const metadata: Metadata = {
     default: "SALLY - Your Fleet Operations Assistant",
     template: "%s | SALLY",
   },
-  description: "Stop planning routes. Start preventing violations. The only platform that routes drivers, not trucks.",
-  keywords: ["fleet management", "HOS compliance", "route planning", "trucking", "logistics", "dispatch"],
+  description:
+    "Stop planning routes. Start preventing violations. The only platform that routes drivers, not trucks.",
+  keywords: [
+    "fleet management",
+    "HOS compliance",
+    "route planning",
+    "trucking",
+    "logistics",
+    "dispatch",
+  ],
   authors: [{ name: "SALLY" }],
   creator: "SALLY",
   publisher: "SALLY",
@@ -59,7 +67,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://sally.com",
     title: "SALLY - Your Fleet Operations Assistant",
-    description: "Stop planning routes. Start preventing violations. The only platform that routes drivers, not trucks.",
+    description:
+      "Stop planning routes. Start preventing violations. The only platform that routes drivers, not trucks.",
     siteName: "SALLY",
   },
 
@@ -98,7 +107,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} ${spaceGrotesk.variable} ${sora.variable} ${outfit.variable}`}>
+      <body
+        className={`${inter.className} ${spaceGrotesk.variable} ${sora.variable} ${outfit.variable}`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

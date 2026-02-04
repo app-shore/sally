@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -118,7 +123,9 @@ export class UsersService {
   async createUser(dto: CreateUserDto, tenantIdString?: string) {
     // Validate tenant assignment
     if (dto.role !== 'SUPER_ADMIN' && !tenantIdString) {
-      throw new BadRequestException('Tenant ID required for non-super-admin users');
+      throw new BadRequestException(
+        'Tenant ID required for non-super-admin users',
+      );
     }
 
     // Get tenant database ID if provided
@@ -166,7 +173,12 @@ export class UsersService {
     };
   }
 
-  async updateUser(userId: string, dto: UpdateUserDto, tenantIdString?: string, currentUser?: any) {
+  async updateUser(
+    userId: string,
+    dto: UpdateUserDto,
+    tenantIdString?: string,
+    currentUser?: any,
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { userId },
       include: { tenant: true },
@@ -188,7 +200,9 @@ export class UsersService {
 
     // Only OWNER can promote users to ADMIN
     if (dto.role === 'ADMIN' && currentUser?.role !== 'OWNER') {
-      throw new ForbiddenException('Only the tenant owner can promote users to ADMIN');
+      throw new ForbiddenException(
+        'Only the tenant owner can promote users to ADMIN',
+      );
     }
 
     // Cannot promote to OWNER or SUPER_ADMIN
@@ -244,7 +258,9 @@ export class UsersService {
 
     // ADMIN cannot delete other ADMINs (only OWNER can)
     if (user.role === 'ADMIN' && currentUser?.role !== 'OWNER') {
-      throw new ForbiddenException('Only the tenant owner can delete admin users');
+      throw new ForbiddenException(
+        'Only the tenant owner can delete admin users',
+      );
     }
 
     // Soft delete by deactivating
@@ -256,7 +272,12 @@ export class UsersService {
     return { message: 'User deactivated successfully' };
   }
 
-  async toggleUserStatus(userId: string, isActive: boolean, tenantIdString?: string, currentUser?: any) {
+  async toggleUserStatus(
+    userId: string,
+    isActive: boolean,
+    tenantIdString?: string,
+    currentUser?: any,
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { userId },
       include: { tenant: true },
@@ -273,12 +294,16 @@ export class UsersService {
 
     // Cannot deactivate OWNER
     if (user.role === 'OWNER') {
-      throw new ForbiddenException('Cannot deactivate the tenant owner account');
+      throw new ForbiddenException(
+        'Cannot deactivate the tenant owner account',
+      );
     }
 
     // ADMIN cannot deactivate other ADMINs (only OWNER can)
     if (user.role === 'ADMIN' && currentUser?.role !== 'OWNER') {
-      throw new ForbiddenException('Only the tenant owner can deactivate admin users');
+      throw new ForbiddenException(
+        'Only the tenant owner can deactivate admin users',
+      );
     }
 
     await this.prisma.user.update({
@@ -286,6 +311,8 @@ export class UsersService {
       data: { isActive },
     });
 
-    return { message: `User ${isActive ? 'activated' : 'deactivated'} successfully` };
+    return {
+      message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
+    };
   }
 }

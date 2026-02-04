@@ -39,7 +39,8 @@ export class SyncService {
 
     // Create sync log entry
     const startTime = new Date();
-    const syncType = vendorMeta.integrationType === IntegrationType.TMS ? 'TMS' : 'ELD';
+    const syncType =
+      vendorMeta.integrationType === IntegrationType.TMS ? 'TMS' : 'ELD';
     const logId = `log_${randomUUID()}`;
 
     const syncLog = await this.prisma.integrationSyncLog.create({
@@ -89,7 +90,11 @@ export class SyncService {
         });
 
         recordsProcessed = vehiclesAfter + driversAfter + loadsAfter;
-        recordsCreated = (vehiclesAfter - vehiclesBefore) + (driversAfter - driversBefore) + (loadsAfter - loadsBefore);
+        recordsCreated =
+          vehiclesAfter -
+          vehiclesBefore +
+          (driversAfter - driversBefore) +
+          (loadsAfter - loadsBefore);
         recordsUpdated = recordsProcessed - recordsCreated;
       } else if (vendorMeta.integrationType === IntegrationType.HOS_ELD) {
         this.logger.log(`Syncing ELD integration: ${integration.vendor}`);
@@ -102,7 +107,9 @@ export class SyncService {
         });
         recordsUpdated = recordsProcessed;
       } else {
-        throw new Error(`Sync not supported for integration type: ${vendorMeta.integrationType}`);
+        throw new Error(
+          `Sync not supported for integration type: ${vendorMeta.integrationType}`,
+        );
       }
 
       // Update sync log with success
@@ -149,7 +156,7 @@ export class SyncService {
     });
 
     // Sync TMS first (source of truth) - dynamically filter by integration type
-    const tmsIntegrations = integrations.filter(i => {
+    const tmsIntegrations = integrations.filter((i) => {
       const vendorMeta = VENDOR_REGISTRY[i.vendor];
       return vendorMeta && vendorMeta.integrationType === IntegrationType.TMS;
     });
@@ -160,9 +167,11 @@ export class SyncService {
     }
 
     // Then sync ELD (enrichment) - dynamically filter by integration type
-    const eldIntegrations = integrations.filter(i => {
+    const eldIntegrations = integrations.filter((i) => {
       const vendorMeta = VENDOR_REGISTRY[i.vendor];
-      return vendorMeta && vendorMeta.integrationType === IntegrationType.HOS_ELD;
+      return (
+        vendorMeta && vendorMeta.integrationType === IntegrationType.HOS_ELD
+      );
     });
 
     this.logger.log(`Found ${eldIntegrations.length} ELD integrations`);

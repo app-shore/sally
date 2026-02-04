@@ -82,7 +82,10 @@ describe('EldSyncService', () => {
 
       const mockMergedData = {
         make: 'FREIGHTLINER',
-        eldTelematicsMetadata: { eldId: '281474996387574', serial: 'G97TEAX5GM' },
+        eldTelematicsMetadata: {
+          eldId: '281474996387574',
+          serial: 'G97TEAX5GM',
+        },
       };
 
       const mockIntegration = {
@@ -92,9 +95,13 @@ describe('EldSyncService', () => {
         credentials: { apiKey: 'test-key' },
       };
 
-      jest.spyOn(prisma.integrationConfig, 'findUnique').mockResolvedValue(mockIntegration as any);
+      jest
+        .spyOn(prisma.integrationConfig, 'findUnique')
+        .mockResolvedValue(mockIntegration as any);
       mockedAxios.get.mockResolvedValue({ data: { data: mockEldVehicles } });
-      jest.spyOn(vehicleMatcher, 'match').mockResolvedValue(mockDbVehicle as any);
+      jest
+        .spyOn(vehicleMatcher, 'match')
+        .mockResolvedValue(mockDbVehicle as any);
       jest.spyOn(vehicleMerger, 'merge').mockReturnValue(mockMergedData as any);
       jest.spyOn(prisma.vehicle, 'update').mockResolvedValue({} as any);
 
@@ -106,7 +113,7 @@ describe('EldSyncService', () => {
 
       expect(vehicleMerger.merge).toHaveBeenCalledWith(
         mockDbVehicle,
-        expect.objectContaining({ eldId: '281474996387574' })
+        expect.objectContaining({ eldId: '281474996387574' }),
       );
 
       expect(prisma.vehicle.update).toHaveBeenCalledWith({
@@ -132,7 +139,9 @@ describe('EldSyncService', () => {
         credentials: { apiKey: 'test-key' },
       };
 
-      jest.spyOn(prisma.integrationConfig, 'findUnique').mockResolvedValue(mockIntegration as any);
+      jest
+        .spyOn(prisma.integrationConfig, 'findUnique')
+        .mockResolvedValue(mockIntegration as any);
       mockedAxios.get.mockResolvedValue({ data: { data: mockEldVehicles } });
       jest.spyOn(vehicleMatcher, 'match').mockResolvedValue(null);
 
@@ -141,7 +150,7 @@ describe('EldSyncService', () => {
       await service.syncVehicles(1);
 
       expect(loggerSpy).toHaveBeenCalledWith(
-        expect.stringContaining('No matching vehicle found')
+        expect.stringContaining('No matching vehicle found'),
       );
     });
   });
@@ -175,7 +184,9 @@ describe('EldSyncService', () => {
         credentials: { apiKey: 'test-key' },
       };
 
-      jest.spyOn(prisma.integrationConfig, 'findUnique').mockResolvedValue(mockIntegration as any);
+      jest
+        .spyOn(prisma.integrationConfig, 'findUnique')
+        .mockResolvedValue(mockIntegration as any);
       mockedAxios.get.mockResolvedValue({ data: { data: mockEldDrivers } });
       jest.spyOn(driverMatcher, 'match').mockResolvedValue(mockDbDriver as any);
       jest.spyOn(driverMerger, 'merge').mockReturnValue(mockMergedData as any);

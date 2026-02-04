@@ -1,4 +1,14 @@
-import { Controller, Get, Put, Post, Body, Req, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Put,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { PreferencesService } from './preferences.service';
 import { UpdateUserPreferencesDto } from './dto/user-preferences.dto';
 import { UpdateOperationsSettingsDto } from './dto/operations-settings.dto';
@@ -19,7 +29,10 @@ export class PreferencesController {
   }
 
   @Put('user')
-  async updateUserPreferences(@Req() req: any, @Body() dto: UpdateUserPreferencesDto) {
+  async updateUserPreferences(
+    @Req() req: any,
+    @Body() dto: UpdateUserPreferencesDto,
+  ) {
     const userId = req.user.userId;
     return this.preferencesService.updateUserPreferences(userId, dto);
   }
@@ -33,15 +46,27 @@ export class PreferencesController {
     const userId = req.user.userId;
     const userRole = req.user.role;
     const tenantId = req.user.tenantId;
-    return this.preferencesService.getOperationsSettings(userId, userRole, tenantId);
+    return this.preferencesService.getOperationsSettings(
+      userId,
+      userRole,
+      tenantId,
+    );
   }
 
   @Put('operations')
-  async updateOperationsSettings(@Req() req: any, @Body() dto: UpdateOperationsSettingsDto) {
+  async updateOperationsSettings(
+    @Req() req: any,
+    @Body() dto: UpdateOperationsSettingsDto,
+  ) {
     const userId = req.user.userId;
     const userRole = req.user.role;
     const tenantId = req.user.tenantId;
-    return this.preferencesService.updateOperationsSettings(userId, userRole, tenantId, dto);
+    return this.preferencesService.updateOperationsSettings(
+      userId,
+      userRole,
+      tenantId,
+      dto,
+    );
   }
 
   // ============================================================================
@@ -56,10 +81,17 @@ export class PreferencesController {
   }
 
   @Put('driver')
-  async updateDriverPreferences(@Req() req: any, @Body() dto: UpdateDriverPreferencesDto) {
+  async updateDriverPreferences(
+    @Req() req: any,
+    @Body() dto: UpdateDriverPreferencesDto,
+  ) {
     const userId = req.user.userId;
     const userRole = req.user.role;
-    return this.preferencesService.updateDriverPreferences(userId, userRole, dto);
+    return this.preferencesService.updateDriverPreferences(
+      userId,
+      userRole,
+      dto,
+    );
   }
 
   // ============================================================================
@@ -68,11 +100,19 @@ export class PreferencesController {
 
   @Post('reset')
   @HttpCode(HttpStatus.OK)
-  async resetToDefaults(@Req() req: any, @Body() body: { scope: 'user' | 'operations' | 'driver' }) {
+  async resetToDefaults(
+    @Req() req: any,
+    @Body() body: { scope: 'user' | 'operations' | 'driver' },
+  ) {
     const userId = req.user.userId;
     const userRole = req.user.role;
     const tenantId = req.user.tenantId;
-    return this.preferencesService.resetToDefaults(userId, tenantId, body.scope, userRole);
+    return this.preferencesService.resetToDefaults(
+      userId,
+      tenantId,
+      body.scope,
+      userRole,
+    );
   }
 
   // ============================================================================

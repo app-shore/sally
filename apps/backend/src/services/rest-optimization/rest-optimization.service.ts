@@ -93,21 +93,43 @@ export class RestOptimizationService {
     private readonly hosEngine: HOSRuleEngineService,
   ) {
     this.minRestHours = this.configService.get<number>('minRestHours', 10.0);
-    this.sleeper_berth_split_long = this.configService.get<number>('sleeper_berth_split_long', 8.0);
-    this.sleeper_berth_split_short = this.configService.get<number>('sleeper_berth_split_short', 2.0);
+    this.sleeper_berth_split_long = this.configService.get<number>(
+      'sleeper_berth_split_long',
+      8.0,
+    );
+    this.sleeper_berth_split_short = this.configService.get<number>(
+      'sleeper_berth_split_short',
+      2.0,
+    );
     this.maxDriveHours = this.configService.get<number>('maxDriveHours', 11.0);
     this.maxDutyHours = this.configService.get<number>('maxDutyHours', 14.0);
-    this.breakTriggerHours = this.configService.get<number>('breakTriggerHours', 8.0);
-    this.requiredBreakMinutes = this.configService.get<number>('requiredBreakMinutes', 30);
+    this.breakTriggerHours = this.configService.get<number>(
+      'breakTriggerHours',
+      8.0,
+    );
+    this.requiredBreakMinutes = this.configService.get<number>(
+      'requiredBreakMinutes',
+      30,
+    );
   }
 
-  private calculateFeasibility(inputData: RestOptimizationInput): FeasibilityAnalysis {
+  private calculateFeasibility(
+    inputData: RestOptimizationInput,
+  ): FeasibilityAnalysis {
     // Build trip list
     let trips: TripRequirement[];
     if (inputData.upcoming_trips && inputData.upcoming_trips.length > 0) {
       trips = inputData.upcoming_trips;
-    } else if (inputData.post_load_drive_hours !== undefined && inputData.post_load_drive_hours !== null) {
-      trips = [{ drive_time: inputData.post_load_drive_hours, dock_time: inputData.dock_duration_hours || 0 }];
+    } else if (
+      inputData.post_load_drive_hours !== undefined &&
+      inputData.post_load_drive_hours !== null
+    ) {
+      trips = [
+        {
+          drive_time: inputData.post_load_drive_hours,
+          dock_time: inputData.dock_duration_hours || 0,
+        },
+      ];
     } else {
       return {
         feasible: true,
@@ -127,7 +149,8 @@ export class RestOptimizationService {
     let totalOnDutyNeeded = totalDriveNeeded + totalDockNeeded;
 
     // Check if break will be required during trips
-    const willNeedBreak = (inputData.hours_since_break + totalDriveNeeded) >= this.breakTriggerHours;
+    const willNeedBreak =
+      inputData.hours_since_break + totalDriveNeeded >= this.breakTriggerHours;
     if (willNeedBreak) {
       totalOnDutyNeeded += this.requiredBreakMinutes / 60.0;
     }
@@ -146,7 +169,8 @@ export class RestOptimizationService {
     let feasible = true;
 
     if (driveShortfall > 0 || dutyShortfall > 0) {
-      limitingFactor = driveShortfall >= dutyShortfall ? 'drive_limit' : 'duty_window';
+      limitingFactor =
+        driveShortfall >= dutyShortfall ? 'drive_limit' : 'duty_window';
       shortfallHours = Math.max(driveShortfall, dutyShortfall);
       feasible = false;
     }
@@ -163,7 +187,9 @@ export class RestOptimizationService {
     };
   }
 
-  private calculateRestOpportunity(inputData: RestOptimizationInput): OpportunityAnalysis {
+  private calculateRestOpportunity(
+    inputData: RestOptimizationInput,
+  ): OpportunityAnalysis {
     const dockTimeAvailable = inputData.dock_duration_hours || 0;
 
     // Factor 1: Dock Time Availability (0-30 points)
@@ -222,10 +248,16 @@ export class RestOptimizationService {
     const dockTimeAvailable = inputData.dock_duration_hours || 0;
 
     // Cost for full rest (10 hours)
-    const fullRestExtension = dockTimeAvailable >= this.minRestHours ? 0 : this.minRestHours - dockTimeAvailable;
+    const fullRestExtension =
+      dockTimeAvailable >= this.minRestHours
+        ? 0
+        : this.minRestHours - dockTimeAvailable;
 
     // Cost for partial rest (7 hours)
-    const partialRestExtension = dockTimeAvailable >= this.sleeper_berth_split_long ? 0 : this.sleeper_berth_split_long - dockTimeAvailable;
+    const partialRestExtension =
+      dockTimeAvailable >= this.sleeper_berth_split_long
+        ? 0
+        : this.sleeper_berth_split_long - dockTimeAvailable;
 
     return {
       full_rest_extension_hours: fullRestExtension,
@@ -247,9 +279,9 @@ export class RestOptimizationService {
           RestRecommendation.FULL_REST,
           this.minRestHours,
           `Trip not feasible with current hours. ` +
-          `Shortfall: ${feasibility.shortfall_hours.toFixed(1)}h (${feasibility.limiting_factor}). ` +
-          `Extending dock time (${cost.dock_time_available.toFixed(1)}h) to full ${this.minRestHours.toFixed(0)}h rest ` +
-          `will reset all hours and enable trip completion.`,
+            `Shortfall: ${feasibility.shortfall_hours.toFixed(1)}h (${feasibility.limiting_factor}). ` +
+            `Extending dock time (${cost.dock_time_available.toFixed(1)}h) to full ${this.minRestHours.toFixed(0)}h rest ` +
+            `will reset all hours and enable trip completion.`,
           100,
           false,
         ];
@@ -258,7 +290,7 @@ export class RestOptimizationService {
           RestRecommendation.FULL_REST,
           this.minRestHours,
           `Trip not feasible. Must take full ${this.minRestHours.toFixed(0)}h rest. ` +
-          `Dock time (${cost.dock_time_available.toFixed(1)}h) too short to leverage.`,
+            `Dock time (${cost.dock_time_available.toFixed(1)}h) too short to leverage.`,
           100,
           false,
         ];
@@ -271,7 +303,7 @@ export class RestOptimizationService {
         RestRecommendation.NO_REST,
         this.requiredBreakMinutes / 60.0,
         `30-minute break required (driven ${inputData.hours_since_break.toFixed(1)}h without break). ` +
-        `Take off-duty break during dock time before continuing.`,
+          `Take off-duty break during dock time before continuing.`,
         100,
         false,
       ];
@@ -284,21 +316,24 @@ export class RestOptimizationService {
           RestRecommendation.FULL_REST,
           this.minRestHours,
           `Trip feasible but marginal (margin: ${feasibility.drive_margin.toFixed(1)}h drive, ` +
-          `${feasibility.duty_margin.toFixed(1)}h duty). ` +
-          `Opportunity score: ${opportunity.score.toFixed(0)}/100. ` +
-          `Extending rest by ${cost.full_rest_extension_hours.toFixed(1)}h provides ` +
-          `${opportunity.hours_gainable.toFixed(1)}h gain and better safety margin.`,
+            `${feasibility.duty_margin.toFixed(1)}h duty). ` +
+            `Opportunity score: ${opportunity.score.toFixed(0)}/100. ` +
+            `Extending rest by ${cost.full_rest_extension_hours.toFixed(1)}h provides ` +
+            `${opportunity.hours_gainable.toFixed(1)}h gain and better safety margin.`,
           75,
           true,
         ];
-      } else if (opportunity.score >= 40 && cost.partial_rest_extension_hours <= 3) {
+      } else if (
+        opportunity.score >= 40 &&
+        cost.partial_rest_extension_hours <= 3
+      ) {
         if (cost.dock_time_available >= MIN_DOCK_TIME_FOR_8H_SPLIT) {
           return [
             RestRecommendation.PARTIAL_REST_8_2,
             SLEEPER_BERTH_SPLIT_8_2_LONG,
             `Trip marginal. Consider 8-hour partial rest (8/2 split). ` +
-            `Extension needed: ${Math.max(0, SLEEPER_BERTH_SPLIT_8_2_LONG - cost.dock_time_available).toFixed(1)}h. ` +
-            `Provides better recovery than 7/3 split while preserving schedule.`,
+              `Extension needed: ${Math.max(0, SLEEPER_BERTH_SPLIT_8_2_LONG - cost.dock_time_available).toFixed(1)}h. ` +
+              `Provides better recovery than 7/3 split while preserving schedule.`,
             65,
             true,
           ];
@@ -307,8 +342,8 @@ export class RestOptimizationService {
             RestRecommendation.PARTIAL_REST_7_3,
             SLEEPER_BERTH_SPLIT_7_3_LONG,
             `Trip marginal. Consider 7-hour partial rest (7/3 split). ` +
-            `Extension needed: ${cost.partial_rest_extension_hours.toFixed(1)}h. ` +
-            `Provides some recovery while preserving schedule.`,
+              `Extension needed: ${cost.partial_rest_extension_hours.toFixed(1)}h. ` +
+              `Provides some recovery while preserving schedule.`,
             65,
             true,
           ];
@@ -318,8 +353,8 @@ export class RestOptimizationService {
           RestRecommendation.NO_REST,
           null,
           `Trip feasible but with tight margins (drive: ${feasibility.drive_margin.toFixed(1)}h, ` +
-          `duty: ${feasibility.duty_margin.toFixed(1)}h). ` +
-          `Monitor closely. Plan for rest after delivery.`,
+            `duty: ${feasibility.duty_margin.toFixed(1)}h). ` +
+            `Monitor closely. Plan for rest after delivery.`,
           60,
           true,
         ];
@@ -333,9 +368,9 @@ export class RestOptimizationService {
           RestRecommendation.FULL_REST,
           this.minRestHours,
           `Trip easily feasible. However, dock time (${cost.dock_time_available.toFixed(1)}h) ` +
-          `presents good rest opportunity (score: ${opportunity.score.toFixed(0)}/100). ` +
-          `Extending by ${cost.full_rest_extension_hours.toFixed(1)}h would gain ` +
-          `${opportunity.hours_gainable.toFixed(1)}h for next shift. Optional optimization.`,
+            `presents good rest opportunity (score: ${opportunity.score.toFixed(0)}/100). ` +
+            `Extending by ${cost.full_rest_extension_hours.toFixed(1)}h would gain ` +
+            `${opportunity.hours_gainable.toFixed(1)}h for next shift. Optional optimization.`,
           55,
           true,
         ];
@@ -344,8 +379,8 @@ export class RestOptimizationService {
           RestRecommendation.NO_REST,
           null,
           `Trip easily feasible with ${feasibility.drive_margin.toFixed(1)}h drive margin ` +
-          `and ${feasibility.duty_margin.toFixed(1)}h duty margin. ` +
-          `No rest needed. Continue as planned.`,
+            `and ${feasibility.duty_margin.toFixed(1)}h duty margin. ` +
+            `No rest needed. Continue as planned.`,
           80,
           true,
         ];
@@ -353,7 +388,13 @@ export class RestOptimizationService {
     }
 
     // Fallback (should not reach here)
-    return [RestRecommendation.NO_REST, null, 'Continuing with current plan.', 70, true];
+    return [
+      RestRecommendation.NO_REST,
+      null,
+      'Continuing with current plan.',
+      70,
+      true,
+    ];
   }
 
   recommendRest(inputData: RestOptimizationInput): RestOptimizationResult {
@@ -361,11 +402,20 @@ export class RestOptimizationService {
     validatePositive(inputData.hours_driven, 'hours_driven');
     validatePositive(inputData.on_duty_time, 'on_duty_time');
     validatePositive(inputData.hours_since_break, 'hours_since_break');
-    if (inputData.dock_duration_hours !== undefined && inputData.dock_duration_hours !== null) {
+    if (
+      inputData.dock_duration_hours !== undefined &&
+      inputData.dock_duration_hours !== null
+    ) {
       validatePositive(inputData.dock_duration_hours, 'dock_duration_hours');
     }
-    if (inputData.post_load_drive_hours !== undefined && inputData.post_load_drive_hours !== null) {
-      validatePositive(inputData.post_load_drive_hours, 'post_load_drive_hours');
+    if (
+      inputData.post_load_drive_hours !== undefined &&
+      inputData.post_load_drive_hours !== null
+    ) {
+      validatePositive(
+        inputData.post_load_drive_hours,
+        'post_load_drive_hours',
+      );
     }
 
     // Step 1: Check HOS compliance
@@ -390,19 +440,27 @@ export class RestOptimizationService {
     if (recommendation === RestRecommendation.FULL_REST) {
       hoursAfterRestDrive = this.maxDriveHours;
       hoursAfterRestDuty = this.maxDutyHours;
-    } else if (recommendation === RestRecommendation.PARTIAL_REST_7_3 || recommendation === RestRecommendation.PARTIAL_REST_8_2) {
-      hoursAfterRestDrive = complianceResult.hours_remaining_to_drive + (duration || 0) * 0.5;
-      hoursAfterRestDuty = complianceResult.hours_remaining_on_duty + (duration || 0) * 0.5;
+    } else if (
+      recommendation === RestRecommendation.PARTIAL_REST_7_3 ||
+      recommendation === RestRecommendation.PARTIAL_REST_8_2
+    ) {
+      hoursAfterRestDrive =
+        complianceResult.hours_remaining_to_drive + (duration || 0) * 0.5;
+      hoursAfterRestDuty =
+        complianceResult.hours_remaining_on_duty + (duration || 0) * 0.5;
     } else {
       hoursAfterRestDrive = complianceResult.hours_remaining_to_drive;
       hoursAfterRestDuty = complianceResult.hours_remaining_on_duty;
     }
 
     // Step 4: Check if post-load drive is feasible
-    const postLoadFeasible = feasibility.feasible || recommendation === RestRecommendation.FULL_REST;
+    const postLoadFeasible =
+      feasibility.feasible || recommendation === RestRecommendation.FULL_REST;
 
     // Compile compliance details
-    const complianceDetails = complianceResult.checks.map((check) => check.message).join('; ');
+    const complianceDetails = complianceResult.checks
+      .map((check) => check.message)
+      .join('; ');
 
     return {
       recommendation,

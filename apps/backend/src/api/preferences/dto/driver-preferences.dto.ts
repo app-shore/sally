@@ -1,4 +1,13 @@
-import { IsOptional, IsInt, IsBoolean, IsString, IsArray, IsIn, Min, Max } from 'class-validator';
+import {
+  IsOptional,
+  IsInt,
+  IsBoolean,
+  IsString,
+  IsArray,
+  IsIn,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class UpdateDriverPreferencesDto {
   // Preferred Locations

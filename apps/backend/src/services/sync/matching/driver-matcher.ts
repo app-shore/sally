@@ -23,7 +23,11 @@ export class DriverMatcher {
   /**
    * Match driver by license number + state (fallback)
    */
-  async matchByLicense(tenantId: number, licenseNumber: string, licenseState: string): Promise<Driver | null> {
+  async matchByLicense(
+    tenantId: number,
+    licenseNumber: string,
+    licenseState: string,
+  ): Promise<Driver | null> {
     if (!licenseNumber || !licenseState) return null;
 
     return this.prisma.driver.findFirst({
@@ -40,7 +44,7 @@ export class DriverMatcher {
    */
   async match(
     tenantId: number,
-    data: { phone?: string; licenseNumber?: string; licenseState?: string }
+    data: { phone?: string; licenseNumber?: string; licenseState?: string },
   ): Promise<Driver | null> {
     // Try phone first (most reliable)
     if (data.phone) {
@@ -50,7 +54,11 @@ export class DriverMatcher {
 
     // Fallback to license number + state
     if (data.licenseNumber && data.licenseState) {
-      return this.matchByLicense(tenantId, data.licenseNumber, data.licenseState);
+      return this.matchByLicense(
+        tenantId,
+        data.licenseNumber,
+        data.licenseState,
+      );
     }
 
     return null;

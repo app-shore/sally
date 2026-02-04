@@ -37,7 +37,9 @@ export class AutoSyncJob {
       const isDue = this.isIntegrationDueForSync(integration, now);
 
       if (isDue) {
-        this.logger.log(`Auto-syncing integration: ${integration.id} (${integration.vendor})`);
+        this.logger.log(
+          `Auto-syncing integration: ${integration.id} (${integration.vendor})`,
+        );
 
         try {
           await this.syncService.syncIntegration(integration.id);
@@ -52,7 +54,10 @@ export class AutoSyncJob {
    * Check if integration is due for sync
    */
   private isIntegrationDueForSync(
-    integration: { syncIntervalSeconds: number | null; lastSyncAt: Date | null },
+    integration: {
+      syncIntervalSeconds: number | null;
+      lastSyncAt: Date | null;
+    },
     now: Date,
   ): boolean {
     if (!integration.lastSyncAt) {
@@ -63,7 +68,8 @@ export class AutoSyncJob {
       return false; // No interval configured
     }
 
-    const secondsSinceLastSync = (now.getTime() - integration.lastSyncAt.getTime()) / 1000;
+    const secondsSinceLastSync =
+      (now.getTime() - integration.lastSyncAt.getTime()) / 1000;
     return secondsSinceLastSync >= integration.syncIntervalSeconds;
   }
 }

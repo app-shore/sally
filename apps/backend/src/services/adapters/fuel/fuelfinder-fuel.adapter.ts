@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { IFuelAdapter, FuelStation, FuelStationQuery } from './fuel-adapter.interface';
+import {
+  IFuelAdapter,
+  FuelStation,
+  FuelStationQuery,
+} from './fuel-adapter.interface';
 
 /**
  * Fuel Finder Adapter
@@ -10,20 +14,29 @@ import { IFuelAdapter, FuelStation, FuelStationQuery } from './fuel-adapter.inte
 @Injectable()
 export class FuelFinderAdapter implements IFuelAdapter {
   private readonly useMockData = false; // Set to false when ready for real API calls
-  private readonly baseUrl = process.env.FUELFINDER_API_URL || 'https://api.fuelfinder.com/v1';
+  private readonly baseUrl =
+    process.env.FUELFINDER_API_URL || 'https://api.fuelfinder.com/v1';
 
   /**
    * Find fuel stations near a location
    * Currently returns mock data - see useMockData flag
    */
-  async findStations(apiKey: string, query: FuelStationQuery): Promise<FuelStation[]> {
+  async findStations(
+    apiKey: string,
+    query: FuelStationQuery,
+  ): Promise<FuelStation[]> {
     if (this.useMockData) {
       return this.getMockStations(query);
     }
 
     // Real API call (Phase 2)
     try {
-      const { latitude, longitude, radius_miles = 25, max_results = 10 } = query;
+      const {
+        latitude,
+        longitude,
+        radius_miles = 25,
+        max_results = 10,
+      } = query;
 
       const response = await fetch(
         `${this.baseUrl}/stations?lat=${latitude}&lon=${longitude}&radius=${radius_miles}&limit=${max_results}`,
@@ -32,19 +45,25 @@ export class FuelFinderAdapter implements IFuelAdapter {
             'X-API-Key': apiKey,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       if (!response.ok) {
         const errorBody = await response.text();
-        throw new Error(`Fuel Finder API error: ${response.status} - ${errorBody}`);
+        throw new Error(
+          `Fuel Finder API error: ${response.status} - ${errorBody}`,
+        );
       }
 
       const data = await response.json();
       const stations = data.stations || data.data || data;
-      return Array.isArray(stations) ? stations.map(s => this.transformStationData(s)) : [];
+      return Array.isArray(stations)
+        ? stations.map((s) => this.transformStationData(s))
+        : [];
     } catch (error) {
-      throw new Error(`Failed to fetch fuel stations from Fuel Finder: ${error.message}`);
+      throw new Error(
+        `Failed to fetch fuel stations from Fuel Finder: ${error.message}`,
+      );
     }
   }
 
@@ -52,7 +71,10 @@ export class FuelFinderAdapter implements IFuelAdapter {
    * Get current price for a specific station
    * Currently returns mock data
    */
-  async getStationPrice(apiKey: string, stationId: string): Promise<FuelStation> {
+  async getStationPrice(
+    apiKey: string,
+    stationId: string,
+  ): Promise<FuelStation> {
     if (this.useMockData) {
       const stations = this.getMockStations({
         latitude: 33.4484,
@@ -65,7 +87,9 @@ export class FuelFinderAdapter implements IFuelAdapter {
     try {
       throw new Error('Real Fuel Finder API integration not implemented yet');
     } catch (error) {
-      throw new Error(`Failed to fetch station from Fuel Finder: ${error.message}`);
+      throw new Error(
+        `Failed to fetch station from Fuel Finder: ${error.message}`,
+      );
     }
   }
 
@@ -87,7 +111,7 @@ export class FuelFinderAdapter implements IFuelAdapter {
           headers: {
             'X-API-Key': apiKey,
           },
-        }
+        },
       );
       return response.ok;
     } catch {
@@ -126,7 +150,7 @@ export class FuelFinderAdapter implements IFuelAdapter {
       return amenities;
     }
     if (typeof amenities === 'string') {
-      return amenities.split(',').map(a => a.trim());
+      return amenities.split(',').map((a) => a.trim());
     }
     return [];
   }
@@ -161,7 +185,7 @@ export class FuelFinderAdapter implements IFuelAdapter {
         city: 'Phoenix',
         state: 'AZ',
         zip: '85002',
-        latitude: 33.4650,
+        latitude: 33.465,
         longitude: -112.088,
         price_per_gallon: 3.35,
         diesel_price: 3.76,

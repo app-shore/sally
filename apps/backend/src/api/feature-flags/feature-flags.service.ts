@@ -16,7 +16,7 @@ export class FeatureFlagsService {
       orderBy: { category: 'asc' },
     });
 
-    return flags.map(flag => ({
+    return flags.map((flag) => ({
       key: flag.key,
       name: flag.name,
       description: flag.description || undefined,
@@ -65,7 +65,9 @@ export class FeatureFlagsService {
       data: { enabled },
     });
 
-    this.logger.log(`Feature flag '${key}' ${enabled ? 'enabled' : 'disabled'}`);
+    this.logger.log(
+      `Feature flag '${key}' ${enabled ? 'enabled' : 'disabled'}`,
+    );
 
     return {
       key: flag.key,

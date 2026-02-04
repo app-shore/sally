@@ -95,7 +95,10 @@ export class IntegrationManagerService {
             throw new Error('No active HOS integration configured');
           }
 
-          const apiToken = this.getCredentialField(integration.credentials, 'apiToken');
+          const apiToken = this.getCredentialField(
+            integration.credentials,
+            'apiToken',
+          );
 
           return await this.samsaraAdapter.getDriverHOS(
             apiToken,
@@ -160,23 +163,55 @@ export class IntegrationManagerService {
       let success = false;
 
       // Test connection based on vendor - use dynamic credential field names
-      if (integration.vendor === 'SAMSARA_ELD' || integration.vendor === 'KEEPTRUCKIN_ELD' || integration.vendor === 'MOTIVE_ELD') {
+      if (
+        integration.vendor === 'SAMSARA_ELD' ||
+        integration.vendor === 'KEEPTRUCKIN_ELD' ||
+        integration.vendor === 'MOTIVE_ELD'
+      ) {
         // These vendors use 'apiToken' field
-        const apiToken = this.getCredentialField(integration.credentials, 'apiToken');
+        const apiToken = this.getCredentialField(
+          integration.credentials,
+          'apiToken',
+        );
         success = await this.samsaraAdapter.testConnection(apiToken);
-      } else if (integration.vendor === 'MCLEOD_TMS' || integration.vendor === 'TMW_TMS') {
+      } else if (
+        integration.vendor === 'MCLEOD_TMS' ||
+        integration.vendor === 'TMW_TMS'
+      ) {
         // These vendors use 'apiKey' and 'baseUrl' fields
-        const apiKey = this.getCredentialField(integration.credentials, 'apiKey');
-        const baseUrl = this.getCredentialField(integration.credentials, 'baseUrl');
+        const apiKey = this.getCredentialField(
+          integration.credentials,
+          'apiKey',
+        );
+        const baseUrl = this.getCredentialField(
+          integration.credentials,
+          'baseUrl',
+        );
         success = await this.mcleodAdapter.testConnection(apiKey, baseUrl);
       } else if (integration.vendor === 'PROJECT44_TMS') {
         // This vendor uses 'clientId' and 'clientSecret' fields
-        const clientId = this.getCredentialField(integration.credentials, 'clientId');
-        const clientSecret = this.getCredentialField(integration.credentials, 'clientSecret');
-        success = await this.project44Adapter.testConnection(clientId, clientSecret);
-      } else if (integration.vendor === 'GASBUDDY_FUEL' || integration.vendor === 'FUELFINDER_FUEL' || integration.vendor === 'OPENWEATHER') {
+        const clientId = this.getCredentialField(
+          integration.credentials,
+          'clientId',
+        );
+        const clientSecret = this.getCredentialField(
+          integration.credentials,
+          'clientSecret',
+        );
+        success = await this.project44Adapter.testConnection(
+          clientId,
+          clientSecret,
+        );
+      } else if (
+        integration.vendor === 'GASBUDDY_FUEL' ||
+        integration.vendor === 'FUELFINDER_FUEL' ||
+        integration.vendor === 'OPENWEATHER'
+      ) {
         // These vendors use 'apiKey' field
-        const apiKey = this.getCredentialField(integration.credentials, 'apiKey');
+        const apiKey = this.getCredentialField(
+          integration.credentials,
+          'apiKey',
+        );
         if (integration.vendor === 'GASBUDDY_FUEL') {
           success = await this.gasBuddyAdapter.testConnection(apiKey);
         } else if (integration.vendor === 'FUELFINDER_FUEL') {
@@ -227,7 +262,11 @@ export class IntegrationManagerService {
       await this.recordSyncFailure(tenantId, 'HOS_SYNC', error);
 
       // Send alert on repeated failures (3+ in last 60 minutes)
-      const recentFailures = await this.getRecentFailureCount(tenantId, 'HOS_SYNC', 60);
+      const recentFailures = await this.getRecentFailureCount(
+        tenantId,
+        'HOS_SYNC',
+        60,
+      );
 
       if (recentFailures >= 3) {
         try {
@@ -269,7 +308,9 @@ export class IntegrationManagerService {
       },
     });
 
-    console.log(`Syncing HOS for ${drivers.length} drivers (tenant ${tenantId})`);
+    console.log(
+      `Syncing HOS for ${drivers.length} drivers (tenant ${tenantId})`,
+    );
 
     const results = await Promise.allSettled(
       drivers.map((driver) => this.syncDriverHOS(tenantId, driver.driverId)),
@@ -352,7 +393,9 @@ export class IntegrationManagerService {
         });
       }
 
-      this.logger.error(`Sync failure: ${syncType} for tenant ${tenantId}: ${error.message}`);
+      this.logger.error(
+        `Sync failure: ${syncType} for tenant ${tenantId}: ${error.message}`,
+      );
     } catch (logError) {
       // Don't block on logging failures
       this.logger.error(`Failed to record sync failure: ${logError.message}`);

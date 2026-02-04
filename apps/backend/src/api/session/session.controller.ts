@@ -1,4 +1,11 @@
-import { Controller, Post, Body, HttpStatus, HttpException, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpStatus,
+  HttpException,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -17,7 +24,9 @@ export class SessionController {
   private readonly sessions = new Map<string, Session>();
 
   @Post('login')
-  @ApiOperation({ summary: 'Mock login (no authentication, just creates session)' })
+  @ApiOperation({
+    summary: 'Mock login (no authentication, just creates session)',
+  })
   @ApiBody({
     schema: {
       type: 'object',
@@ -28,17 +37,27 @@ export class SessionController {
       required: ['user_type'],
     },
   })
-  async login(@Body() body: { user_type: 'dispatcher' | 'driver'; user_id?: string }) {
-    this.logger.log(`Mock login: user_type=${body.user_type}, user_id=${body.user_id || 'null'}`);
+  async login(
+    @Body() body: { user_type: 'dispatcher' | 'driver'; user_id?: string },
+  ) {
+    this.logger.log(
+      `Mock login: user_type=${body.user_type}, user_id=${body.user_id || 'null'}`,
+    );
 
     // Validate user_type
     if (!['dispatcher', 'driver'].includes(body.user_type)) {
-      throw new HttpException({ detail: 'Invalid user_type. Must be "dispatcher" or "driver"' }, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        { detail: 'Invalid user_type. Must be "dispatcher" or "driver"' },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     // If driver, user_id is required
     if (body.user_type === 'driver' && !body.user_id) {
-      throw new HttpException({ detail: 'user_id is required when user_type is "driver"' }, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        { detail: 'user_id is required when user_type is "driver"' },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     // Create session
@@ -84,7 +103,10 @@ export class SessionController {
     const deleted = this.sessions.delete(body.session_id);
 
     if (!deleted) {
-      throw new HttpException({ detail: 'Session not found or already expired' }, HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        { detail: 'Session not found or already expired' },
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return {

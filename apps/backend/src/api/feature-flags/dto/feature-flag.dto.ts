@@ -8,7 +8,10 @@ export class FeatureFlagDto {
   @ApiProperty({ example: 'Route Planning' })
   name: string;
 
-  @ApiProperty({ example: 'Intelligent route planning with HOS compliance', required: false })
+  @ApiProperty({
+    example: 'Intelligent route planning with HOS compliance',
+    required: false,
+  })
   description?: string;
 
   @ApiProperty({ example: false })

@@ -62,7 +62,9 @@ describe('TmsSyncService', () => {
         credentials: { apiKey: 'test-key', baseUrl: 'https://tms.example.com' },
       };
 
-      jest.spyOn(prisma.integrationConfig, 'findUnique').mockResolvedValue(mockIntegration as any);
+      jest
+        .spyOn(prisma.integrationConfig, 'findUnique')
+        .mockResolvedValue(mockIntegration as any);
       mockedAxios.get.mockResolvedValue({ data: mockTmsVehicles });
       jest.spyOn(prisma.vehicle, 'upsert').mockResolvedValue({} as any);
 
@@ -72,7 +74,7 @@ describe('TmsSyncService', () => {
         'https://tms.example.com/api/vehicles',
         expect.objectContaining({
           headers: { Authorization: 'Bearer test-key' },
-        })
+        }),
       );
 
       expect(prisma.vehicle.upsert).toHaveBeenCalledWith({
@@ -116,7 +118,9 @@ describe('TmsSyncService', () => {
         credentials: { apiKey: 'test-key', baseUrl: 'https://tms.example.com' },
       };
 
-      jest.spyOn(prisma.integrationConfig, 'findUnique').mockResolvedValue(mockIntegration as any);
+      jest
+        .spyOn(prisma.integrationConfig, 'findUnique')
+        .mockResolvedValue(mockIntegration as any);
       mockedAxios.get.mockResolvedValue({ data: mockTmsDrivers });
       jest.spyOn(prisma.driver, 'upsert').mockResolvedValue({} as any);
 

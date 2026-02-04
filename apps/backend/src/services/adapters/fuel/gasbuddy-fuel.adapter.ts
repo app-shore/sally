@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { IFuelAdapter, FuelStation, FuelStationQuery } from './fuel-adapter.interface';
+import {
+  IFuelAdapter,
+  FuelStation,
+  FuelStationQuery,
+} from './fuel-adapter.interface';
 
 /**
  * GasBuddy Fuel Price Adapter
@@ -17,7 +21,10 @@ export class GasBuddyFuelAdapter implements IFuelAdapter {
    * Find fuel stations near a location
    * Currently returns mock data - see useMockData flag
    */
-  async findStations(apiKey: string, query: FuelStationQuery): Promise<FuelStation[]> {
+  async findStations(
+    apiKey: string,
+    query: FuelStationQuery,
+  ): Promise<FuelStation[]> {
     if (this.useMockData) {
       return this.getMockStations(query);
     }
@@ -31,7 +38,9 @@ export class GasBuddyFuelAdapter implements IFuelAdapter {
       // });
       throw new Error('Real GasBuddy API integration not implemented yet');
     } catch (error) {
-      throw new Error(`Failed to fetch fuel stations from GasBuddy: ${error.message}`);
+      throw new Error(
+        `Failed to fetch fuel stations from GasBuddy: ${error.message}`,
+      );
     }
   }
 
@@ -39,7 +48,10 @@ export class GasBuddyFuelAdapter implements IFuelAdapter {
    * Get current price for a specific station
    * Currently returns mock data
    */
-  async getStationPrice(apiKey: string, stationId: string): Promise<FuelStation> {
+  async getStationPrice(
+    apiKey: string,
+    stationId: string,
+  ): Promise<FuelStation> {
     if (this.useMockData) {
       const stations = this.getMockStations({
         latitude: 32.7767,
@@ -53,7 +65,9 @@ export class GasBuddyFuelAdapter implements IFuelAdapter {
       // TODO: Implement actual GasBuddy API integration
       throw new Error('Real GasBuddy API integration not implemented yet');
     } catch (error) {
-      throw new Error(`Failed to fetch station from GasBuddy: ${error.message}`);
+      throw new Error(
+        `Failed to fetch station from GasBuddy: ${error.message}`,
+      );
     }
   }
 
@@ -172,19 +186,21 @@ export class GasBuddyFuelAdapter implements IFuelAdapter {
     let filteredStations = baseStations;
     if (query.radius_miles) {
       filteredStations = baseStations.filter(
-        (s) => s.distance_miles! <= query.radius_miles!,
+        (s) => s.distance_miles <= query.radius_miles,
       );
     }
 
     // Sort by price or distance
     if (query.sort_by === 'PRICE') {
       filteredStations.sort((a, b) => {
-        const priceA = query.fuel_type === 'DIESEL' ? a.diesel_price! : a.price_per_gallon;
-        const priceB = query.fuel_type === 'DIESEL' ? b.diesel_price! : b.price_per_gallon;
+        const priceA =
+          query.fuel_type === 'DIESEL' ? a.diesel_price : a.price_per_gallon;
+        const priceB =
+          query.fuel_type === 'DIESEL' ? b.diesel_price : b.price_per_gallon;
         return priceA - priceB;
       });
     } else {
-      filteredStations.sort((a, b) => a.distance_miles! - b.distance_miles!);
+      filteredStations.sort((a, b) => a.distance_miles - b.distance_miles);
     }
 
     // Limit results

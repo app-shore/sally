@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Suspense } from 'react';
-import { AcceptInvitationForm } from '@/components/auth/accept-invitation-form';
+import { Suspense } from "react";
+import { AcceptInvitationForm } from "@/components/auth/accept-invitation-form";
 
 export default function AcceptInvitationPage() {
   return (

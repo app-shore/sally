@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CredentialsService } from '../../services/credentials/credentials.service';
 import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';
@@ -104,7 +108,10 @@ export class IntegrationsService {
   /**
    * Create new integration
    */
-  async createIntegration(tenantId: number | string, dto: CreateIntegrationDto) {
+  async createIntegration(
+    tenantId: number | string,
+    dto: CreateIntegrationDto,
+  ) {
     // Validate vendor exists in registry
     const vendorMeta = VENDOR_REGISTRY[dto.vendor];
     if (!vendorMeta) {
@@ -112,11 +119,12 @@ export class IntegrationsService {
     }
 
     // Validate required credentials provided
-    const missingFields = vendorMeta.credentialFields
-      .filter(f => f.required && !dto.credentials?.[f.name]);
+    const missingFields = vendorMeta.credentialFields.filter(
+      (f) => f.required && !dto.credentials?.[f.name],
+    );
     if (missingFields.length > 0) {
       throw new BadRequestException(
-        `Missing required credentials: ${missingFields.map(f => f.name).join(', ')}`
+        `Missing required credentials: ${missingFields.map((f) => f.name).join(', ')}`,
       );
     }
 
@@ -146,7 +154,7 @@ export class IntegrationsService {
 
     if (existing) {
       throw new BadRequestException(
-        `Integration already exists for ${vendorMeta.displayName}. Please edit the existing integration instead.`
+        `Integration already exists for ${vendorMeta.displayName}. Please edit the existing integration instead.`,
       );
     }
 
@@ -155,7 +163,9 @@ export class IntegrationsService {
     if (dto.credentials) {
       encryptedCredentials = {};
       for (const [key, value] of Object.entries(dto.credentials)) {
-        encryptedCredentials[key] = value ? this.credentials.encrypt(value) : value;
+        encryptedCredentials[key] = value
+          ? this.credentials.encrypt(value)
+          : value;
       }
     }
 

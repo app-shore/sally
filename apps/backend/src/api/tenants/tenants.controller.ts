@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Param,
-  Query,
-} from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 import { Public } from '../../auth/decorators/public.decorator';
@@ -26,7 +19,8 @@ export class TenantsController {
   @Public()
   @Get('check-subdomain/:subdomain')
   async checkSubdomain(@Param('subdomain') subdomain: string) {
-    const available = await this.tenantsService.checkSubdomainAvailability(subdomain);
+    const available =
+      await this.tenantsService.checkSubdomainAvailability(subdomain);
     return { available };
   }
 

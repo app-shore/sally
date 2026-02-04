@@ -13,7 +13,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService<Configuration>);
 
-  const corsOrigins = configService.get<string>('corsOrigins') || 'http://localhost:3000';
+  const corsOrigins =
+    configService.get<string>('corsOrigins') || 'http://localhost:3000';
 
   // Cookie parser for refresh tokens
   app.use(cookieParser());
@@ -32,7 +33,9 @@ async function bootstrap() {
   // Swagger/OpenAPI documentation
   const swaggerConfig = new DocumentBuilder()
     .setTitle('SALLY Backend API')
-    .setDescription('Your Fleet Operations Assistant - API with Multi-Tenant Auth')
+    .setDescription(
+      'Your Fleet Operations Assistant - API with Multi-Tenant Auth',
+    )
     .setVersion('1.0.0')
     .addBearerAuth()
     .addTag('Authentication', 'JWT-based authentication with multi-tenancy')

@@ -46,9 +46,13 @@ describe('IntegrationsController - Sync Endpoints', () => {
     });
 
     it('should return error if sync fails', async () => {
-      jest.spyOn(service, 'triggerSync').mockRejectedValue(new Error('Sync failed'));
+      jest
+        .spyOn(service, 'triggerSync')
+        .mockRejectedValue(new Error('Sync failed'));
 
-      await expect(controller.triggerSync('test-integration-id')).rejects.toThrow('Sync failed');
+      await expect(
+        controller.triggerSync('test-integration-id'),
+      ).rejects.toThrow('Sync failed');
     });
   });
 });
@@ -115,12 +119,12 @@ describe('IntegrationsService - Credential Validation', () => {
         credentials: {},
       };
 
-      await expect(service.createIntegration('test-tenant', dto)).rejects.toThrow(
-        BadRequestException
-      );
-      await expect(service.createIntegration('test-tenant', dto)).rejects.toThrow(
-        'Unsupported vendor: INVALID_VENDOR'
-      );
+      await expect(
+        service.createIntegration('test-tenant', dto),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.createIntegration('test-tenant', dto),
+      ).rejects.toThrow('Unsupported vendor: INVALID_VENDOR');
     });
 
     it('should reject missing required credentials', async () => {
@@ -131,12 +135,12 @@ describe('IntegrationsService - Credential Validation', () => {
         credentials: {}, // Missing apiToken
       };
 
-      await expect(service.createIntegration('test-tenant', dto)).rejects.toThrow(
-        BadRequestException
-      );
-      await expect(service.createIntegration('test-tenant', dto)).rejects.toThrow(
-        'Missing required credentials: apiToken'
-      );
+      await expect(
+        service.createIntegration('test-tenant', dto),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.createIntegration('test-tenant', dto),
+      ).rejects.toThrow('Missing required credentials: apiToken');
     });
 
     it('should accept valid credentials', async () => {

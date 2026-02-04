@@ -1,12 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { getDefaultRouteForRole } from '@/lib/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { getDefaultRouteForRole } from "@/lib/navigation";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -15,8 +22,8 @@ export default function OnboardingPage() {
 
   const steps = [
     {
-      title: 'Welcome to SALLY',
-      description: 'Let\'s get your organization set up',
+      title: "Welcome to SALLY",
+      description: "Let's get your organization set up",
       content: (
         <div className="space-y-4">
           <p className="text-muted-foreground">
@@ -26,23 +33,29 @@ export default function OnboardingPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <span className="text-foreground">Your account has been approved</span>
+              <span className="text-foreground">
+                Your account has been approved
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <span className="text-foreground">Your organization is ready</span>
+              <span className="text-foreground">
+                Your organization is ready
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <span className="text-foreground">You can start inviting your team</span>
+              <span className="text-foreground">
+                You can start inviting your team
+              </span>
             </div>
           </div>
         </div>
       ),
     },
     {
-      title: 'Setup Complete',
-      description: 'You\'re ready to start using SALLY',
+      title: "Setup Complete",
+      description: "You're ready to start using SALLY",
       content: (
         <div className="space-y-4">
           <p className="text-muted-foreground">
@@ -82,9 +95,7 @@ export default function OnboardingPage() {
           <CardTitle>{steps[currentStep].title}</CardTitle>
           <CardDescription>{steps[currentStep].description}</CardDescription>
         </CardHeader>
-        <CardContent>
-          {steps[currentStep].content}
-        </CardContent>
+        <CardContent>{steps[currentStep].content}</CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="outline" onClick={handleSkip}>
             Skip Setup
@@ -94,7 +105,7 @@ export default function OnboardingPage() {
               Step {currentStep + 1} of {steps.length}
             </span>
             <Button onClick={handleNext}>
-              {currentStep < steps.length - 1 ? 'Next' : 'Go to Dashboard'}
+              {currentStep < steps.length - 1 ? "Next" : "Go to Dashboard"}
             </Button>
           </div>
         </CardFooter>

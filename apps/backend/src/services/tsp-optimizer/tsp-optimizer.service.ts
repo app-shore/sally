@@ -28,13 +28,24 @@ export class TSPOptimizerService {
     this.distanceMatrix = distanceMatrix;
   }
 
-  optimize(stops: TSPStop[], optimizationPriority = 'minimize_time'): TSPResult {
+  optimize(
+    stops: TSPStop[],
+    optimizationPriority = 'minimize_time',
+  ): TSPResult {
     if (stops.length === 0) {
-      return { optimized_sequence: [], total_distance: 0.0, route_segments: [] };
+      return {
+        optimized_sequence: [],
+        total_distance: 0.0,
+        route_segments: [],
+      };
     }
 
     if (stops.length === 1) {
-      return { optimized_sequence: [stops[0].stop_id], total_distance: 0.0, route_segments: [] };
+      return {
+        optimized_sequence: [stops[0].stop_id],
+        total_distance: 0.0,
+        route_segments: [],
+      };
     }
 
     // Separate fixed stops (origin/destination) from waypoints
@@ -51,7 +62,11 @@ export class TSPOptimizerService {
     // Step 1: Greedy nearest-neighbor for waypoints
     let greedySequence: string[];
     if (waypoints.length > 0) {
-      greedySequence = this.greedyNearestNeighbor(origin, waypoints, destination);
+      greedySequence = this.greedyNearestNeighbor(
+        origin,
+        waypoints,
+        destination,
+      );
     } else {
       // No waypoints, just origin to destination
       greedySequence = [origin.stop_id];
@@ -75,7 +90,9 @@ export class TSPOptimizerService {
       routeSegments.push([fromStop, toStop, distance]);
     }
 
-    logger.log(`TSP optimization complete: ${stops.length} stops, total distance: ${totalDistance.toFixed(1)} miles`);
+    logger.log(
+      `TSP optimization complete: ${stops.length} stops, total distance: ${totalDistance.toFixed(1)} miles`,
+    );
 
     return {
       optimized_sequence: improvedSequence,
@@ -84,7 +101,11 @@ export class TSPOptimizerService {
     };
   }
 
-  private greedyNearestNeighbor(origin: TSPStop, waypoints: TSPStop[], destination: TSPStop | undefined): string[] {
+  private greedyNearestNeighbor(
+    origin: TSPStop,
+    waypoints: TSPStop[],
+    destination: TSPStop | undefined,
+  ): string[] {
     const sequence = [origin.stop_id];
     const unvisited = new Set(waypoints.map((w) => w.stop_id));
     let current = origin.stop_id;
@@ -170,9 +191,12 @@ export class TSPOptimizerService {
     const key1 = `${fromStop}:${toStop}`;
     const key2 = `${toStop}:${fromStop}`;
 
-    const distance = this.distanceMatrix.get(key1) ?? this.distanceMatrix.get(key2);
+    const distance =
+      this.distanceMatrix.get(key1) ?? this.distanceMatrix.get(key2);
     if (distance === undefined) {
-      logger.warn(`Distance not found for ${fromStop} -> ${toStop}, using default 100 miles`);
+      logger.warn(
+        `Distance not found for ${fromStop} -> ${toStop}, using default 100 miles`,
+      );
       return 100.0; // Default fallback
     }
     return distance;

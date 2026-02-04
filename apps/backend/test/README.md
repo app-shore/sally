@@ -45,8 +45,8 @@ The `integrations.e2e.spec.ts` file tests:
 
 ### Create Integration Endpoints
 - ✅ Creating Samsara HOS/ELD integration
-- ✅ Creating Truckbase TMS integration
-- ✅ Creating FuelFinder integration
+- ✅ Creating project44 TMS integration
+- ✅ Creating GasBuddy integration
 - ✅ Creating OpenWeather integration
 - ✅ Validation (rejecting invalid integration types)
 - ✅ Authentication (rejecting unauthenticated requests)

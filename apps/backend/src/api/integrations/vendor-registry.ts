@@ -55,7 +55,8 @@ export const VENDOR_REGISTRY: Record<string, VendorMetadata> = {
         label: 'API Token',
         type: 'password',
         required: true,
-        helpText: 'Get your API token from Samsara Dashboard → Settings → API Tokens',
+        helpText:
+          'Get your API token from Samsara Dashboard → Settings → API Tokens',
         placeholder: 'samsara_api_xxxxxxxxxxxxx',
       },
     ],

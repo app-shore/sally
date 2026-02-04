@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ITMSAdapter, LoadData, VehicleData, DriverData } from './tms-adapter.interface';
+import {
+  ITMSAdapter,
+  LoadData,
+  VehicleData,
+  DriverData,
+} from './tms-adapter.interface';
 
 /**
  * McLeod TMS Adapter
@@ -17,7 +22,11 @@ export class McLeodTMSAdapter implements ITMSAdapter {
    * Get load details from McLeod TMS
    * Currently returns mock data - see useMockData flag
    */
-  async getLoad(apiKey: string, apiSecret: string, loadId: string): Promise<LoadData> {
+  async getLoad(
+    apiKey: string,
+    apiSecret: string,
+    loadId: string,
+  ): Promise<LoadData> {
     if (this.useMockData) {
       return this.getMockLoad(loadId);
     }
@@ -188,8 +197,12 @@ export class McLeodTMSAdapter implements ITMSAdapter {
           latitude: 29.7604,
           longitude: -95.3698,
         },
-        pickup_appointment: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-        delivery_appointment: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+        pickup_appointment: new Date(
+          Date.now() + 2 * 60 * 60 * 1000,
+        ).toISOString(),
+        delivery_appointment: new Date(
+          Date.now() + 8 * 60 * 60 * 1000,
+        ).toISOString(),
         assigned_driver_id: 'driver_001',
         assigned_vehicle_id: 'vehicle_001',
         status: 'ASSIGNED' as const,

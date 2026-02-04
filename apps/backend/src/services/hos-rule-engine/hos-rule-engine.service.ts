@@ -49,8 +49,14 @@ export class HOSRuleEngineService {
   constructor(private readonly configService: ConfigService<Configuration>) {
     this.maxDriveHours = this.configService.get<number>('maxDriveHours', 11.0);
     this.maxDutyHours = this.configService.get<number>('maxDutyHours', 14.0);
-    this.requiredBreakMinutes = this.configService.get<number>('requiredBreakMinutes', 30);
-    this.breakTriggerHours = this.configService.get<number>('breakTriggerHours', 8.0);
+    this.requiredBreakMinutes = this.configService.get<number>(
+      'requiredBreakMinutes',
+      30,
+    );
+    this.breakTriggerHours = this.configService.get<number>(
+      'breakTriggerHours',
+      8.0,
+    );
     this.minRestHours = this.configService.get<number>('minRestHours', 10.0);
   }
 
@@ -115,7 +121,8 @@ export class HOSRuleEngineService {
 
     // Determine if break or rest is required
     const breakRequired = hoursSinceBreak >= this.breakTriggerHours;
-    const restRequired = hoursDriven >= this.maxDriveHours || onDutyTime >= this.maxDutyHours;
+    const restRequired =
+      hoursDriven >= this.maxDriveHours || onDutyTime >= this.maxDutyHours;
 
     return {
       status,
@@ -201,8 +208,16 @@ export class HOSRuleEngineService {
     };
   }
 
-  canDrive(hoursDriven: number, onDutyTime: number, hoursSinceBreak: number): boolean {
-    const result = this.validateCompliance(hoursDriven, onDutyTime, hoursSinceBreak);
+  canDrive(
+    hoursDriven: number,
+    onDutyTime: number,
+    hoursSinceBreak: number,
+  ): boolean {
+    const result = this.validateCompliance(
+      hoursDriven,
+      onDutyTime,
+      hoursSinceBreak,
+    );
     return result.is_compliant && !result.rest_required;
   }
 

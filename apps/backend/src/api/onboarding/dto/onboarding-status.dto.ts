@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsBoolean, IsObject, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsBoolean,
+  IsObject,
+  IsString,
+} from 'class-validator';
 
 export interface OnboardingItem {
   id: string;

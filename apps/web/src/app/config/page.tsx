@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSessionStore } from "@/lib/store/sessionStore";
 import {
   listDrivers,
   createDriver,
@@ -10,7 +10,7 @@ import {
   deleteDriver,
   type Driver,
   type CreateDriverRequest,
-} from '@/lib/api/drivers';
+} from "@/lib/api/drivers";
 import {
   listVehicles,
   createVehicle,
@@ -18,19 +18,19 @@ import {
   deleteVehicle,
   type Vehicle,
   type CreateVehicleRequest,
-} from '@/lib/api/vehicles';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/lib/api/vehicles";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -38,7 +38,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 
 export default function ConfigPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -50,7 +50,12 @@ export default function ConfigPage() {
 
   useEffect(() => {
     // Auth is handled by layout-client, just check role and load data
-    if (isAuthenticated && (user?.role === 'DISPATCHER' || user?.role === 'ADMIN' || user?.role === 'OWNER')) {
+    if (
+      isAuthenticated &&
+      (user?.role === "DISPATCHER" ||
+        user?.role === "ADMIN" ||
+        user?.role === "OWNER")
+    ) {
       loadData();
     }
   }, [isAuthenticated, user]);
@@ -66,20 +71,25 @@ export default function ConfigPage() {
       setDrivers(driversData);
       setVehicles(vehiclesData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      setError(err instanceof Error ? err.message : "Failed to load data");
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!isAuthenticated || (user?.role !== 'DISPATCHER' && user?.role !== 'ADMIN')) {
+  if (
+    !isAuthenticated ||
+    (user?.role !== "DISPATCHER" && user?.role !== "ADMIN")
+  ) {
     return null;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Configuration</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Configuration
+        </h1>
       </div>
 
       <Tabs defaultValue="drivers" className="space-y-4">
@@ -142,7 +152,7 @@ function DriversTab({
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
 
   const handleDelete = async (driverId: string) => {
-    if (!confirm('Are you sure you want to delete this driver?')) {
+    if (!confirm("Are you sure you want to delete this driver?")) {
       return;
     }
 
@@ -150,7 +160,7 @@ function DriversTab({
       await deleteDriver(driverId);
       await onRefresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete driver');
+      alert(err instanceof Error ? err.message : "Failed to delete driver");
     }
   };
 
@@ -180,7 +190,7 @@ function DriversTab({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingDriver ? 'Edit Driver' : 'Add Driver'}
+                {editingDriver ? "Edit Driver" : "Add Driver"}
               </DialogTitle>
             </DialogHeader>
             <DriverForm
@@ -193,7 +203,9 @@ function DriversTab({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="text-center py-8 text-gray-500">Loading drivers...</div>
+          <div className="text-center py-8 text-gray-500">
+            Loading drivers...
+          </div>
         ) : error ? (
           <div className="text-center py-8">
             <p className="text-red-600 mb-4">{error}</p>
@@ -219,8 +231,8 @@ function DriversTab({
                 <TableRow key={driver.id}>
                   <TableCell className="font-medium">{driver.name}</TableCell>
                   <TableCell>{driver.license_number}</TableCell>
-                  <TableCell>{driver.phone || '-'}</TableCell>
-                  <TableCell>{driver.email || '-'}</TableCell>
+                  <TableCell>{driver.phone || "-"}</TableCell>
+                  <TableCell>{driver.email || "-"}</TableCell>
                   <TableCell className="text-right">
                     <Button
                       size="sm"
@@ -258,10 +270,10 @@ function DriverForm({
   onCancel: () => void;
 }) {
   const [formData, setFormData] = useState<CreateDriverRequest>({
-    name: driver?.name || '',
-    license_number: driver?.license_number || '',
-    phone: driver?.phone || '',
-    email: driver?.email || '',
+    name: driver?.name || "",
+    license_number: driver?.license_number || "",
+    phone: driver?.phone || "",
+    email: driver?.email || "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -279,7 +291,7 @@ function DriverForm({
       }
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save driver');
+      setError(err instanceof Error ? err.message : "Failed to save driver");
     } finally {
       setIsSubmitting(false);
     }
@@ -336,7 +348,7 @@ function DriverForm({
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : driver ? 'Update' : 'Create'}
+          {isSubmitting ? "Saving..." : driver ? "Update" : "Create"}
         </Button>
       </div>
     </form>
@@ -358,7 +370,7 @@ function VehiclesTab({
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
   const handleDelete = async (vehicleId: string) => {
-    if (!confirm('Are you sure you want to delete this vehicle?')) {
+    if (!confirm("Are you sure you want to delete this vehicle?")) {
       return;
     }
 
@@ -366,7 +378,7 @@ function VehiclesTab({
       await deleteVehicle(vehicleId);
       await onRefresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete vehicle');
+      alert(err instanceof Error ? err.message : "Failed to delete vehicle");
     }
   };
 
@@ -396,7 +408,7 @@ function VehiclesTab({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'}
+                {editingVehicle ? "Edit Vehicle" : "Add Vehicle"}
               </DialogTitle>
             </DialogHeader>
             <VehicleForm
@@ -409,7 +421,9 @@ function VehiclesTab({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="text-center py-8 text-gray-500">Loading vehicles...</div>
+          <div className="text-center py-8 text-gray-500">
+            Loading vehicles...
+          </div>
         ) : error ? (
           <div className="text-center py-8">
             <p className="text-red-600 mb-4">{error}</p>
@@ -434,15 +448,19 @@ function VehiclesTab({
             <TableBody>
               {vehicles.map((vehicle) => (
                 <TableRow key={vehicle.id}>
-                  <TableCell className="font-medium">{vehicle.unit_number}</TableCell>
+                  <TableCell className="font-medium">
+                    {vehicle.unit_number}
+                  </TableCell>
                   <TableCell>
                     {vehicle.make && vehicle.model
                       ? `${vehicle.make} ${vehicle.model}`
-                      : '-'}
+                      : "-"}
                   </TableCell>
-                  <TableCell>{vehicle.year || '-'}</TableCell>
+                  <TableCell>{vehicle.year || "-"}</TableCell>
                   <TableCell>{vehicle.fuel_capacity_gallons} gal</TableCell>
-                  <TableCell>{vehicle.mpg ? `${vehicle.mpg} mpg` : '-'}</TableCell>
+                  <TableCell>
+                    {vehicle.mpg ? `${vehicle.mpg} mpg` : "-"}
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button
                       size="sm"
@@ -480,10 +498,10 @@ function VehicleForm({
   onCancel: () => void;
 }) {
   const [formData, setFormData] = useState<CreateVehicleRequest>({
-    unit_number: vehicle?.unit_number || '',
-    vin: vehicle?.vin || '',
-    make: vehicle?.make || '',
-    model: vehicle?.model || '',
+    unit_number: vehicle?.unit_number || "",
+    vin: vehicle?.vin || "",
+    make: vehicle?.make || "",
+    model: vehicle?.model || "",
     year: vehicle?.year || undefined,
     fuel_capacity_gallons: vehicle?.fuel_capacity_gallons || 0,
     current_fuel_gallons: vehicle?.current_fuel_gallons || undefined,
@@ -505,7 +523,7 @@ function VehicleForm({
       }
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save vehicle');
+      setError(err instanceof Error ? err.message : "Failed to save vehicle");
     } finally {
       setIsSubmitting(false);
     }
@@ -540,7 +558,9 @@ function VehicleForm({
           <Input
             id="model"
             value={formData.model}
-            onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, model: e.target.value })
+            }
           />
         </div>
       </div>
@@ -551,7 +571,7 @@ function VehicleForm({
           <Input
             id="year"
             type="number"
-            value={formData.year || ''}
+            value={formData.year || ""}
             onChange={(e) =>
               setFormData({
                 ...formData,
@@ -578,7 +598,7 @@ function VehicleForm({
             id="fuel_capacity"
             type="number"
             step="0.1"
-            value={formData.fuel_capacity_gallons || ''}
+            value={formData.fuel_capacity_gallons || ""}
             onChange={(e) =>
               setFormData({
                 ...formData,
@@ -595,7 +615,7 @@ function VehicleForm({
             id="mpg"
             type="number"
             step="0.1"
-            value={formData.mpg || ''}
+            value={formData.mpg || ""}
             onChange={(e) =>
               setFormData({
                 ...formData,
@@ -613,7 +633,7 @@ function VehicleForm({
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : vehicle ? 'Update' : 'Create'}
+          {isSubmitting ? "Saving..." : vehicle ? "Update" : "Create"}
         </Button>
       </div>
     </form>

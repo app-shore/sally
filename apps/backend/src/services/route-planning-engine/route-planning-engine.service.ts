@@ -1,11 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { HOSRuleEngineService, HOSState } from '../hos-rule-engine/hos-rule-engine.service';
+import {
+  HOSRuleEngineService,
+  HOSState,
+} from '../hos-rule-engine/hos-rule-engine.service';
 import { PredictionEngineService } from '../prediction-engine/prediction-engine.service';
 import { RestOptimizationService } from '../rest-optimization/rest-optimization.service';
 import { RestStopFinderService } from '../rest-stop-finder/rest-stop-finder.service';
 import { FuelStopOptimizerService } from '../fuel-stop-optimizer/fuel-stop-optimizer.service';
-import { TSPOptimizerService, TSPStop } from '../tsp-optimizer/tsp-optimizer.service';
-import { calculateDistanceMatrix, estimateDriveTime, haversineDistance } from '../../utils/distance-calculator';
+import {
+  TSPOptimizerService,
+  TSPStop,
+} from '../tsp-optimizer/tsp-optimizer.service';
+import {
+  calculateDistanceMatrix,
+  estimateDriveTime,
+  haversineDistance,
+} from '../../utils/distance-calculator';
 
 const logger = new Logger('RoutePlanningEngineService');
 
@@ -40,7 +50,12 @@ export interface RouteOptimizationResult {
   total_drive_time_hours: number;
   total_on_duty_time_hours: number;
   total_cost_estimate: number;
-  rest_stops: Array<{ location: string; type: string; duration_hours: number; reason: string }>;
+  rest_stops: Array<{
+    location: string;
+    type: string;
+    duration_hours: number;
+    reason: string;
+  }>;
   fuel_stops: Array<{ location: string; gallons: number; cost: number }>;
   is_feasible: boolean;
   feasibility_issues: string[];
@@ -48,8 +63,16 @@ export interface RouteOptimizationResult {
 }
 
 export interface RoutePlanInput {
-  driver_state: { hours_driven: number; on_duty_time: number; hours_since_break: number };
-  vehicle_state: { fuel_capacity_gallons: number; current_fuel_gallons: number; mpg: number };
+  driver_state: {
+    hours_driven: number;
+    on_duty_time: number;
+    hours_since_break: number;
+  };
+  vehicle_state: {
+    fuel_capacity_gallons: number;
+    current_fuel_gallons: number;
+    mpg: number;
+  };
   stops: Array<{
     stop_id: string;
     name: string;
@@ -83,12 +106,21 @@ export class RoutePlanningEngineService {
     // Step 2: Optimize stop sequence with TSP
     const tspStops = this.convertToTspStops(inputData.stops);
     const tspOptimizer = new TSPOptimizerService(distanceMatrix);
-    const tspResult = tspOptimizer.optimize(tspStops, inputData.optimization_priority || 'minimize_time');
+    const tspResult = tspOptimizer.optimize(
+      tspStops,
+      inputData.optimization_priority || 'minimize_time',
+    );
 
-    logger.log(`TSP optimization complete: ${tspResult.total_distance.toFixed(1)} miles, sequence: ${tspResult.optimized_sequence}`);
+    logger.log(
+      `TSP optimization complete: ${tspResult.total_distance.toFixed(1)} miles, sequence: ${tspResult.optimized_sequence}`,
+    );
 
     // Step 3: Simulate route segment-by-segment
-    const simulationResult = this.simulateRouteExecution(tspResult, inputData, distanceMatrix);
+    const simulationResult = this.simulateRouteExecution(
+      tspResult,
+      inputData,
+      distanceMatrix,
+    );
 
     return {
       optimized_sequence: simulationResult.sequence,
@@ -120,13 +152,26 @@ export class RoutePlanningEngineService {
   }
 
   private simulateRouteExecution(
-    tspResult: { optimized_sequence: string[]; total_distance: number; route_segments: [string, string, number][] },
+    tspResult: {
+      optimized_sequence: string[];
+      total_distance: number;
+      route_segments: [string, string, number][];
+    },
     inputData: RoutePlanInput,
     distanceMatrix: Map<string, number>,
   ) {
     const segments: RouteSegment[] = [];
-    const restStops: Array<{ location: string; type: string; duration_hours: number; reason: string }> = [];
-    const fuelStops: Array<{ location: string; gallons: number; cost: number }> = [];
+    const restStops: Array<{
+      location: string;
+      type: string;
+      duration_hours: number;
+      reason: string;
+    }> = [];
+    const fuelStops: Array<{
+      location: string;
+      gallons: number;
+      cost: number;
+    }> = [];
     const feasibilityIssues: string[] = [];
 
     // Initialize state
@@ -157,8 +202,8 @@ export class RoutePlanningEngineService {
       const fromStopId = tspResult.optimized_sequence[i];
       const toStopId = tspResult.optimized_sequence[i + 1];
 
-      const fromStop = stopLookup.get(fromStopId)!;
-      const toStop = stopLookup.get(toStopId)!;
+      const fromStop = stopLookup.get(fromStopId);
+      const toStop = stopLookup.get(toStopId);
 
       // Get segment distance and time
       const distance = distanceMatrix.get(`${fromStopId}:${toStopId}`) || 0.0;
@@ -166,13 +211,26 @@ export class RoutePlanningEngineService {
 
       // Check if HOS allows this segment
       if (currentHos.hours_driven + driveTime > 11) {
-        logger.log(`HOS limit reached before ${toStopId}. Inserting rest stop.`);
+        logger.log(
+          `HOS limit reached before ${toStopId}. Inserting rest stop.`,
+        );
 
-        const restLocation = this.restStopFinder.findRestStopAlongRoute(fromStop.lat, fromStop.lon, toStop.lat, toStop.lon);
+        const restLocation = this.restStopFinder.findRestStopAlongRoute(
+          fromStop.lat,
+          fromStop.lon,
+          toStop.lat,
+          toStop.lon,
+        );
 
         if (restLocation) {
           // Calculate distance to rest stop
-          const distanceToRest = haversineDistance(fromStop.lat, fromStop.lon, restLocation.lat, restLocation.lon) * 1.2;
+          const distanceToRest =
+            haversineDistance(
+              fromStop.lat,
+              fromStop.lon,
+              restLocation.lat,
+              restLocation.lon,
+            ) * 1.2;
           const driveTimeToRest = estimateDriveTime(distanceToRest, 'highway');
 
           const restSegment: RouteSegment = {
@@ -194,13 +252,26 @@ export class RoutePlanningEngineService {
             fuel_station_name: null,
             dock_duration_hours: null,
             customer_name: null,
-            hos_state_after: { hours_driven: 0.0, on_duty_time: 0.0, hours_since_break: 0.0 },
-            estimated_arrival: new Date(currentTime.getTime() + driveTimeToRest * 60 * 60 * 1000),
-            estimated_departure: new Date(currentTime.getTime() + (driveTimeToRest + 10.0) * 60 * 60 * 1000),
+            hos_state_after: {
+              hours_driven: 0.0,
+              on_duty_time: 0.0,
+              hours_since_break: 0.0,
+            },
+            estimated_arrival: new Date(
+              currentTime.getTime() + driveTimeToRest * 60 * 60 * 1000,
+            ),
+            estimated_departure: new Date(
+              currentTime.getTime() + (driveTimeToRest + 10.0) * 60 * 60 * 1000,
+            ),
           };
 
           segments.push(restSegment);
-          restStops.push({ location: restLocation.name, type: 'full_rest', duration_hours: 10.0, reason: 'HOS 11h drive limit reached' });
+          restStops.push({
+            location: restLocation.name,
+            type: 'full_rest',
+            duration_hours: 10.0,
+            reason: 'HOS 11h drive limit reached',
+          });
 
           // Update totals for drive to rest stop
           totalDistance += distanceToRest;
@@ -212,8 +283,14 @@ export class RoutePlanningEngineService {
           currentFuel -= fuelToRest;
 
           // Reset HOS after rest (10 hour break resets everything)
-          currentHos = { hours_driven: 0.0, on_duty_time: 0.0, hours_since_break: 0.0 };
-          currentTime = new Date(currentTime.getTime() + (driveTimeToRest + 10.0) * 60 * 60 * 1000);
+          currentHos = {
+            hours_driven: 0.0,
+            on_duty_time: 0.0,
+            hours_since_break: 0.0,
+          };
+          currentTime = new Date(
+            currentTime.getTime() + (driveTimeToRest + 10.0) * 60 * 60 * 1000,
+          );
           sequenceOrder++;
         } else {
           logger.warn('No rest stop found, route may be infeasible');
@@ -227,12 +304,24 @@ export class RoutePlanningEngineService {
         logger.log(`Fuel low before ${toStopId}. Inserting fuel stop.`);
 
         const fuelRecommendation = this.fuelOptimizer.optimizeFuelStop(
-          fromStop.lat, fromStop.lon, toStop.lat, toStop.lon, currentFuel, fuelCapacity, mpg,
+          fromStop.lat,
+          fromStop.lon,
+          toStop.lat,
+          toStop.lon,
+          currentFuel,
+          fuelCapacity,
+          mpg,
         );
 
         if (fuelRecommendation.fuel_stop) {
           // Calculate distance to fuel stop (usually small detour)
-          const distanceToFuel = haversineDistance(fromStop.lat, fromStop.lon, fuelRecommendation.fuel_stop.lat, fuelRecommendation.fuel_stop.lon) * 1.2;
+          const distanceToFuel =
+            haversineDistance(
+              fromStop.lat,
+              fromStop.lon,
+              fuelRecommendation.fuel_stop.lat,
+              fuelRecommendation.fuel_stop.lon,
+            ) * 1.2;
           const driveTimeToFuel = estimateDriveTime(distanceToFuel, 'highway');
           const fuelStopDuration = 0.25; // 15 minutes for fueling
 
@@ -257,15 +346,28 @@ export class RoutePlanningEngineService {
             customer_name: null,
             hos_state_after: {
               hours_driven: currentHos.hours_driven + driveTimeToFuel,
-              on_duty_time: currentHos.on_duty_time + driveTimeToFuel + fuelStopDuration,
-              hours_since_break: currentHos.hours_since_break + driveTimeToFuel + fuelStopDuration,
+              on_duty_time:
+                currentHos.on_duty_time + driveTimeToFuel + fuelStopDuration,
+              hours_since_break:
+                currentHos.hours_since_break +
+                driveTimeToFuel +
+                fuelStopDuration,
             },
-            estimated_arrival: new Date(currentTime.getTime() + driveTimeToFuel * 60 * 60 * 1000),
-            estimated_departure: new Date(currentTime.getTime() + (driveTimeToFuel + fuelStopDuration) * 60 * 60 * 1000),
+            estimated_arrival: new Date(
+              currentTime.getTime() + driveTimeToFuel * 60 * 60 * 1000,
+            ),
+            estimated_departure: new Date(
+              currentTime.getTime() +
+                (driveTimeToFuel + fuelStopDuration) * 60 * 60 * 1000,
+            ),
           };
 
           segments.push(fuelSegment);
-          fuelStops.push({ location: fuelRecommendation.fuel_stop.name, gallons: fuelRecommendation.gallons_needed, cost: fuelRecommendation.estimated_cost });
+          fuelStops.push({
+            location: fuelRecommendation.fuel_stop.name,
+            gallons: fuelRecommendation.gallons_needed,
+            cost: fuelRecommendation.estimated_cost,
+          });
 
           // Update totals for drive to fuel stop
           totalDistance += distanceToFuel;
@@ -274,14 +376,18 @@ export class RoutePlanningEngineService {
 
           // Consume fuel to reach fuel stop, then refuel to capacity
           const fuelToStation = distanceToFuel / mpg;
-          currentFuel = currentFuel - fuelToStation + fuelRecommendation.gallons_needed;
+          currentFuel =
+            currentFuel - fuelToStation + fuelRecommendation.gallons_needed;
 
           // Update HOS state
           currentHos.hours_driven += driveTimeToFuel;
           currentHos.on_duty_time += driveTimeToFuel + fuelStopDuration;
           currentHos.hours_since_break += driveTimeToFuel + fuelStopDuration;
 
-          currentTime = new Date(currentTime.getTime() + (driveTimeToFuel + fuelStopDuration) * 60 * 60 * 1000);
+          currentTime = new Date(
+            currentTime.getTime() +
+              (driveTimeToFuel + fuelStopDuration) * 60 * 60 * 1000,
+          );
           totalCost += fuelRecommendation.estimated_cost;
           sequenceOrder++;
         }
@@ -312,7 +418,9 @@ export class RoutePlanningEngineService {
           on_duty_time: currentHos.on_duty_time + driveTime,
           hours_since_break: currentHos.hours_since_break + driveTime,
         },
-        estimated_arrival: new Date(currentTime.getTime() + driveTime * 60 * 60 * 1000),
+        estimated_arrival: new Date(
+          currentTime.getTime() + driveTime * 60 * 60 * 1000,
+        ),
         estimated_departure: null,
       };
 
@@ -323,7 +431,9 @@ export class RoutePlanningEngineService {
       currentHos.on_duty_time += driveTime;
       currentHos.hours_since_break += driveTime;
       currentFuel -= fuelNeeded;
-      currentTime = new Date(currentTime.getTime() + driveTime * 60 * 60 * 1000);
+      currentTime = new Date(
+        currentTime.getTime() + driveTime * 60 * 60 * 1000,
+      );
       totalDistance += distance;
       totalDriveTime += driveTime;
       totalOnDutyTime += driveTime;
@@ -357,12 +467,16 @@ export class RoutePlanningEngineService {
             hours_since_break: currentHos.hours_since_break + dockHours,
           },
           estimated_arrival: currentTime,
-          estimated_departure: new Date(currentTime.getTime() + dockHours * 60 * 60 * 1000),
+          estimated_departure: new Date(
+            currentTime.getTime() + dockHours * 60 * 60 * 1000,
+          ),
         };
 
         segments.push(dockSegment);
         currentHos.on_duty_time += dockHours;
-        currentTime = new Date(currentTime.getTime() + dockHours * 60 * 60 * 1000);
+        currentTime = new Date(
+          currentTime.getTime() + dockHours * 60 * 60 * 1000,
+        );
         totalOnDutyTime += dockHours;
         sequenceOrder++;
       }

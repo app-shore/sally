@@ -1,4 +1,9 @@
-import { ITMSAdapter, LoadData, VehicleData, DriverData } from './tms-adapter.interface';
+import {
+  ITMSAdapter,
+  LoadData,
+  VehicleData,
+  DriverData,
+} from './tms-adapter.interface';
 
 /**
  * project44 TMS Adapter
@@ -30,7 +35,10 @@ export class Project44TMSAdapter implements ITMSAdapter {
    * In mock mode: Only succeeds if credentials are provided (any non-empty values)
    * This makes it feel like a real connection test
    */
-  async testConnection(clientId: string, clientSecret: string): Promise<boolean> {
+  async testConnection(
+    clientId: string,
+    clientSecret: string,
+  ): Promise<boolean> {
     // Validate credentials are provided (even in mock mode)
     if (!clientId || !clientSecret) {
       return false;
@@ -55,7 +63,10 @@ export class Project44TMSAdapter implements ITMSAdapter {
    *
    * In mock mode: Only returns data if credentials are provided
    */
-  async getActiveLoads(clientId: string, clientSecret: string): Promise<LoadData[]> {
+  async getActiveLoads(
+    clientId: string,
+    clientSecret: string,
+  ): Promise<LoadData[]> {
     // Validate credentials are provided
     if (!clientId || !clientSecret) {
       throw new Error('project44 credentials not configured');
@@ -70,13 +81,15 @@ export class Project44TMSAdapter implements ITMSAdapter {
 
       const response = await fetch(`${this.baseUrl}/loads?status=active`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
-        throw new Error(`project44 API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `project44 API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data = await response.json();
@@ -94,7 +107,11 @@ export class Project44TMSAdapter implements ITMSAdapter {
    *
    * In mock mode: Only returns data if credentials are provided
    */
-  async getLoad(clientId: string, clientSecret: string, loadId: string): Promise<LoadData> {
+  async getLoad(
+    clientId: string,
+    clientSecret: string,
+    loadId: string,
+  ): Promise<LoadData> {
     // Validate credentials are provided
     if (!clientId || !clientSecret) {
       throw new Error('project44 credentials not configured');
@@ -114,13 +131,15 @@ export class Project44TMSAdapter implements ITMSAdapter {
 
       const response = await fetch(`${this.baseUrl}/loads/${loadId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
-        throw new Error(`project44 API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `project44 API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const load = await response.json();
@@ -136,7 +155,10 @@ export class Project44TMSAdapter implements ITMSAdapter {
    *
    * In mock mode: Only returns data if credentials are provided
    */
-  async syncAllLoads(clientId: string, clientSecret: string): Promise<string[]> {
+  async syncAllLoads(
+    clientId: string,
+    clientSecret: string,
+  ): Promise<string[]> {
     // Validate credentials are provided
     if (!clientId || !clientSecret) {
       throw new Error('project44 credentials not configured');
@@ -151,7 +173,10 @@ export class Project44TMSAdapter implements ITMSAdapter {
    *
    * In mock mode: Only returns data if credentials are provided
    */
-  async getDrivers(clientId: string, clientSecret: string): Promise<DriverData[]> {
+  async getDrivers(
+    clientId: string,
+    clientSecret: string,
+  ): Promise<DriverData[]> {
     // Validate credentials are provided
     if (!clientId || !clientSecret) {
       throw new Error('project44 credentials not configured');
@@ -166,13 +191,15 @@ export class Project44TMSAdapter implements ITMSAdapter {
 
       const response = await fetch(`${this.baseUrl}/drivers`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
-        throw new Error(`project44 API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `project44 API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data = await response.json();
@@ -190,7 +217,10 @@ export class Project44TMSAdapter implements ITMSAdapter {
    *
    * In mock mode: Only returns data if credentials are provided
    */
-  async getVehicles(clientId: string, clientSecret: string): Promise<VehicleData[]> {
+  async getVehicles(
+    clientId: string,
+    clientSecret: string,
+  ): Promise<VehicleData[]> {
     // Validate credentials are provided
     if (!clientId || !clientSecret) {
       throw new Error('project44 credentials not configured');
@@ -205,13 +235,15 @@ export class Project44TMSAdapter implements ITMSAdapter {
 
       const response = await fetch(`${this.baseUrl}/vehicles`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
-        throw new Error(`project44 API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `project44 API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data = await response.json();
@@ -228,7 +260,10 @@ export class Project44TMSAdapter implements ITMSAdapter {
    * Get OAuth 2.0 access token from project44
    * Tokens are cached and reused for 12 hours
    */
-  private async getOAuthToken(clientId: string, clientSecret: string): Promise<string> {
+  private async getOAuthToken(
+    clientId: string,
+    clientSecret: string,
+  ): Promise<string> {
     // Check if cached token is still valid
     if (this.tokenCache.token && this.tokenCache.expiresAt) {
       const now = Date.now();
@@ -258,7 +293,7 @@ export class Project44TMSAdapter implements ITMSAdapter {
 
     // Cache token (expires in ~12 hours = 43200 seconds)
     this.tokenCache.token = data.access_token;
-    this.tokenCache.expiresAt = Date.now() + (data.expires_in * 1000);
+    this.tokenCache.expiresAt = Date.now() + data.expires_in * 1000;
 
     return data.access_token;
   }
@@ -319,7 +354,8 @@ export class Project44TMSAdapter implements ITMSAdapter {
         longitude: p44Load.deliveryStopReference?.longitude || 0,
       },
       pickup_appointment: p44Load.pickupStopReference?.appointmentTime || null,
-      delivery_appointment: p44Load.deliveryStopReference?.appointmentTime || null,
+      delivery_appointment:
+        p44Load.deliveryStopReference?.appointmentTime || null,
       assigned_driver_id: null, // project44 doesn't directly expose driver ID
       status: this.mapStatus(p44Load.status),
       total_miles: this.calculateDistance(
@@ -335,14 +371,19 @@ export class Project44TMSAdapter implements ITMSAdapter {
   /**
    * Map project44 load status to SALLY status
    */
-  private mapStatus(p44Status: string): 'UNASSIGNED' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED' {
-    const statusMap: Record<string, 'UNASSIGNED' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED'> = {
-      'CREATED': 'ASSIGNED',
-      'ACTIVE': 'ASSIGNED',
-      'IN_TRANSIT': 'IN_TRANSIT',
-      'DELIVERED': 'DELIVERED',
-      'CANCELLED': 'CANCELLED',
-      'PENDING': 'ASSIGNED',
+  private mapStatus(
+    p44Status: string,
+  ): 'UNASSIGNED' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED' {
+    const statusMap: Record<
+      string,
+      'UNASSIGNED' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED'
+    > = {
+      CREATED: 'ASSIGNED',
+      ACTIVE: 'ASSIGNED',
+      IN_TRANSIT: 'IN_TRANSIT',
+      DELIVERED: 'DELIVERED',
+      CANCELLED: 'CANCELLED',
+      PENDING: 'ASSIGNED',
     };
 
     return statusMap[p44Status] || 'ASSIGNED';
@@ -351,14 +392,19 @@ export class Project44TMSAdapter implements ITMSAdapter {
   /**
    * Map project44 driver status to standard status
    */
-  private mapDriverStatus(p44Status: string): 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE' {
-    const statusMap: Record<string, 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE'> = {
-      'ACTIVE': 'ACTIVE',
-      'INACTIVE': 'INACTIVE',
-      'ON_DUTY': 'IN_SERVICE',
-      'OFF_DUTY': 'OUT_OF_SERVICE',
-      'AVAILABLE': 'ACTIVE',
-      'UNAVAILABLE': 'INACTIVE',
+  private mapDriverStatus(
+    p44Status: string,
+  ): 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE' {
+    const statusMap: Record<
+      string,
+      'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE'
+    > = {
+      ACTIVE: 'ACTIVE',
+      INACTIVE: 'INACTIVE',
+      ON_DUTY: 'IN_SERVICE',
+      OFF_DUTY: 'OUT_OF_SERVICE',
+      AVAILABLE: 'ACTIVE',
+      UNAVAILABLE: 'INACTIVE',
     };
 
     return statusMap[p44Status] || 'ACTIVE';
@@ -367,15 +413,20 @@ export class Project44TMSAdapter implements ITMSAdapter {
   /**
    * Map project44 vehicle status
    */
-  private mapVehicleStatus(p44Status: string): 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE' {
-    const statusMap: Record<string, 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE'> = {
-      'ACTIVE': 'ACTIVE',
-      'INACTIVE': 'INACTIVE',
-      'IN_SERVICE': 'IN_SERVICE',
-      'OUT_OF_SERVICE': 'OUT_OF_SERVICE',
-      'AVAILABLE': 'ACTIVE',
-      'UNAVAILABLE': 'INACTIVE',
-      'MAINTENANCE': 'OUT_OF_SERVICE',
+  private mapVehicleStatus(
+    p44Status: string,
+  ): 'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE' {
+    const statusMap: Record<
+      string,
+      'ACTIVE' | 'INACTIVE' | 'IN_SERVICE' | 'OUT_OF_SERVICE'
+    > = {
+      ACTIVE: 'ACTIVE',
+      INACTIVE: 'INACTIVE',
+      IN_SERVICE: 'IN_SERVICE',
+      OUT_OF_SERVICE: 'OUT_OF_SERVICE',
+      AVAILABLE: 'ACTIVE',
+      UNAVAILABLE: 'INACTIVE',
+      MAINTENANCE: 'OUT_OF_SERVICE',
     };
 
     return statusMap[p44Status] || 'ACTIVE';
@@ -384,7 +435,12 @@ export class Project44TMSAdapter implements ITMSAdapter {
   /**
    * Calculate distance between two coordinates (Haversine formula)
    */
-  private calculateDistance(lat1?: number, lon1?: number, lat2?: number, lon2?: number): number {
+  private calculateDistance(
+    lat1?: number,
+    lon1?: number,
+    lat2?: number,
+    lon2?: number,
+  ): number {
     if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
 
     const R = 3959; // Earth's radius in miles

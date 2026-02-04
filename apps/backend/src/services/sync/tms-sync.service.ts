@@ -26,7 +26,9 @@ export class TmsSyncService {
    * Sync vehicles from TMS API
    */
   async syncVehicles(integrationId: number): Promise<void> {
-    this.logger.log(`Starting TMS vehicle sync for integration: ${integrationId}`);
+    this.logger.log(
+      `Starting TMS vehicle sync for integration: ${integrationId}`,
+    );
 
     const integration = await this.prisma.integrationConfig.findUnique({
       where: { id: integrationId },
@@ -45,12 +47,15 @@ export class TmsSyncService {
     }
 
     // Get credentials (dynamic based on vendor's credential fields)
-    const credentials = this.getVendorCredentials(integration.credentials, vendor);
+    const credentials = this.getVendorCredentials(
+      integration.credentials,
+      vendor,
+    );
 
     // Fetch vehicles from TMS using adapter
     const tmsVehicles = await adapter.getVehicles(
       credentials.primary,
-      credentials.secondary
+      credentials.secondary,
     );
 
     // Upsert each vehicle
@@ -99,7 +104,9 @@ export class TmsSyncService {
    * Sync drivers from TMS API
    */
   async syncDrivers(integrationId: number): Promise<void> {
-    this.logger.log(`Starting TMS driver sync for integration: ${integrationId}`);
+    this.logger.log(
+      `Starting TMS driver sync for integration: ${integrationId}`,
+    );
 
     const integration = await this.prisma.integrationConfig.findUnique({
       where: { id: integrationId },
@@ -118,12 +125,15 @@ export class TmsSyncService {
     }
 
     // Get credentials
-    const credentials = this.getVendorCredentials(integration.credentials, vendor);
+    const credentials = this.getVendorCredentials(
+      integration.credentials,
+      vendor,
+    );
 
     // Fetch drivers from TMS using adapter
     const tmsDrivers = await adapter.getDrivers(
       credentials.primary,
-      credentials.secondary
+      credentials.secondary,
     );
 
     // Upsert each driver
@@ -190,13 +200,16 @@ export class TmsSyncService {
     }
 
     // Get credentials
-    const credentials = this.getVendorCredentials(integration.credentials, vendor);
+    const credentials = this.getVendorCredentials(
+      integration.credentials,
+      vendor,
+    );
 
     try {
       // Fetch active loads from TMS using adapter
       const tmsLoads = await adapter.getActiveLoads(
         credentials.primary,
-        credentials.secondary
+        credentials.secondary,
       );
 
       // Upsert each load
@@ -221,8 +234,12 @@ export class TmsSyncService {
             deliveryZip: tmsLoad.delivery_location.zip,
             deliveryLatitude: tmsLoad.delivery_location.latitude,
             deliveryLongitude: tmsLoad.delivery_location.longitude,
-            pickupAppointment: tmsLoad.pickup_appointment ? new Date(tmsLoad.pickup_appointment) : null,
-            deliveryAppointment: tmsLoad.delivery_appointment ? new Date(tmsLoad.delivery_appointment) : null,
+            pickupAppointment: tmsLoad.pickup_appointment
+              ? new Date(tmsLoad.pickup_appointment)
+              : null,
+            deliveryAppointment: tmsLoad.delivery_appointment
+              ? new Date(tmsLoad.delivery_appointment)
+              : null,
             assignedDriverId: tmsLoad.assigned_driver_id,
             assignedVehicleId: tmsLoad.assigned_vehicle_id,
             status: tmsLoad.status,
@@ -245,8 +262,12 @@ export class TmsSyncService {
             deliveryZip: tmsLoad.delivery_location.zip,
             deliveryLatitude: tmsLoad.delivery_location.latitude,
             deliveryLongitude: tmsLoad.delivery_location.longitude,
-            pickupAppointment: tmsLoad.pickup_appointment ? new Date(tmsLoad.pickup_appointment) : null,
-            deliveryAppointment: tmsLoad.delivery_appointment ? new Date(tmsLoad.delivery_appointment) : null,
+            pickupAppointment: tmsLoad.pickup_appointment
+              ? new Date(tmsLoad.pickup_appointment)
+              : null,
+            deliveryAppointment: tmsLoad.delivery_appointment
+              ? new Date(tmsLoad.delivery_appointment)
+              : null,
             assignedDriverId: tmsLoad.assigned_driver_id,
             assignedVehicleId: tmsLoad.assigned_vehicle_id,
             status: tmsLoad.status,
@@ -277,7 +298,7 @@ export class TmsSyncService {
    */
   private getVendorCredentials(
     credentials: any,
-    vendor: string
+    vendor: string,
   ): { primary: string; secondary: string } {
     // Get vendor metadata from registry
     const vendorMeta = VENDOR_REGISTRY[vendor];
@@ -300,7 +321,9 @@ export class TmsSyncService {
 
     return {
       primary: this.getCredentialField(credentials, primaryField),
-      secondary: secondaryField ? this.getCredentialField(credentials, secondaryField) : '',
+      secondary: secondaryField
+        ? this.getCredentialField(credentials, secondaryField)
+        : '',
     };
   }
 

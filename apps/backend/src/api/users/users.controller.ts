@@ -27,13 +27,19 @@ export class UsersController {
 
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Get(':userId')
-  async getUser(@Param('userId') userId: string, @CurrentUser() currentUser: any) {
+  async getUser(
+    @Param('userId') userId: string,
+    @CurrentUser() currentUser: any,
+  ) {
     return this.usersService.getUser(userId, currentUser.tenantId);
   }
 
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Post()
-  async createUser(@Body() dto: CreateUserDto, @CurrentUser() currentUser: any) {
+  async createUser(
+    @Body() dto: CreateUserDto,
+    @CurrentUser() currentUser: any,
+  ) {
     return this.usersService.createUser(dto, currentUser.tenantId);
   }
 
@@ -44,24 +50,52 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
     @CurrentUser() currentUser: any,
   ) {
-    return this.usersService.updateUser(userId, dto, currentUser.tenantId, currentUser);
+    return this.usersService.updateUser(
+      userId,
+      dto,
+      currentUser.tenantId,
+      currentUser,
+    );
   }
 
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Delete(':userId')
-  async deleteUser(@Param('userId') userId: string, @CurrentUser() currentUser: any) {
-    return this.usersService.deleteUser(userId, currentUser.tenantId, currentUser);
+  async deleteUser(
+    @Param('userId') userId: string,
+    @CurrentUser() currentUser: any,
+  ) {
+    return this.usersService.deleteUser(
+      userId,
+      currentUser.tenantId,
+      currentUser,
+    );
   }
 
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Post(':userId/deactivate')
-  async deactivateUser(@Param('userId') userId: string, @CurrentUser() currentUser: any) {
-    return this.usersService.toggleUserStatus(userId, false, currentUser.tenantId, currentUser);
+  async deactivateUser(
+    @Param('userId') userId: string,
+    @CurrentUser() currentUser: any,
+  ) {
+    return this.usersService.toggleUserStatus(
+      userId,
+      false,
+      currentUser.tenantId,
+      currentUser,
+    );
   }
 
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Post(':userId/activate')
-  async activateUser(@Param('userId') userId: string, @CurrentUser() currentUser: any) {
-    return this.usersService.toggleUserStatus(userId, true, currentUser.tenantId, currentUser);
+  async activateUser(
+    @Param('userId') userId: string,
+    @CurrentUser() currentUser: any,
+  ) {
+    return this.usersService.toggleUserStatus(
+      userId,
+      true,
+      currentUser.tenantId,
+      currentUser,
+    );
   }
 }

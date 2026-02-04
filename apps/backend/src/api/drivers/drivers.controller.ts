@@ -1,5 +1,27 @@
-import { Controller, Get, Post, Put, Delete, Param, Query, Body, HttpStatus, HttpException, Logger, UseGuards, Inject } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery, ApiParam, ApiBody, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Query,
+  Body,
+  HttpStatus,
+  HttpException,
+  Logger,
+  UseGuards,
+  Inject,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiQuery,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { PrismaService } from '../../database/prisma.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -15,7 +37,8 @@ export class DriversController {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(IntegrationManagerService) private readonly integrationManager: IntegrationManagerService,
+    @Inject(IntegrationManagerService)
+    private readonly integrationManager: IntegrationManagerService,
     private readonly driversActivationService: DriversActivationService,
   ) {}
 
@@ -25,7 +48,7 @@ export class DriversController {
   private async validateNotExternal(
     driverId: string,
     tenantId: number,
-    operation: string
+    operation: string,
   ) {
     const driver = await this.prisma.driver.findFirst({
       where: { driverId, tenantId },
@@ -34,7 +57,7 @@ export class DriversController {
     if (!driver) {
       throw new HttpException(
         { detail: `Driver not found: ${driverId}` },
-        HttpStatus.NOT_FOUND
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -42,18 +65,23 @@ export class DriversController {
       throw new HttpException(
         {
           detail: `Cannot ${operation} driver from external source: ${driver.externalSource}. This is a read-only integration record.`,
-          external_source: driver.externalSource
+          external_source: driver.externalSource,
         },
-        HttpStatus.FORBIDDEN
+        HttpStatus.FORBIDDEN,
       );
     }
   }
 
   @Get()
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
-  @ApiOperation({ summary: 'List all active drivers (basic info only, HOS fetched from external API)' })
+  @ApiOperation({
+    summary:
+      'List all active drivers (basic info only, HOS fetched from external API)',
+  })
   async listDrivers(@CurrentUser() user: any) {
-    this.logger.log(`List drivers requested by user ${user.userId} in tenant ${user.tenantId}`);
+    this.logger.log(
+      `List drivers requested by user ${user.userId} in tenant ${user.tenantId}`,
+    );
 
     try {
       // Get tenant ID from authenticated user
@@ -84,7 +112,10 @@ export class DriversController {
       }));
     } catch (error) {
       this.logger.error(`List drivers failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to fetch drivers' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to fetch drivers' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -101,8 +132,13 @@ export class DriversController {
       required: ['driver_id', 'name'],
     },
   })
-  async createDriver(@CurrentUser() user: any, @Body() body: { driver_id: string; name: string }) {
-    this.logger.log(`Create driver: ${body.driver_id} - ${body.name} by user ${user.userId}`);
+  async createDriver(
+    @CurrentUser() user: any,
+    @Body() body: { driver_id: string; name: string },
+  ) {
+    this.logger.log(
+      `Create driver: ${body.driver_id} - ${body.name} by user ${user.userId}`,
+    );
 
     try {
       // Get tenant ID from authenticated user
@@ -136,9 +172,15 @@ export class DriversController {
     } catch (error) {
       this.logger.error(`Create driver failed: ${error.message}`);
       if (error.code === 'P2002') {
-        throw new HttpException({ detail: 'Driver ID already exists' }, HttpStatus.CONFLICT);
+        throw new HttpException(
+          { detail: 'Driver ID already exists' },
+          HttpStatus.CONFLICT,
+        );
       }
-      throw new HttpException({ detail: 'Failed to create driver' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to create driver' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -154,7 +196,11 @@ export class DriversController {
       },
     },
   })
-  async updateDriver(@CurrentUser() user: any, @Param('driver_id') driverId: string, @Body() body: { name?: string }) {
+  async updateDriver(
+    @CurrentUser() user: any,
+    @Param('driver_id') driverId: string,
+    @Body() body: { name?: string },
+  ) {
     this.logger.log(`Update driver: ${driverId} by user ${user.userId}`);
 
     try {
@@ -164,7 +210,10 @@ export class DriversController {
       });
 
       if (!tenant) {
-        throw new HttpException({ detail: 'Tenant not found' }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          { detail: 'Tenant not found' },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       // Validate driver is not from external source
@@ -194,7 +243,10 @@ export class DriversController {
         throw error;
       }
       this.logger.error(`Update driver failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to update driver' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to update driver' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -202,7 +254,10 @@ export class DriversController {
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Soft delete driver (set isActive=false)' })
   @ApiParam({ name: 'driver_id', description: 'Driver ID' })
-  async deleteDriver(@CurrentUser() user: any, @Param('driver_id') driverId: string) {
+  async deleteDriver(
+    @CurrentUser() user: any,
+    @Param('driver_id') driverId: string,
+  ) {
     this.logger.log(`Delete driver: ${driverId} by user ${user.userId}`);
 
     try {
@@ -212,7 +267,10 @@ export class DriversController {
       });
 
       if (!tenant) {
-        throw new HttpException({ detail: 'Tenant not found' }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          { detail: 'Tenant not found' },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       // Validate driver is not from external source
@@ -237,10 +295,12 @@ export class DriversController {
         throw error;
       }
       this.logger.error(`Delete driver failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to delete driver' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to delete driver' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
-
 
   @Get(':driver_id')
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER, UserRole.DRIVER)
@@ -274,7 +334,10 @@ export class DriversController {
       });
 
       if (!tenant) {
-        throw new HttpException({ detail: 'Tenant not found' }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          { detail: 'Tenant not found' },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       const driver = await this.prisma.driver.findUnique({
@@ -287,7 +350,10 @@ export class DriversController {
       });
 
       if (!driver) {
-        throw new HttpException({ detail: `Driver not found: ${driverId}` }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          { detail: `Driver not found: ${driverId}` },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       return {
@@ -301,13 +367,19 @@ export class DriversController {
     } catch (error) {
       if (error instanceof HttpException) throw error;
       this.logger.error(`Get driver failed: ${error.message}`);
-      throw new HttpException({ detail: 'Failed to fetch driver' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        { detail: 'Failed to fetch driver' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   @Get(':driverId/hos')
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
-  @ApiOperation({ summary: 'Get live HOS data for driver from integration (with cache fallback)' })
+  @ApiOperation({
+    summary:
+      'Get live HOS data for driver from integration (with cache fallback)',
+  })
   @ApiParam({ name: 'driverId', description: 'Driver ID' })
   async getDriverHOS(
     @Param('driverId') driverId: string,
@@ -320,7 +392,10 @@ export class DriversController {
         where: { tenantId: user.tenantId },
       });
 
-      const hosData = await this.integrationManager.getDriverHOS(tenant.id, driverId);
+      const hosData = await this.integrationManager.getDriverHOS(
+        tenant.id,
+        driverId,
+      );
 
       return hosData;
     } catch (error) {
@@ -439,10 +514,14 @@ export class DriversController {
         where: { tenantId: user.tenantId },
       });
 
-      return this.driversActivationService.deactivateDriver(driverId, {
-        id: user.id,
-        tenant: { id: tenant.id },
-      }, reason);
+      return this.driversActivationService.deactivateDriver(
+        driverId,
+        {
+          id: user.id,
+          tenant: { id: tenant.id },
+        },
+        reason,
+      );
     } catch (error) {
       this.logger.error(`Deactivate driver failed: ${error.message}`);
       throw new HttpException(

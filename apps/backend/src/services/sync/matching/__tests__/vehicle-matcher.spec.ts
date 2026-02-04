@@ -33,7 +33,9 @@ describe('VehicleMatcher', () => {
         tenantId: 1,
       };
 
-      jest.spyOn(prisma.vehicle, 'findFirst').mockResolvedValue(mockVehicle as any);
+      jest
+        .spyOn(prisma.vehicle, 'findFirst')
+        .mockResolvedValue(mockVehicle as any);
 
       const result = await matcher.matchByVin(1, '1FUJGHDV9JLJY8062');
 
@@ -63,7 +65,9 @@ describe('VehicleMatcher', () => {
         tenantId: 1,
       };
 
-      jest.spyOn(prisma.vehicle, 'findFirst').mockResolvedValue(mockVehicle as any);
+      jest
+        .spyOn(prisma.vehicle, 'findFirst')
+        .mockResolvedValue(mockVehicle as any);
 
       const result = await matcher.matchByLicensePlate(1, 'TX R70-1836');
 
@@ -80,7 +84,9 @@ describe('VehicleMatcher', () => {
         tenantId: 1,
       };
 
-      jest.spyOn(prisma.vehicle, 'findFirst').mockResolvedValue(mockVehicle as any);
+      jest
+        .spyOn(prisma.vehicle, 'findFirst')
+        .mockResolvedValue(mockVehicle as any);
 
       const result = await matcher.match(1, {
         vin: '1FUJGHDV9JLJY8062',

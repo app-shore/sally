@@ -1,4 +1,11 @@
-import { Controller, Post, Body, HttpStatus, HttpException, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpStatus,
+  HttpException,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RestOptimizationService } from '../../services/rest-optimization/rest-optimization.service';
 import { z } from 'zod';
@@ -13,11 +20,15 @@ const OptimizationRequestSchema = z.object({
   remaining_distance_miles: z.number().min(0).optional(),
   destination: z.string().optional(),
   appointment_time: z.string().optional(),
-  upcoming_trips: z.array(z.object({
-    drive_time: z.number().min(0).max(24),
-    dock_time: z.number().min(0).max(24),
-    location: z.string().optional(),
-  })).optional(),
+  upcoming_trips: z
+    .array(
+      z.object({
+        drive_time: z.number().min(0).max(24),
+        dock_time: z.number().min(0).max(24),
+        location: z.string().optional(),
+      }),
+    )
+    .optional(),
   current_location: z.string().optional(),
 });
 type OptimizationRequest = z.infer<typeof OptimizationRequestSchema>;
@@ -31,7 +42,10 @@ export class OptimizationController {
 
   @Post('recommend')
   @ApiOperation({ summary: 'Get intelligent rest optimization recommendation' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'REST optimization recommendation' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'REST optimization recommendation',
+  })
   async recommendRest(@Body() body: OptimizationRequest) {
     this.logger.log(`Optimization requested for driver ${body.driver_id}`);
 
@@ -50,12 +64,16 @@ export class OptimizationController {
         on_duty_time: data.on_duty_time,
         hours_since_break: data.hours_since_break,
         dock_duration_hours: data.dock_duration_hours,
-        post_load_drive_hours: data.remaining_distance_miles ? data.remaining_distance_miles / 55.0 : undefined,
+        post_load_drive_hours: data.remaining_distance_miles
+          ? data.remaining_distance_miles / 55.0
+          : undefined,
         current_location: data.current_location,
         upcoming_trips: data.upcoming_trips,
       });
 
-      this.logger.log(`Optimization completed: recommendation=${result.recommendation}, confidence=${result.confidence}`);
+      this.logger.log(
+        `Optimization completed: recommendation=${result.recommendation}, confidence=${result.confidence}`,
+      );
       return result;
     } catch (error) {
       if (error instanceof TypeError || error.message?.includes('must be')) {

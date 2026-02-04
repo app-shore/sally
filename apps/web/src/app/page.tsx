@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useSessionStore } from "@/lib/store/sessionStore";
 import { LandingPage } from "@/components/landing/LandingPage";

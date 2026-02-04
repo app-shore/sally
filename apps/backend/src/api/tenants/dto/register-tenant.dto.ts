@@ -1,4 +1,10 @@
-import { IsString, IsEmail, IsNotEmpty, IsEnum, Matches } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsNotEmpty,
+  IsEnum,
+  Matches,
+} from 'class-validator';
 import { FleetSize } from '@prisma/client';
 
 export class RegisterTenantDto {
@@ -10,7 +16,8 @@ export class RegisterTenantDto {
   @IsString()
   @IsNotEmpty()
   @Matches(/^[a-z0-9-]+$/, {
-    message: 'Subdomain must contain only lowercase letters, numbers, and hyphens',
+    message:
+      'Subdomain must contain only lowercase letters, numbers, and hyphens',
   })
   subdomain: string;
 

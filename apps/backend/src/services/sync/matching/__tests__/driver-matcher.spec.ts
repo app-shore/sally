@@ -33,7 +33,9 @@ describe('DriverMatcher', () => {
         tenantId: 1,
       };
 
-      jest.spyOn(prisma.driver, 'findFirst').mockResolvedValue(mockDriver as any);
+      jest
+        .spyOn(prisma.driver, 'findFirst')
+        .mockResolvedValue(mockDriver as any);
 
       const result = await matcher.matchByPhone(1, '+19788856169');
 
@@ -64,7 +66,9 @@ describe('DriverMatcher', () => {
         tenantId: 1,
       };
 
-      jest.spyOn(prisma.driver, 'findFirst').mockResolvedValue(mockDriver as any);
+      jest
+        .spyOn(prisma.driver, 'findFirst')
+        .mockResolvedValue(mockDriver as any);
 
       const result = await matcher.matchByLicense(1, 'NHL14227039', 'NH');
 
@@ -93,7 +97,9 @@ describe('DriverMatcher', () => {
         tenantId: 1,
       };
 
-      jest.spyOn(prisma.driver, 'findFirst').mockResolvedValue(mockDriver as any);
+      jest
+        .spyOn(prisma.driver, 'findFirst')
+        .mockResolvedValue(mockDriver as any);
 
       const result = await matcher.match(1, {
         phone: '+19788856169',

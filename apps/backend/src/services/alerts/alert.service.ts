@@ -53,7 +53,9 @@ export class AlertService {
         });
       }
 
-      this.logger.log(`Alert sent to ${recipients.length} recipients: ${alert.title}`);
+      this.logger.log(
+        `Alert sent to ${recipients.length} recipients: ${alert.title}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to send alert: ${error.message}`);
     }

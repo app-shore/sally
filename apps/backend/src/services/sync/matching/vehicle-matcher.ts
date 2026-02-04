@@ -23,7 +23,10 @@ export class VehicleMatcher {
   /**
    * Match vehicle by license plate (fallback)
    */
-  async matchByLicensePlate(tenantId: number, licensePlate: string): Promise<Vehicle | null> {
+  async matchByLicensePlate(
+    tenantId: number,
+    licensePlate: string,
+  ): Promise<Vehicle | null> {
     if (!licensePlate) return null;
 
     return this.prisma.vehicle.findFirst({
@@ -37,7 +40,10 @@ export class VehicleMatcher {
   /**
    * Match vehicle with fallback strategy: VIN → License Plate
    */
-  async match(tenantId: number, data: { vin?: string; licensePlate?: string }): Promise<Vehicle | null> {
+  async match(
+    tenantId: number,
+    data: { vin?: string; licensePlate?: string },
+  ): Promise<Vehicle | null> {
     // Try VIN first (most reliable)
     if (data.vin) {
       const match = await this.matchByVin(tenantId, data.vin);

@@ -93,7 +93,8 @@ describe('Integrations E2E Test', () => {
           display_name: 'E2E Test project44',
           credentials: {
             clientId: process.env.PROJECT44_CLIENT_ID || 'test-client-id',
-            clientSecret: process.env.PROJECT44_CLIENT_SECRET || 'test-client-secret',
+            clientSecret:
+              process.env.PROJECT44_CLIENT_SECRET || 'test-client-secret',
           },
         });
 
@@ -435,8 +436,12 @@ describe('Integrations E2E Test', () => {
     });
 
     if (!shouldRunRealAPITests) {
-      console.log('\n⚠️  Skipping real API tests - environment variables not set');
-      console.log('Set SAMSARA_API_KEY, TRUCKBASE_API_KEY, FUELFINDER_API_KEY, and OPENWEATHER_API_KEY to run real API tests\n');
+      console.log(
+        '\n⚠️  Skipping real API tests - environment variables not set',
+      );
+      console.log(
+        'Set SAMSARA_API_KEY, TRUCKBASE_API_KEY, FUELFINDER_API_KEY, and OPENWEATHER_API_KEY to run real API tests\n',
+      );
     }
   });
 });

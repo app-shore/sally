@@ -27,11 +27,15 @@ export class PredictionEngineService {
   private readonly defaultAverageSpeed = 55.0;
 
   predictDriveDemand(inputData: PredictionInput): PredictionResult {
-    validatePositive(inputData.remaining_distance_miles, 'remaining_distance_miles');
+    validatePositive(
+      inputData.remaining_distance_miles,
+      'remaining_distance_miles',
+    );
     validatePositive(inputData.average_speed_mph, 'average_speed_mph');
 
     // Calculate estimated drive hours
-    const estimatedDriveHours = inputData.remaining_distance_miles / inputData.average_speed_mph;
+    const estimatedDriveHours =
+      inputData.remaining_distance_miles / inputData.average_speed_mph;
 
     // Estimate arrival time
     let estimatedArrivalTime: string | null = null;
@@ -39,16 +43,26 @@ export class PredictionEngineService {
       estimatedArrivalTime = inputData.appointment_time;
     } else {
       const now = new Date();
-      const arrival = new Date(now.getTime() + estimatedDriveHours * 60 * 60 * 1000);
+      const arrival = new Date(
+        now.getTime() + estimatedDriveHours * 60 * 60 * 1000,
+      );
       estimatedArrivalTime = arrival.toISOString();
     }
 
     // Classify demand
-    const isLowDemand = estimatedDriveHours <= PredictionEngineService.LOW_DEMAND_THRESHOLD_HOURS;
-    const isHighDemand = estimatedDriveHours >= PredictionEngineService.HIGH_DEMAND_THRESHOLD_HOURS;
+    const isLowDemand =
+      estimatedDriveHours <= PredictionEngineService.LOW_DEMAND_THRESHOLD_HOURS;
+    const isHighDemand =
+      estimatedDriveHours >=
+      PredictionEngineService.HIGH_DEMAND_THRESHOLD_HOURS;
 
     // Generate reasoning
-    const reasoning = this.generateReasoning(estimatedDriveHours, inputData.remaining_distance_miles, isLowDemand, isHighDemand);
+    const reasoning = this.generateReasoning(
+      estimatedDriveHours,
+      inputData.remaining_distance_miles,
+      isLowDemand,
+      isHighDemand,
+    );
 
     // Confidence is 0.7 for MVP
     const confidence = 0.7;
@@ -63,15 +77,29 @@ export class PredictionEngineService {
     };
   }
 
-  private generateReasoning(estimatedHours: number, distanceMiles: number, isLowDemand: boolean, isHighDemand: boolean): string {
+  private generateReasoning(
+    estimatedHours: number,
+    distanceMiles: number,
+    isLowDemand: boolean,
+    isHighDemand: boolean,
+  ): string {
     const baseText = `Estimated ${estimatedHours.toFixed(1)} hours of driving to cover ${distanceMiles.toFixed(1)} miles. `;
 
     if (isLowDemand) {
-      return baseText + `This is considered LOW demand (< ${PredictionEngineService.LOW_DEMAND_THRESHOLD_HOURS}h), making it favorable for taking rest during dock time.`;
+      return (
+        baseText +
+        `This is considered LOW demand (< ${PredictionEngineService.LOW_DEMAND_THRESHOLD_HOURS}h), making it favorable for taking rest during dock time.`
+      );
     } else if (isHighDemand) {
-      return baseText + `This is considered HIGH demand (> ${PredictionEngineService.HIGH_DEMAND_THRESHOLD_HOURS}h), requiring careful rest planning to ensure sufficient hours available.`;
+      return (
+        baseText +
+        `This is considered HIGH demand (> ${PredictionEngineService.HIGH_DEMAND_THRESHOLD_HOURS}h), requiring careful rest planning to ensure sufficient hours available.`
+      );
     } else {
-      return baseText + 'This is considered MODERATE demand, requiring balanced rest and driving strategy.';
+      return (
+        baseText +
+        'This is considered MODERATE demand, requiring balanced rest and driving strategy.'
+      );
     }
   }
 

@@ -191,7 +191,9 @@ describe('IntegrationManagerService', () => {
       };
 
       mockPrismaService.driver.findFirst.mockResolvedValue(mockDriver);
-      mockPrismaService.integrationConfig.findFirst.mockResolvedValue(mockIntegration);
+      mockPrismaService.integrationConfig.findFirst.mockResolvedValue(
+        mockIntegration,
+      );
       mockPrismaService.driver.update.mockResolvedValue(mockDriver);
 
       let attempts = 0;
@@ -246,7 +248,9 @@ describe('IntegrationManagerService', () => {
       };
 
       mockPrismaService.driver.findFirst.mockResolvedValue(mockDriver);
-      mockPrismaService.integrationConfig.findFirst.mockResolvedValue(mockIntegration);
+      mockPrismaService.integrationConfig.findFirst.mockResolvedValue(
+        mockIntegration,
+      );
       mockSamsaraAdapter.getDriverHOS.mockRejectedValue(new Error('ETIMEDOUT'));
 
       const result = await service.getDriverHOS(1, 'DRV-001');
@@ -281,7 +285,9 @@ describe('IntegrationManagerService', () => {
       };
 
       mockPrismaService.driver.findFirst.mockResolvedValue(mockDriver);
-      mockPrismaService.integrationConfig.findFirst.mockResolvedValue(mockIntegration);
+      mockPrismaService.integrationConfig.findFirst.mockResolvedValue(
+        mockIntegration,
+      );
       mockSamsaraAdapter.getDriverHOS.mockRejectedValue(new Error('ETIMEDOUT'));
 
       await expect(service.getDriverHOS(1, 'DRV-001')).rejects.toThrow(

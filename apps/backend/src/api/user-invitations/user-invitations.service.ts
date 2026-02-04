@@ -33,11 +33,15 @@ export class UserInvitationsService {
 
     // SUPER_ADMIN cannot invite users (they have no tenant)
     if (currentUser.role === 'SUPER_ADMIN') {
-      throw new ForbiddenException('Super admins cannot invite users. User invitations are managed by tenant owners/admins.');
+      throw new ForbiddenException(
+        'Super admins cannot invite users. User invitations are managed by tenant owners/admins.',
+      );
     }
 
     if (!currentUser.tenantId) {
-      throw new BadRequestException('User must belong to a tenant to invite other users');
+      throw new BadRequestException(
+        'User must belong to a tenant to invite other users',
+      );
     }
 
     // Role-based invitation restrictions
@@ -46,12 +50,16 @@ export class UserInvitationsService {
     }
 
     if (dto.role === 'OWNER') {
-      throw new ForbiddenException('Cannot invite users with OWNER role. Each tenant can only have one owner.');
+      throw new ForbiddenException(
+        'Cannot invite users with OWNER role. Each tenant can only have one owner.',
+      );
     }
 
     // ADMIN cannot invite other ADMINs (only OWNER can)
     if (currentUser.role === 'ADMIN' && dto.role === 'ADMIN') {
-      throw new ForbiddenException('Only the tenant owner can invite additional admins');
+      throw new ForbiddenException(
+        'Only the tenant owner can invite additional admins',
+      );
     }
 
     // Get tenant database ID from tenantId string
@@ -84,7 +92,9 @@ export class UserInvitationsService {
     });
 
     if (existingUser) {
-      throw new ConflictException('User with this email already exists in your organization');
+      throw new ConflictException(
+        'User with this email already exists in your organization',
+      );
     }
 
     // Check if pending invitation exists
@@ -113,11 +123,15 @@ export class UserInvitationsService {
       }
 
       if (driver.user) {
-        throw new ConflictException('Driver is already linked to a user account');
+        throw new ConflictException(
+          'Driver is already linked to a user account',
+        );
       }
 
       if (driver.tenantId !== tenantId) {
-        throw new BadRequestException('Driver does not belong to your organization');
+        throw new BadRequestException(
+          'Driver does not belong to your organization',
+        );
       }
 
       driverIdInt = driver.id;
@@ -272,7 +286,11 @@ export class UserInvitationsService {
   /**
    * Cancel invitation
    */
-  async cancelInvitation(invitationId: string, tenantIdString: string, reason?: string) {
+  async cancelInvitation(
+    invitationId: string,
+    tenantIdString: string,
+    reason?: string,
+  ) {
     // Get tenant database ID from tenantId string
     const tenant = await this.prisma.tenant.findUnique({
       where: { tenantId: tenantIdString },
@@ -291,7 +309,9 @@ export class UserInvitationsService {
     }
 
     if (invitation.tenantId !== tenant.id) {
-      throw new BadRequestException('Invitation does not belong to your organization');
+      throw new BadRequestException(
+        'Invitation does not belong to your organization',
+      );
     }
 
     if (invitation.status === 'ACCEPTED') {

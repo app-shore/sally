@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import {
   UserPreferences,
-  DispatcherPreferences,
+  OperationsSettings,
   DriverPreferences,
   getUserPreferences,
   updateUserPreferences,
-  getDispatcherPreferences,
-  updateDispatcherPreferences,
+  getOperationsSettings,
+  updateOperationsSettings,
   getDriverPreferences,
   updateDriverPreferences,
   resetToDefaults as resetToDefaultsAPI,
@@ -15,7 +15,7 @@ import {
 interface PreferencesState {
   // Preferences data
   userPreferences: UserPreferences | null;
-  dispatcherPreferences: DispatcherPreferences | null;
+  operationsSettings: OperationsSettings | null;
   driverPreferences: DriverPreferences | null;
 
   // Loading states
@@ -25,22 +25,22 @@ interface PreferencesState {
 
   // Actions
   loadUserPreferences: () => Promise<void>;
-  loadDispatcherPreferences: () => Promise<void>;
+  loadOperationsSettings: () => Promise<void>;
   loadDriverPreferences: () => Promise<void>;
   loadAllPreferences: (userRole: string) => Promise<void>;
 
   updateUserPrefs: (updates: Partial<UserPreferences>) => Promise<void>;
-  updateDispatcherPrefs: (updates: Partial<DispatcherPreferences>) => Promise<void>;
+  updateOperationsSettings: (updates: Partial<OperationsSettings>) => Promise<void>;
   updateDriverPrefs: (updates: Partial<DriverPreferences>) => Promise<void>;
 
-  resetToDefaults: (scope: 'user' | 'dispatcher' | 'driver') => Promise<void>;
+  resetToDefaults: (scope: 'user' | 'operations' | 'driver') => Promise<void>;
   clearError: () => void;
 }
 
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   // Initial state
   userPreferences: null,
-  dispatcherPreferences: null,
+  operationsSettings: null,
   driverPreferences: null,
   isLoading: false,
   isSaving: false,
@@ -57,12 +57,12 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
     }
   },
 
-  // Load dispatcher preferences
-  loadDispatcherPreferences: async () => {
+  // Load operations settings
+  loadOperationsSettings: async () => {
     set({ isLoading: true, error: null });
     try {
-      const preferences = await getDispatcherPreferences();
-      set({ dispatcherPreferences: preferences, isLoading: false });
+      const settings = await getOperationsSettings();
+      set({ operationsSettings: settings, isLoading: false });
     } catch (error: any) {
       set({ error: error.message, isLoading: false });
     }
@@ -89,8 +89,8 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
 
       // Load role-specific preferences
       if (userRole === 'DISPATCHER' || userRole === 'ADMIN' || userRole === 'OWNER') {
-        const dispatcherPrefs = await getDispatcherPreferences();
-        set({ dispatcherPreferences: dispatcherPrefs });
+        const operationsSettings = await getOperationsSettings();
+        set({ operationsSettings });
       }
 
       if (userRole === 'DRIVER') {

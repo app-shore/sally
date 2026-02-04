@@ -33,7 +33,7 @@ export class SamsaraHOSAdapter implements IHOSAdapter {
             Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -47,7 +47,8 @@ export class SamsaraHOSAdapter implements IHOSAdapter {
         driver_id: driverId,
         hours_driven: data.driveMilliseconds / (1000 * 60 * 60),
         on_duty_time: data.onDutyMilliseconds / (1000 * 60 * 60),
-        hours_since_break: data.timeSinceLastBreakMilliseconds / (1000 * 60 * 60),
+        hours_since_break:
+          data.timeSinceLastBreakMilliseconds / (1000 * 60 * 60),
         duty_status: this.mapDutyStatus(data.dutyStatus),
         last_updated: data.lastUpdatedTime,
         data_source: 'samsara_eld',
@@ -66,7 +67,6 @@ export class SamsaraHOSAdapter implements IHOSAdapter {
       // Mock validation - just check if apiKey exists and looks valid
       return apiKey && apiKey.length > 10;
     }
-
 
     console.log('apiKey', apiKey);
     console.log('Testing connection to Samsara API');

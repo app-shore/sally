@@ -34,7 +34,9 @@ export class EldSyncService {
    * Sync vehicles from ELD API (enrichment only)
    */
   async syncVehicles(integrationId: number): Promise<void> {
-    this.logger.log(`Starting ELD vehicle sync for integration: ${integrationId}`);
+    this.logger.log(
+      `Starting ELD vehicle sync for integration: ${integrationId}`,
+    );
 
     const integration = await this.prisma.integrationConfig.findUnique({
       where: { id: integrationId },
@@ -53,7 +55,10 @@ export class EldSyncService {
     }
 
     // Get apiToken from credentials (all ELD vendors use apiToken)
-    const apiToken = this.getCredentialField(integration.credentials, 'apiToken');
+    const apiToken = this.getCredentialField(
+      integration.credentials,
+      'apiToken',
+    );
 
     // Fetch vehicles from ELD using adapter
     const eldVehicles = await adapter.getVehicles(apiToken);
@@ -91,7 +96,7 @@ export class EldSyncService {
       } else {
         this.logger.warn(
           `No matching vehicle found for ELD vehicle: ${eldVehicle.vin || eldVehicle.id}. ` +
-          `Ensure TMS is synced first.`
+            `Ensure TMS is synced first.`,
         );
         unmatchedCount++;
       }
@@ -103,7 +108,7 @@ export class EldSyncService {
     });
 
     this.logger.log(
-      `ELD vehicle sync complete (${vendor}): ${matchedCount} matched, ${unmatchedCount} unmatched`
+      `ELD vehicle sync complete (${vendor}): ${matchedCount} matched, ${unmatchedCount} unmatched`,
     );
   }
 
@@ -111,7 +116,9 @@ export class EldSyncService {
    * Sync drivers from ELD API (enrichment only)
    */
   async syncDrivers(integrationId: number): Promise<void> {
-    this.logger.log(`Starting ELD driver sync for integration: ${integrationId}`);
+    this.logger.log(
+      `Starting ELD driver sync for integration: ${integrationId}`,
+    );
 
     const integration = await this.prisma.integrationConfig.findUnique({
       where: { id: integrationId },
@@ -130,7 +137,10 @@ export class EldSyncService {
     }
 
     // Get apiToken from credentials (all ELD vendors use apiToken)
-    const apiToken = this.getCredentialField(integration.credentials, 'apiToken');
+    const apiToken = this.getCredentialField(
+      integration.credentials,
+      'apiToken',
+    );
 
     // Fetch drivers from ELD using adapter
     const eldDrivers = await adapter.getDrivers(apiToken);
@@ -168,7 +178,7 @@ export class EldSyncService {
       } else {
         this.logger.warn(
           `No matching driver found for ELD driver: ${eldDriver.phone || eldDriver.id}. ` +
-          `Ensure TMS is synced first.`
+            `Ensure TMS is synced first.`,
         );
         unmatchedCount++;
       }
@@ -180,7 +190,7 @@ export class EldSyncService {
     });
 
     this.logger.log(
-      `ELD driver sync complete (${vendor}): ${matchedCount} matched, ${unmatchedCount} unmatched`
+      `ELD driver sync complete (${vendor}): ${matchedCount} matched, ${unmatchedCount} unmatched`,
     );
   }
 

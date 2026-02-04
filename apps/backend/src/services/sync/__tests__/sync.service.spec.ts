@@ -81,18 +81,23 @@ describe('SyncService', () => {
         vendor: 'UNKNOWN_VENDOR',
       } as any);
 
-      await expect(service.syncIntegration(3)).rejects.toThrow('Unsupported vendor');
+      await expect(service.syncIntegration(3)).rejects.toThrow(
+        'Unsupported vendor',
+      );
     });
   });
 
   describe('syncFleet', () => {
     it('should sync both TMS and ELD in sequence', async () => {
-      jest.spyOn(prisma.integrationConfig, 'findMany').mockResolvedValue([
-        { id: 1, vendor: 'PROJECT44_TMS', isEnabled: true } as any,
-        { id: 2, vendor: 'SAMSARA_ELD', isEnabled: true } as any,
-      ]);
+      jest
+        .spyOn(prisma.integrationConfig, 'findMany')
+        .mockResolvedValue([
+          { id: 1, vendor: 'PROJECT44_TMS', isEnabled: true } as any,
+          { id: 2, vendor: 'SAMSARA_ELD', isEnabled: true } as any,
+        ]);
 
-      jest.spyOn(prisma.integrationConfig, 'findUnique')
+      jest
+        .spyOn(prisma.integrationConfig, 'findUnique')
         .mockResolvedValueOnce({ id: 1, vendor: 'PROJECT44_TMS' } as any)
         .mockResolvedValueOnce({ id: 2, vendor: 'SAMSARA_ELD' } as any);
 
@@ -112,22 +117,29 @@ describe('SyncService', () => {
     it('should sync TMS before ELD', async () => {
       const callOrder: string[] = [];
 
-      jest.spyOn(prisma.integrationConfig, 'findMany').mockResolvedValue([
-        { id: 2, vendor: 'SAMSARA_ELD', isEnabled: true } as any,
-        { id: 1, vendor: 'PROJECT44_TMS', isEnabled: true } as any,
-      ]);
+      jest
+        .spyOn(prisma.integrationConfig, 'findMany')
+        .mockResolvedValue([
+          { id: 2, vendor: 'SAMSARA_ELD', isEnabled: true } as any,
+          { id: 1, vendor: 'PROJECT44_TMS', isEnabled: true } as any,
+        ]);
 
-      jest.spyOn(prisma.integrationConfig, 'findUnique')
+      jest
+        .spyOn(prisma.integrationConfig, 'findUnique')
         .mockResolvedValueOnce({ id: 1, vendor: 'PROJECT44_TMS' } as any)
         .mockResolvedValueOnce({ id: 2, vendor: 'SAMSARA_ELD' } as any);
 
-      jest.spyOn(tmsSyncService, 'syncVehicles').mockImplementation(async () => {
-        callOrder.push('TMS');
-      });
+      jest
+        .spyOn(tmsSyncService, 'syncVehicles')
+        .mockImplementation(async () => {
+          callOrder.push('TMS');
+        });
       jest.spyOn(tmsSyncService, 'syncDrivers').mockResolvedValue();
-      jest.spyOn(eldSyncService, 'syncVehicles').mockImplementation(async () => {
-        callOrder.push('ELD');
-      });
+      jest
+        .spyOn(eldSyncService, 'syncVehicles')
+        .mockImplementation(async () => {
+          callOrder.push('ELD');
+        });
       jest.spyOn(eldSyncService, 'syncDrivers').mockResolvedValue();
 
       await service.syncFleet(1);

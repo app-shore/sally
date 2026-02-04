@@ -14,8 +14,11 @@ export class CredentialsService {
 
     if (!key) {
       // In development, use a default key (NEVER in production!)
-      const defaultKey = 'dev-key-only-do-not-use-in-production-12345678901234567890123456789012';
-      console.warn('⚠️ CREDENTIALS_ENCRYPTION_KEY not set, using development key');
+      const defaultKey =
+        'dev-key-only-do-not-use-in-production-12345678901234567890123456789012';
+      console.warn(
+        '⚠️ CREDENTIALS_ENCRYPTION_KEY not set, using development key',
+      );
       this.encryptionKey = Buffer.from(defaultKey.slice(0, 32));
     } else {
       this.encryptionKey = Buffer.from(key, 'hex');
@@ -48,7 +51,11 @@ export class CredentialsService {
     }
 
     const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', this.encryptionKey, iv);
+    const decipher = crypto.createDecipheriv(
+      'aes-256-cbc',
+      this.encryptionKey,
+      iv,
+    );
 
     let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
     decrypted += decipher.final('utf8');

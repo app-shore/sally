@@ -1,4 +1,9 @@
-import { Controller, Get, Headers, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Headers,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 /**
  * Mock TMS API Controller
@@ -35,8 +40,8 @@ export class MockTmsController {
         make: 'Freightliner',
         model: 'Cascadia',
         year: 2023,
-        vin: '1FUJGBDV2KLBP7528',  // Replace with actual VIN from Samsara
-        licensePlate: 'CA-ABC123',  // Replace with actual plate from Samsara
+        vin: '1FUJGBDV2KLBP7528', // Replace with actual VIN from Samsara
+        licensePlate: 'CA-ABC123', // Replace with actual plate from Samsara
       },
       {
         id: 'tms_vehicle_002',
@@ -44,8 +49,8 @@ export class MockTmsController {
         make: 'Volvo',
         model: 'VNL',
         year: 2022,
-        vin: '4V4NC9TH0KN123456',  // Replace with actual VIN from Samsara
-        licensePlate: 'CA-XYZ789',  // Replace with actual plate from Samsara
+        vin: '4V4NC9TH0KN123456', // Replace with actual VIN from Samsara
+        licensePlate: 'CA-XYZ789', // Replace with actual plate from Samsara
       },
     ];
   }
@@ -69,17 +74,17 @@ export class MockTmsController {
       {
         id: 'tms_driver_001',
         name: 'John Smith',
-        phone: '+15551234567',  // Replace with actual phone from Samsara
+        phone: '+15551234567', // Replace with actual phone from Samsara
         email: 'john.smith@example.com',
-        licenseNumber: 'D1234567',  // Replace with actual license from Samsara
+        licenseNumber: 'D1234567', // Replace with actual license from Samsara
         licenseState: 'CA',
       },
       {
         id: 'tms_driver_002',
         name: 'Jane Doe',
-        phone: '+15559876543',  // Replace with actual phone from Samsara
+        phone: '+15559876543', // Replace with actual phone from Samsara
         email: 'jane.doe@example.com',
-        licenseNumber: 'D9876543',  // Replace with actual license from Samsara
+        licenseNumber: 'D9876543', // Replace with actual license from Samsara
         licenseState: 'TX',
       },
     ];

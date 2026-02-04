@@ -1,17 +1,36 @@
-import { Controller, Post, Get, Body, Param, HttpStatus, HttpException, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  HttpStatus,
+  HttpException,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RoutePlanningEngineService } from '../../services/route-planning-engine/route-planning-engine.service';
 import { DynamicUpdateHandlerService } from '../../services/dynamic-update-handler/dynamic-update-handler.service';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
-import { DEFAULT_MVP_SOURCES, formatDataSourceBadge } from '../../utils/data-sources';
+import {
+  DEFAULT_MVP_SOURCES,
+  formatDataSourceBadge,
+} from '../../utils/data-sources';
 
 const StopInputSchema = z.object({
-  stop_id: z.union([z.string(), z.number()]).transform(val => String(val)),
+  stop_id: z.union([z.string(), z.number()]).transform((val) => String(val)),
   name: z.string().min(1),
   lat: z.number().min(-90).max(90),
   lon: z.number().min(-180).max(180),
-  location_type: z.enum(['warehouse', 'customer', 'distribution_center', 'truck_stop', 'service_area', 'fuel_station']),
+  location_type: z.enum([
+    'warehouse',
+    'customer',
+    'distribution_center',
+    'truck_stop',
+    'service_area',
+    'fuel_station',
+  ]),
   action_type: z.enum(['pickup', 'delivery']).optional(),
   is_origin: z.boolean().default(false),
   is_destination: z.boolean().default(false),
@@ -22,8 +41,8 @@ const StopInputSchema = z.object({
 });
 
 const RoutePlanningRequestSchema = z.object({
-  driver_id: z.union([z.string(), z.number()]).transform(val => String(val)),
-  vehicle_id: z.union([z.string(), z.number()]).transform(val => String(val)),
+  driver_id: z.union([z.string(), z.number()]).transform((val) => String(val)),
+  vehicle_id: z.union([z.string(), z.number()]).transform((val) => String(val)),
   driver_state: z.object({
     hours_driven: z.number().min(0).max(11),
     on_duty_time: z.number().min(0).max(14),
@@ -35,16 +54,27 @@ const RoutePlanningRequestSchema = z.object({
     mpg: z.number().positive(),
   }),
   stops: z.array(StopInputSchema).min(2),
-  optimization_priority: z.enum(['minimize_time', 'minimize_cost', 'balance']).default('minimize_time'),
-  driver_preferences: z.object({
-    preferred_rest_duration: z.number().min(7).max(10).default(10),
-    avoid_night_driving: z.boolean().default(false),
-  }).optional(),
+  optimization_priority: z
+    .enum(['minimize_time', 'minimize_cost', 'balance'])
+    .default('minimize_time'),
+  driver_preferences: z
+    .object({
+      preferred_rest_duration: z.number().min(7).max(10).default(10),
+      avoid_night_driving: z.boolean().default(false),
+    })
+    .optional(),
 });
 
 const RouteUpdateRequestSchema = z.object({
   plan_id: z.string().min(1),
-  update_type: z.enum(['traffic_delay', 'dock_time_change', 'load_added', 'load_cancelled', 'driver_rest_request', 'hos_violation']),
+  update_type: z.enum([
+    'traffic_delay',
+    'dock_time_change',
+    'load_added',
+    'load_cancelled',
+    'driver_rest_request',
+    'hos_violation',
+  ]),
   segment_id: z.string().optional(),
   delay_minutes: z.number().optional(),
   actual_dock_hours: z.number().optional(),
@@ -66,7 +96,10 @@ export class RoutePlanningController {
   private readonly logger = new Logger(RoutePlanningController.name);
 
   // In-memory plan cache (MVP - replace with DB in production)
-  private planCache = new Map<string, { plan: Record<string, unknown>; driver_id: string }>();
+  private planCache = new Map<
+    string,
+    { plan: Record<string, unknown>; driver_id: string }
+  >();
 
   constructor(
     private readonly routePlanningEngine: RoutePlanningEngineService,
@@ -77,7 +110,9 @@ export class RoutePlanningController {
   @ApiOperation({ summary: 'Plan and optimize a complete route' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Optimized route plan' })
   async optimizeRoute(@Body() body: Record<string, unknown>) {
-    this.logger.log(`Route optimization requested for driver ${body.driver_id}`);
+    this.logger.log(
+      `Route optimization requested for driver ${body.driver_id}`,
+    );
 
     const parsed = RoutePlanningRequestSchema.safeParse(body);
     if (!parsed.success) {
@@ -109,7 +144,10 @@ export class RoutePlanningController {
       });
 
       // Build data source badges
-      const dataSources: Record<string, { label: string; color: string; tooltip: string }> = {};
+      const dataSources: Record<
+        string,
+        { label: string; color: string; tooltip: string }
+      > = {};
       for (const [key, source] of Object.entries(DEFAULT_MVP_SOURCES)) {
         dataSources[key] = formatDataSourceBadge(source);
       }
@@ -141,15 +179,22 @@ export class RoutePlanningController {
           estimated_departure: seg.estimated_departure?.toISOString() || null,
         })),
         total_distance_miles: result.total_distance_miles,
-        total_time_hours: result.total_drive_time_hours + result.total_on_duty_time_hours - data.driver_state.on_duty_time,
+        total_time_hours:
+          result.total_drive_time_hours +
+          result.total_on_duty_time_hours -
+          data.driver_state.on_duty_time,
         total_cost_estimate: result.total_cost_estimate,
         rest_stops: result.rest_stops,
         fuel_stops: result.fuel_stops,
         summary: {
-          total_driving_segments: result.segments.filter((s) => s.segment_type === 'drive').length,
+          total_driving_segments: result.segments.filter(
+            (s) => s.segment_type === 'drive',
+          ).length,
           total_rest_stops: result.rest_stops.length,
           total_fuel_stops: result.fuel_stops.length,
-          total_dock_stops: result.segments.filter((s) => s.segment_type === 'dock').length,
+          total_dock_stops: result.segments.filter(
+            (s) => s.segment_type === 'dock',
+          ).length,
           estimated_completion: null,
         },
         compliance_report: result.compliance_report,
@@ -157,9 +202,14 @@ export class RoutePlanningController {
       };
 
       // Cache plan for status/update lookups
-      this.planCache.set(planId, { plan: response as Record<string, unknown>, driver_id: data.driver_id });
+      this.planCache.set(planId, {
+        plan: response as Record<string, unknown>,
+        driver_id: data.driver_id,
+      });
 
-      this.logger.log(`Route optimization completed: plan_id=${planId}, feasible=${result.is_feasible}, segments=${result.segments.length}`);
+      this.logger.log(
+        `Route optimization completed: plan_id=${planId}, feasible=${result.is_feasible}, segments=${result.segments.length}`,
+      );
       return response;
     } catch (error) {
       this.logger.error(`Route optimization failed: ${error.message}`);
@@ -171,7 +221,9 @@ export class RoutePlanningController {
   }
 
   @Post('update')
-  @ApiOperation({ summary: 'Update an existing route plan with dynamic triggers' })
+  @ApiOperation({
+    summary: 'Update an existing route plan with dynamic triggers',
+  })
   @ApiResponse({ status: HttpStatus.OK, description: 'Route update result' })
   async updateRoute(@Body() body: Record<string, unknown>) {
     this.logger.log(`Route update requested for plan ${body.plan_id}`);
@@ -190,7 +242,8 @@ export class RoutePlanningController {
       // Analyze the update trigger
       const triggerData: Record<string, unknown> = {};
       if (data.delay_minutes) triggerData.delay_minutes = data.delay_minutes;
-      if (data.actual_dock_hours) triggerData.actual_dock_hours = data.actual_dock_hours;
+      if (data.actual_dock_hours)
+        triggerData.actual_dock_hours = data.actual_dock_hours;
       if (data.rest_location) triggerData.rest_location = data.rest_location;
 
       const updateId = `update_${uuidv4().replace(/-/g, '').slice(0, 12)}`;
@@ -199,11 +252,23 @@ export class RoutePlanningController {
       let priority = 'MEDIUM';
       if (['hos_violation'].includes(data.update_type)) {
         priority = 'CRITICAL';
-      } else if (['dock_time_change', 'load_added', 'load_cancelled', 'driver_rest_request'].includes(data.update_type)) {
+      } else if (
+        [
+          'dock_time_change',
+          'load_added',
+          'load_cancelled',
+          'driver_rest_request',
+        ].includes(data.update_type)
+      ) {
         priority = 'HIGH';
       }
 
-      const replanDecision = this.updateHandler.shouldReplan(null, data.update_type, triggerData, priority);
+      const replanDecision = this.updateHandler.shouldReplan(
+        null,
+        data.update_type,
+        triggerData,
+        priority,
+      );
 
       const response = {
         update_id: updateId,
@@ -220,13 +285,17 @@ export class RoutePlanningController {
             {
               type: data.update_type,
               description: replanDecision.reason,
-              eta_change_hours: data.delay_minutes ? data.delay_minutes / 60.0 : (data.actual_dock_hours || 0),
+              eta_change_hours: data.delay_minutes
+                ? data.delay_minutes / 60.0
+                : data.actual_dock_hours || 0,
             },
           ],
         },
       };
 
-      this.logger.log(`Route update completed: update_id=${updateId}, replan_triggered=${replanDecision.replan_triggered}`);
+      this.logger.log(
+        `Route update completed: update_id=${updateId}, replan_triggered=${replanDecision.replan_triggered}`,
+      );
       return response;
     } catch (error) {
       this.logger.error(`Route update failed: ${error.message}`);
@@ -283,7 +352,9 @@ export class RoutePlanningController {
   @Post('simulate-triggers')
   @ApiOperation({ summary: 'Simulate dynamic triggers on a route plan' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Simulation results' })
-  async simulateTriggers(@Body() body: { plan_id: string; triggers: Array<Record<string, unknown>> }) {
+  async simulateTriggers(
+    @Body() body: { plan_id: string; triggers: Array<Record<string, unknown>> },
+  ) {
     this.logger.log(`Trigger simulation requested for plan ${body.plan_id}`);
 
     if (!body.plan_id || !body.triggers || !Array.isArray(body.triggers)) {
@@ -343,7 +414,7 @@ export class RoutePlanningController {
             const newPrice = Number(t.data?.new_price || 0);
             const station = t.data?.station || '';
             etaChange = 0.5;
-            requiresReplan = Math.abs(newPrice - oldPrice) > 0.50;
+            requiresReplan = Math.abs(newPrice - oldPrice) > 0.5;
             description = `Fuel price at ${station} changed from $${oldPrice.toFixed(2)} to $${newPrice.toFixed(2)}`;
             break;
           }
@@ -385,7 +456,9 @@ export class RoutePlanningController {
       const response = {
         previous_plan_version: currentVersion,
         new_plan_version: replanNeeded ? currentVersion + 1 : currentVersion,
-        new_plan_id: replanNeeded ? `${body.plan_id}-v${currentVersion + 1}` : body.plan_id,
+        new_plan_id: replanNeeded
+          ? `${body.plan_id}-v${currentVersion + 1}`
+          : body.plan_id,
         triggers_applied: body.triggers.length,
         impact_summary: {
           total_eta_change_hours: Math.round(totalEtaChange * 100) / 100,
@@ -395,10 +468,13 @@ export class RoutePlanningController {
           trigger_impacts: impacts,
         },
         replan_triggered: replanNeeded,
-        replan_reason: replanReasons.length > 0 ? replanReasons.join(' | ') : null,
+        replan_reason:
+          replanReasons.length > 0 ? replanReasons.join(' | ') : null,
       };
 
-      this.logger.log(`Trigger simulation completed: ${body.triggers.length} triggers, replan=${replanNeeded}`);
+      this.logger.log(
+        `Trigger simulation completed: ${body.triggers.length} triggers, replan=${replanNeeded}`,
+      );
       return response;
     } catch (error) {
       if (error instanceof HttpException) throw error;

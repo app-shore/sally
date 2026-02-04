@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 import { generateId } from '../../common/utils/id-generator';
@@ -48,10 +52,7 @@ export class TenantsService {
     // Check if email already registered (across all tenants)
     const existingUser = await this.prisma.user.findFirst({
       where: {
-        OR: [
-          { email: dto.email },
-          { firebaseUid: dto.firebaseUid },
-        ],
+        OR: [{ email: dto.email }, { firebaseUid: dto.firebaseUid }],
       },
     });
 

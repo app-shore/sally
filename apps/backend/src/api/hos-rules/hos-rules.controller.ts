@@ -1,4 +1,11 @@
-import { Controller, Post, Body, HttpStatus, HttpException, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpStatus,
+  HttpException,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { HOSRuleEngineService } from '../../services/hos-rule-engine/hos-rule-engine.service';
 import { z } from 'zod';
@@ -42,7 +49,9 @@ export class HOSRulesController {
         parsed.data.last_rest_period,
       );
 
-      this.logger.log(`HOS check completed: status=${result.status}, compliant=${result.is_compliant}`);
+      this.logger.log(
+        `HOS check completed: status=${result.status}, compliant=${result.is_compliant}`,
+      );
       return result;
     } catch (error) {
       this.logger.error(`HOS check failed: ${error.message}`);

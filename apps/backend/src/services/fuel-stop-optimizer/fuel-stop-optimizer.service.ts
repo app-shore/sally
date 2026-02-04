@@ -24,7 +24,7 @@ export interface FuelStopRecommendation {
 @Injectable()
 export class FuelStopOptimizerService {
   private static readonly LOW_FUEL_THRESHOLD = 0.25;
-  private static readonly OPTIMAL_FUEL_BUFFER = 0.20;
+  private static readonly OPTIMAL_FUEL_BUFFER = 0.2;
 
   private fuelStationsDb: Array<{
     stop_id: string;
@@ -41,17 +41,52 @@ export class FuelStopOptimizerService {
 
   private loadFuelStationsDatabase() {
     return [
-      { stop_id: 'fuel_i80_exit_120', name: 'Pilot Fuel - I-80 Exit 120', lat: 41.2500, lon: -95.9000, price_per_gallon: 3.89, last_price_update: '2025-01-20' },
-      { stop_id: 'fuel_i80_exit_140', name: "Love's Diesel - I-80 Exit 140", lat: 41.1000, lon: -96.1000, price_per_gallon: 3.95, last_price_update: '2025-01-20' },
-      { stop_id: 'fuel_i5_exit_198', name: 'TA Fuel - I-5 Exit 198', lat: 34.0400, lon: -118.2500, price_per_gallon: 4.15, last_price_update: '2025-01-20' },
-      { stop_id: 'fuel_i95_exit_48', name: 'Flying J Diesel - I-95 Exit 48', lat: 39.7300, lon: -104.9800, price_per_gallon: 3.79, last_price_update: '2025-01-20' },
+      {
+        stop_id: 'fuel_i80_exit_120',
+        name: 'Pilot Fuel - I-80 Exit 120',
+        lat: 41.25,
+        lon: -95.9,
+        price_per_gallon: 3.89,
+        last_price_update: '2025-01-20',
+      },
+      {
+        stop_id: 'fuel_i80_exit_140',
+        name: "Love's Diesel - I-80 Exit 140",
+        lat: 41.1,
+        lon: -96.1,
+        price_per_gallon: 3.95,
+        last_price_update: '2025-01-20',
+      },
+      {
+        stop_id: 'fuel_i5_exit_198',
+        name: 'TA Fuel - I-5 Exit 198',
+        lat: 34.04,
+        lon: -118.25,
+        price_per_gallon: 4.15,
+        last_price_update: '2025-01-20',
+      },
+      {
+        stop_id: 'fuel_i95_exit_48',
+        name: 'Flying J Diesel - I-95 Exit 48',
+        lat: 39.73,
+        lon: -104.98,
+        price_per_gallon: 3.79,
+        last_price_update: '2025-01-20',
+      },
     ];
   }
 
-  shouldRefuel(currentFuelGallons: number, fuelCapacityGallons: number, remainingDistanceMiles: number, mpg: number): FuelStopRecommendation {
+  shouldRefuel(
+    currentFuelGallons: number,
+    fuelCapacityGallons: number,
+    remainingDistanceMiles: number,
+    mpg: number,
+  ): FuelStopRecommendation {
     const fuelNeededForDistance = remainingDistanceMiles / mpg;
     const fuelPercentage = currentFuelGallons / fuelCapacityGallons;
-    const fuelNeededWithBuffer = fuelNeededForDistance * (1 + FuelStopOptimizerService.OPTIMAL_FUEL_BUFFER);
+    const fuelNeededWithBuffer =
+      fuelNeededForDistance *
+      (1 + FuelStopOptimizerService.OPTIMAL_FUEL_BUFFER);
 
     if (currentFuelGallons >= fuelNeededWithBuffer) {
       return {
@@ -84,7 +119,11 @@ export class FuelStopOptimizerService {
     };
   }
 
-  findFuelStopNearPoint(lat: number, lon: number, radiusMiles = 30): FuelStopLocation[] {
+  findFuelStopNearPoint(
+    lat: number,
+    lon: number,
+    radiusMiles = 30,
+  ): FuelStopLocation[] {
     const nearbyStations: FuelStopLocation[] = [];
 
     for (const station of this.fuelStationsDb) {
@@ -107,13 +146,27 @@ export class FuelStopOptimizerService {
   }
 
   optimizeFuelStop(
-    currentLat: number, currentLon: number,
-    destinationLat: number, destinationLon: number,
-    currentFuel: number, fuelCapacity: number, mpg: number,
+    currentLat: number,
+    currentLon: number,
+    destinationLat: number,
+    destinationLon: number,
+    currentFuel: number,
+    fuelCapacity: number,
+    mpg: number,
   ): FuelStopRecommendation {
-    const remainingDistance = haversineDistance(currentLat, currentLon, destinationLat, destinationLon);
+    const remainingDistance = haversineDistance(
+      currentLat,
+      currentLon,
+      destinationLat,
+      destinationLon,
+    );
 
-    const recommendation = this.shouldRefuel(currentFuel, fuelCapacity, remainingDistance, mpg);
+    const recommendation = this.shouldRefuel(
+      currentFuel,
+      fuelCapacity,
+      remainingDistance,
+      mpg,
+    );
 
     if (!recommendation.should_fuel) {
       return recommendation;
@@ -128,7 +181,8 @@ export class FuelStopOptimizerService {
     }
 
     const bestStop = fuelStops[0];
-    const estimatedCost = recommendation.gallons_needed * bestStop.price_per_gallon;
+    const estimatedCost =
+      recommendation.gallons_needed * bestStop.price_per_gallon;
 
     recommendation.fuel_stop = bestStop;
     recommendation.estimated_cost = estimatedCost;

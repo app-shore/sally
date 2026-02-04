@@ -59,7 +59,9 @@ describe('AutoSyncJob', () => {
         },
       ];
 
-      jest.spyOn(prisma.integrationConfig, 'findMany').mockResolvedValue(mockIntegrations as any);
+      jest
+        .spyOn(prisma.integrationConfig, 'findMany')
+        .mockResolvedValue(mockIntegrations as any);
       jest.spyOn(syncService, 'syncIntegration').mockResolvedValue();
 
       await job.handleAutoSync();
@@ -82,7 +84,9 @@ describe('AutoSyncJob', () => {
         },
       ];
 
-      jest.spyOn(prisma.integrationConfig, 'findMany').mockResolvedValue(mockIntegrations as any);
+      jest
+        .spyOn(prisma.integrationConfig, 'findMany')
+        .mockResolvedValue(mockIntegrations as any);
       jest.spyOn(syncService, 'syncIntegration').mockResolvedValue();
 
       await job.handleAutoSync();
@@ -101,7 +105,9 @@ describe('AutoSyncJob', () => {
         },
       ];
 
-      jest.spyOn(prisma.integrationConfig, 'findMany').mockResolvedValue(mockIntegrations as any);
+      jest
+        .spyOn(prisma.integrationConfig, 'findMany')
+        .mockResolvedValue(mockIntegrations as any);
       jest.spyOn(syncService, 'syncIntegration').mockResolvedValue();
 
       await job.handleAutoSync();
@@ -119,8 +125,12 @@ describe('AutoSyncJob', () => {
         },
       ];
 
-      jest.spyOn(prisma.integrationConfig, 'findMany').mockResolvedValue(mockIntegrations as any);
-      jest.spyOn(syncService, 'syncIntegration').mockRejectedValue(new Error('Sync failed'));
+      jest
+        .spyOn(prisma.integrationConfig, 'findMany')
+        .mockResolvedValue(mockIntegrations as any);
+      jest
+        .spyOn(syncService, 'syncIntegration')
+        .mockRejectedValue(new Error('Sync failed'));
 
       const loggerSpy = jest.spyOn(job['logger'], 'error');
 
@@ -128,7 +138,7 @@ describe('AutoSyncJob', () => {
 
       expect(loggerSpy).toHaveBeenCalledWith(
         expect.stringContaining('Auto-sync failed'),
-        expect.any(Error)
+        expect.any(Error),
       );
     });
   });

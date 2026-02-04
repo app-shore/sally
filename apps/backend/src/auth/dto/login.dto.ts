@@ -3,7 +3,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
   @ApiProperty({
-    description: 'Tenant ID (company identifier) - OPTIONAL: userId is globally unique',
+    description:
+      'Tenant ID (company identifier) - OPTIONAL: userId is globally unique',
     example: 'swift_transport',
     required: false,
   })

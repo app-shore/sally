@@ -4,9 +4,16 @@ export function validatePositive(value: number, fieldName = 'value'): void {
   }
 }
 
-export function validateRange(value: number, minValue: number, maxValue: number, fieldName = 'value'): void {
+export function validateRange(
+  value: number,
+  minValue: number,
+  maxValue: number,
+  fieldName = 'value',
+): void {
   if (value < minValue || value > maxValue) {
-    throw new Error(`${fieldName} must be between ${minValue} and ${maxValue}, got ${value}`);
+    throw new Error(
+      `${fieldName} must be between ${minValue} and ${maxValue}, got ${value}`,
+    );
   }
 }
 

@@ -30,7 +30,8 @@ export class OnboardingController {
     const cacheKey = `onboarding:status:tenant:${tenantDbId}`;
 
     // Check cache
-    const cached = await this.cacheManager.get<OnboardingStatusResponse>(cacheKey);
+    const cached =
+      await this.cacheManager.get<OnboardingStatusResponse>(cacheKey);
     if (cached) {
       this.logger.debug(`Cache hit for ${cacheKey}`);
       return cached;

@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Query, HttpStatus, HttpException, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  HttpStatus,
+  HttpException,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Public } from '../../auth/decorators/public.decorator';
 import { MOCK_TMS_VEHICLES, MOCK_TMS_DRIVERS } from './__tests__/mock-tms.data';
@@ -137,9 +145,19 @@ export class ExternalMockController {
   @ApiOperation({ summary: 'Get fuel prices from mock GasBuddy API' })
   @ApiQuery({ name: 'lat', required: true, description: 'Latitude' })
   @ApiQuery({ name: 'lon', required: true, description: 'Longitude' })
-  @ApiQuery({ name: 'radius', required: false, description: 'Search radius in miles (default: 25)' })
-  async getFuelPrices(@Query('lat') lat: string, @Query('lon') lon: string, @Query('radius') radius?: string) {
-    this.logger.log(`Mock fuel prices requested for lat=${lat}, lon=${lon}, radius=${radius || 25}`);
+  @ApiQuery({
+    name: 'radius',
+    required: false,
+    description: 'Search radius in miles (default: 25)',
+  })
+  async getFuelPrices(
+    @Query('lat') lat: string,
+    @Query('lon') lon: string,
+    @Query('radius') radius?: string,
+  ) {
+    this.logger.log(
+      `Mock fuel prices requested for lat=${lat}, lon=${lon}, radius=${radius || 25}`,
+    );
 
     // Simulate API latency
     await this.simulateLatency();
@@ -182,7 +200,10 @@ export class ExternalMockController {
   @ApiOperation({ summary: 'Get weather data from mock OpenWeatherMap API' })
   @ApiQuery({ name: 'lat', required: true, description: 'Latitude' })
   @ApiQuery({ name: 'lon', required: true, description: 'Longitude' })
-  async getWeather(@Query('lat') lat: string, @Query('lon') lon: string): Promise<WeatherData> {
+  async getWeather(
+    @Query('lat') lat: string,
+    @Query('lon') lon: string,
+  ): Promise<WeatherData> {
     this.logger.log(`Mock weather data requested for lat=${lat}, lon=${lon}`);
 
     // Simulate API latency

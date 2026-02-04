@@ -32,14 +32,14 @@ describe('IntegrationsController - Vendor Registry', () => {
       expect(vendors.length).toBe(9);
 
       // Verify PROJECT44_TMS is present
-      const project44 = vendors.find(v => v.id === 'PROJECT44_TMS');
+      const project44 = vendors.find((v) => v.id === 'PROJECT44_TMS');
       expect(project44).toBeDefined();
       expect(project44?.displayName).toBe('project44');
       expect(project44?.integrationType).toBe('TMS');
       expect(project44?.credentialFields).toHaveLength(2);
 
       // Verify SAMSARA_ELD is present
-      const samsara = vendors.find(v => v.id === 'SAMSARA_ELD');
+      const samsara = vendors.find((v) => v.id === 'SAMSARA_ELD');
       expect(samsara).toBeDefined();
       expect(samsara?.displayName).toBe('Samsara');
       expect(samsara?.credentialFields).toHaveLength(1);
@@ -48,9 +48,11 @@ describe('IntegrationsController - Vendor Registry', () => {
 
     it('should include credential field metadata', () => {
       const vendors = controller.getVendorRegistry();
-      const project44 = vendors.find(v => v.id === 'PROJECT44_TMS');
+      const project44 = vendors.find((v) => v.id === 'PROJECT44_TMS');
 
-      const clientIdField = project44?.credentialFields.find(f => f.name === 'clientId');
+      const clientIdField = project44?.credentialFields.find(
+        (f) => f.name === 'clientId',
+      );
       expect(clientIdField).toMatchObject({
         name: 'clientId',
         label: 'Client ID',
