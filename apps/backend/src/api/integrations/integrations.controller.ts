@@ -26,6 +26,15 @@ export class IntegrationsController {
     return this.integrationsService.listIntegrations(req.user.tenantId);
   }
 
+  /**
+   * GET /integrations/vendors
+   * Returns vendor registry metadata
+   */
+  @Get('vendors')
+  getVendorRegistry(): VendorMetadata[] {
+    return Object.values(VENDOR_REGISTRY);
+  }
+
   @Get(':integrationId')
   async getIntegration(@Param('integrationId') integrationId: string) {
     return this.integrationsService.getIntegration(integrationId);
@@ -75,14 +84,5 @@ export class IntegrationsController {
   @Get(':integrationId/sync-history/stats')
   async getSyncStats(@Param('integrationId') integrationId: string) {
     return this.integrationsService.getSyncStats(integrationId);
-  }
-
-  /**
-   * GET /integrations/vendors
-   * Returns vendor registry metadata
-   */
-  @Get('vendors')
-  getVendorRegistry(): VendorMetadata[] {
-    return Object.values(VENDOR_REGISTRY);
   }
 }
