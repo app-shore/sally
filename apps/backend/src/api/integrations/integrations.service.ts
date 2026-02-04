@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CredentialsService } from '../../services/credentials/credentials.service';
 import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';
+import { SyncService } from '../../services/sync/sync.service';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
 import { UpdateIntegrationDto } from './dto/update-integration.dto';
 import { randomUUID } from 'crypto';
@@ -12,6 +13,7 @@ export class IntegrationsService {
     private prisma: PrismaService,
     private credentials: CredentialsService,
     private integrationManager: IntegrationManagerService,
+    private syncService: SyncService,
   ) {}
 
   /**
@@ -232,20 +234,82 @@ export class IntegrationsService {
       throw new NotFoundException('Integration not found');
     }
 
-    // For now, just sync all drivers for this tenant
-    await this.integrationManager.syncAllDriversForTenant(integration.tenantId);
-
-    // Update last sync time
-    await this.prisma.integrationConfig.update({
-      where: { integrationId },
-      data: {
-        lastSyncAt: new Date(),
-      },
-    });
+    // Use new SyncService for TMS/ELD sync
+    await this.syncService.syncIntegration(integration.id);
 
     return {
       success: true,
       message: 'Sync completed',
+    };
+  }
+
+  /**
+   * Get sync history for an integration
+   */
+  async getSyncHistory(
+    integrationId: string,
+    limit: number = 50,
+    offset: number = 0,
+  ) {
+    const integration = await this.prisma.integrationConfig.findUnique({
+      where: { integrationId },
+    });
+
+    if (!integration) {
+      throw new NotFoundException('Integration not found');
+    }
+
+    const logs = await this.prisma.integrationSyncLog.findMany({
+      where: { integrationId: integration.id },
+      orderBy: { startedAt: 'desc' },
+      take: limit,
+      skip: offset,
+    });
+
+    return logs.map((log) => ({
+      id: log.logId,
+      sync_type: log.syncType,
+      status: log.status,
+      started_at: log.startedAt.toISOString(),
+      completed_at: log.completedAt?.toISOString(),
+      duration_ms: log.completedAt
+        ? log.completedAt.getTime() - log.startedAt.getTime()
+        : null,
+      records_processed: log.recordsProcessed,
+      records_created: log.recordsCreated,
+      records_updated: log.recordsUpdated,
+    }));
+  }
+
+  /**
+   * Get sync statistics for an integration
+   */
+  async getSyncStats(integrationId: string) {
+    const integration = await this.prisma.integrationConfig.findUnique({
+      where: { integrationId },
+    });
+
+    if (!integration) {
+      throw new NotFoundException('Integration not found');
+    }
+
+    const [total, successful, failed] = await Promise.all([
+      this.prisma.integrationSyncLog.count({
+        where: { integrationId: integration.id },
+      }),
+      this.prisma.integrationSyncLog.count({
+        where: { integrationId: integration.id, status: 'success' },
+      }),
+      this.prisma.integrationSyncLog.count({
+        where: { integrationId: integration.id, status: 'failed' },
+      }),
+    ]);
+
+    return {
+      total_syncs: total,
+      successful_syncs: successful,
+      failed_syncs: failed,
+      success_rate: total > 0 ? (successful / total) * 100 : 0,
     };
   }
 }

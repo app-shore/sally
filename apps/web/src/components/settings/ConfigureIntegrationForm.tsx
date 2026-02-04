@@ -60,7 +60,7 @@ export function ConfigureIntegrationForm({
 
   const requiresSecret = (v?: IntegrationVendor) => {
     // Some integrations need both key and secret
-    return v === 'MCLEOD_TMS' || v === 'TMW_TMS' || v === 'TRUCKBASE_TMS';
+    return v === 'MCLEOD_TMS' || v === 'TMW_TMS' || v === 'PROJECT44_TMS';
   };
 
   const handleTest = async () => {
@@ -377,7 +377,7 @@ function getDefaultDisplayName(
   const vendorNames: Record<IntegrationVendor, string> = {
     MCLEOD_TMS: 'McLeod TMS',
     TMW_TMS: 'TMW Systems',
-    TRUCKBASE_TMS: 'Truckbase',
+    PROJECT44_TMS: 'project44',
     SAMSARA_ELD: 'Samsara ELD',
     KEEPTRUCKIN_ELD: 'KeepTruckin ELD',
     MOTIVE_ELD: 'Motive ELD',
@@ -415,7 +415,7 @@ function getVendorDescription(vendor?: IntegrationVendor): string {
   const descriptions: Record<IntegrationVendor, string> = {
     MCLEOD_TMS: 'McLeod Software',
     TMW_TMS: 'TMW Systems',
-    TRUCKBASE_TMS: 'Truckbase',
+    PROJECT44_TMS: 'project44 TMS',
     SAMSARA_ELD: 'Samsara',
     KEEPTRUCKIN_ELD: 'KeepTruckin (Motive)',
     MOTIVE_ELD: 'Motive',
@@ -433,8 +433,8 @@ function getApiKeyHelpText(type?: IntegrationType, vendor?: IntegrationVendor): 
   if (vendor === 'MCLEOD_TMS') {
     return 'Contact your McLeod administrator for API credentials';
   }
-  if (vendor === 'TRUCKBASE_TMS') {
-    return 'Get your API key from Truckbase Settings → Integrations';
+  if (vendor === 'PROJECT44_TMS') {
+    return 'Sign up at developers.project44.com and create OAuth 2.0 credentials (Client ID and Secret)';
   }
   if (vendor === 'GASBUDDY_FUEL') {
     return 'Sign up for GasBuddy Business API at gasbuddy.com/business';

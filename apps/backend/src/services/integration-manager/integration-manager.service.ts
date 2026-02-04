@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CredentialsService } from '../credentials/credentials.service';
+import { RetryService } from '../retry/retry.service';
+import { AlertService, AlertSeverity } from '../alerts/alert.service';
 import { SamsaraHOSAdapter } from '../adapters/hos/samsara-hos.adapter';
 import { HOSData } from '../adapters/hos/hos-adapter.interface';
 import { McLeodTMSAdapter } from '../adapters/tms/mcleod-tms.adapter';
-import { TruckbaseTMSAdapter } from '../adapters/tms/truckbase-tms.adapter';
+import { Project44TMSAdapter } from '../adapters/tms/project44-tms.adapter';
 import { GasBuddyFuelAdapter } from '../adapters/fuel/gasbuddy-fuel.adapter';
 import { FuelFinderAdapter } from '../adapters/fuel/fuelfinder-fuel.adapter';
 import { OpenWeatherAdapter } from '../adapters/weather/openweather.adapter';
@@ -21,12 +23,16 @@ import { OpenWeatherAdapter } from '../adapters/weather/openweather.adapter';
  */
 @Injectable()
 export class IntegrationManagerService {
+  private readonly logger = new Logger(IntegrationManagerService.name);
+
   constructor(
     private prisma: PrismaService,
     private credentials: CredentialsService,
+    private retry: RetryService,
+    private alertService: AlertService,
     private samsaraAdapter: SamsaraHOSAdapter,
     private mcleodAdapter: McLeodTMSAdapter,
-    private truckbaseAdapter: TruckbaseTMSAdapter,
+    private project44Adapter: Project44TMSAdapter,
     private gasBuddyAdapter: GasBuddyFuelAdapter,
     private fuelFinderAdapter: FuelFinderAdapter,
     private openWeatherAdapter: OpenWeatherAdapter,
@@ -73,25 +79,36 @@ export class IntegrationManagerService {
       };
     }
 
-    // 3. Fetch from ELD
+    // 3. Fetch from ELD with retry
     try {
-      const integration = await this.prisma.integrationConfig.findFirst({
-        where: {
-          tenantId,
-          integrationType: 'HOS_ELD',
-          status: 'ACTIVE',
+      const hosData = await this.retry.withRetry(
+        async () => {
+          const integration = await this.prisma.integrationConfig.findFirst({
+            where: {
+              tenantId,
+              integrationType: 'HOS_ELD',
+              status: 'ACTIVE',
+            },
+          });
+
+          if (!integration) {
+            throw new Error('No active HOS integration configured');
+          }
+
+          const apiKey = this.getApiKeyFromCredentials(integration.credentials);
+
+          return await this.samsaraAdapter.getDriverHOS(
+            apiKey,
+            driver.externalDriverId || driverId,
+          );
         },
-      });
-
-      if (!integration) {
-        throw new Error('No active HOS integration configured');
-      }
-
-      const apiKey = this.getApiKeyFromCredentials(integration.credentials);
-
-      const hosData = await this.samsaraAdapter.getDriverHOS(
-        apiKey,
-        driver.externalDriverId || driverId,
+        {
+          maxAttempts: 3,
+          baseDelayMs: 1000,
+          maxDelayMs: 10000,
+          exponentialBase: 2,
+        },
+        `getDriverHOS(${driverId})`,
       );
 
       // Update cache
@@ -109,7 +126,7 @@ export class IntegrationManagerService {
     } catch (error) {
       // 4. Fall back to stale cache
       if (driver.hosData) {
-        console.warn(
+        this.logger.warn(
           `Failed to fetch HOS for ${driverId}, using stale cache: ${error.message}`,
         );
         return {
@@ -148,9 +165,10 @@ export class IntegrationManagerService {
       if (integration.vendor === 'SAMSARA_ELD' || integration.vendor === 'KEEPTRUCKIN_ELD' || integration.vendor === 'MOTIVE_ELD') {
         success = await this.samsaraAdapter.testConnection(apiKey);
       } else if (integration.vendor === 'MCLEOD_TMS' || integration.vendor === 'TMW_TMS') {
-        success = await this.mcleodAdapter.testConnection(apiKey);
-      } else if (integration.vendor === 'TRUCKBASE_TMS') {
-        success = await this.truckbaseAdapter.testConnection(apiKey);
+        success = await this.mcleodAdapter.testConnection(apiKey, '');
+      } else if (integration.vendor === 'PROJECT44_TMS') {
+        const apiSecret = this.getApiSecretFromCredentials(integration.credentials);
+        success = await this.project44Adapter.testConnection(apiKey, apiSecret);
       } else if (integration.vendor === 'GASBUDDY_FUEL') {
         success = await this.gasBuddyAdapter.testConnection(apiKey);
       } else if (integration.vendor === 'FUELFINDER_FUEL') {
@@ -196,6 +214,35 @@ export class IntegrationManagerService {
     try {
       await this.getDriverHOS(tenantId, driverId);
     } catch (error) {
+      // Track failure
+      await this.recordSyncFailure(tenantId, 'HOS_SYNC', error);
+
+      // Send alert on repeated failures (3+ in last 60 minutes)
+      const recentFailures = await this.getRecentFailureCount(tenantId, 'HOS_SYNC', 60);
+
+      if (recentFailures >= 3) {
+        try {
+          await this.alertService.sendAlert(
+            {
+              title: 'Integration Sync Failing',
+              message: `HOS sync has failed ${recentFailures} times in the last hour. Please check your integration configuration.`,
+              severity: AlertSeverity.ERROR,
+              context: {
+                tenantId,
+                driverId,
+                failureCount: recentFailures,
+                error: error.message,
+                timestamp: new Date().toISOString(),
+              },
+            },
+            tenantId,
+          );
+        } catch (alertError) {
+          // Don't block on alert sending failures
+          this.logger.error(`Failed to send alert: ${alertError.message}`);
+        }
+      }
+
       console.error(`Failed to sync HOS for driver ${driverId}:`, error);
       throw error;
     }
@@ -240,6 +287,95 @@ export class IntegrationManagerService {
     } catch {
       // If not encrypted, return as-is (for development)
       return credentials.apiKey;
+    }
+  }
+
+  /**
+   * Extract API secret from encrypted credentials JSON (for Truckbase)
+   */
+  private getApiSecretFromCredentials(credentials: any): string {
+    if (!credentials || !credentials.apiSecret) {
+      throw new Error('Invalid credentials - apiSecret missing');
+    }
+
+    try {
+      return this.credentials.decrypt(credentials.apiSecret);
+    } catch {
+      // If not encrypted, return as-is (for development)
+      return credentials.apiSecret;
+    }
+  }
+
+  /**
+   * Record a sync failure in the integration sync log
+   */
+  private async recordSyncFailure(
+    tenantId: number,
+    syncType: string,
+    error: Error,
+  ): Promise<void> {
+    try {
+      // Find the active HOS integration for this tenant
+      const integration = await this.prisma.integrationConfig.findFirst({
+        where: {
+          tenantId,
+          integrationType: 'HOS_ELD',
+          status: 'ACTIVE',
+        },
+      });
+
+      if (integration) {
+        // Create a sync log entry
+        await this.prisma.integrationSyncLog.create({
+          data: {
+            logId: `sync-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            integrationId: integration.id,
+            syncType,
+            startedAt: new Date(),
+            completedAt: new Date(),
+            status: 'failed',
+            recordsProcessed: 0,
+            recordsCreated: 0,
+            recordsUpdated: 0,
+            errorDetails: {
+              message: error.message,
+              stack: error.stack,
+            },
+          },
+        });
+      }
+
+      this.logger.error(`Sync failure: ${syncType} for tenant ${tenantId}: ${error.message}`);
+    } catch (logError) {
+      // Don't block on logging failures
+      this.logger.error(`Failed to record sync failure: ${logError.message}`);
+    }
+  }
+
+  /**
+   * Get count of recent sync failures for a tenant
+   */
+  private async getRecentFailureCount(
+    tenantId: number,
+    syncType: string,
+    minutes: number,
+  ): Promise<number> {
+    const since = new Date(Date.now() - minutes * 60 * 1000);
+
+    try {
+      const count = await this.prisma.integrationSyncLog.count({
+        where: {
+          integration: { tenantId },
+          syncType,
+          status: 'failed',
+          startedAt: { gte: since },
+        },
+      });
+
+      return count;
+    } catch (error) {
+      this.logger.error(`Failed to get recent failure count: ${error.message}`);
+      return 0;
     }
   }
 }

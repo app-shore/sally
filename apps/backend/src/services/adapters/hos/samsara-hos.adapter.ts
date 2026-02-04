@@ -4,20 +4,20 @@ import { IHOSAdapter, HOSData } from './hos-adapter.interface';
 /**
  * Samsara ELD Adapter
  *
- * NOTE: Currently returns MOCK data for development/testing
- * In Phase 2, this will make real API calls to Samsara
+ * Makes real API calls to Samsara ELD system
+ * Set SAMSARA_API_KEY environment variable to enable
  *
- * Real Samsara API: https://api.samsara.com
+ * API: https://api.samsara.com
  * Docs: https://developers.samsara.com/docs
  */
 @Injectable()
 export class SamsaraHOSAdapter implements IHOSAdapter {
   private readonly baseUrl = 'https://api.samsara.com';
-  private readonly useMockData = false; // Set to false when ready for real API calls
+  private readonly useMockData = false;
 
   /**
    * Get driver HOS data from Samsara ELD
-   * Currently returns mock data - see useMockData flag
+   * Makes real API calls to Samsara
    */
   async getDriverHOS(apiKey: string, driverId: string): Promise<HOSData> {
     if (this.useMockData) {
@@ -59,7 +59,7 @@ export class SamsaraHOSAdapter implements IHOSAdapter {
 
   /**
    * Test connection to Samsara API
-   * Currently returns true for valid-looking API keys (mock mode)
+   * Validates API key by attempting to list drivers
    */
   async testConnection(apiKey: string): Promise<boolean> {
     if (this.useMockData) {
@@ -89,7 +89,7 @@ export class SamsaraHOSAdapter implements IHOSAdapter {
 
   /**
    * Sync all drivers from Samsara
-   * Currently returns mock driver IDs
+   * Fetches complete driver list from Samsara API
    */
   async syncAllDrivers(apiKey: string): Promise<string[]> {
     if (this.useMockData) {

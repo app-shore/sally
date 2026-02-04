@@ -224,6 +224,7 @@ model Driver {
 
   name                  String        @db.VarChar(255)
   licenseNumber         String?       @map("license_number") @db.VarChar(50)
+  licenseState          String?       @map("license_state") @db.VarChar(2)
   phone                 String?       @db.VarChar(20)
   email                 String?       @db.VarChar(255)
 
@@ -264,6 +265,9 @@ model Driver {
   hosOverrideAt         DateTime?     @map("hos_override_at") @db.Timestamptz
   hosOverrideReason     String?       @map("hos_override_reason")
 
+  // ELD HOS Metadata (JSONB - vendor agnostic)
+  eldMetadata           Json?         @map("eld_metadata")
+
   createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -280,6 +284,8 @@ model Driver {
   @@index([status])
   @@index([syncStatus])
   @@index([isActive])
+  @@index([phone])
+  @@index([licenseNumber, licenseState])
   @@map("drivers")
 }
 
@@ -299,6 +305,16 @@ model Vehicle {
   externalSource        String?      @map("external_source") @db.VarChar(50)
   lastSyncedAt          DateTime?    @map("last_synced_at") @db.Timestamptz
 
+  // TMS Fields (source of truth for operational data)
+  make                  String?      @db.VarChar(50)
+  model                 String?      @db.VarChar(50)
+  year                  Int?
+  vin                   String?      @db.VarChar(50)
+  licensePlate          String?      @map("license_plate") @db.VarChar(20)
+
+  // ELD Telematics Metadata (JSONB - vendor agnostic)
+  eldTelematicsMetadata Json?        @map("eld_telematics_metadata")
+
   tenant                Tenant       @relation(fields: [tenantId], references: [id])
   tenantId              Int          @map("tenant_id")
 
@@ -308,6 +324,8 @@ model Vehicle {
   @@unique([vehicleId, tenantId])
   @@unique([externalVehicleId, tenantId])
   @@index([tenantId])
+  @@index([vin])
+  @@index([licensePlate])
   @@map("vehicles")
 }
 
@@ -552,7 +570,7 @@ enum IntegrationType {
 enum IntegrationVendor {
   MCLEOD_TMS
   TMW_TMS
-  TRUCKBASE_TMS
+  PROJECT44_TMS
   SAMSARA_ELD
   KEEPTRUCKIN_ELD
   MOTIVE_ELD

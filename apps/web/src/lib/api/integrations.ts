@@ -5,7 +5,7 @@ export type IntegrationType = 'TMS' | 'HOS_ELD' | 'FUEL_PRICE' | 'WEATHER' | 'TE
 export type IntegrationVendor =
   | 'MCLEOD_TMS'
   | 'TMW_TMS'
-  | 'TRUCKBASE_TMS'
+  | 'PROJECT44_TMS'
   | 'SAMSARA_ELD'
   | 'KEEPTRUCKIN_ELD'
   | 'MOTIVE_ELD'
@@ -65,11 +65,19 @@ export interface SyncLog {
   sync_type: string;
   started_at: string;
   completed_at?: string;
+  duration_ms?: number;
   status: string;
   records_processed: number;
   records_created: number;
   records_updated: number;
   error_details?: Record<string, any>;
+}
+
+export interface SyncStats {
+  total_syncs: number;
+  successful_syncs: number;
+  failed_syncs: number;
+  success_rate: number;
 }
 
 /**
@@ -135,10 +143,32 @@ export async function triggerSync(integrationId: string): Promise<SyncResponse> 
 }
 
 /**
+ * Trigger fleet-wide sync (all enabled integrations for tenant)
+ */
+export async function syncFleet(): Promise<{ message: string }> {
+  return apiClient<{ message: string }>('/fleet/sync', {
+    method: 'POST',
+  });
+}
+
+/**
  * Get sync history for an integration
  */
-export async function getSyncHistory(integrationId: string, limit = 20): Promise<SyncLog[]> {
-    return apiClient<SyncLog[]>(`/integrations/${integrationId}/sync-history?limit=${limit}`, {
+export async function getSyncHistory(
+  integrationId: string,
+  limit: number = 50,
+  offset: number = 0,
+): Promise<SyncLog[]> {
+  return apiClient<SyncLog[]>(`/integrations/${integrationId}/sync-history?limit=${limit}&offset=${offset}`, {
+    method: 'GET',
+  });
+}
+
+/**
+ * Get sync statistics for an integration
+ */
+export async function getSyncStats(integrationId: string): Promise<SyncStats> {
+  return apiClient<SyncStats>(`/integrations/${integrationId}/sync-history/stats`, {
     method: 'GET',
   });
 }

@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -55,5 +56,23 @@ export class IntegrationsController {
   @Post(':integrationId/sync')
   async triggerSync(@Param('integrationId') integrationId: string) {
     return this.integrationsService.triggerSync(integrationId);
+  }
+
+  @Get(':integrationId/sync-history')
+  async getSyncHistory(
+    @Param('integrationId') integrationId: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.integrationsService.getSyncHistory(
+      integrationId,
+      parseInt(limit || '50'),
+      parseInt(offset || '0'),
+    );
+  }
+
+  @Get(':integrationId/sync-history/stats')
+  async getSyncStats(@Param('integrationId') integrationId: string) {
+    return this.integrationsService.getSyncStats(integrationId);
   }
 }

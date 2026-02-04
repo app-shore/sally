@@ -17,7 +17,7 @@ export class McLeodTMSAdapter implements ITMSAdapter {
    * Get load details from McLeod TMS
    * Currently returns mock data - see useMockData flag
    */
-  async getLoad(apiKey: string, loadId: string): Promise<LoadData> {
+  async getLoad(apiKey: string, apiSecret: string, loadId: string): Promise<LoadData> {
     if (this.useMockData) {
       return this.getMockLoad(loadId);
     }
@@ -38,7 +38,7 @@ export class McLeodTMSAdapter implements ITMSAdapter {
    * Get all active loads from McLeod TMS
    * Currently returns mock data
    */
-  async getActiveLoads(apiKey: string): Promise<LoadData[]> {
+  async getActiveLoads(apiKey: string, apiSecret: string): Promise<LoadData[]> {
     if (this.useMockData) {
       return [
         this.getMockLoad('LOAD-001'),
@@ -60,7 +60,7 @@ export class McLeodTMSAdapter implements ITMSAdapter {
    * Test connection to McLeod TMS
    * Currently returns true for valid-looking API keys (mock mode)
    */
-  async testConnection(apiKey: string): Promise<boolean> {
+  async testConnection(apiKey: string, apiSecret?: string): Promise<boolean> {
     if (this.useMockData) {
       // Mock validation - just check if apiKey exists and looks valid
       return apiKey && apiKey.length > 10;
@@ -79,7 +79,7 @@ export class McLeodTMSAdapter implements ITMSAdapter {
    * Sync all loads from McLeod TMS
    * Currently returns mock load IDs
    */
-  async syncAllLoads(apiKey: string): Promise<string[]> {
+  async syncAllLoads(apiKey: string, apiSecret?: string): Promise<string[]> {
     if (this.useMockData) {
       return ['LOAD-001', 'LOAD-002', 'LOAD-003'];
     }

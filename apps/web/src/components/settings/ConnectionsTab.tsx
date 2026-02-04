@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   type IntegrationConfig,
   type IntegrationType,
@@ -30,6 +31,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ConfigureIntegrationForm } from './ConfigureIntegrationForm';
 import { useOnboardingStore } from '@/lib/store/onboardingStore';
+import { IntegrationSyncHistory } from './IntegrationSyncHistory';
 
 // Vendor configuration with availability status
 interface VendorConfig {
@@ -58,7 +60,7 @@ const CATEGORIES = [
     icon: Package,
     color: 'purple',
     vendors: [
-      { vendor: 'TRUCKBASE_TMS' as const, name: 'Truckbase', enabled: true },
+      { vendor: 'PROJECT44_TMS' as const, name: 'project44', enabled: true },
       { vendor: 'MCLEOD_TMS' as const, name: 'McLeod', enabled: false, comingSoon: true },
       { vendor: 'TMW_TMS' as const, name: 'TMW Systems', enabled: false, comingSoon: true },
     ] as VendorConfig[]
@@ -370,23 +372,40 @@ export function ConnectionsTab() {
 
       {/* Configure Integration Dialog */}
       <Dialog open={configureDialog.open} onOpenChange={(open) => !open && handleCloseDialog()}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {configureDialog.integration ? 'Configure Integration' : 'Add Integration'}
             </DialogTitle>
           </DialogHeader>
           {(configureDialog.integration || (configureDialog.integrationType && configureDialog.vendor)) && (
-            <ConfigureIntegrationForm
-              integration={configureDialog.integration}
-              integrationType={configureDialog.integrationType}
-              vendor={configureDialog.vendor}
-              onSuccess={() => {
-                handleCloseDialog();
-                handleRefresh();
-              }}
-              onCancel={handleCloseDialog}
-            />
+            <Tabs defaultValue="settings">
+              <TabsList>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+                {configureDialog.integration && (
+                  <TabsTrigger value="history">Sync History</TabsTrigger>
+                )}
+              </TabsList>
+
+              <TabsContent value="settings">
+                <ConfigureIntegrationForm
+                  integration={configureDialog.integration}
+                  integrationType={configureDialog.integrationType}
+                  vendor={configureDialog.vendor}
+                  onSuccess={() => {
+                    handleCloseDialog();
+                    handleRefresh();
+                  }}
+                  onCancel={handleCloseDialog}
+                />
+              </TabsContent>
+
+              {configureDialog.integration && (
+                <TabsContent value="history">
+                  <IntegrationSyncHistory integrationId={configureDialog.integration.id} />
+                </TabsContent>
+              )}
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>
