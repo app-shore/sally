@@ -17,6 +17,8 @@ import {
   type IntegrationVendor,
   listIntegrations,
   deleteIntegration,
+  getVendorRegistry,
+  type VendorMetadata,
 } from '@/lib/api/integrations';
 import { Loader2, Plus, Gauge, Package, Droplet, Cloud, Trash2, Lock } from 'lucide-react';
 import {
@@ -89,7 +91,9 @@ const CATEGORIES = [
 export function ConnectionsTab() {
   const { refetchStatus } = useOnboardingStore();
   const [integrations, setIntegrations] = useState<IntegrationConfig[]>([]);
+  const [vendors, setVendors] = useState<VendorMetadata[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingVendors, setIsLoadingVendors] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<IntegrationType | null>(null);
   const [configureDialog, setConfigureDialog] = useState<{
@@ -106,7 +110,20 @@ export function ConnectionsTab() {
 
   useEffect(() => {
     loadIntegrations();
+    loadVendors();
   }, []);
+
+  const loadVendors = async () => {
+    try {
+      setIsLoadingVendors(true);
+      const vendorList = await getVendorRegistry();
+      setVendors(vendorList);
+    } catch (err) {
+      console.error('Failed to fetch vendor registry:', err);
+    } finally {
+      setIsLoadingVendors(false);
+    }
+  };
 
   const loadIntegrations = async () => {
     setIsLoading(true);
@@ -178,8 +195,40 @@ export function ConnectionsTab() {
   // Get connected vendor IDs to filter out from "Add New" section
   const connectedVendors = new Set(integrations.map(int => int.vendor));
 
+  // Build dynamic categories from vendor registry
+  const dynamicCategories = [
+    {
+      type: 'HOS_ELD' as IntegrationType,
+      label: 'Hours of Service (ELD)',
+      icon: Gauge,
+      color: 'blue',
+      vendors: vendors.filter(v => v.integrationType === 'HOS_ELD'),
+    },
+    {
+      type: 'TMS' as IntegrationType,
+      label: 'Transportation Management',
+      icon: Package,
+      color: 'purple',
+      vendors: vendors.filter(v => v.integrationType === 'TMS'),
+    },
+    {
+      type: 'FUEL_PRICE' as IntegrationType,
+      label: 'Fuel Prices',
+      icon: Droplet,
+      color: 'green',
+      vendors: vendors.filter(v => v.integrationType === 'FUEL_PRICE'),
+    },
+    {
+      type: 'WEATHER' as IntegrationType,
+      label: 'Weather',
+      icon: Cloud,
+      color: 'cyan',
+      vendors: vendors.filter(v => v.integrationType === 'WEATHER'),
+    },
+  ];
+
   // Group integrations by category
-  const integrationsByCategory = CATEGORIES.map((category) => ({
+  const integrationsByCategory = dynamicCategories.map((category) => ({
     ...category,
     integrations: integrations.filter((int) => int.integration_type === category.type),
   }));
@@ -279,7 +328,7 @@ export function ConnectionsTab() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedCategory && CATEGORIES.find(c => c.type === selectedCategory)?.label}
+              {selectedCategory && dynamicCategories.find(c => c.type === selectedCategory)?.label}
             </DialogTitle>
           </DialogHeader>
 
@@ -330,39 +379,42 @@ export function ConnectionsTab() {
               <div className="pt-4 border-t border-border">
                 <h4 className="font-semibold text-foreground mb-3">Add New Connection</h4>
                 <div className="space-y-2">
-                  {CATEGORIES.find(c => c.type === selectedCategory)?.vendors.map((vendor) => {
-                    const isConnected = connectedVendors.has(vendor.vendor);
-                    const isDisabled = !vendor.enabled || isConnected;
+                  {isLoadingVendors ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                      <span className="ml-2 text-sm text-muted-foreground">Loading vendors...</span>
+                    </div>
+                  ) : (
+                    dynamicCategories.find(c => c.type === selectedCategory)?.vendors.map((vendor) => {
+                      const isConnected = connectedVendors.has(vendor.id);
 
-                    return (
-                      <button
-                        key={vendor.vendor}
-                        onClick={() => !isDisabled && handleAddIntegration(vendor.vendor, selectedCategory)}
-                        disabled={isDisabled}
-                        className={`w-full flex items-center justify-between p-3 rounded-lg border transition-colors text-left ${
-                          isDisabled
-                            ? 'border-border bg-muted/30 cursor-not-allowed opacity-60'
-                            : 'border-border hover:bg-muted/50 hover:border-foreground/20'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium text-foreground">{vendor.name}</span>
-                          {isConnected && (
-                            <Badge variant="muted" className="text-xs">
-                              Connected
-                            </Badge>
-                          )}
-                          {vendor.comingSoon && !isConnected && (
-                            <Badge variant="outline" className="text-xs">
-                              <Lock className="h-3 w-3 mr-1" />
-                              Coming Soon
-                            </Badge>
-                          )}
-                        </div>
-                        {!isDisabled && <Plus className="h-4 w-4 text-muted-foreground" />}
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={vendor.id}
+                          onClick={() => !isConnected && handleAddIntegration(vendor.id, selectedCategory)}
+                          disabled={isConnected}
+                          className={`w-full flex items-center justify-between p-3 rounded-lg border transition-colors text-left ${
+                            isConnected
+                              ? 'border-border bg-muted/30 cursor-not-allowed opacity-60'
+                              : 'border-border hover:bg-muted/50 hover:border-foreground/20'
+                          }`}
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium text-foreground">{vendor.displayName}</span>
+                              {isConnected && (
+                                <Badge variant="muted" className="text-xs">
+                                  Connected
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">{vendor.description}</p>
+                          </div>
+                          {!isConnected && <Plus className="h-4 w-4 text-muted-foreground" />}
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </div>
