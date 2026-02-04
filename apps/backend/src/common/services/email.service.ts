@@ -216,4 +216,54 @@ SALLY - Smart Routes. Confident Dispatchers. Happy Drivers.
 
     await this.sendEmail({ to: email, subject, html, text });
   }
+
+  /**
+   * Get login URL (subdomain-aware or single domain)
+   */
+  private getLoginUrl(subdomain: string): string {
+    const baseUrl =
+      this.configService.get<string>('TENANT_BASE_URL') || 'sally.appshore.in';
+    const useSubdomains =
+      this.configService.get<boolean>('USE_TENANT_SUBDOMAINS') !== false; // Default true
+
+    if (useSubdomains) {
+      // Multi-tenant: https://acme.sally.appshore.in/login
+      return `https://${subdomain}.${baseUrl}/login`;
+    } else {
+      // Single domain: https://sally.appshore.in/login
+      return `https://${baseUrl}/login`;
+    }
+  }
+
+  /**
+   * Get display URL for emails (subdomain or base URL)
+   */
+  private getDisplayUrl(subdomain: string): string {
+    const baseUrl =
+      this.configService.get<string>('TENANT_BASE_URL') || 'sally.appshore.in';
+    const useSubdomains =
+      this.configService.get<boolean>('USE_TENANT_SUBDOMAINS') !== false;
+
+    if (useSubdomains) {
+      return `${subdomain}.${baseUrl}`;
+    } else {
+      return baseUrl;
+    }
+  }
+
+  /**
+   * Get subdomain instruction text for emails
+   */
+  private getSubdomainInstructionText(subdomain: string): string {
+    const baseUrl =
+      this.configService.get<string>('TENANT_BASE_URL') || 'sally.appshore.in';
+    const useSubdomains =
+      this.configService.get<boolean>('USE_TENANT_SUBDOMAINS') !== false;
+
+    if (useSubdomains) {
+      return `Or visit ${baseUrl} and enter your subdomain: <strong>${subdomain}</strong>`;
+    } else {
+      return `Visit <strong>${baseUrl}</strong> to login`;
+    }
+  }
 }
