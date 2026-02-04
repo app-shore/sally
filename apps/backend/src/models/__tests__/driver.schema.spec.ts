@@ -6,6 +6,7 @@ describe('Driver Schema', () => {
   let prisma: PrismaClient;
   let pool: pg.Pool;
   let testTenantId: number;
+  const createdDriverIds: number[] = [];
 
   beforeAll(async () => {
     const connectionString =
@@ -26,6 +27,16 @@ describe('Driver Schema', () => {
   });
 
   afterAll(async () => {
+    // Clean up created drivers
+    if (createdDriverIds.length > 0) {
+      await prisma.driver.deleteMany({
+        where: {
+          id: {
+            in: createdDriverIds,
+          },
+        },
+      });
+    }
     await prisma.$disconnect();
     await pool.end();
   });
@@ -41,6 +52,7 @@ describe('Driver Schema', () => {
         licenseState: 'NH',
       },
     });
+    createdDriverIds.push(driver.id);
 
     expect(driver.licenseState).toBe('NH');
   });
@@ -71,6 +83,7 @@ describe('Driver Schema', () => {
         },
       },
     });
+    createdDriverIds.push(driver.id);
 
     expect(driver.eldMetadata).toHaveProperty('eldVendor', 'SAMSARA_ELD');
     expect(driver.eldMetadata).toHaveProperty('eldSettings');
