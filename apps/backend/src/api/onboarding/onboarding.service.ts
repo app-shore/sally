@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { OnboardingStatusResponse, OnboardingItem } from './dto/onboarding-status.dto';
+import {
+  OnboardingStatusResponse,
+  OnboardingItem,
+} from './dto/onboarding-status.dto';
 
 @Injectable()
 export class OnboardingService {
@@ -8,7 +11,9 @@ export class OnboardingService {
 
   constructor(private prisma: PrismaService) {}
 
-  async getOnboardingStatus(tenantId: number): Promise<OnboardingStatusResponse> {
+  async getOnboardingStatus(
+    tenantId: number,
+  ): Promise<OnboardingStatusResponse> {
     this.logger.log(`Fetching onboarding status for tenant ${tenantId}`);
 
     const [
@@ -232,7 +237,7 @@ export class OnboardingService {
   }
 
   private async checkPreferences(tenantId: number) {
-    const prefs = await this.prisma.dispatcherPreferences.findUnique({
+    const prefs = await this.prisma.fleetOperationsSettings.findUnique({
       where: { tenantId },
       select: {
         createdAt: true,
@@ -241,8 +246,11 @@ export class OnboardingService {
     });
 
     return {
-      modified: prefs ? prefs.updatedAt.getTime() !== prefs.createdAt.getTime() : false,
-      usingDefaults: !prefs || prefs.updatedAt.getTime() === prefs.createdAt.getTime(),
+      modified: prefs
+        ? prefs.updatedAt.getTime() !== prefs.createdAt.getTime()
+        : false,
+      usingDefaults:
+        !prefs || prefs.updatedAt.getTime() === prefs.createdAt.getTime(),
     };
   }
 }
