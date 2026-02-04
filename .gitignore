@@ -123,3 +123,4 @@ logs
 # Git worktrees
 .worktrees/
 worktrees/
+apps/backend/.env.staging
