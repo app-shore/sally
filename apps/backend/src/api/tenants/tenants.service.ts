@@ -7,10 +7,14 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 import { generateId } from '../../common/utils/id-generator';
 import { TenantStatus } from '@prisma/client';
+import { NotificationService } from '../../services/notification/notification.service';
 
 @Injectable()
 export class TenantsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {}
 
   /**
    * Check if subdomain is available
@@ -95,7 +99,13 @@ export class TenantsService {
       return { tenant, ownerUser };
     });
 
-    // TODO: Send notification email to SALLY admin team
+    // Send registration confirmation email
+    await this.notificationService.sendTenantRegistrationConfirmation(
+      result.tenant.tenantId,
+      dto.email,
+      dto.firstName,
+      result.tenant.companyName,
+    );
 
     return {
       tenantId: result.tenant.tenantId,
@@ -175,7 +185,17 @@ export class TenantsService {
       return updatedTenant;
     });
 
-    // TODO: Send welcome email to admin user
+    // Send approval email to owner
+    const ownerUser = tenant.users.find((u) => u.role === 'OWNER');
+    if (ownerUser) {
+      await this.notificationService.sendTenantApprovalNotification(
+        tenantId,
+        ownerUser.email,
+        ownerUser.firstName,
+        result.companyName,
+        result.subdomain || tenantId,
+      );
+    }
 
     return result;
   }
@@ -186,13 +206,18 @@ export class TenantsService {
   async rejectTenant(tenantId: string, reason: string) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { tenantId },
+      include: {
+        users: {
+          where: { role: 'OWNER' },
+        },
+      },
     });
 
     if (!tenant) {
       throw new BadRequestException('Tenant not found');
     }
 
-    return this.prisma.tenant.update({
+    const result = await this.prisma.tenant.update({
       where: { tenantId },
       data: {
         status: 'REJECTED',
@@ -201,6 +226,18 @@ export class TenantsService {
       },
     });
 
-    // TODO: Optionally send rejection email
+    // Send rejection email to owner
+    const ownerUser = tenant.users?.find((u) => u.role === 'OWNER');
+    if (ownerUser) {
+      await this.notificationService.sendTenantRejectionNotification(
+        tenantId,
+        ownerUser.email,
+        ownerUser.firstName,
+        tenant.companyName,
+        reason,
+      );
+    }
+
+    return result;
   }
 }
