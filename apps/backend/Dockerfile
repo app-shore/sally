@@ -39,16 +39,20 @@ RUN npm run build
 FROM node:20-alpine AS production
 WORKDIR /app
 
-# Install wget for healthcheck
-RUN apk add --no-cache wget
+# Install wget for healthcheck and postgresql-client for migrations
+RUN apk add --no-cache wget postgresql-client
 
 # Copy package files
 COPY --from=builder /workspace/apps/backend/package*.json ./
 
-# Copy built application, Prisma schema, and config
+# Copy built application, Prisma schema, config, and migration script
 COPY --from=builder /workspace/apps/backend/dist ./dist
 COPY --from=builder /workspace/apps/backend/prisma ./prisma
 COPY --from=builder /workspace/apps/backend/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /workspace/apps/backend/scripts/apply-migration.sh ./apply-migration.sh
+
+# Make migration script executable
+RUN chmod +x ./apply-migration.sh
 
 # Copy ALL node_modules from BUILDER (includes generated Prisma Client)
 COPY --from=builder /workspace/node_modules ./node_modules
