@@ -8,13 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { usePreferencesStore } from '@/lib/store/preferencesStore';
-import { DispatcherPreferences } from '@/lib/api/preferences';
+import { OperationsSettings } from '@/lib/api/preferences';
 import { Loader2, Save, RotateCcw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function DispatcherPreferencesTab() {
-  const { dispatcherPreferences, updateDispatcherPrefs, resetToDefaults, isSaving } = usePreferencesStore();
-  const [formData, setFormData] = useState<Partial<DispatcherPreferences>>(dispatcherPreferences || {});
+  const { operationsSettings, updateOperationsSettings, resetToDefaults, isSaving } = usePreferencesStore();
+  const [formData, setFormData] = useState<Partial<OperationsSettings>>(operationsSettings || {});
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleChange = (field: string, value: any) => {
@@ -23,7 +23,7 @@ export default function DispatcherPreferencesTab() {
 
   const handleSave = async () => {
     try {
-      await updateDispatcherPrefs(formData);
+      await updateOperationsSettings(formData);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
@@ -34,9 +34,9 @@ export default function DispatcherPreferencesTab() {
   const handleReset = async () => {
     if (confirm('Reset all route planning preferences to defaults?')) {
       try {
-        await resetToDefaults('dispatcher');
+        await resetToDefaults('operations');
         // Reload from store after reset
-        const resetPrefs = usePreferencesStore.getState().dispatcherPreferences;
+        const resetPrefs = usePreferencesStore.getState().operationsSettings;
         if (resetPrefs) {
           setFormData(resetPrefs);
         }
@@ -48,7 +48,7 @@ export default function DispatcherPreferencesTab() {
     }
   };
 
-  if (!dispatcherPreferences) {
+  if (!operationsSettings) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-12">
