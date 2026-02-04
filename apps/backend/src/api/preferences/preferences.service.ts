@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateUserPreferencesDto } from './dto/user-preferences.dto';
-import { UpdateDispatcherPreferencesDto } from './dto/dispatcher-preferences.dto';
+import { UpdateOperationsSettingsDto } from './dto/operations-settings.dto';
 import { UpdateDriverPreferencesDto } from './dto/driver-preferences.dto';
 
 @Injectable()
@@ -66,13 +66,13 @@ export class PreferencesService {
   }
 
   // ============================================================================
-  // DISPATCHER PREFERENCES
+  // OPERATIONS SETTINGS (FLEET-WIDE)
   // ============================================================================
 
-  async getDispatcherPreferences(userIdString: string, userRole: string, tenantIdString: string) {
+  async getOperationsSettings(userIdString: string, userRole: string, tenantIdString: string) {
     // Check role
     if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN' && userRole !== 'OWNER') {
-      throw new ForbiddenException('Only dispatchers, admins, and owners can access route planning preferences');
+      throw new ForbiddenException('Only dispatchers, admins, and owners can access operations settings');
     }
 
     // Get tenant numeric ID
@@ -85,25 +85,25 @@ export class PreferencesService {
       throw new NotFoundException('Tenant not found');
     }
 
-    // Get or create dispatcher preferences with defaults (one per tenant)
-    let preferences = await this.prisma.dispatcherPreferences.findUnique({
+    // Get or create operations settings with defaults (one per tenant)
+    let settings = await this.prisma.fleetOperationsSettings.findUnique({
       where: { tenantId: tenant.id },
     });
 
-    if (!preferences) {
+    if (!settings) {
       // Create with defaults
-      preferences = await this.prisma.dispatcherPreferences.create({
+      settings = await this.prisma.fleetOperationsSettings.create({
         data: { tenantId: tenant.id },
       });
     }
 
-    return preferences;
+    return settings;
   }
 
-  async updateDispatcherPreferences(userIdString: string, userRole: string, tenantIdString: string, dto: UpdateDispatcherPreferencesDto) {
+  async updateOperationsSettings(userIdString: string, userRole: string, tenantIdString: string, dto: UpdateOperationsSettingsDto) {
     // Check role
     if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN' && userRole !== 'OWNER') {
-      throw new ForbiddenException('Only dispatchers, admins, and owners can update route planning preferences');
+      throw new ForbiddenException('Only dispatchers, admins, and owners can update operations settings');
     }
 
     // Get tenant numeric ID
@@ -116,11 +116,11 @@ export class PreferencesService {
       throw new NotFoundException('Tenant not found');
     }
 
-    // Validate preferences
-    this.validateDispatcherPreferences(dto);
+    // Validate settings
+    this.validateOperationsSettings(dto);
 
-    // Upsert preferences (one per tenant)
-    const preferences = await this.prisma.dispatcherPreferences.upsert({
+    // Upsert settings (one per tenant)
+    const settings = await this.prisma.fleetOperationsSettings.upsert({
       where: { tenantId: tenant.id },
       create: {
         tenantId: tenant.id,
@@ -129,7 +129,7 @@ export class PreferencesService {
       update: dto,
     });
 
-    return preferences;
+    return settings;
   }
 
   // ============================================================================
@@ -207,7 +207,7 @@ export class PreferencesService {
   // RESET TO DEFAULTS
   // ============================================================================
 
-  async resetToDefaults(userIdString: string, tenantIdString: string, scope: 'user' | 'dispatcher' | 'driver', userRole: string) {
+  async resetToDefaults(userIdString: string, tenantIdString: string, scope: 'user' | 'operations' | 'driver', userRole: string) {
     // Get numeric user ID
     const user = await this.prisma.user.findUnique({
       where: { userId: userIdString },
@@ -224,9 +224,9 @@ export class PreferencesService {
       return await this.prisma.userPreferences.create({ data: { userId: user.id } });
     }
 
-    if (scope === 'dispatcher') {
+    if (scope === 'operations') {
       if (userRole !== 'DISPATCHER' && userRole !== 'ADMIN' && userRole !== 'OWNER') {
-        throw new ForbiddenException('Only dispatchers, admins, and owners can reset route planning preferences');
+        throw new ForbiddenException('Only dispatchers, admins, and owners can reset operations settings');
       }
 
       // Get tenant numeric ID
@@ -239,8 +239,8 @@ export class PreferencesService {
         throw new NotFoundException('Tenant not found');
       }
 
-      await this.prisma.dispatcherPreferences.delete({ where: { tenantId: tenant.id } }).catch(() => {});
-      return await this.prisma.dispatcherPreferences.create({ data: { tenantId: tenant.id } });
+      await this.prisma.fleetOperationsSettings.delete({ where: { tenantId: tenant.id } }).catch(() => {});
+      return await this.prisma.fleetOperationsSettings.create({ data: { tenantId: tenant.id } });
     }
 
     if (scope === 'driver') {
@@ -253,7 +253,7 @@ export class PreferencesService {
       });
     }
 
-    throw new BadRequestException('Invalid scope. Must be: user, dispatcher, or driver');
+    throw new BadRequestException('Invalid scope. Must be: user, operations, or driver');
   }
 
   // ============================================================================
@@ -270,7 +270,7 @@ export class PreferencesService {
     }
   }
 
-  private validateDispatcherPreferences(dto: UpdateDispatcherPreferencesDto) {
+  private validateOperationsSettings(dto: UpdateOperationsSettingsDto) {
     // Validate warning < critical for HOS thresholds
     if (dto.driveHoursWarningPct !== undefined && dto.driveHoursCriticalPct !== undefined) {
       if (dto.driveHoursWarningPct >= dto.driveHoursCriticalPct) {
