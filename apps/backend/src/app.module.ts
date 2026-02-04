@@ -44,6 +44,7 @@ import { OnboardingModule } from './api/onboarding/onboarding.module';
 import { FeatureFlagsModule } from './api/feature-flags/feature-flags.module';
 import { CacheModule } from './cache/cache.module';
 import { MockExternalModule } from './api/mock-external/mock-external.module';
+import { NotificationModule } from './services/notification/notification.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { MockExternalModule } from './api/mock-external/mock-external.module';
     OnboardingModule,
     FeatureFlagsModule,
     MockExternalModule,
+    NotificationModule,
   ],
   providers: [
     // Global guards (applied to all routes by default)
