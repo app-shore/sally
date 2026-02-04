@@ -116,12 +116,12 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
     }
   },
 
-  // Update dispatcher preferences
-  updateDispatcherPrefs: async (updates: Partial<DispatcherPreferences>) => {
+  // Update operations settings
+  updateOperationsSettings: async (updates: Partial<OperationsSettings>) => {
     set({ isSaving: true, error: null });
     try {
-      const updatedPreferences = await updateDispatcherPreferences(updates);
-      set({ dispatcherPreferences: updatedPreferences, isSaving: false });
+      const updatedSettings = await updateOperationsSettings(updates);
+      set({ operationsSettings: updatedSettings, isSaving: false });
     } catch (error: any) {
       set({ error: error.message, isSaving: false });
       throw error;
@@ -141,15 +141,15 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
 
   // Reset to defaults
-  resetToDefaults: async (scope: 'user' | 'dispatcher' | 'driver') => {
+  resetToDefaults: async (scope: 'user' | 'operations' | 'driver') => {
     set({ isSaving: true, error: null });
     try {
       const resetPreferences = await resetToDefaultsAPI(scope);
 
       if (scope === 'user') {
         set({ userPreferences: resetPreferences });
-      } else if (scope === 'dispatcher') {
-        set({ dispatcherPreferences: resetPreferences });
+      } else if (scope === 'operations') {
+        set({ operationsSettings: resetPreferences });
       } else if (scope === 'driver') {
         set({ driverPreferences: resetPreferences });
       }
