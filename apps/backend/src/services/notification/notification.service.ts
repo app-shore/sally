@@ -69,8 +69,36 @@ export class NotificationService {
     companyName: string,
     subdomain: string,
   ): Promise<Notification> {
-    // TODO: Implement in next task
-    throw new Error('Not implemented');
+    // Get tenant database ID from tenantId string
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { tenantId },
+    });
+
+    if (!tenant) {
+      throw new Error(`Tenant not found: ${tenantId}`);
+    }
+
+    // Prepare metadata
+    const metadata = {
+      tenantId: tenant.id,
+      companyName,
+      subdomain,
+    };
+
+    // Create notification and send email
+    return this.createAndSendNotification(
+      NotificationType.TENANT_APPROVED,
+      ownerEmail,
+      metadata,
+      async () => {
+        await this.emailService.sendTenantApprovalEmail(
+          ownerEmail,
+          ownerFirstName,
+          companyName,
+          subdomain,
+        );
+      },
+    );
   }
 
   /**

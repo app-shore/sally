@@ -197,4 +197,50 @@ describe('NotificationService', () => {
       expect(result.status).toBe(NotificationStatus.SENT);
     });
   });
+
+  describe('sendTenantApprovalNotification', () => {
+    it('should send approval email with login link and create notification', async () => {
+      const mockTenant = {
+        id: 1,
+        tenantId: 'tenant_123',
+        subdomain: 'testco',
+      };
+      const mockNotification = {
+        id: 2,
+        notificationId: 'notif_456',
+        type: NotificationType.TENANT_APPROVED,
+        recipient: 'owner@test.com',
+        status: NotificationStatus.SENT,
+        tenantId: 1,
+        metadata: { companyName: 'Test Co', subdomain: 'testco', tenantId: 1 },
+        sentAt: new Date(),
+      };
+
+      mockPrismaService.tenant.findUnique.mockResolvedValue(mockTenant);
+      mockPrismaService.notification.create.mockResolvedValue({
+        ...mockNotification,
+        status: NotificationStatus.PENDING,
+      });
+      mockPrismaService.notification.update.mockResolvedValue(mockNotification);
+      mockEmailService.sendTenantApprovalEmail = jest
+        .fn()
+        .mockResolvedValue(undefined);
+
+      const result = await service.sendTenantApprovalNotification(
+        'tenant_123',
+        'owner@test.com',
+        'John',
+        'Test Co',
+        'testco',
+      );
+
+      expect(mockEmailService.sendTenantApprovalEmail).toHaveBeenCalledWith(
+        'owner@test.com',
+        'John',
+        'Test Co',
+        'testco',
+      );
+      expect(result.status).toBe(NotificationStatus.SENT);
+    });
+  });
 });
