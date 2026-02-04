@@ -102,15 +102,15 @@ export async function updateUserPreferences(updates: Partial<UserPreferences>): 
 }
 
 // ============================================================================
-// DISPATCHER PREFERENCES
+// OPERATIONS SETTINGS
 // ============================================================================
 
-export async function getDispatcherPreferences(): Promise<DispatcherPreferences> {
-  return apiClient<DispatcherPreferences>('/preferences/dispatcher');
+export async function getOperationsSettings(): Promise<OperationsSettings> {
+  return apiClient<OperationsSettings>('/preferences/operations');
 }
 
-export async function updateDispatcherPreferences(updates: Partial<DispatcherPreferences>): Promise<DispatcherPreferences> {
-  return apiClient<DispatcherPreferences>('/preferences/dispatcher', {
+export async function updateOperationsSettings(updates: Partial<OperationsSettings>): Promise<OperationsSettings> {
+  return apiClient<OperationsSettings>('/preferences/operations', {
     method: 'PUT',
     body: JSON.stringify(updates),
   });
@@ -135,7 +135,7 @@ export async function updateDriverPreferences(updates: Partial<DriverPreferences
 // RESET TO DEFAULTS
 // ============================================================================
 
-export async function resetToDefaults(scope: 'user' | 'dispatcher' | 'driver'): Promise<any> {
+export async function resetToDefaults(scope: 'user' | 'operations' | 'driver'): Promise<any> {
     return apiClient<any>('/preferences/reset', {
     method: 'POST',
     body: JSON.stringify({ scope }),
@@ -148,12 +148,12 @@ export async function resetToDefaults(scope: 'user' | 'dispatcher' | 'driver'): 
 
 export async function getDefaults(): Promise<{
   user: Partial<UserPreferences>;
-  dispatcher: Partial<DispatcherPreferences>;
+  operations: Partial<OperationsSettings>;
   driver: Partial<DriverPreferences>;
 }> {
   return apiClient<{
     user: Partial<UserPreferences>;
-    dispatcher: Partial<DispatcherPreferences>;
+    operations: Partial<OperationsSettings>;
     driver: Partial<DriverPreferences>;
   }>('/preferences/defaults');
 }
