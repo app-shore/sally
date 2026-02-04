@@ -205,23 +205,6 @@ export function getIntegrationTypeLabel(type: IntegrationType): string {
   return labels[type];
 }
 
-/**
- * Helper function to get human-readable vendor labels
- */
-export function getVendorLabel(vendor: IntegrationVendor): string {
-  const labels: Record<IntegrationVendor, string> = {
-    MCLEOD_TMS: 'McLeod',
-    TMW_TMS: 'TMW Systems',
-    PROJECT44_TMS: 'project44',
-    SAMSARA_ELD: 'Samsara',
-    KEEPTRUCKIN_ELD: 'KeepTruckin',
-    MOTIVE_ELD: 'Motive',
-    GASBUDDY_FUEL: 'GasBuddy',
-    FUELFINDER_FUEL: 'Fuel Finder',
-    OPENWEATHER: 'OpenWeather',
-  };
-  return labels[vendor];
-}
 
 /**
  * Helper function to format relative time (e.g., "2 minutes ago")
