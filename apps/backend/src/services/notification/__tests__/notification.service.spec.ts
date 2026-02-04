@@ -23,6 +23,9 @@ describe('NotificationService', () => {
 
   const mockEmailService = {
     sendEmail: jest.fn(),
+    sendTenantRegistrationEmail: jest.fn(),
+    sendTenantApprovalEmail: jest.fn(),
+    sendTenantRejectionEmail: jest.fn(),
   };
 
   const mockConfigService = {
@@ -149,6 +152,49 @@ describe('NotificationService', () => {
       });
 
       expect(result.status).toBe(NotificationStatus.FAILED);
+    });
+  });
+
+  describe('sendTenantRegistrationConfirmation', () => {
+    it('should send registration confirmation email and create notification', async () => {
+      const mockTenant = { id: 1, tenantId: 'tenant_123' };
+      const mockNotification = {
+        id: 1,
+        notificationId: 'notif_123',
+        type: NotificationType.TENANT_REGISTRATION_CONFIRMATION,
+        recipient: 'owner@test.com',
+        status: NotificationStatus.SENT,
+        tenantId: 1,
+        metadata: { companyName: 'Test Co', tenantId: 1 },
+        sentAt: new Date(),
+      };
+
+      mockPrismaService.tenant.findUnique.mockResolvedValue(mockTenant);
+      mockPrismaService.notification.create.mockResolvedValue({
+        ...mockNotification,
+        status: NotificationStatus.PENDING,
+      });
+      mockPrismaService.notification.update.mockResolvedValue(mockNotification);
+      mockEmailService.sendTenantRegistrationEmail = jest
+        .fn()
+        .mockResolvedValue(undefined);
+
+      const result = await service.sendTenantRegistrationConfirmation(
+        'tenant_123',
+        'owner@test.com',
+        'John',
+        'Test Co',
+      );
+
+      expect(mockPrismaService.tenant.findUnique).toHaveBeenCalledWith({
+        where: { tenantId: 'tenant_123' },
+      });
+      expect(mockEmailService.sendTenantRegistrationEmail).toHaveBeenCalledWith(
+        'owner@test.com',
+        'John',
+        'Test Co',
+      );
+      expect(result.status).toBe(NotificationStatus.SENT);
     });
   });
 });
