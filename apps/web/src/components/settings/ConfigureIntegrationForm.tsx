@@ -70,6 +70,13 @@ export function ConfigureIntegrationForm({
     fetchVendors();
   }, []);
 
+  // Get current vendor and compute metadata
+  const currentVendor = integration?.vendor || vendor;
+  const currentIntegrationType = integration?.integration_type || integrationType;
+
+  // Get selected vendor metadata
+  const selectedVendorMeta = vendors.find(v => v.id === currentVendor);
+
   // Update display name when vendor metadata becomes available
   useEffect(() => {
     if (selectedVendorMeta && !integration && !formData.display_name) {
@@ -79,13 +86,6 @@ export function ConfigureIntegrationForm({
       }));
     }
   }, [selectedVendorMeta, integration, formData.display_name]);
-
-  // Get current vendor and compute metadata
-  const currentVendor = integration?.vendor || vendor;
-  const currentIntegrationType = integration?.integration_type || integrationType;
-
-  // Get selected vendor metadata
-  const selectedVendorMeta = vendors.find(v => v.id === currentVendor);
 
   const handleInputChange = (field: keyof FormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
