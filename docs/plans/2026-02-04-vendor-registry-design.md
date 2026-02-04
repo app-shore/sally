@@ -380,6 +380,63 @@ function ConfigureIntegrationForm() {
 
 ---
 
+## UX Enhancement: Quick Test from Integration List
+
+**Requirement:** Users can test connection directly from integration list page without opening configure dialog.
+
+**Implementation:**
+
+```typescript
+// Integration Card Component
+<Card>
+  <CardHeader className="flex flex-row items-center justify-between">
+    <div>
+      <CardTitle>{vendorMeta?.displayName || integration.vendor}</CardTitle>
+      <p className="text-sm text-muted-foreground">
+        Last sync: {formatRelativeTime(integration.last_sync_at)}
+      </p>
+    </div>
+    <Badge variant={getStatusVariant(integration.status)}>
+      {integration.status}
+    </Badge>
+  </CardHeader>
+  <CardContent>
+    <div className="flex gap-2">
+      <Button variant="outline" size="sm" onClick={() => handleEdit(integration.id)}>
+        Edit
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleTestConnection(integration.id)}
+        disabled={isTestingConnection}
+      >
+        {isTestingConnection ? 'Testing...' : 'Test Connection'}
+      </Button>
+      <Button variant="destructive" size="sm" onClick={() => handleDelete(integration.id)}>
+        Delete
+      </Button>
+    </div>
+  </CardContent>
+</Card>
+```
+
+**Test Connection Flow:**
+1. User clicks "Test Connection" on integration card
+2. Button shows loading state ("Testing...")
+3. Calls existing `POST /integrations/{id}/test` endpoint
+4. Shows toast notification with result:
+   - Success: "✅ {VendorName} connection successful"
+   - Error: "❌ Connection failed: {error message}"
+5. Updates integration status badge if needed
+
+**Benefits:**
+- No need to open configure dialog for quick connection test
+- Immediate feedback via toast notification
+- Existing backend endpoint already supports this
+
+---
+
 ## Success Criteria
 
 1. ✅ Backend `/integrations/vendors` endpoint returns all 9 vendors
@@ -390,6 +447,8 @@ function ConfigureIntegrationForm() {
 6. ✅ No hardcoded vendor labels/descriptions in frontend
 7. ✅ Backend validates required credentials on create
 8. ✅ All existing integrations continue working
+9. ✅ "Test Connection" button works from integration list page
+10. ✅ Toast notifications show test results
 
 ---
 
