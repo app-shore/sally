@@ -6,6 +6,7 @@ describe('Vehicle Schema', () => {
   let prisma: PrismaClient;
   let pool: pg.Pool;
   let testTenantId: number;
+  const createdVehicleIds: number[] = [];
 
   beforeAll(async () => {
     const connectionString =
@@ -26,6 +27,16 @@ describe('Vehicle Schema', () => {
   });
 
   afterAll(async () => {
+    // Clean up created vehicles
+    if (createdVehicleIds.length > 0) {
+      await prisma.vehicle.deleteMany({
+        where: {
+          id: {
+            in: createdVehicleIds,
+          },
+        },
+      });
+    }
     await prisma.$disconnect();
     await pool.end();
   });
@@ -43,6 +54,7 @@ describe('Vehicle Schema', () => {
         licensePlate: 'TX R70-1836',
       },
     });
+    createdVehicleIds.push(vehicle.id);
 
     expect(vehicle.make).toBe('FREIGHTLINER');
     expect(vehicle.model).toBe('CASCADIA');
@@ -71,6 +83,7 @@ describe('Vehicle Schema', () => {
         },
       },
     });
+    createdVehicleIds.push(vehicle.id);
 
     expect(vehicle.eldTelematicsMetadata).toHaveProperty(
       'eldVendor',
