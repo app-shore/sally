@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,8 @@ import {
   createIntegration,
   updateIntegration,
   testConnection,
+  getVendorRegistry,
+  type VendorMetadata,
 } from '@/lib/api/integrations';
 import { Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
@@ -51,6 +53,32 @@ export function ConfigureIntegrationForm({
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [vendors, setVendors] = useState<VendorMetadata[]>([]);
+  const [isLoadingVendors, setIsLoadingVendors] = useState(true);
+
+  // Fetch vendor registry on mount
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        setIsLoadingVendors(true);
+        const vendorList = await getVendorRegistry();
+        setVendors(vendorList);
+      } catch (error) {
+        console.error('Failed to fetch vendor registry:', error);
+      } finally {
+        setIsLoadingVendors(false);
+      }
+    };
+
+    fetchVendors();
+  }, []);
+
+  // Get current vendor and compute metadata
+  const currentVendor = integration?.vendor || vendor;
+  const currentIntegrationType = integration?.integration_type || integrationType;
+
+  // Get selected vendor metadata
+  const selectedVendorMeta = vendors.find(v => v.id === currentVendor);
 
   const handleInputChange = (field: keyof FormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -186,9 +214,6 @@ export function ConfigureIntegrationForm({
       setIsSaving(false);
     }
   };
-
-  const currentIntegrationType = integration?.integration_type || integrationType;
-  const currentVendor = integration?.vendor || vendor;
 
   return (
     <div className="space-y-6">
