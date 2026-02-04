@@ -218,6 +218,76 @@ SALLY - Smart Routes. Confident Dispatchers. Happy Drivers.
   }
 
   /**
+   * Send tenant registration confirmation email
+   */
+  async sendTenantRegistrationEmail(
+    email: string,
+    firstName: string,
+    companyName: string,
+  ): Promise<void> {
+    const subject = `Thank you for registering with SALLY`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #000; color: #fff; padding: 20px; text-align: center; }
+            .content { padding: 30px; background-color: #f9f9f9; }
+            .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>SALLY</h1>
+              <p>Smart Routes. Confident Dispatchers. Happy Drivers.</p>
+            </div>
+            <div class="content">
+              <h2>Hi ${firstName},</h2>
+              <p>Thank you for registering <strong>${companyName}</strong> with SALLY!</p>
+              <p>We've received your registration and our team is currently reviewing your application. This typically takes <strong>1-2 business days</strong>.</p>
+              <h3>What happens next:</h3>
+              <ul>
+                <li>Our team will verify your company information</li>
+                <li>You'll receive an email once your account is approved</li>
+                <li>You can then invite your team and start using SALLY</li>
+              </ul>
+              <p>If you have any questions, feel free to contact our support team.</p>
+            </div>
+            <div class="footer">
+              <p>&copy; 2026 SALLY. All rights reserved.</p>
+              <p>If you didn't register for SALLY, you can safely ignore this email.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+Hi ${firstName},
+
+Thank you for registering ${companyName} with SALLY!
+
+We've received your registration and our team is currently reviewing your application. This typically takes 1-2 business days.
+
+What happens next:
+• Our team will verify your company information
+• You'll receive an email once your account is approved
+• You can then invite your team and start using SALLY
+
+If you have any questions, feel free to contact our support team.
+
+---
+SALLY - Smart Routes. Confident Dispatchers. Happy Drivers.
+    `.trim();
+
+    await this.sendEmail({ to: email, subject, html, text });
+  }
+
+  /**
    * Get login URL (subdomain-aware or single domain)
    */
   private getLoginUrl(subdomain: string): string {
