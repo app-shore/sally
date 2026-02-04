@@ -113,6 +113,7 @@ export function ConnectionsTab() {
   const [testingIds, setTestingIds] = useState<Set<string>>(new Set());
   const [syncingIds, setSyncingIds] = useState<Set<string>>(new Set());
   const [testResults, setTestResults] = useState<Record<string, { success: boolean; message: string }>>({});
+  const [syncResults, setSyncResults] = useState<Record<string, { success: boolean; message: string }>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -244,27 +245,41 @@ export function ConnectionsTab() {
 
   const handleSync = async (integration: IntegrationConfig) => {
     setSyncingIds(prev => new Set(prev).add(integration.id));
+    // Clear previous sync result for this integration
+    setSyncResults(prev => {
+      const next = { ...prev };
+      delete next[integration.id];
+      return next;
+    });
+
     try {
       const result = await triggerSync(integration.id);
-      toast({
-        title: 'Sync Completed',
-        description: result.message || 'Data synchronized successfully',
-        duration: 5000,
-      });
+      // Store sync result to display inline
+      setSyncResults(prev => ({
+        ...prev,
+        [integration.id]: {
+          success: result.success,
+          message: result.message || 'Data synchronized successfully',
+        },
+      }));
 
       // Update integration last_sync_at in state without full refresh
-      setIntegrations(prev => prev.map(int =>
-        int.id === integration.id
-          ? { ...int, last_sync_at: new Date().toISOString() }
-          : int
-      ));
+      if (result.success) {
+        setIntegrations(prev => prev.map(int =>
+          int.id === integration.id
+            ? { ...int, last_sync_at: new Date().toISOString() }
+            : int
+        ));
+      }
     } catch (err) {
-      toast({
-        title: 'Sync Failed',
-        description: err instanceof Error ? err.message : 'Failed to sync data',
-        variant: 'destructive',
-        duration: 5000,
-      });
+      // Store error result
+      setSyncResults(prev => ({
+        ...prev,
+        [integration.id]: {
+          success: false,
+          message: err instanceof Error ? err.message : 'Failed to sync data',
+        },
+      }));
     } finally {
       setSyncingIds(prev => {
         const next = new Set(prev);
@@ -513,6 +528,34 @@ export function ConnectionsTab() {
                             }`}
                           >
                             {testResults[integration.id].message}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Sync Result Display */}
+                    {syncResults[integration.id] && (
+                      <div
+                        className={`p-3 rounded-lg border ${
+                          syncResults[integration.id].success
+                            ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900'
+                            : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {syncResults[integration.id].success ? (
+                            <CheckCircle2 className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                          ) : (
+                            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                          )}
+                          <p
+                            className={`text-sm ${
+                              syncResults[integration.id].success
+                                ? 'text-blue-800 dark:text-blue-200'
+                                : 'text-red-800 dark:text-red-200'
+                            }`}
+                          >
+                            {syncResults[integration.id].message}
                           </p>
                         </div>
                       </div>

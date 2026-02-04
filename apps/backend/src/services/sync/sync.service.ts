@@ -4,6 +4,7 @@ import { TmsSyncService } from './tms-sync.service';
 import { EldSyncService } from './eld-sync.service';
 import { VENDOR_REGISTRY } from '../../api/integrations/vendor-registry';
 import { IntegrationType } from '../../api/integrations/dto/create-integration.dto';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class SyncService {
@@ -36,20 +37,104 @@ export class SyncService {
       throw new Error(`Unsupported vendor: ${integration.vendor}`);
     }
 
-    // Route to appropriate sync service based on integration type
-    if (vendorMeta.integrationType === IntegrationType.TMS) {
-      this.logger.log(`Syncing TMS integration: ${integration.vendor}`);
-      await this.tmsSyncService.syncVehicles(integrationId);
-      await this.tmsSyncService.syncDrivers(integrationId);
-    } else if (vendorMeta.integrationType === IntegrationType.HOS_ELD) {
-      this.logger.log(`Syncing ELD integration: ${integration.vendor}`);
-      await this.eldSyncService.syncVehicles(integrationId);
-      await this.eldSyncService.syncDrivers(integrationId);
-    } else {
-      throw new Error(`Sync not supported for integration type: ${vendorMeta.integrationType}`);
-    }
+    // Create sync log entry
+    const startTime = new Date();
+    const syncType = vendorMeta.integrationType === IntegrationType.TMS ? 'TMS' : 'ELD';
+    const logId = `log_${randomUUID()}`;
 
-    this.logger.log(`Sync complete for integration: ${integrationId}`);
+    const syncLog = await this.prisma.integrationSyncLog.create({
+      data: {
+        logId,
+        integrationId,
+        syncType,
+        status: 'running',
+        startedAt: startTime,
+      },
+    });
+
+    let recordsProcessed = 0;
+    let recordsCreated = 0;
+    let recordsUpdated = 0;
+
+    try {
+      // Route to appropriate sync service based on integration type
+      if (vendorMeta.integrationType === IntegrationType.TMS) {
+        this.logger.log(`Syncing TMS integration: ${integration.vendor}`);
+
+        // Get counts before sync
+        const vehiclesBefore = await this.prisma.vehicle.count({
+          where: { tenantId: integrationId },
+        });
+        const driversBefore = await this.prisma.driver.count({
+          where: { tenantId: integrationId },
+        });
+        const loadsBefore = await this.prisma.load.count({
+          where: { tenantId: integrationId },
+        });
+
+        // Sync vehicles, drivers, and loads
+        await this.tmsSyncService.syncVehicles(integrationId);
+        await this.tmsSyncService.syncDrivers(integrationId);
+        await this.tmsSyncService.syncLoads(integrationId);
+
+        // Get counts after sync
+        const vehiclesAfter = await this.prisma.vehicle.count({
+          where: { tenantId: integrationId },
+        });
+        const driversAfter = await this.prisma.driver.count({
+          where: { tenantId: integrationId },
+        });
+        const loadsAfter = await this.prisma.load.count({
+          where: { tenantId: integrationId },
+        });
+
+        recordsProcessed = vehiclesAfter + driversAfter + loadsAfter;
+        recordsCreated = (vehiclesAfter - vehiclesBefore) + (driversAfter - driversBefore) + (loadsAfter - loadsBefore);
+        recordsUpdated = recordsProcessed - recordsCreated;
+      } else if (vendorMeta.integrationType === IntegrationType.HOS_ELD) {
+        this.logger.log(`Syncing ELD integration: ${integration.vendor}`);
+        await this.eldSyncService.syncVehicles(integrationId);
+        await this.eldSyncService.syncDrivers(integrationId);
+
+        // For ELD, we're updating existing records
+        recordsProcessed = await this.prisma.vehicle.count({
+          where: { eldTelematicsMetadata: { not: null } },
+        });
+        recordsUpdated = recordsProcessed;
+      } else {
+        throw new Error(`Sync not supported for integration type: ${vendorMeta.integrationType}`);
+      }
+
+      // Update sync log with success
+      await this.prisma.integrationSyncLog.update({
+        where: { id: syncLog.id },
+        data: {
+          status: 'success',
+          completedAt: new Date(),
+          recordsProcessed,
+          recordsCreated,
+          recordsUpdated,
+        },
+      });
+
+      this.logger.log(`Sync complete for integration: ${integrationId}`);
+    } catch (error) {
+      // Update sync log with failure
+      await this.prisma.integrationSyncLog.update({
+        where: { id: syncLog.id },
+        data: {
+          status: 'failed',
+          completedAt: new Date(),
+          errorDetails: {
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+          },
+        },
+      });
+
+      this.logger.error(`Sync failed for integration: ${integrationId}`, error);
+      throw error;
+    }
   }
 
   /**

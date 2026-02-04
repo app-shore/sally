@@ -168,6 +168,108 @@ export class TmsSyncService {
   }
 
   /**
+   * Sync loads from TMS API
+   */
+  async syncLoads(integrationId: number): Promise<void> {
+    this.logger.log(`Starting TMS load sync for integration: ${integrationId}`);
+
+    const integration = await this.prisma.integrationConfig.findUnique({
+      where: { id: integrationId },
+    });
+
+    if (!integration) {
+      throw new Error('Integration not found');
+    }
+
+    const { tenantId, vendor } = integration;
+
+    // Get adapter from factory
+    const adapter = this.adapterFactory.getTMSAdapter(vendor);
+    if (!adapter) {
+      throw new Error(`No TMS adapter available for vendor: ${vendor}`);
+    }
+
+    // Get credentials
+    const credentials = this.getVendorCredentials(integration.credentials, vendor);
+
+    try {
+      // Fetch active loads from TMS using adapter
+      const tmsLoads = await adapter.getActiveLoads(
+        credentials.primary,
+        credentials.secondary
+      );
+
+      // Upsert each load
+      for (const tmsLoad of tmsLoads) {
+        await this.prisma.load.upsert({
+          where: {
+            externalLoadId_tenantId: {
+              externalLoadId: tmsLoad.load_id,
+              tenantId,
+            },
+          },
+          update: {
+            pickupAddress: tmsLoad.pickup_location.address,
+            pickupCity: tmsLoad.pickup_location.city,
+            pickupState: tmsLoad.pickup_location.state,
+            pickupZip: tmsLoad.pickup_location.zip,
+            pickupLatitude: tmsLoad.pickup_location.latitude,
+            pickupLongitude: tmsLoad.pickup_location.longitude,
+            deliveryAddress: tmsLoad.delivery_location.address,
+            deliveryCity: tmsLoad.delivery_location.city,
+            deliveryState: tmsLoad.delivery_location.state,
+            deliveryZip: tmsLoad.delivery_location.zip,
+            deliveryLatitude: tmsLoad.delivery_location.latitude,
+            deliveryLongitude: tmsLoad.delivery_location.longitude,
+            pickupAppointment: tmsLoad.pickup_appointment ? new Date(tmsLoad.pickup_appointment) : null,
+            deliveryAppointment: tmsLoad.delivery_appointment ? new Date(tmsLoad.delivery_appointment) : null,
+            assignedDriverId: tmsLoad.assigned_driver_id,
+            assignedVehicleId: tmsLoad.assigned_vehicle_id,
+            status: tmsLoad.status,
+            totalMiles: tmsLoad.total_miles,
+            externalSource: vendor,
+            lastSyncedAt: new Date(),
+          },
+          create: {
+            externalLoadId: tmsLoad.load_id,
+            tenantId,
+            pickupAddress: tmsLoad.pickup_location.address,
+            pickupCity: tmsLoad.pickup_location.city,
+            pickupState: tmsLoad.pickup_location.state,
+            pickupZip: tmsLoad.pickup_location.zip,
+            pickupLatitude: tmsLoad.pickup_location.latitude,
+            pickupLongitude: tmsLoad.pickup_location.longitude,
+            deliveryAddress: tmsLoad.delivery_location.address,
+            deliveryCity: tmsLoad.delivery_location.city,
+            deliveryState: tmsLoad.delivery_location.state,
+            deliveryZip: tmsLoad.delivery_location.zip,
+            deliveryLatitude: tmsLoad.delivery_location.latitude,
+            deliveryLongitude: tmsLoad.delivery_location.longitude,
+            pickupAppointment: tmsLoad.pickup_appointment ? new Date(tmsLoad.pickup_appointment) : null,
+            deliveryAppointment: tmsLoad.delivery_appointment ? new Date(tmsLoad.delivery_appointment) : null,
+            assignedDriverId: tmsLoad.assigned_driver_id,
+            assignedVehicleId: tmsLoad.assigned_vehicle_id,
+            status: tmsLoad.status,
+            totalMiles: tmsLoad.total_miles,
+            externalSource: vendor,
+            lastSyncedAt: new Date(),
+          },
+        });
+      }
+
+      await this.prisma.integrationConfig.update({
+        where: { id: integrationId },
+        data: { lastSyncAt: new Date() },
+      });
+
+      this.logger.log(`Synced ${tmsLoads.length} loads from ${vendor}`);
+    } catch (error) {
+      this.logger.error(`Failed to sync loads from ${vendor}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Get vendor credentials in the format expected by adapters
    *
    * Dynamically extracts credentials based on vendor registry configuration.
