@@ -2,18 +2,29 @@ import { apiClient } from './client';
 
 export type IntegrationType = 'TMS' | 'HOS_ELD' | 'FUEL_PRICE' | 'WEATHER' | 'TELEMATICS';
 
-export type IntegrationVendor =
-  | 'MCLEOD_TMS'
-  | 'TMW_TMS'
-  | 'PROJECT44_TMS'
-  | 'SAMSARA_ELD'
-  | 'KEEPTRUCKIN_ELD'
-  | 'MOTIVE_ELD'
-  | 'GASBUDDY_FUEL'
-  | 'FUELFINDER_FUEL'
-  | 'OPENWEATHER';
+// Backend validates vendor, frontend treats as string
+export type IntegrationVendor = string;
 
 export type IntegrationStatus = 'NOT_CONFIGURED' | 'CONFIGURED' | 'ACTIVE' | 'ERROR' | 'DISABLED';
+
+export interface CredentialField {
+  name: string;
+  label: string;
+  type: 'text' | 'password' | 'url' | 'number';
+  required: boolean;
+  helpText?: string;
+  placeholder?: string;
+}
+
+export interface VendorMetadata {
+  id: string;
+  displayName: string;
+  description: string;
+  integrationType: IntegrationType;
+  credentialFields: CredentialField[];
+  helpUrl?: string;
+  logoUrl?: string;
+}
 
 export interface IntegrationConfig {
   id: string;
@@ -174,6 +185,13 @@ export async function getSyncStats(integrationId: string): Promise<SyncStats> {
 }
 
 /**
+ * Get vendor registry metadata
+ */
+export async function getVendorRegistry(): Promise<VendorMetadata[]> {
+  return apiClient<VendorMetadata[]>('/integrations/vendors', { method: 'GET' });
+}
+
+/**
  * Helper function to get human-readable integration type labels
  */
 export function getIntegrationTypeLabel(type: IntegrationType): string {
@@ -194,7 +212,7 @@ export function getVendorLabel(vendor: IntegrationVendor): string {
   const labels: Record<IntegrationVendor, string> = {
     MCLEOD_TMS: 'McLeod',
     TMW_TMS: 'TMW Systems',
-    TRUCKBASE_TMS: 'Truckbase',
+    PROJECT44_TMS: 'project44',
     SAMSARA_ELD: 'Samsara',
     KEEPTRUCKIN_ELD: 'KeepTruckin',
     MOTIVE_ELD: 'Motive',
