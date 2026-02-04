@@ -1,16 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import {
   type IntegrationConfig,
   type IntegrationType,
   getIntegrationTypeLabel,
-  getVendorLabel,
   formatRelativeTime,
   testConnection,
   triggerSync,
+  getVendorRegistry,
+  type VendorMetadata,
 } from '@/lib/api/integrations';
 import { AlertCircle, CheckCircle2, Circle, Loader2, Link as LinkIcon } from 'lucide-react';
 
@@ -21,9 +23,27 @@ interface IntegrationCardProps {
 }
 
 export function IntegrationCard({ integration, onConfigure, onRefresh }: IntegrationCardProps) {
+  const { toast } = useToast();
   const [isTesting, setIsTesting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [vendors, setVendors] = useState<VendorMetadata[]>([]);
+
+  // Fetch vendor registry
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const vendorList = await getVendorRegistry();
+        setVendors(vendorList);
+      } catch (error) {
+        console.error('Failed to fetch vendor registry:', error);
+      }
+    };
+    fetchVendors();
+  }, []);
+
+  // Get vendor metadata
+  const vendorMeta = vendors.find(v => v.id === integration.vendor);
 
   const handleTest = async () => {
     setIsTesting(true);
@@ -31,13 +51,30 @@ export function IntegrationCard({ integration, onConfigure, onRefresh }: Integra
     try {
       const result = await testConnection(integration.id);
       setTestResult(result);
+
       if (result.success) {
+        toast({
+          title: "Connection successful",
+          description: `✅ ${vendorMeta?.displayName || integration.vendor} connection is working`,
+        });
         onRefresh();
+      } else {
+        toast({
+          title: "Connection failed",
+          description: `❌ ${result.message || 'Unknown error'}`,
+          variant: "destructive",
+        });
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Connection test failed';
       setTestResult({
         success: false,
-        message: error instanceof Error ? error.message : 'Connection test failed',
+        message: errorMessage,
+      });
+      toast({
+        title: "Connection failed",
+        description: `❌ ${errorMessage}`,
+        variant: "destructive",
       });
     } finally {
       setIsTesting(false);
@@ -103,7 +140,7 @@ export function IntegrationCard({ integration, onConfigure, onRefresh }: Integra
                   {integration.status === 'ACTIVE' && (
                     <>
                       <span>•</span>
-                      <span>{getVendorLabel(integration.vendor)}</span>
+                      <span>{vendorMeta?.displayName || integration.vendor}</span>
                     </>
                   )}
                 </div>
