@@ -243,4 +243,50 @@ describe('NotificationService', () => {
       expect(result.status).toBe(NotificationStatus.SENT);
     });
   });
+
+  describe('sendTenantRejectionNotification', () => {
+    it('should send rejection email with reason and create notification', async () => {
+      const mockTenant = { id: 1, tenantId: 'tenant_123' };
+      const mockNotification = {
+        id: 3,
+        notificationId: 'notif_789',
+        type: NotificationType.TENANT_REJECTED,
+        recipient: 'owner@test.com',
+        status: NotificationStatus.SENT,
+        tenantId: 1,
+        metadata: {
+          companyName: 'Test Co',
+          rejectionReason: 'Invalid DOT number',
+          tenantId: 1,
+        },
+        sentAt: new Date(),
+      };
+
+      mockPrismaService.tenant.findUnique.mockResolvedValue(mockTenant);
+      mockPrismaService.notification.create.mockResolvedValue({
+        ...mockNotification,
+        status: NotificationStatus.PENDING,
+      });
+      mockPrismaService.notification.update.mockResolvedValue(mockNotification);
+      mockEmailService.sendTenantRejectionEmail = jest
+        .fn()
+        .mockResolvedValue(undefined);
+
+      const result = await service.sendTenantRejectionNotification(
+        'tenant_123',
+        'owner@test.com',
+        'John',
+        'Test Co',
+        'Invalid DOT number',
+      );
+
+      expect(mockEmailService.sendTenantRejectionEmail).toHaveBeenCalledWith(
+        'owner@test.com',
+        'John',
+        'Test Co',
+        'Invalid DOT number',
+      );
+      expect(result.status).toBe(NotificationStatus.SENT);
+    });
+  });
 });
