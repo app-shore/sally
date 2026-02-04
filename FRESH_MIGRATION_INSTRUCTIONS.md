@@ -118,14 +118,26 @@ SSH into CapRover and run:
 # Get backend container ID
 BACKEND_CONTAINER=$(docker ps | grep sally-api | awk '{print $1}')
 
-# Apply migration
-docker exec $BACKEND_CONTAINER npx prisma migrate deploy
+# Apply migration using our custom script (avoids prisma CLI dependency issues)
+docker exec $BACKEND_CONTAINER ./apply-migration.sh
 
 # Expected output:
-# Loaded Prisma config from prisma.config.ts.
-# 1 migration found in prisma/migrations
-# Applying migration `20260204062550_initial_schema`
-# All migrations have been successfully applied.
+# Applying Prisma migrations using direct SQL execution...
+# Using database: postgresql://...
+# Checking migration: 20260204062550_initial_schema
+#   → Applying migration: 20260204062550_initial_schema
+#   ✓ Successfully applied: 20260204062550_initial_schema
+# ✓ All migrations applied successfully!
+```
+
+**Alternative: If the script fails, apply SQL directly:**
+
+```bash
+POSTGRES_CONTAINER=$(docker ps | grep sally-db | awk '{print $1}')
+
+# Copy migration SQL and apply it
+docker exec $BACKEND_CONTAINER cat /app/prisma/migrations/20260204062550_initial_schema/migration.sql > /tmp/migration.sql
+docker exec -i $POSTGRES_CONTAINER psql -U sally_user -d sally < /tmp/migration.sql
 ```
 
 ### Step 5: Verify Deployment
