@@ -1,7 +1,7 @@
 import { Controller, Get, Put, Post, Body, Req, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { PreferencesService } from './preferences.service';
 import { UpdateUserPreferencesDto } from './dto/user-preferences.dto';
-import { UpdateDispatcherPreferencesDto } from './dto/dispatcher-preferences.dto';
+import { UpdateOperationsSettingsDto } from './dto/operations-settings.dto';
 import { UpdateDriverPreferencesDto } from './dto/driver-preferences.dto';
 
 @Controller('preferences')
@@ -25,23 +25,23 @@ export class PreferencesController {
   }
 
   // ============================================================================
-  // DISPATCHER PREFERENCES
+  // OPERATIONS SETTINGS
   // ============================================================================
 
-  @Get('dispatcher')
-  async getDispatcherPreferences(@Req() req: any) {
+  @Get('operations')
+  async getOperationsSettings(@Req() req: any) {
     const userId = req.user.userId;
     const userRole = req.user.role;
     const tenantId = req.user.tenantId;
-    return this.preferencesService.getDispatcherPreferences(userId, userRole, tenantId);
+    return this.preferencesService.getOperationsSettings(userId, userRole, tenantId);
   }
 
-  @Put('dispatcher')
-  async updateDispatcherPreferences(@Req() req: any, @Body() dto: UpdateDispatcherPreferencesDto) {
+  @Put('operations')
+  async updateOperationsSettings(@Req() req: any, @Body() dto: UpdateOperationsSettingsDto) {
     const userId = req.user.userId;
     const userRole = req.user.role;
     const tenantId = req.user.tenantId;
-    return this.preferencesService.updateDispatcherPreferences(userId, userRole, tenantId, dto);
+    return this.preferencesService.updateOperationsSettings(userId, userRole, tenantId, dto);
   }
 
   // ============================================================================
@@ -68,7 +68,7 @@ export class PreferencesController {
 
   @Post('reset')
   @HttpCode(HttpStatus.OK)
-  async resetToDefaults(@Req() req: any, @Body() body: { scope: 'user' | 'dispatcher' | 'driver' }) {
+  async resetToDefaults(@Req() req: any, @Body() body: { scope: 'user' | 'operations' | 'driver' }) {
     const userId = req.user.userId;
     const userRole = req.user.role;
     const tenantId = req.user.tenantId;
@@ -107,7 +107,7 @@ export class PreferencesController {
         reduceMotion: false,
         screenReaderOptimized: false,
       },
-      dispatcher: {
+      operations: {
         defaultDriveHours: 0.0,
         defaultOnDutyHours: 0.0,
         defaultSinceBreakHours: 0.0,
