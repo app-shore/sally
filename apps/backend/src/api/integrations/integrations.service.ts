@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CredentialsService } from '../../services/credentials/credentials.service';
 import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';
 import { SyncService } from '../../services/sync/sync.service';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
 import { UpdateIntegrationDto } from './dto/update-integration.dto';
+import { VENDOR_REGISTRY } from './vendor-registry';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -104,6 +105,21 @@ export class IntegrationsService {
    * Create new integration
    */
   async createIntegration(tenantId: number | string, dto: CreateIntegrationDto) {
+    // Validate vendor exists in registry
+    const vendorMeta = VENDOR_REGISTRY[dto.vendor];
+    if (!vendorMeta) {
+      throw new BadRequestException(`Unsupported vendor: ${dto.vendor}`);
+    }
+
+    // Validate required credentials provided
+    const missingFields = vendorMeta.credentialFields
+      .filter(f => f.required && !dto.credentials?.[f.name]);
+    if (missingFields.length > 0) {
+      throw new BadRequestException(
+        `Missing required credentials: ${missingFields.map(f => f.name).join(', ')}`
+      );
+    }
+
     // If tenantId is a string (from JWT), look up the numeric ID
     let numericTenantId: number;
     if (typeof tenantId === 'string') {
