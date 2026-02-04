@@ -26,8 +26,7 @@ interface ConfigureIntegrationFormProps {
 
 interface FormData {
   display_name: string;
-  api_key: string;
-  api_secret?: string;
+  credentials: Record<string, string>;
   sync_interval_seconds: number;
 }
 
@@ -42,13 +41,11 @@ export function ConfigureIntegrationForm({
 
   const [formData, setFormData] = useState<FormData>({
     display_name: integration?.display_name || '',
-    api_key: '',
-    api_secret: '',
+    credentials: {},
     sync_interval_seconds: integration?.sync_interval_seconds || 300,
   });
 
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [showApiSecret, setShowApiSecret] = useState(false);
+  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -96,20 +93,18 @@ export function ConfigureIntegrationForm({
     setTestResult(null);
   };
 
-  const requiresSecret = (v?: IntegrationVendor) => {
-    // Some integrations need both key and secret
-    return v === 'MCLEOD_TMS' || v === 'TMW_TMS' || v === 'PROJECT44_TMS';
-  };
-
   const handleTest = async () => {
-    if (!formData.api_key) {
-      setTestResult({ success: false, message: 'Please enter an API key first' });
-      return;
-    }
-
-    if (requiresSecret(vendor || integration?.vendor) && !formData.api_secret) {
-      setTestResult({ success: false, message: 'Please enter API secret' });
-      return;
+    // Validate required credentials
+    if (selectedVendorMeta) {
+      const missingFields = selectedVendorMeta.credentialFields
+        .filter(f => f.required && !formData.credentials[f.name]);
+      if (missingFields.length > 0) {
+        setTestResult({
+          success: false,
+          message: `Please enter: ${missingFields.map(f => f.label).join(', ')}`
+        });
+        return;
+      }
     }
 
     setIsTesting(true);
@@ -123,16 +118,11 @@ export function ConfigureIntegrationForm({
           throw new Error('Integration type and vendor required');
         }
 
-        const credentials: Record<string, string> = { apiKey: formData.api_key };
-        if (formData.api_secret) {
-          credentials.apiSecret = formData.api_secret;
-        }
-
         const newIntegration = await createIntegration({
           integration_type: integrationType,
           vendor,
           display_name: formData.display_name,
-          credentials,
+          credentials: formData.credentials,
           sync_interval_seconds: formData.sync_interval_seconds,
         });
 
@@ -148,14 +138,9 @@ export function ConfigureIntegrationForm({
         }
       } else if (integration) {
         // Update existing with new credentials
-        const credentials: Record<string, string> = { apiKey: formData.api_key };
-        if (formData.api_secret) {
-          credentials.apiSecret = formData.api_secret;
-        }
-
         await updateIntegration(integration.id, {
           display_name: formData.display_name,
-          credentials,
+          credentials: formData.credentials,
           sync_interval_seconds: formData.sync_interval_seconds,
         });
 
@@ -178,25 +163,20 @@ export function ConfigureIntegrationForm({
       return;
     }
 
-    if (!formData.api_key) {
-      setError('API key is required');
-      return;
-    }
-
-    if (requiresSecret(vendor || integration?.vendor) && !formData.api_secret) {
-      setError('API secret is required for this integration');
-      return;
+    // Validate required credentials
+    if (selectedVendorMeta) {
+      const missingFields = selectedVendorMeta.credentialFields
+        .filter(f => f.required && !formData.credentials[f.name]);
+      if (missingFields.length > 0) {
+        setError(`Missing required fields: ${missingFields.map(f => f.label).join(', ')}`);
+        return;
+      }
     }
 
     setIsSaving(true);
     setError(null);
 
     try {
-      const credentials: Record<string, string> = { apiKey: formData.api_key };
-      if (formData.api_secret) {
-        credentials.apiSecret = formData.api_secret;
-      }
-
       if (isNewIntegration) {
         if (!integrationType || !vendor) {
           throw new Error('Integration type and vendor are required');
@@ -206,13 +186,13 @@ export function ConfigureIntegrationForm({
           integration_type: integrationType,
           vendor,
           display_name: formData.display_name,
-          credentials,
+          credentials: formData.credentials,
           sync_interval_seconds: formData.sync_interval_seconds,
         });
       } else if (integration) {
         await updateIntegration(integration.id, {
           display_name: formData.display_name,
-          credentials,
+          credentials: formData.credentials,
           sync_interval_seconds: formData.sync_interval_seconds,
         });
       }
@@ -258,53 +238,59 @@ export function ConfigureIntegrationForm({
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="api_key">API Key</Label>
-          <div className="relative">
-            <Input
-              id="api_key"
-              type={showApiKey ? 'text' : 'password'}
-              value={formData.api_key}
-              onChange={(e) => handleInputChange('api_key', e.target.value)}
-              placeholder="Enter your API key"
-              className="pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowApiKey(!showApiKey)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {getApiKeyHelpText(currentIntegrationType, currentVendor)}
-          </p>
-        </div>
-
-        {requiresSecret(currentVendor) && (
-          <div className="space-y-2">
-            <Label htmlFor="api_secret">API Secret</Label>
-            <div className="relative">
-              <Input
-                id="api_secret"
-                type={showApiSecret ? 'text' : 'password'}
-                value={formData.api_secret}
-                onChange={(e) => handleInputChange('api_secret', e.target.value)}
-                placeholder="Enter your API secret"
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowApiSecret(!showApiSecret)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showApiSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+        {/* Dynamic Credential Fields */}
+        {selectedVendorMeta && selectedVendorMeta.credentialFields.length > 0 && (
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-medium mb-2">Credentials</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Enter your {selectedVendorMeta.displayName} credentials
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Your API secret will be encrypted and stored securely
-            </p>
+
+            {selectedVendorMeta.credentialFields.map(field => (
+              <div key={field.name} className="space-y-2">
+                <Label htmlFor={field.name}>
+                  {field.label}
+                  {field.required && <span className="text-destructive ml-1">*</span>}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    type={field.type === 'password' && !showPasswords[field.name] ? 'password' : field.type}
+                    placeholder={field.placeholder}
+                    required={field.required}
+                    value={formData.credentials[field.name] || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      credentials: {
+                        ...prev.credentials,
+                        [field.name]: e.target.value
+                      }
+                    }))}
+                    className={field.type === 'password' ? 'pr-10' : ''}
+                  />
+                  {field.type === 'password' && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswords(prev => ({
+                        ...prev,
+                        [field.name]: !prev[field.name]
+                      }))}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPasswords[field.name] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  )}
+                </div>
+                {field.helpText && (
+                  <p className="text-xs text-muted-foreground">
+                    {field.helpText}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
         )}
 
@@ -373,7 +359,7 @@ export function ConfigureIntegrationForm({
         <Button
           variant="outline"
           onClick={handleTest}
-          disabled={isTesting || isSaving || !formData.api_key}
+          disabled={isTesting || isSaving || Object.keys(formData.credentials).length === 0}
         >
           {isTesting ? (
             <>
@@ -423,26 +409,4 @@ function getIntegrationTypeDescription(type?: IntegrationType): string {
     TELEMATICS: 'Vehicle Telematics',
   };
   return type ? descriptions[type] : 'Integration';
-}
-
-function getApiKeyHelpText(type?: IntegrationType, vendor?: IntegrationVendor): string {
-  if (vendor === 'SAMSARA_ELD') {
-    return 'Get your API key from Samsara Dashboard → Settings → API Tokens';
-  }
-  if (vendor === 'MCLEOD_TMS') {
-    return 'Contact your McLeod administrator for API credentials';
-  }
-  if (vendor === 'PROJECT44_TMS') {
-    return 'Sign up at developers.project44.com and create OAuth 2.0 credentials (Client ID and Secret)';
-  }
-  if (vendor === 'GASBUDDY_FUEL') {
-    return 'Sign up for GasBuddy Business API at gasbuddy.com/business';
-  }
-  if (vendor === 'FUELFINDER_FUEL') {
-    return 'Get your API key from Fuel Finder dashboard';
-  }
-  if (vendor === 'OPENWEATHER') {
-    return 'Get your API key from openweathermap.org/api';
-  }
-  return 'Your API key will be encrypted and stored securely';
 }
