@@ -30,7 +30,7 @@ export interface UserPreferences {
   updatedAt: string;
 }
 
-export interface DispatcherPreferences {
+export interface OperationsSettings {
   id: number;
   tenantId: number;
   defaultDriveHours: number;
