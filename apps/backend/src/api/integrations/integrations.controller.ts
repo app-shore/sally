@@ -14,6 +14,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { IntegrationsService } from './integrations.service';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
 import { UpdateIntegrationDto } from './dto/update-integration.dto';
+import { VENDOR_REGISTRY, VendorMetadata } from './vendor-registry';
 
 @Controller('integrations')
 @UseGuards(JwtAuthGuard)
@@ -74,5 +75,14 @@ export class IntegrationsController {
   @Get(':integrationId/sync-history/stats')
   async getSyncStats(@Param('integrationId') integrationId: string) {
     return this.integrationsService.getSyncStats(integrationId);
+  }
+
+  /**
+   * GET /integrations/vendors
+   * Returns vendor registry metadata
+   */
+  @Get('vendors')
+  getVendorRegistry(): VendorMetadata[] {
+    return Object.values(VENDOR_REGISTRY);
   }
 }
