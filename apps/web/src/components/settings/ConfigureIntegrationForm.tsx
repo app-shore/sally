@@ -41,7 +41,7 @@ export function ConfigureIntegrationForm({
   const isNewIntegration = !integration;
 
   const [formData, setFormData] = useState<FormData>({
-    display_name: integration?.display_name || getDefaultDisplayName(integrationType, vendor),
+    display_name: integration?.display_name || '',
     api_key: '',
     api_secret: '',
     sync_interval_seconds: integration?.sync_interval_seconds || 300,
@@ -72,6 +72,16 @@ export function ConfigureIntegrationForm({
 
     fetchVendors();
   }, []);
+
+  // Update display name when vendor metadata becomes available
+  useEffect(() => {
+    if (selectedVendorMeta && !integration && !formData.display_name) {
+      setFormData(prev => ({
+        ...prev,
+        display_name: selectedVendorMeta.displayName,
+      }));
+    }
+  }, [selectedVendorMeta, integration, formData.display_name]);
 
   // Get current vendor and compute metadata
   const currentVendor = integration?.vendor || vendor;
@@ -223,10 +233,10 @@ export function ConfigureIntegrationForm({
           <div className="text-2xl">{getIntegrationIcon(currentIntegrationType)}</div>
           <div>
             <h3 className="font-semibold text-foreground">
-              {getVendorDescription(currentVendor)}
+              {selectedVendorMeta?.displayName || currentVendor || 'Unknown Vendor'}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {getIntegrationTypeDescription(currentIntegrationType)}
+              {selectedVendorMeta?.description || getIntegrationTypeDescription(currentIntegrationType)}
             </p>
           </div>
         </div>
@@ -393,27 +403,6 @@ export function ConfigureIntegrationForm({
   );
 }
 
-function getDefaultDisplayName(
-  type?: IntegrationType,
-  vendor?: IntegrationVendor
-): string {
-  if (!type || !vendor) return '';
-
-  const vendorNames: Record<IntegrationVendor, string> = {
-    MCLEOD_TMS: 'McLeod TMS',
-    TMW_TMS: 'TMW Systems',
-    PROJECT44_TMS: 'project44',
-    SAMSARA_ELD: 'Samsara ELD',
-    KEEPTRUCKIN_ELD: 'KeepTruckin ELD',
-    MOTIVE_ELD: 'Motive ELD',
-    GASBUDDY_FUEL: 'GasBuddy',
-    FUELFINDER_FUEL: 'Fuel Finder',
-    OPENWEATHER: 'OpenWeather',
-  };
-
-  return vendorNames[vendor] || '';
-}
-
 function getIntegrationIcon(type?: IntegrationType): string {
   const icons: Record<IntegrationType, string> = {
     TMS: '🚛',
@@ -434,21 +423,6 @@ function getIntegrationTypeDescription(type?: IntegrationType): string {
     TELEMATICS: 'Vehicle Telematics',
   };
   return type ? descriptions[type] : 'Integration';
-}
-
-function getVendorDescription(vendor?: IntegrationVendor): string {
-  const descriptions: Record<IntegrationVendor, string> = {
-    MCLEOD_TMS: 'McLeod Software',
-    TMW_TMS: 'TMW Systems',
-    PROJECT44_TMS: 'project44 TMS',
-    SAMSARA_ELD: 'Samsara',
-    KEEPTRUCKIN_ELD: 'KeepTruckin (Motive)',
-    MOTIVE_ELD: 'Motive',
-    GASBUDDY_FUEL: 'GasBuddy',
-    FUELFINDER_FUEL: 'Fuel Finder',
-    OPENWEATHER: 'OpenWeatherMap',
-  };
-  return vendor ? descriptions[vendor] : 'Unknown';
 }
 
 function getApiKeyHelpText(type?: IntegrationType, vendor?: IntegrationVendor): string {
