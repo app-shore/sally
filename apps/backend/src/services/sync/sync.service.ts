@@ -24,7 +24,7 @@ export class SyncService {
 
     const integration = await this.prisma.integrationConfig.findUnique({
       where: { id: integrationId },
-      select: { vendor: true, integrationType: true },
+      select: { vendor: true, integrationType: true, tenantId: true },
     });
 
     if (!integration) {
@@ -63,13 +63,13 @@ export class SyncService {
 
         // Get counts before sync
         const vehiclesBefore = await this.prisma.vehicle.count({
-          where: { tenantId: integrationId },
+          where: { tenantId: integration.tenantId },
         });
         const driversBefore = await this.prisma.driver.count({
-          where: { tenantId: integrationId },
+          where: { tenantId: integration.tenantId },
         });
         const loadsBefore = await this.prisma.load.count({
-          where: { tenantId: integrationId },
+          where: { tenantId: integration.tenantId },
         });
 
         // Sync vehicles, drivers, and loads
@@ -79,13 +79,13 @@ export class SyncService {
 
         // Get counts after sync
         const vehiclesAfter = await this.prisma.vehicle.count({
-          where: { tenantId: integrationId },
+          where: { tenantId: integration.tenantId },
         });
         const driversAfter = await this.prisma.driver.count({
-          where: { tenantId: integrationId },
+          where: { tenantId: integration.tenantId },
         });
         const loadsAfter = await this.prisma.load.count({
-          where: { tenantId: integrationId },
+          where: { tenantId: integration.tenantId },
         });
 
         recordsProcessed = vehiclesAfter + driversAfter + loadsAfter;

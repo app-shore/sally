@@ -159,22 +159,6 @@ export const VENDOR_REGISTRY: Record<string, VendorMetadata> = {
     helpUrl: 'https://www.gasbuddy.com/developer',
   },
 
-  FUELFINDER_FUEL: {
-    id: 'FUELFINDER_FUEL',
-    displayName: 'Fuel Finder',
-    description: 'Fuel Finder price integration',
-    integrationType: IntegrationType.FUEL_PRICE,
-    credentialFields: [
-      {
-        name: 'apiKey',
-        label: 'API Key',
-        type: 'password',
-        required: true,
-        helpText: 'API key from Fuel Finder',
-      },
-    ],
-  },
-
   OPENWEATHER: {
     id: 'OPENWEATHER',
     displayName: 'OpenWeather',

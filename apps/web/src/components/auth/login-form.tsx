@@ -45,6 +45,29 @@ export function LoginForm() {
     setEmailValid(isValid && !!emailValue);
   };
 
+  // Validate email on Enter key
+  const handleEmailKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const isValid = await trigger('email');
+      if (isValid && !!emailValue) {
+        setEmailValid(true);
+        // Focus password field after a short delay for animation
+        setTimeout(() => {
+          document.getElementById('password')?.focus();
+        }, 100);
+      }
+    }
+  };
+
+  // Submit form on Enter key in password field
+  const handlePasswordKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && passwordValue) {
+      e.preventDefault();
+      await handleSubmit(onSubmit)();
+    }
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setError(null);
@@ -169,6 +192,7 @@ export function LoginForm() {
             type="email"
             {...register('email')}
             onBlur={handleEmailBlur}
+            onKeyDown={handleEmailKeyDown}
             placeholder="Enter your email"
             disabled={isLoading}
             className={`
@@ -208,6 +232,7 @@ export function LoginForm() {
                 id="password"
                 type="password"
                 {...register('password')}
+                onKeyDown={handlePasswordKeyDown}
                 placeholder="Enter your password"
                 disabled={isLoading}
                 className={`

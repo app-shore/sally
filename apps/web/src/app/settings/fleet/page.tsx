@@ -216,7 +216,7 @@ function DriversTab({
             <AlertDescription className="text-sm text-blue-900 dark:text-blue-100 flex items-center justify-between">
               <span>
                 <span className="font-medium">🔗 One-way PULL integration active</span>
-                {' '}— Drivers synced from Truckbase TMS. Edit/delete/add disabled (read-only).
+                {' '}— Drivers synced from TMS. Edit/delete/add disabled (read-only).
                 <span className="text-blue-700 dark:text-blue-300"> PUSH capability required for modifications.</span>
               </span>
               <Button
