@@ -1,10 +1,68 @@
 'use client';
 
-import { QuestionCard } from './QuestionCard';
 import { ScrollReveal } from './ScrollReveal';
-import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
 
 export function AskSallySection() {
+  // Chat conversation examples - designed to look like the real chat interface
+  const chatExamples = [
+    {
+      userMessage: "Is Route #1247 on track?",
+      sallyResponse: (
+        <div className="space-y-2">
+          <p className="text-sm">Route #1247 is <span className="font-semibold text-green-600 dark:text-green-400">on track</span>. Here's the status:</p>
+          <div className="bg-background/50 dark:bg-background/30 rounded p-3 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Progress:</span>
+              <span className="font-medium">Stop 3 of 7</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Current ETA:</span>
+              <span className="font-medium">3:45 PM</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Planned ETA:</span>
+              <span className="font-medium">3:45 PM (no delay)</span>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      userMessage: "Where should I take my 10-hour break?",
+      sallyResponse: (
+        <div className="space-y-2">
+          <p className="text-sm">Based on your current route and HOS limits, I recommend:</p>
+          <div className="bg-background/50 dark:bg-background/30 rounded p-3 space-y-2 text-sm">
+            <div className="font-semibold">Love's Travel Stop - Exit 47</div>
+            <div className="text-muted-foreground text-xs">
+              • Optimal timing: 2.3 hours from now<br />
+              • Keeps you compliant with 11-hour drive limit<br />
+              • Back on schedule after 10-hour break
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      userMessage: "Why was Route #1832 re-planned?",
+      sallyResponse: (
+        <div className="space-y-2">
+          <p className="text-sm">Route #1832 was automatically re-planned due to:</p>
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded p-3 space-y-2 text-sm border border-yellow-200 dark:border-yellow-800">
+            <div className="font-semibold text-yellow-900 dark:text-yellow-200">⚠️ Dock delay detected</div>
+            <div className="text-xs text-muted-foreground">
+              • 3hr actual vs 1hr planned<br />
+              • Created 0.5 hour HOS shortfall<br />
+              • Rest stop added to maintain compliance
+            </div>
+          </div>
+          <p className="text-xs text-green-700 dark:text-green-400">✓ Route optimized - zero violations</p>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <section className="py-32 bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,197 +70,95 @@ export function AskSallySection() {
           <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
             Ask SALLY Anything
           </h2>
-          <p className="text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-20">
-            Dispatchers and drivers get instant answers about routes, compliance, and operations
+          <p className="text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-4">
+            Natural language interface for dispatchers and drivers
+          </p>
+          <p className="text-center text-muted-foreground mb-20">
+            Just ask in plain English - SALLY understands context and provides instant answers
           </p>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Dispatcher Question 1 */}
-          <QuestionCard
-            question="Is Route #1247 on track?"
-            userType="dispatcher"
-            visual={
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-background rounded-lg border border-border">
-                  <span className="text-sm font-medium text-foreground">Stop 3 of 7</span>
-                  <Badge className="bg-green-500 dark:bg-green-600 text-white">On Track</Badge>
+        {/* Chat Interface Visual */}
+        <ScrollReveal delay={0.2}>
+          <Card className="max-w-4xl mx-auto overflow-hidden shadow-xl">
+            {/* Chat Header */}
+            <div className="bg-gradient-to-r from-black to-gray-800 dark:from-white dark:to-gray-200 px-6 py-4 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white dark:bg-black flex items-center justify-center font-bold text-black dark:text-white">
+                  S
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Current ETA:</span>
-                  <span className="font-semibold text-foreground">3:45 PM</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Planned ETA:</span>
-                  <span className="font-semibold text-foreground">3:45 PM</span>
+                <div>
+                  <div className="font-semibold text-white dark:text-black">SALLY</div>
+                  <div className="text-xs text-gray-300 dark:text-gray-700">Your Fleet Operations Assistant</div>
                 </div>
               </div>
-            }
-          />
+            </div>
 
-          {/* Dispatcher Question 2 */}
-          <QuestionCard
-            question="Why was Route #1832 re-planned?"
-            userType="dispatcher"
-            visual={
-              <div className="space-y-3">
-                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                  <div className="text-sm font-semibold text-foreground mb-2">Dock delay detected</div>
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <div>• 3hr actual vs 1hr planned</div>
-                    <div>• HOS shortfall: 0.5 hours</div>
-                  </div>
+            {/* Chat Messages */}
+            <div className="bg-background p-6 space-y-6 min-h-[500px] max-h-[600px] overflow-y-auto">
+              {/* Welcome message */}
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-black dark:bg-white flex-shrink-0 flex items-center justify-center font-bold text-white dark:text-black text-sm">
+                  S
                 </div>
-                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <div className="text-xs font-semibold text-green-700 dark:text-green-400">
-                    ✓ Route re-planned to maintain compliance
+                <div className="flex-1">
+                  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none px-4 py-3 inline-block max-w-[85%]">
+                    <p className="text-sm">
+                      Hi! I'm SALLY. I can help you with routes, HOS compliance, alerts, and fleet operations. What would you like to know?
+                    </p>
                   </div>
                 </div>
               </div>
-            }
-          />
 
-          {/* Dispatcher Question 3 */}
-          <QuestionCard
-            question="Which drivers are approaching HOS limits?"
-            userType="dispatcher"
-            visual={
-              <div className="space-y-2">
-                <div className="p-2 bg-background rounded border border-border">
-                  <div className="text-sm font-medium text-foreground">John Smith</div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-muted-foreground">2.5 hours remaining</span>
-                    <Badge className="bg-yellow-500 dark:bg-yellow-600 text-white text-xs">Alert</Badge>
+              {/* Conversation examples */}
+              {chatExamples.map((example, index) => (
+                <div key={index} className="space-y-3">
+                  {/* User message */}
+                  <div className="flex gap-3 justify-end">
+                    <div className="flex-1 flex justify-end">
+                      <div className="bg-black dark:bg-white text-white dark:text-black rounded-2xl rounded-tr-none px-4 py-3 inline-block max-w-[80%]">
+                        <p className="text-sm">{example.userMessage}</p>
+                      </div>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0 flex items-center justify-center text-sm">
+                      👤
+                    </div>
                   </div>
-                </div>
-                <div className="p-2 bg-background rounded border border-border">
-                  <div className="text-sm font-medium text-foreground">Jane Doe</div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-muted-foreground">5.0 hours remaining</span>
-                    <Badge className="bg-green-500 dark:bg-green-600 text-white text-xs">On Track</Badge>
-                  </div>
-                </div>
-                <div className="p-2 bg-background rounded border border-border">
-                  <div className="text-sm font-medium text-foreground">Bob Wilson</div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-muted-foreground">7.2 hours remaining</span>
-                    <Badge className="bg-green-500 dark:bg-green-600 text-white text-xs">On Track</Badge>
-                  </div>
-                </div>
-              </div>
-            }
-          />
 
-          {/* Driver Question 1 */}
-          <QuestionCard
-            question="Where should I take my 10-hour break?"
-            userType="driver"
-            visual={
-              <div className="space-y-3">
-                {/* Simplified map visual */}
-                <div className="h-24 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg border border-border relative overflow-hidden">
-                  {/* Current location dot */}
-                  <div className="absolute left-8 top-12 w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full" />
-                  {/* Route line */}
-                  <svg className="absolute inset-0" viewBox="0 0 200 96">
-                    <path
-                      d="M 32 48 Q 80 40, 140 52"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      fill="none"
-                      className="text-gray-400 dark:text-gray-600"
-                      strokeDasharray="4 4"
-                    />
-                  </svg>
-                  {/* Rest stop marker */}
-                  <div className="absolute right-12 top-14">
-                    <div className="w-6 h-6 bg-gray-600 dark:bg-gray-400 rounded-full border-2 border-white dark:border-black flex items-center justify-center">
-                      <div className="text-white dark:text-black text-xs font-bold">+</div>
+                  {/* SALLY response */}
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-black dark:bg-white flex-shrink-0 flex items-center justify-center font-bold text-white dark:text-black text-sm">
+                      S
+                    </div>
+                    <div className="flex-1">
+                      <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none px-4 py-3 inline-block max-w-[85%]">
+                        {example.sallyResponse}
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-sm font-semibold text-foreground">Love&apos;s Travel Stop - Exit 47</div>
-                  <div className="text-xs text-muted-foreground">Optimal timing: 2.3 hours from now</div>
+              ))}
+            </div>
+
+            {/* Input area (visual only) */}
+            <div className="bg-background border-t border-border px-6 py-4">
+              <div className="flex gap-3 items-center">
+                <div className="flex-1 bg-muted rounded-full px-4 py-3 text-muted-foreground text-sm">
+                  Type your question...
+                </div>
+                <div className="w-10 h-10 rounded-full bg-black dark:bg-white flex items-center justify-center text-white dark:text-black font-bold">
+                  →
                 </div>
               </div>
-            }
-          />
+            </div>
+          </Card>
+        </ScrollReveal>
 
-          {/* Driver Question 2 */}
-          <QuestionCard
-            question="Can I make my next appointment on time?"
-            userType="driver"
-            visual={
-              <div className="space-y-4">
-                {/* Timeline visual */}
-                <div className="relative pt-2">
-                  {/* Timeline line */}
-                  <div className="absolute top-2 left-0 right-0 h-0.5 bg-gray-300 dark:bg-gray-700" />
-
-                  {/* Current position */}
-                  <div className="relative flex items-center">
-                    <div className="absolute left-0 -mt-1">
-                      <div className="w-3 h-3 bg-blue-500 dark:bg-blue-400 rounded-full" />
-                      <div className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap">Now</div>
-                    </div>
-
-                    {/* Appointment time */}
-                    <div className="absolute right-0 -mt-1">
-                      <div className="w-3 h-3 bg-black dark:bg-white rounded-full" />
-                      <div className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap">Appt</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-6 space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Remaining drive time:</span>
-                    <span className="font-semibold text-foreground">3.5 hours</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Time until appointment:</span>
-                    <span className="font-semibold text-foreground">4.7 hours</span>
-                  </div>
-                  <div className="mt-3 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800 text-center">
-                    <span className="text-sm font-semibold text-green-700 dark:text-green-400">
-                      Yes - 1.2 hours buffer
-                    </span>
-                  </div>
-                </div>
-              </div>
-            }
-          />
-
-          {/* Driver Question 3 */}
-          <QuestionCard
-            question="What's my next stop after this delivery?"
-            userType="driver"
-            visual={
-              <div className="space-y-3">
-                <div className="p-4 bg-background rounded-lg border-2 border-border">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="text-sm font-semibold text-foreground">Next Stop</div>
-                    <Badge className="bg-blue-500 dark:bg-blue-600 text-white text-xs">Delivery</Badge>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <div className="text-xs text-muted-foreground">Address</div>
-                      <div className="font-medium text-foreground">Walmart DC - Columbus, OH</div>
-                    </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-border">
-                      <span className="text-xs text-muted-foreground">ETA:</span>
-                      <span className="font-semibold text-foreground">Today 6:45 PM</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-400 text-center">
-                  ℹ️ Dock opens at 6:00 PM
-                </div>
-              </div>
-            }
-          />
-        </div>
+        <ScrollReveal delay={0.4}>
+          <p className="text-center text-muted-foreground mt-8 text-sm">
+            This conversational interface is available to all dispatchers and drivers in the platform
+          </p>
+        </ScrollReveal>
       </div>
     </section>
   );
