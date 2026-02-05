@@ -1,6 +1,6 @@
 "use client";
 
-import { useRoutePlanStore } from "@/lib/store/routePlanStore";
+import { useRoutePlanStore } from "@/stores/routePlanStore";
 import { Card } from "@/components/ui/card";
 
 export function VersionComparison() {

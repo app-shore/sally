@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FirebaseAuthService } from './firebase-auth.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../infrastructure/database/prisma.service';
 
 describe('FirebaseAuthService', () => {
   let service: FirebaseAuthService;

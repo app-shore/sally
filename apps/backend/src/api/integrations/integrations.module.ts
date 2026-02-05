@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { IntegrationsController } from './integrations.controller';
 import { IntegrationsService } from './integrations.service';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { PrismaModule } from '../../infrastructure/database/prisma.module';
 import { SyncModule } from '../../services/sync/sync.module';
 import { CredentialsService } from '../../services/credentials/credentials.service';
 import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';

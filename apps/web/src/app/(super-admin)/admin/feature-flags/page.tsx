@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSessionStore } from "@/lib/store/sessionStore";
+import { useAuthStore } from "@/stores/auth-store";
 import {
   Card,
   CardContent,
@@ -15,13 +15,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useFeatureFlags } from "@/lib/hooks/useFeatureFlags";
-import { useFeatureFlagsStore } from "@/lib/store/featureFlagsStore";
+import { useFeatureFlagsStore } from "@/stores/featureFlagsStore";
 import { updateFeatureFlag } from "@/lib/api/featureFlags";
 import { Loader2, XCircle, Flag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function FeatureFlagsAdminPage() {
-  const { isAuthenticated, user } = useSessionStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { flags, isLoading, error, refetch } = useFeatureFlags();
   const { toast } = useToast();
 

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { VehicleMatcher } from '../vehicle-matcher';
 
 describe('VehicleMatcher', () => {

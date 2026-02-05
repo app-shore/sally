@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OnboardingWidget } from "@/components/onboarding/OnboardingWidget";
-import { useOnboardingStore } from "@/lib/store/onboardingStore";
+import { useOnboardingStore } from "@/stores/onboardingStore";
 import { useAuth } from "@/hooks/use-auth";
 import {
   BarChart3,

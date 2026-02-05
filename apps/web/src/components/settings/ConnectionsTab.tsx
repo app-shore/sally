@@ -35,7 +35,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ConfigureIntegrationForm } from './ConfigureIntegrationForm';
-import { useOnboardingStore } from '@/lib/store/onboardingStore';
+import { useOnboardingStore } from '@/stores/onboardingStore';
 import { IntegrationSyncHistory } from './IntegrationSyncHistory';
 
 // Vendor configuration with availability status

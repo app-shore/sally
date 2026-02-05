@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserInvitationsService } from './user-invitations.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import {
   ConflictException,
   NotFoundException,

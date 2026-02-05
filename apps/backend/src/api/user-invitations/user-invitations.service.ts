@@ -5,7 +5,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { EmailService } from '../../common/services/email.service';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { generateId } from '../../common/utils/id-generator';

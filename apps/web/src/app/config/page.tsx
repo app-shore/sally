@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSessionStore } from "@/lib/store/sessionStore";
+import { useAuthStore } from "@/stores/auth-store";
 import {
   listDrivers,
   createDriver,
@@ -46,7 +46,7 @@ export default function ConfigPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { isAuthenticated, user } = useSessionStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
     // Auth is handled by layout-client, just check role and load data

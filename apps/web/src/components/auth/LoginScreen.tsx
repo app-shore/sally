@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, ArrowRight, Building2, Loader2, ArrowLeft } from 'lucide-react';
 import { lookupUser, login as loginAPI, type UserLookupResult } from '@/lib/api/auth';
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useAuthStore } from '@/stores/auth-store';
 import { validateEmail } from '@/lib/utils/validation';
 
 type LoginStep = 'email' | 'tenant-select' | 'loading';
 
 export function LoginScreen() {
   const router = useRouter();
-  const sessionStore = useSessionStore();
+  const authStore = useAuthStore();
   const [step, setStep] = useState<LoginStep>('email');
   const [email, setEmail] = useState('');
   const [users, setUsers] = useState<UserLookupResult[]>([]);
@@ -57,7 +57,8 @@ export function LoginScreen() {
 
     try {
       const response = await loginAPI({ user_id: userId });
-      sessionStore.login(response.accessToken, response.user);
+      authStore.setTokens(response.accessToken, response.refreshToken || '');
+      authStore.setUser(response.user);
 
       // Redirect based on role
       if (response.user.role === 'DRIVER') {

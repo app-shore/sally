@@ -7,9 +7,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSessionStore } from "@/lib/store/sessionStore";
-import { useRoutePlanStore } from "@/lib/store/routePlanStore";
-import { useOnboardingStore } from "@/lib/store/onboardingStore";
+import { useAuthStore } from "@/stores/auth-store";
+import { useRoutePlanStore } from "@/stores/routePlanStore";
+import { useOnboardingStore } from "@/stores/onboardingStore";
 import { useRoutePlanning } from "@/lib/hooks/useRoutePlanning";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -31,7 +31,7 @@ export default function CreatePlanPage() {
 
 function CreatePlanPageContent() {
   const router = useRouter();
-  const { isAuthenticated, user } = useSessionStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { criticalItemsComplete, incompleteCriticalItems } =
     useOnboardingStore();
 

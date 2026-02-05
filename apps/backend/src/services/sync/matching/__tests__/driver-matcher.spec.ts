@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../../../prisma/prisma.service';
+import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { DriverMatcher } from '../driver-matcher';
 
 describe('DriverMatcher', () => {

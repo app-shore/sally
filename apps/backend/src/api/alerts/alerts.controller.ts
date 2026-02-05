@@ -16,7 +16,7 @@ import {
   ApiQuery,
   ApiBody,
 } from '@nestjs/swagger';
-import { PrismaService } from '../../database/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 
 @ApiTags('Alerts')
 @Controller('alerts')

@@ -16,8 +16,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSessionStore } from "@/lib/store/sessionStore";
-import { useRoutePlanStore } from "@/lib/store/routePlanStore";
+import { useAuthStore } from "@/stores/auth-store";
+import { useRoutePlanStore } from "@/stores/routePlanStore";
 import { Card } from "@/components/ui/card";
 import DriverTimeline from "@/components/route-planner/driver/DriverTimeline";
 import DriverCurrentStatus from "@/components/route-planner/driver/DriverCurrentStatus";
@@ -26,7 +26,7 @@ import DriverActions from "@/components/route-planner/driver/DriverActions";
 
 export default function DriverRoutePage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useSessionStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { currentPlan } = useRoutePlanStore();
 
   // Redirect if not authenticated

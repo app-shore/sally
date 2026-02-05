@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { CredentialsService } from '../credentials/credentials.service';
 import { RetryService } from '../retry/retry.service';
 import { AlertService, AlertSeverity } from '../alerts/alert.service';

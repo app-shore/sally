@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRoutePlanStore } from "@/lib/store/routePlanStore";
+import { useRoutePlanStore } from "@/stores/routePlanStore";
 import { useTriggerSimulation } from "@/lib/hooks/useRoutePlanning";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

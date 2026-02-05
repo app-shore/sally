@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { VehicleMatcher } from './matching/vehicle-matcher';
 import { DriverMatcher } from './matching/driver-matcher';
 import { VehicleMerger } from './merging/vehicle-merger';

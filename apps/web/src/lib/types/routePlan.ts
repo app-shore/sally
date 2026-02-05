@@ -155,3 +155,27 @@ export interface RouteAlert {
   message: string;
   severity: 'info' | 'warning' | 'critical';
 }
+
+/**
+ * Response from route update endpoint
+ */
+export interface RouteUpdateResponse {
+  plan_id: string;
+  plan_version: number;
+  update_applied: boolean;
+  new_plan?: RoutePlan;
+  message: string;
+}
+
+/**
+ * Response from route status endpoint
+ */
+export interface RouteStatusResponse {
+  driver_id: string;
+  current_plan_id: string | null;
+  current_segment: RouteSegment | null;
+  next_segment: RouteSegment | null;
+  is_on_schedule: boolean;
+  delay_minutes?: number;
+  alerts: RouteAlert[];
+}

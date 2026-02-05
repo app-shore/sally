@@ -18,11 +18,11 @@ import {
 import { ROICalculator } from './ROICalculator';
 import { MonitoringDashboard } from './MonitoringDashboard';
 import { ComparisonTable } from './ComparisonRow';
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useAuthStore } from '@/stores/auth-store';
 import { getDefaultRouteForRole } from '@/lib/navigation';
 
 export function LandingPage() {
-  const { isAuthenticated, user } = useSessionStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   // Get the appropriate destination for "Get Started" button
   const getStartedUrl = isAuthenticated && user

@@ -11,7 +11,7 @@
  */
 
 import { useState } from "react";
-import { useRoutePlanStore } from "@/lib/store/routePlanStore";
+import { useRoutePlanStore } from "@/stores/routePlanStore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import RouteHeader from "./RouteHeader";

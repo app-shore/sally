@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from 'react';
-import { useFeatureFlagsStore, isCacheStale } from '../store/featureFlagsStore';
-import { fetchAllFeatureFlags } from '../api/featureFlags';
+import { useFeatureFlagsStore, isCacheStale } from '@/stores/featureFlagsStore';
+import { fetchAllFeatureFlags } from '@/lib/api/featureFlags';
 
 /**
  * Hook to fetch and manage feature flags

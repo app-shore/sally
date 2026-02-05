@@ -1,10 +1,10 @@
 "use client";
 
-import { useSessionStore } from "@/lib/store/sessionStore";
+import { useAuthStore } from "@/stores/auth-store";
 import { LandingPage } from "@/components/landing/LandingPage";
 
 export default function HomePage() {
-  const { isAuthenticated } = useSessionStore();
+  const { isAuthenticated } = useAuthStore();
 
   // Show landing page for all users
   // Authenticated users can view landing page and click "Home" to get here

@@ -13,11 +13,11 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { getNavigationForRole } from '@/lib/navigation';
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useAuthStore } from '@/stores/auth-store';
 
 export function CommandPalette() {
   const router = useRouter();
-  const { user, logout } = useSessionStore();
+  const { user, signOut } = useAuthStore();
   const [open, setOpen] = useState(false);
 
   // Get navigation items based on user role
@@ -207,7 +207,7 @@ export function CommandPalette() {
             <CommandItem
               onSelect={() => {
                 runCommand(async () => {
-                  await logout();
+                  await signOut();
                   router.push('/');
                 });
               }}

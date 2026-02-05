@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../infrastructure/database/prisma.service';
 import { getFirebaseAuth } from '../config/firebase.config';
 import * as admin from 'firebase-admin';
 

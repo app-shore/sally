@@ -3,8 +3,14 @@
  */
 
 import { apiClient } from './client';
-import type { RoutePlan, RoutePlanningRequest, RouteUpdateRequest } from '../types/routePlan';
-import type { TriggerInput, SimulationResult } from '../types/trigger';
+import type {
+  RoutePlan,
+  RoutePlanningRequest,
+  RouteUpdateRequest,
+  RouteUpdateResponse,
+  RouteStatusResponse
+} from '@/lib/types/routePlan';
+import type { TriggerInput, SimulationResult } from '@/lib/types/trigger';
 
 /**
  * Optimize route with multiple stops
@@ -19,8 +25,8 @@ export async function optimizeRoute(request: RoutePlanningRequest): Promise<Rout
 /**
  * Update route dynamically
  */
-export async function updateRoute(request: RouteUpdateRequest): Promise<any> {
-  return apiClient('/route-planning/update', {
+export async function updateRoute(request: RouteUpdateRequest): Promise<RouteUpdateResponse> {
+  return apiClient<RouteUpdateResponse>('/route-planning/update', {
     method: 'POST',
     body: JSON.stringify(request),
   });
@@ -29,8 +35,8 @@ export async function updateRoute(request: RouteUpdateRequest): Promise<any> {
 /**
  * Get current route status for a driver
  */
-export async function getRouteStatus(driverId: string): Promise<any> {
-  return apiClient(`/route-planning/status/${driverId}`);
+export async function getRouteStatus(driverId: string): Promise<RouteStatusResponse> {
+  return apiClient<RouteStatusResponse>(`/route-planning/status/${driverId}`);
 }
 
 /**

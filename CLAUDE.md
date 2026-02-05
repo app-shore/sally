@@ -1,38 +1,50 @@
 # AI Context for SALLY Project
 
-## Documentation Organization (Updated: January 23, 2026)
+## Documentation Organization (Updated: February 5, 2026)
 
 ### Root Directory (/)
 **Purpose:** Essential getting started guides only
 - **README.md** - Project overview and quick start
-- **QUICKSTART.md** - 5-minute setup guide with route planning examples
+- **CLAUDE.md** - AI context and project instructions
 - **DOCUMENTATION.md** - Complete documentation navigation guide
 
-### Product Specifications (.specs/)
-**Purpose:** Product specs, vision, planning, and implementation documents
-
-**Core Documents:**
-- **README.md** - Specifications index and guide
-- **blueprint.md** - Product vision, strategy, roadmap
-- **ROUTE_PLANNING_SPEC.md** - Complete technical specification
-- **INTELLIGENT_OPTIMIZATION_FORMULA.md** - REST optimization component algorithm
-- **archive/** - Historical documents from earlier iterations
-
-**Key Rule:** All product planning documents, feature specs, and vision documents go here.
-
-### Technical Documentation (.docs/)
-**Purpose:** Architecture diagrams, technical references, setup/deployment guides
+### Unified Documentation Directory (.docs/)
+**Purpose:** All project documentation in one organized location (hidden directory stays on top in listings)
 
 **Structure:**
-- **INDEX.md** - Architecture documentation index
+
+**.docs/plans/** - AI-generated implementation plans
+- Created by superpower skills (brainstorming, writing-plans, etc.)
+- Dated format: YYYY-MM-DD-topic-name.md
+- Design documents and implementation plans
+- **CRITICAL:** When using superpower skills, ALWAYS write plans to `.docs/plans/`
+
+**.docs/specs/** - Product specifications
+- **README.md** - Specifications index and guide
+- **blueprint.md** - Product vision, strategy, roadmap
+- **PRODUCT_OVERVIEW.md** - High-level product overview
+- **features/** - Feature specifications organized by number
+- **planning/** - Product planning documents
+- **archive/** - Historical documents from earlier iterations
+
+**.docs/technical/** - Technical documentation
+- **INDEX.md** - Technical documentation index
 - **SETUP.md** - Detailed setup instructions
 - **DEPLOY.md** - Deployment guide (Docker, Vercel, CapRover)
 - **C4_MODEL_SUMMARY.md** - C4 model overview
 - **QUICK_REFERENCE.md** - Quick reference guide
 - **DARK_THEME_IMPLEMENTATION.md** - Dark theme guidelines and checklist
 - **architecture/** - C4 diagrams, sequence diagrams, deployment diagrams
+- **implementation/** - Implementation summaries and completion docs
+- **migrations/** - Database and system migration guides
+- **setup/** - Quick start and setup guides
+- **testing/** - Testing documentation and summaries
 
-**Key Rule:** All technical docs, architecture diagrams, and operational guides go here.
+**Key Rules:**
+1. AI-generated plans → `.docs/plans/`
+2. Product specs and features → `.docs/specs/`
+3. Technical docs and guides → `.docs/technical/`
+4. App-specific docs stay in app directories (apps/backend/README.md, etc.)
 
 ---
 
@@ -229,7 +241,7 @@ bg-secondary text-secondary-foreground  // Secondary buttons
 ```
 
 ### Reference Documentation
-See `.docs/DARK_THEME_IMPLEMENTATION.md` for complete implementation details.
+See `.docs/technical/DARK_THEME_IMPLEMENTATION.md` for complete implementation details.
 
 ---
 
@@ -278,13 +290,15 @@ Core capabilities:
 
 ## Key Principles
 
-1. **Product specs and plans** → `.specs/` directory
-2. **Technical docs and architecture** → `.docs/` directory
-3. **Essential getting started guides** → Root directory (README, QUICKSTART, DOCUMENTATION only)
-4. **Always maintain index files** (README.md, INDEX.md) when adding new docs
-5. **Cross-reference related documents** for easy navigation
-6. **Frame SALLY as route planning platform** with REST optimization as component
-7. **ALL UI MUST support dark theme and responsive design** (see UI Development Standards above)
+1. **AI-generated plans** → `.docs/plans/` directory
+2. **Product specs and features** → `.docs/specs/` directory
+3. **Technical docs and architecture** → `.docs/technical/` directory
+4. **Essential getting started guides** → Root directory (README.md, CLAUDE.md, DOCUMENTATION.md only)
+5. **App-specific documentation** → Keep in app directories (apps/backend/README.md, etc.)
+6. **Always maintain index files** (README.md, INDEX.md) when adding new docs
+7. **Cross-reference related documents** for easy navigation
+8. **Frame SALLY as route planning platform** with REST optimization as component
+9. **ALL UI MUST support dark theme and responsive design** (see UI Development Standards above)
 
 ---
 
@@ -379,10 +393,14 @@ Route Planner: Inserts rest segment
 ### When Writing New Docs
 
 1. **Identify audience** (PM, Developer, DevOps, Executive)
-2. **Choose location** (.specs/ for product, .docs/ for technical, root for essential)
+2. **Choose location**:
+   - AI-generated plans → `.docs/plans/`
+   - Product specs → `.docs/specs/`
+   - Technical docs → `.docs/technical/`
+   - Root only for essential guides
 3. **Estimate reading time** (helps users prioritize)
 4. **Frame correctly** (route planning platform, not REST system)
-5. **Update index files** (README.md, .specs/README.md, .docs/INDEX.md, DOCUMENTATION.md)
+5. **Update index files** (README.md, .docs/specs/README.md, .docs/technical/INDEX.md, DOCUMENTATION.md)
 6. **Cross-reference** related documents
 7. **Use examples** for complex concepts
 
@@ -391,7 +409,7 @@ Route Planner: Inserts rest segment
 Check for:
 - [ ] Correct framing (route planning primary, REST component)
 - [ ] Accurate audience identification
-- [ ] Proper location (.specs/ vs .docs/ vs root)
+- [ ] Proper location (.docs/plans/ vs .docs/specs/ vs .docs/technical/ vs root)
 - [ ] Updated index files
 - [ ] Working links
 - [ ] Code examples tested
@@ -400,7 +418,7 @@ Check for:
 ---
 
 ## Last Updated
-January 29, 2026 - Added mandatory Shadcn UI component usage requirement to UI development standards
+February 5, 2026 - Reorganized documentation structure from split ..docs/.specs directories to unified .docs/ directory with plans/, specs/, and technical/ subdirectories
 
 ## Maintained By
 SALLY Product & Engineering Team

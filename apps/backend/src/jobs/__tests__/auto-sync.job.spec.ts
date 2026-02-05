@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AutoSyncJob } from '../auto-sync.job';
 import { SyncService } from '../../services/sync/sync.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 
 describe('AutoSyncJob', () => {
   let job: AutoSyncJob;

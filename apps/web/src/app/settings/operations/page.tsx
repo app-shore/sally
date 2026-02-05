@@ -7,8 +7,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { useSessionStore } from '@/lib/store/sessionStore';
-import { usePreferencesStore } from '@/lib/store/preferencesStore';
+import { useAuthStore } from '@/stores/auth-store';
+import { usePreferencesStore } from '@/stores/preferencesStore';
 import { OperationsSettings } from '@/lib/api/preferences';
 import { Loader2, Save, RotateCcw, Route } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 
 export default function RoutePlanningPage() {
   const router = useRouter();
-  const { user } = useSessionStore();
+  const { user } = useAuthStore();
   const { operationsSettings, updateOperationsSettings, resetToDefaults, loadAllPreferences, isSaving } = usePreferencesStore();
   const [formData, setFormData] = useState<Partial<OperationsSettings>>(operationsSettings || {});
   const [saveSuccess, setSaveSuccess] = useState(false);

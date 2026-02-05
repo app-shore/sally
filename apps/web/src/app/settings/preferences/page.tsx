@@ -4,13 +4,13 @@ import { useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { useSessionStore } from '@/lib/store/sessionStore';
-import { usePreferencesStore } from '@/lib/store/preferencesStore';
+import { useAuthStore } from '@/stores/auth-store';
+import { usePreferencesStore } from '@/stores/preferencesStore';
 import UserPreferencesTab from './components/UserPreferencesTab';
 import DriverPreferencesTab from './components/DriverPreferencesTab';
 
 export default function PreferencesPage() {
-  const { user } = useSessionStore();
+  const { user } = useAuthStore();
   const { loadAllPreferences, isLoading } = usePreferencesStore();
 
   const isDriver = user?.role === 'DRIVER';

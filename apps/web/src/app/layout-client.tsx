@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { GlobalSallyChat } from "@/components/chat/GlobalSallyChat";
-import { useChatStore } from "@/lib/store/chatStore";
+import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/auth-store";
 import { isProtectedRoute, getDefaultRouteForRole } from "@/lib/navigation";
 

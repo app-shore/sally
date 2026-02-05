@@ -12,14 +12,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useAuthStore } from '@/stores/auth-store';
 
 export function UserProfileMenu() {
   const router = useRouter();
-  const { user, logout } = useSessionStore();
+  const { user, signOut } = useAuthStore();
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     router.push('/');
   };
 

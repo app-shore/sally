@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { PrismaModule } from '../../infrastructure/database/prisma.module';
 import { SyncService } from './sync.service';
 import { TmsSyncService } from './tms-sync.service';
 import { EldSyncService } from './eld-sync.service';

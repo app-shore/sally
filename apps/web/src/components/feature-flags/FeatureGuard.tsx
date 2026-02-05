@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
 import { ComingSoonBanner } from './ComingSoonBanner';
 import { comingSoonContent } from '@/lib/config/comingSoonContent';
-import { useFeatureFlagsStore } from '@/lib/store/featureFlagsStore';
+import { useFeatureFlagsStore } from '@/stores/featureFlagsStore';
 
 export interface FeatureGuardProps {
   featureKey: string;

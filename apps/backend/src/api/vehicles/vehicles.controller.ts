@@ -17,7 +17,7 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { PrismaService } from '../../database/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';

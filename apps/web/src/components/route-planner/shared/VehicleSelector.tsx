@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { listVehicles, type Vehicle } from "@/lib/api/vehicles";
-import { useRoutePlanStore } from "@/lib/store/routePlanStore";
+import { useRoutePlanStore } from "@/stores/routePlanStore";
 import type { VehicleStateInput } from "@/lib/types/routePlan";
 
 export function VehicleSelector() {

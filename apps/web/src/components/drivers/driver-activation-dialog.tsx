@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
-import { useOnboardingStore } from '@/lib/store/onboardingStore';
+import { useOnboardingStore } from '@/stores/onboardingStore';
 
 interface DriverActivationDialogProps {
   open: boolean;

@@ -2,7 +2,7 @@
 
 import { FloatingSallyButton } from './FloatingSallyButton';
 import { SallyChatPanel } from './SallyChatPanel';
-import { useChatStore } from '@/lib/store/chatStore';
+import { useChatStore } from '@/stores/chatStore';
 import { usePathname } from 'next/navigation';
 
 export function GlobalSallyChat() {

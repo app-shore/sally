@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useAuthStore } from '@/stores/auth-store';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { getNavigationForRole, type NavItem } from '@/lib/navigation';
-import { useOnboardingStore } from '@/lib/store/onboardingStore';
+import { useOnboardingStore } from '@/stores/onboardingStore';
 import { CheckCircle2 } from 'lucide-react';
 
 interface AppSidebarProps {
@@ -30,7 +30,7 @@ export function AppSidebar({
   onToggleCollapse
 }: AppSidebarProps) {
   const pathname = usePathname();
-  const { user } = useSessionStore();
+  const { user } = useAuthStore();
   const { status, criticalIncompleteCount, recommendedIncompleteCount } = useOnboardingStore();
 
   // Get navigation items from centralized config

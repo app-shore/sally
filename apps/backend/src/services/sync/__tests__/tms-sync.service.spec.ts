@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TmsSyncService } from '../tms-sync.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import axios from 'axios';
 
 jest.mock('axios');

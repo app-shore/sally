@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
-import { useOnboardingStore } from '@/lib/store/onboardingStore';
+import { useOnboardingStore } from '@/stores/onboardingStore';
 
 const inviteSchema = z.object({
   email: z.string().email('Valid email is required'),

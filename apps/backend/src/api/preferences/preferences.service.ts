@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { UpdateUserPreferencesDto } from './dto/user-preferences.dto';
 import { UpdateOperationsSettingsDto } from './dto/operations-settings.dto';
 import { UpdateDriverPreferencesDto } from './dto/driver-preferences.dto';

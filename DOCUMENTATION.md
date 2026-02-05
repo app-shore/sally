@@ -9,25 +9,25 @@
 ### I want to...
 
 **...get started quickly**
-→ Read [QUICKSTART.md](./QUICKSTART.md) (5 minutes)
+→ Read [.docs/technical/setup/QUICKSTART.md](./.docs/technical/setup/QUICKSTART.md) (5 minutes)
 
 **...understand what SALLY is**
 → Read [README.md](./README.md) (10 minutes)
 
 **...learn the product vision**
-→ Read [.specs/blueprint.md](./.specs/blueprint.md) (20 minutes)
+→ Read [.docs/specs/blueprint.md](./.docs/specs/blueprint.md) (20 minutes)
 
 **...understand the technical architecture**
-→ Read [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) (45 minutes)
+→ Read [.docs/specs/features/01-route-planning/FEATURE_SPEC.md](./.docs/specs/features/01-route-planning/FEATURE_SPEC.md) (45 minutes)
 
 **...deploy SALLY**
-→ Read [DEPLOY.md](./DEPLOY.md) (15 minutes)
+→ Read [.docs/technical/DEPLOY.md](./.docs/technical/DEPLOY.md) (15 minutes)
 
 **...set up Google Maps for accurate distances**
-→ Read [GOOGLE_MAPS_QUICKSTART.md](./GOOGLE_MAPS_QUICKSTART.md) (5 minutes)
+→ Read [.docs/technical/setup/GOOGLE_MAPS_QUICKSTART.md](./.docs/technical/setup/GOOGLE_MAPS_QUICKSTART.md) (5 minutes)
 
 **...view architecture diagrams**
-→ See [.docs/architecture/](./.docs/architecture/) + [.docs/INDEX.md](./.docs/INDEX.md)
+→ See [.docs/technical/architecture/](./.docs/technical/architecture/) + [.docs/technical/INDEX.md](./.docs/technical/INDEX.md)
 
 ---
 
@@ -36,34 +36,49 @@
 ```
 sally/
 │
-├── 📖 Root Documentation (Setup & Deployment)
+├── 📖 Root Documentation
 │   ├── README.md                    # Project overview
-│   ├── QUICKSTART.md               # 5-minute setup guide
-│   ├── SETUP.md                    # Detailed setup instructions
-│   ├── DEPLOY.md                   # Deployment guide
+│   ├── CLAUDE.md                    # AI context and instructions
 │   └── DOCUMENTATION.md            # This file
 │
-├── 📋 .specs/ (Product Specifications)
-│   ├── README.md                   # Specifications index
-│   ├── blueprint.md                # Product vision & strategy
-│   ├── ROUTE_PLANNING_SPEC.md     # Complete technical specification
-│   ├── INTELLIGENT_OPTIMIZATION_FORMULA.md  # REST algorithm
-│   └── archive/                    # Historical documents
-│
-└── 🏗️ .docs/ (Technical Documentation)
-    ├── INDEX.md                    # Architecture documentation index
-    ├── C4_MODEL_SUMMARY.md        # C4 model overview
-    ├── QUICK_REFERENCE.md         # Quick reference guide
-    └── architecture/              # C4 diagrams, sequences, deployment
-        ├── README.md
-        ├── VISUALIZATION_GUIDE.md
-        ├── c4-level1-context.puml
-        ├── c4-level2-container.puml
-        ├── c4-level3-component-*.puml
-        ├── c4-level4-code-*.puml
-        ├── sequence-*.puml
-        ├── deployment-diagram.puml
-        └── data-flow-diagram.puml
+└── 📂 .docs/ (Unified Documentation - Hidden directory)
+    │
+    ├── 📋 plans/ (AI-Generated Plans)
+    │   └── YYYY-MM-DD-topic-name.md  # Implementation plans from superpower skills
+    │
+    ├── 📝 specs/ (Product Specifications)
+    │   ├── README.md                   # Specifications index
+    │   ├── blueprint.md                # Product vision & strategy
+    │   ├── PRODUCT_OVERVIEW.md        # High-level overview
+    │   ├── features/                   # Feature specifications
+    │   │   ├── 01-route-planning/
+    │   │   ├── 02-authentication/
+    │   │   ├── 03-integrations/
+    │   │   └── ...
+    │   ├── planning/                   # Product planning docs
+    │   └── archive/                    # Historical documents
+    │
+    └── 🏗️ technical/ (Technical Documentation)
+        ├── INDEX.md                    # Architecture documentation index
+        ├── SETUP.md                    # Detailed setup instructions
+        ├── DEPLOY.md                   # Deployment guide
+        ├── C4_MODEL_SUMMARY.md        # C4 model overview
+        ├── QUICK_REFERENCE.md         # Quick reference guide
+        ├── DARK_THEME_IMPLEMENTATION.md # Dark theme standards
+        ├── architecture/              # C4 diagrams, sequences, deployment
+        │   ├── README.md
+        │   ├── VISUALIZATION_GUIDE.md
+        │   ├── c4-level1-context.puml
+        │   ├── c4-level2-container.puml
+        │   ├── c4-level3-component-*.puml
+        │   ├── c4-level4-code-*.puml
+        │   ├── sequence-*.puml
+        │   ├── deployment-diagram.puml
+        │   └── data-flow-diagram.puml
+        ├── implementation/            # Implementation summaries
+        ├── migrations/                # Migration guides
+        ├── setup/                     # Setup and quickstart guides
+        └── testing/                   # Testing documentation
 ```
 
 ---
@@ -74,20 +89,20 @@ sally/
 
 | Document | Purpose | Time | Audience |
 |----------|---------|------|----------|
-| [QUICKSTART.md](./QUICKSTART.md) | Get up and running in 5 minutes | 5 min | All |
-| [SETUP.md](./SETUP.md) | Detailed setup for all environments | 15 min | Developers |
+| [.docs/technical/setup/QUICKSTART.md](./.docs/technical/setup/QUICKSTART.md) | Get up and running in 5 minutes | 5 min | All |
+| [.docs/technical/SETUP.md](./.docs/technical/SETUP.md) | Detailed setup for all environments | 15 min | Developers |
 | [README.md](./README.md) | Project overview and quick start | 10 min | All |
 
 ---
 
-### 2. Product Specifications (.specs/)
+### 2. Product Specifications (.docs/specs/)
 
 | Document | Purpose | Time | Audience |
 |----------|---------|------|----------|
-| [.specs/README.md](./.specs/README.md) | Specifications index and guide | 10 min | All |
-| [.specs/blueprint.md](./.specs/blueprint.md) | Product vision, strategy, roadmap | 20 min | PM, Executives, Sales |
-| [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) | Complete technical specification | 45 min | Engineers, Architects |
-| [.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md](./.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md) | REST optimization algorithm | 30 min | Engineers, PM |
+| [.docs/specs/README.md](./.docs/specs/README.md) | Specifications index and guide | 10 min | All |
+| [.docs/specs/blueprint.md](./.docs/specs/blueprint.md) | Product vision, strategy, roadmap | 20 min | PM, Executives, Sales |
+| [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) | Complete technical specification | 45 min | Engineers, Architects |
+| [.docs/specs/INTELLIGENT_OPTIMIZATION_FORMULA.md](./.docs/specs/INTELLIGENT_OPTIMIZATION_FORMULA.md) | REST optimization algorithm | 30 min | Engineers, PM |
 
 **Key Topics:**
 - Problem statement and solution
@@ -102,14 +117,14 @@ sally/
 
 ---
 
-### 3. Technical Documentation (.docs/)
+### 3. Technical Documentation (.docs/technical/)
 
 | Document | Purpose | Time | Audience |
 |----------|---------|------|----------|
-| [.docs/INDEX.md](./.docs/INDEX.md) | Architecture documentation index | 5 min | All |
-| [.docs/architecture/README.md](./.docs/architecture/README.md) | C4 model overview | 10 min | Architects |
-| [.docs/architecture/VISUALIZATION_GUIDE.md](./.docs/architecture/VISUALIZATION_GUIDE.md) | How to view diagrams | 5 min | Developers |
-| [.docs/C4_MODEL_SUMMARY.md](./.docs/C4_MODEL_SUMMARY.md) | C4 model summary | 15 min | Architects |
+| [.docs/technical/INDEX.md](./.docs/technical/INDEX.md) | Architecture documentation index | 5 min | All |
+| [.docs/technical/architecture/README.md](./.docs/technical/architecture/README.md) | C4 model overview | 10 min | Architects |
+| [.docs/technical/architecture/VISUALIZATION_GUIDE.md](./.docs/technical/architecture/VISUALIZATION_GUIDE.md) | How to view diagrams | 5 min | Developers |
+| [.docs/technical/C4_MODEL_SUMMARY.md](./.docs/technical/C4_MODEL_SUMMARY.md) | C4 model summary | 15 min | Architects |
 
 **Architecture Diagrams:**
 - **Level 1 - System Context:** SALLY in relation to users and external systems
@@ -138,9 +153,9 @@ sally/
 **Time: 1 hour**
 
 1. [README.md](./README.md) - Project overview (10 min)
-2. [.specs/blueprint.md](./.specs/blueprint.md) - Product vision (20 min)
-3. [.specs/README.md](./.specs/README.md) - Specifications guide (10 min)
-4. [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - System architecture section (20 min)
+2. [.docs/specs/blueprint.md](./.docs/specs/blueprint.md) - Product vision (20 min)
+3. [.docs/specs/README.md](./.docs/specs/README.md) - Specifications guide (10 min)
+4. [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - System architecture section (20 min)
 
 **Focus on:**
 - Problem statement and solution
@@ -156,10 +171,10 @@ sally/
 **Time: 2 hours**
 
 1. [QUICKSTART.md](./QUICKSTART.md) - Quick setup (5 min)
-2. [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - Complete technical spec (45 min)
-3. [.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md](./.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md) - REST algorithm (30 min)
-4. [.docs/architecture/c4-level3-component-backend.puml](./.docs/architecture/c4-level3-component-backend.puml) - Backend components (10 min)
-5. [.docs/architecture/c4-level4-code-*.puml](./.docs/architecture/) - Code-level diagrams (20 min)
+2. [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - Complete technical spec (45 min)
+3. [.docs/specs/INTELLIGENT_OPTIMIZATION_FORMULA.md](./.docs/specs/INTELLIGENT_OPTIMIZATION_FORMULA.md) - REST algorithm (30 min)
+4. [.docs/technical/architecture/c4-level3-component-backend.puml](./.docs/technical/architecture/c4-level3-component-backend.puml) - Backend components (10 min)
+5. [.docs/technical/architecture/c4-level4-code-*.puml](./.docs/technical/architecture/) - Code-level diagrams (20 min)
 6. Review backend codebase: `apps/backend/app/`
 
 **Focus on:**
@@ -177,8 +192,8 @@ sally/
 
 1. [QUICKSTART.md](./QUICKSTART.md) - Quick setup (5 min)
 2. [README.md](./README.md) - Project overview (10 min)
-3. [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - Frontend changes section (20 min)
-4. [.docs/architecture/c4-level3-component-frontend.puml](./.docs/architecture/c4-level3-component-frontend.puml) - Frontend components (10 min)
+3. [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - Frontend changes section (20 min)
+4. [.docs/technical/architecture/c4-level3-component-frontend.puml](./.docs/technical/architecture/c4-level3-component-frontend.puml) - Frontend components (10 min)
 5. Review frontend codebase: `apps/web/src/`
 
 **Focus on:**
@@ -194,11 +209,11 @@ sally/
 **Time: 2 hours**
 
 1. [README.md](./README.md) - Project overview (10 min)
-2. [.specs/blueprint.md](./.specs/blueprint.md) - Product vision (20 min)
-3. [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - Complete technical spec (45 min)
-4. [.docs/INDEX.md](./.docs/INDEX.md) - Architecture documentation (5 min)
-5. [.docs/architecture/README.md](./.docs/architecture/README.md) - C4 model guide (10 min)
-6. Review all C4 diagrams: [.docs/architecture/](./.docs/architecture/) (30 min)
+2. [.docs/specs/blueprint.md](./.docs/specs/blueprint.md) - Product vision (20 min)
+3. [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - Complete technical spec (45 min)
+4. [.docs/technical/INDEX.md](./.docs/technical/INDEX.md) - Architecture documentation (5 min)
+5. [.docs/technical/architecture/README.md](./.docs/technical/architecture/README.md) - C4 model guide (10 min)
+6. Review all C4 diagrams: [.docs/technical/architecture/](./.docs/technical/architecture/) (30 min)
 
 **Focus on:**
 - System architecture (3-layer design)
@@ -217,7 +232,7 @@ sally/
 2. [SETUP.md](./SETUP.md) - Detailed setup (15 min)
 3. [DEPLOY.md](./DEPLOY.md) - Deployment guide (15 min)
 4. [docker-compose.yml](./docker-compose.yml) - Docker configuration (5 min)
-5. [.docs/architecture/deployment-diagram.puml](./.docs/architecture/deployment-diagram.puml) - Infrastructure diagram (10 min)
+5. [.docs/technical/architecture/deployment-diagram.puml](./.docs/technical/architecture/deployment-diagram.puml) - Infrastructure diagram (10 min)
 6. Review CI/CD setup (if exists)
 
 **Focus on:**
@@ -234,9 +249,9 @@ sally/
 **Time: 2 hours**
 
 1. [README.md](./README.md) - Project overview (10 min)
-2. [.specs/blueprint.md](./.specs/blueprint.md) - Product vision and features (20 min)
-3. [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - Technical spec (45 min)
-4. [.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md](./.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md) - REST algorithm (30 min)
+2. [.docs/specs/blueprint.md](./.docs/specs/blueprint.md) - Product vision and features (20 min)
+3. [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - Technical spec (45 min)
+4. [.docs/specs/INTELLIGENT_OPTIMIZATION_FORMULA.md](./.docs/specs/INTELLIGENT_OPTIMIZATION_FORMULA.md) - REST algorithm (30 min)
 5. Review test suites: `apps/backend/tests/` and `apps/web/__tests__/`
 
 **Focus on:**
@@ -253,7 +268,7 @@ sally/
 **Time: 30 minutes**
 
 1. [README.md](./README.md) - Project overview (10 min)
-2. [.specs/blueprint.md](./.specs/blueprint.md) - Focus on:
+2. [.docs/specs/blueprint.md](./.docs/specs/blueprint.md) - Focus on:
    - Problem statement (2 min)
    - Solution overview (3 min)
    - Market positioning (3 min)
@@ -274,9 +289,9 @@ sally/
 ### HOS Compliance & Regulations
 
 **Documents:**
-- [.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md](./.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md) - Algorithm details
-- [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - HOS simulation section
-- [.docs/architecture/c4-level4-code-hos-engine.puml](./.docs/architecture/c4-level4-code-hos-engine.puml) - HOS engine diagram
+- [.docs/specs/INTELLIGENT_OPTIMIZATION_FORMULA.md](./.docs/specs/INTELLIGENT_OPTIMIZATION_FORMULA.md) - Algorithm details
+- [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - HOS simulation section
+- [.docs/technical/architecture/c4-level4-code-hos-engine.puml](./.docs/technical/architecture/c4-level4-code-hos-engine.puml) - HOS engine diagram
 
 **Code:**
 - `apps/backend/app/core/constants.py` - FMCSA regulations
@@ -287,9 +302,9 @@ sally/
 ### Route Planning & Optimization
 
 **Documents:**
-- [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - Route planning engine
-- [.specs/blueprint.md](./.specs/blueprint.md) - Optimization logic section
-- [.docs/architecture/c4-level4-code-optimization-engine.puml](./.docs/architecture/c4-level4-code-optimization-engine.puml)
+- [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - Route planning engine
+- [.docs/specs/blueprint.md](./.docs/specs/blueprint.md) - Optimization logic section
+- [.docs/technical/architecture/c4-level4-code-optimization-engine.puml](./.docs/technical/architecture/c4-level4-code-optimization-engine.puml)
 
 **Code:**
 - `apps/backend/app/services/route_planning_engine.py` - TSP optimization
@@ -300,8 +315,8 @@ sally/
 ### Dynamic Updates & Monitoring
 
 **Documents:**
-- [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - Continuous monitoring section
-- [.specs/blueprint.md](./.specs/blueprint.md) - Dynamic update system
+- [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - Continuous monitoring section
+- [.docs/specs/blueprint.md](./.docs/specs/blueprint.md) - Dynamic update system
 
 **Focus:**
 - 14 trigger types across 5 categories
@@ -313,8 +328,8 @@ sally/
 ### Database & Data Models
 
 **Documents:**
-- [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - Database schema section
-- [.docs/architecture/data-flow-diagram.puml](./.docs/architecture/data-flow-diagram.puml)
+- [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - Database schema section
+- [.docs/technical/architecture/data-flow-diagram.puml](./.docs/technical/architecture/data-flow-diagram.puml)
 
 **Code:**
 - `apps/backend/app/models/` - SQLAlchemy models
@@ -325,7 +340,7 @@ sally/
 ### API Design
 
 **Documents:**
-- [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - API endpoints section
+- [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - API endpoints section
 - API documentation: http://localhost:8000/docs (when running)
 
 **Code:**
@@ -337,8 +352,8 @@ sally/
 ### Frontend Architecture
 
 **Documents:**
-- [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - Frontend changes section
-- [.docs/architecture/c4-level3-component-frontend.puml](./.docs/architecture/c4-level3-component-frontend.puml)
+- [.docs/specs/ROUTE_PLANNING_SPEC.md](./.docs/specs/ROUTE_PLANNING_SPEC.md) - Frontend changes section
+- [.docs/technical/architecture/c4-level3-component-frontend.puml](./.docs/technical/architecture/c4-level3-component-frontend.puml)
 
 **Code:**
 - `apps/web/src/components/` - React components
@@ -353,16 +368,16 @@ sally/
 
 | I need to... | Go to... |
 |-------------|----------|
-| Set up locally | [QUICKSTART.md](./QUICKSTART.md) |
-| Understand HOS rules | [.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md](./.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md) |
-| See system architecture | [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) |
-| View architecture diagrams | [.docs/architecture/](./.docs/architecture/) |
-| Learn about REST optimization | [.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md](./.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md) |
-| Check API endpoints | http://localhost:8000/docs or [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) |
-| Deploy to production | [DEPLOY.md](./DEPLOY.md) |
-| Understand database schema | [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - Database section |
-| Learn about dynamic updates | [.specs/ROUTE_PLANNING_SPEC.md](./.specs/ROUTE_PLANNING_SPEC.md) - Monitoring section |
-| See product roadmap | [.specs/blueprint.md](./.specs/blueprint.md) - Roadmap section |
+| Set up locally | [.docs/technical/setup/QUICKSTART.md](./.docs/technical/setup/QUICKSTART.md) |
+| Understand HOS rules | [.docs/specs/features/09-rest-optimization/ALGORITHM.md](./.docs/specs/features/09-rest-optimization/ALGORITHM.md) |
+| See system architecture | [.docs/specs/features/01-route-planning/FEATURE_SPEC.md](./.docs/specs/features/01-route-planning/FEATURE_SPEC.md) |
+| View architecture diagrams | [.docs/technical/architecture/](./.docs/technical/architecture/) |
+| Learn about REST optimization | [.docs/specs/features/09-rest-optimization/ALGORITHM.md](./.docs/specs/features/09-rest-optimization/ALGORITHM.md) |
+| Check API endpoints | http://localhost:8000/docs or [.docs/specs/features/01-route-planning/API_ENDPOINTS.md](./.docs/specs/features/01-route-planning/API_ENDPOINTS.md) |
+| Deploy to production | [.docs/technical/DEPLOY.md](./.docs/technical/DEPLOY.md) |
+| Understand database schema | [.docs/specs/features/01-route-planning/FEATURE_SPEC.md](./.docs/specs/features/01-route-planning/FEATURE_SPEC.md) - Database section |
+| Learn about dynamic updates | [.docs/specs/features/05-continuous-monitoring/](./.docs/specs/features/05-continuous-monitoring/) |
+| See product roadmap | [.docs/specs/blueprint.md](./.docs/specs/blueprint.md) - Roadmap section |
 
 ---
 
@@ -370,24 +385,28 @@ sally/
 
 ### Where to Add New Documentation
 
-**Product specs and plans:**
-→ Add to `.specs/` directory
+**AI-generated plans (from superpower skills):**
+→ Add to `.docs/plans/` directory
 
-**Technical documentation, architecture diagrams, utilities:**
-→ Add to `.docs/` directory
+**Product specs, features, and planning:**
+→ Add to `.docs/specs/` directory
 
-**Setup and deployment guides:**
-→ Add to root directory
+**Technical documentation, architecture diagrams, setup guides:**
+→ Add to `.docs/technical/` directory
+
+**Essential project guides only:**
+→ Add to root directory (README.md, CLAUDE.md, DOCUMENTATION.md)
 
 ### Updating Documentation
 
 When making changes:
 
-1. **Product vision changes** → Update `.specs/blueprint.md`
-2. **Architecture changes** → Update `.specs/ROUTE_PLANNING_SPEC.md` and `.docs/architecture/` diagrams
-3. **Algorithm changes** → Update `.specs/INTELLIGENT_OPTIMIZATION_FORMULA.md`
-4. **Setup changes** → Update `QUICKSTART.md` or `SETUP.md`
-5. **Deployment changes** → Update `DEPLOY.md`
+1. **Product vision changes** → Update `.docs/specs/blueprint.md`
+2. **Architecture changes** → Update feature specs and `.docs/technical/architecture/` diagrams
+3. **Algorithm changes** → Update `.docs/specs/features/09-rest-optimization/ALGORITHM.md`
+4. **Setup changes** → Update `.docs/technical/setup/QUICKSTART.md` or `.docs/technical/SETUP.md`
+5. **Deployment changes** → Update `.docs/technical/DEPLOY.md`
+6. **Implementation plans** → Add to `.docs/plans/` with dated format
 
 ### Documentation Review Checklist
 
@@ -444,7 +463,7 @@ Before merging documentation changes:
 ### Documentation Workflow
 
 1. Identify what needs documentation
-2. Choose appropriate location (`.specs/`, `.docs/`, or root)
+2. Choose appropriate location (`.docs/specs/`, `.docs/technical/`, or root)
 3. Write documentation following standards
 4. Update relevant index files
 5. Test all links and examples
@@ -456,7 +475,7 @@ Before merging documentation changes:
 
 **For documentation questions:**
 - Check this guide first
-- Review relevant index files (`.specs/README.md`, `.docs/INDEX.md`)
+- Review relevant index files (`.docs/specs/README.md`, `.docs/technical/INDEX.md`)
 - Contact the documentation team
 
 **For technical questions:**
@@ -465,7 +484,7 @@ Before merging documentation changes:
 - Review test files for examples
 
 **For product questions:**
-- Read [.specs/blueprint.md](./.specs/blueprint.md)
+- Read [.docs/specs/blueprint.md](./.docs/specs/blueprint.md)
 - Check roadmap and success metrics
 - Contact product team
 
@@ -493,5 +512,16 @@ Documentation should be:
 
 ---
 
-**Last Updated:** January 23, 2026
+**Last Updated:** February 5, 2026
 **Maintained By:** SALLY Team
+
+---
+
+## 🔄 Recent Changes
+
+**February 5, 2026:**
+- Reorganized documentation from split `..docs/` and `.specs/` to unified `.docs/` structure
+- Created `.docs/plans/` for AI-generated implementation plans
+- Created `.docs/specs/` for product specifications
+- Created `.docs/technical/` for technical documentation with subdirectories
+- Cleaned up root directory to essential files only

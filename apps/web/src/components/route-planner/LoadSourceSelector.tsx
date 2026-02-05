@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useScenarios, useLoads, useInstantiateScenario, useLoad } from "@/lib/hooks/useRoutePlanning";
-import { useRoutePlanStore } from "@/lib/store/routePlanStore";
+import { useRoutePlanStore } from "@/stores/routePlanStore";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 

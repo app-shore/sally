@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Menu, X, LogIn, LogOut } from 'lucide-react';
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -19,11 +19,11 @@ interface PublicLayoutProps {
 export function PublicLayout({ children }: PublicLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const { isAuthenticated, user, logout: sessionLogout } = useSessionStore();
+  const { isAuthenticated, user, signOut } = useAuthStore();
 
   const handleLogout = async () => {
     try {
-      await sessionLogout();
+      await signOut();
       router.push('/');
     } catch (err) {
       console.error('Logout failed:', err);

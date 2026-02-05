@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSessionStore } from "@/lib/store/sessionStore";
+import { useAuthStore } from "@/stores/auth-store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ export default function ActiveRoutesPage() {
 }
 
 function ActiveRoutesPageContent() {
-  const { isAuthenticated, user } = useSessionStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   // Auth is handled by layout-client, just check role
   if (

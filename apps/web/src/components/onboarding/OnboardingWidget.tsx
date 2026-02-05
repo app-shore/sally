@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation';
-import { OnboardingStatus } from '@/lib/store/onboardingStore';
+import { OnboardingStatus } from '@/stores/onboardingStore';
 
 interface OnboardingWidgetProps {
   status: OnboardingStatus;

@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { OnboardingItem } from '@/lib/store/onboardingStore';
+import { OnboardingItem } from '@/stores/onboardingStore';
 import { useRouter } from 'next/navigation';
 
 interface OnboardingItemCardProps {

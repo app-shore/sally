@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { UserProfileMenu } from './UserProfileMenu';
 import { ThemeToggle } from './ThemeToggle';
 import { CommandPalette } from './CommandPalette';
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useAuthStore } from '@/stores/auth-store';
 
 interface AppHeaderProps {
   onToggleSidebar: () => void;
@@ -15,7 +15,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ onToggleSidebar, alertCount, onOpenAlerts }: AppHeaderProps) {
-  const { user } = useSessionStore();
+  const { user } = useAuthStore();
 
   const getRoleLabel = () => {
     const tenantName = user?.tenantName || 'Unknown Tenant';

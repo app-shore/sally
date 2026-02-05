@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { IntegrationManagerService } from './integration-manager.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { CredentialsService } from '../credentials/credentials.service';
 import { RetryService } from '../retry/retry.service';
 import { SamsaraHOSAdapter } from '../adapters/hos/samsara-hos.adapter';

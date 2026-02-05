@@ -6,7 +6,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { optimizeRoute, simulateTriggers } from '@/lib/api/routePlanning';
 import { getScenarios, getScenario, instantiateScenario } from '@/lib/api/scenarios';
 import { getLoads, getLoad } from '@/lib/api/loads';
-import { useRoutePlanStore } from '@/lib/store/routePlanStore';
+import { useRoutePlanStore } from '@/stores/routePlanStore';
 import type { RoutePlanningRequest } from '@/lib/types/routePlan';
 import type { TriggerInput } from '@/lib/types/trigger';
 
@@ -15,12 +15,9 @@ import type { TriggerInput } from '@/lib/types/trigger';
  */
 export function useRoutePlanning() {
   const {
-    setCurrentPlan,
     setLoading,
     setError,
-    addPlanVersion,
-    selectedLoad,
-    selectedScenario,
+    addPlanWithSnapshot,
   } = useRoutePlanStore();
 
   const { mutate, isPending, data, error } = useMutation({
@@ -30,32 +27,8 @@ export function useRoutePlanning() {
       setError(null);
     },
     onSuccess: (plan) => {
-      // Create input snapshot to track what values were used for this plan
-      const store = useRoutePlanStore.getState();
-      const inputSnapshot = {
-        load_id: store.selectedLoad?.load_id,
-        load_number: store.selectedLoad?.load_number,
-        customer_name: store.selectedLoad?.customer_name,
-        scenario_id: store.selectedScenario?.scenario_id,
-        scenario_name: store.selectedScenario?.name,
-        driver_id: store.driverId!,
-        vehicle_id: store.vehicleId!,
-        driver_state: store.driverState!,
-        vehicle_state: store.vehicleState!,
-        stops_count: store.stops.length,
-        optimization_priority: store.optimizationPriority,
-        generated_at: new Date().toISOString(),
-      };
-
-      // Attach snapshot to plan
-      const planWithSnapshot = {
-        ...plan,
-        input_snapshot: inputSnapshot,
-      };
-
-      setCurrentPlan(planWithSnapshot);
-      addPlanVersion(planWithSnapshot);
-      setLoading(false);
+      // Store action handles snapshot creation and state update
+      addPlanWithSnapshot(plan);
     },
     onError: (err: Error) => {
       setError(err.message);

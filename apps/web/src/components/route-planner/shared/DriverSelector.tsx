@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { listDrivers, getDriverHOS, type Driver } from "@/lib/api/drivers";
-import { useRoutePlanStore } from "@/lib/store/routePlanStore";
+import { useRoutePlanStore } from "@/stores/routePlanStore";
 import { formatRelativeTime } from "@/lib/api/integrations";
 import type { DriverStateInput } from "@/lib/types/routePlan";
 

@@ -3,7 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { CredentialsService } from '../../services/credentials/credentials.service';
 import { IntegrationManagerService } from '../../services/integration-manager/integration-manager.service';
 import { SyncService } from '../../services/sync/sync.service';

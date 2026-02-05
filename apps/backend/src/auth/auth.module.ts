@@ -8,7 +8,7 @@ import { JwtTokenService } from './jwt.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
 import { FirebaseAuthService } from './firebase-auth.service';
-import { PrismaModule } from '../prisma/prisma.module';
+import { PrismaModule } from '../infrastructure/database/prisma.module';
 
 @Module({
   imports: [

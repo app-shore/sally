@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
 import configuration from './config/configuration';
-import { DatabaseModule } from './database/database.module';
-import { PrismaModule } from './prisma/prisma.module';
+import { PrismaModule } from './infrastructure/database/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { SyncModule } from './services/sync/sync.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
@@ -45,6 +45,7 @@ import { FeatureFlagsModule } from './api/feature-flags/feature-flags.module';
 import { CacheModule } from './cache/cache.module';
 import { MockExternalModule } from './api/mock-external/mock-external.module';
 import { NotificationModule } from './services/notification/notification.module';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -53,10 +54,10 @@ import { NotificationModule } from './services/notification/notification.module'
       load: [configuration],
       envFilePath: '.env.local',
     }),
+    SharedModule,
     CacheModule,
     ScheduleModule.forRoot(),
     PrismaModule,
-    DatabaseModule,
     AuthModule,
     ServicesModule,
     SyncModule,
@@ -71,6 +72,11 @@ import { NotificationModule } from './services/notification/notification.module'
     NotificationModule,
   ],
   providers: [
+    // Global exception filter
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
     // Global guards (applied to all routes by default)
     {
       provide: APP_GUARD,

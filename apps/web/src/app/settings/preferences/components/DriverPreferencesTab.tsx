@@ -7,7 +7,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { usePreferencesStore } from '@/lib/store/preferencesStore';
+import { usePreferencesStore } from '@/stores/preferencesStore';
 import { DriverPreferences } from '@/lib/api/preferences';
 import { Loader2, Save, RotateCcw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';

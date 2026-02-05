@@ -1,5 +1,5 @@
 import { useFeatureFlag } from './useFeatureFlags';
-import { useFeatureFlagsStore } from '../store/featureFlagsStore';
+import { useFeatureFlagsStore } from '@/stores/featureFlagsStore';
 
 export interface FeatureGuardResult {
   isEnabled: boolean;

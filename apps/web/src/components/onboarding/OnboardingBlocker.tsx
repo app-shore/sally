@@ -4,7 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import { OnboardingItem } from '@/lib/store/onboardingStore';
+import { OnboardingItem } from '@/stores/onboardingStore';
 
 interface OnboardingBlockerProps {
   incompleteCriticalItems: OnboardingItem[];

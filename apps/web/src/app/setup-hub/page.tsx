@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Accordion } from '@/components/ui/accordion';
 import { OnboardingItemCard } from '@/components/onboarding/OnboardingItemCard';
-import { useOnboardingStore } from '@/lib/store/onboardingStore';
+import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 

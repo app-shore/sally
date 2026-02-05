@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { CredentialsService } from '../credentials/credentials.service';
 import { AdapterFactoryService } from '../adapters/adapter-factory.service';
 import { VENDOR_REGISTRY } from '../../api/integrations/vendor-registry';

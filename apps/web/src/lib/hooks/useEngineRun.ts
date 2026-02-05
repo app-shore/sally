@@ -4,7 +4,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { optimization } from "@/lib/api/optimization";
-import { useEngineStore } from "@/lib/store/engineStore";
+import { useEngineStore } from "@/stores/engineStore";
 import type { OptimizationResult } from "@/lib/types/engine";
 
 export function useEngineRun() {

@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RoutePlan } from "@/lib/types/routePlan";
 import { Clock } from "lucide-react";
 import { formatTime, getSegmentDisplay } from "../utils/routeTimelineUtils";
-import { getFullDetails } from "../utils/segmentDetails";
+import { getFullDetails } from "../shared/segmentDetails";
 
 interface FullyExpandedRouteTimelineProps {
   plan: RoutePlan;

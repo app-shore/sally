@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSessionStore } from "@/lib/store/sessionStore";
+import { useAuthStore } from "@/stores/auth-store";
 import { getDriver, type Driver } from "@/lib/api/drivers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -21,7 +21,7 @@ function DriverDashboardPageContent() {
   const [driver, setDriver] = useState<Driver | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useSessionStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     // Auth is handled by layout-client.tsx

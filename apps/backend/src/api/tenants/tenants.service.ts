@@ -3,7 +3,7 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 import { generateId } from '../../common/utils/id-generator';
 import { TenantStatus } from '@prisma/client';

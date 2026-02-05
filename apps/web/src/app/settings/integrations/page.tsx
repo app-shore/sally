@@ -2,11 +2,11 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSessionStore } from '@/lib/store/sessionStore';
+import { useAuthStore } from '@/stores/auth-store';
 import { ConnectionsTab } from '@/components/settings/ConnectionsTab';
 
 export default function IntegrationsPage() {
-  const { isAuthenticated, user } = useSessionStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   // Auth is handled by layout-client, just check role
   if (!isAuthenticated || user?.role === 'DRIVER') {

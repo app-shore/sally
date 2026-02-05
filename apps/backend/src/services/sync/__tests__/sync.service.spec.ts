@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SyncService } from '../sync.service';
 import { TmsSyncService } from '../tms-sync.service';
 import { EldSyncService } from '../eld-sync.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../infrastructure/database/prisma.service';
 
 describe('SyncService', () => {
   let service: SyncService;

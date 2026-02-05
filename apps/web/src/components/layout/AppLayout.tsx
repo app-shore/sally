@@ -6,8 +6,8 @@ import { AppSidebar } from './AppSidebar';
 import { AppHeader } from './AppHeader';
 import { AlertsPanel } from './AlertsPanel';
 import { OnboardingBanner } from '@/components/onboarding/OnboardingBanner';
-import { useSessionStore } from '@/lib/store/sessionStore';
-import { useOnboardingStore } from '@/lib/store/onboardingStore';
+import { useAuthStore } from '@/stores/auth-store';
+import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useQuery } from '@tanstack/react-query';
 import { listAlerts } from '@/lib/api/alerts';
 import { cn } from '@/lib/utils';
@@ -19,7 +19,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, user } = useSessionStore();
+  const { isAuthenticated, user } = useAuthStore();
   const {
     criticalItemsComplete,
     criticalIncompleteCount,

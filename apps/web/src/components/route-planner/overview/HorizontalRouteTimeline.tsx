@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import type { RoutePlan } from "@/lib/types/routePlan";
 import { ArrowRight, X } from "lucide-react";
 import { formatTime, getSegmentDisplay, getMinimalLabel } from "../utils/routeTimelineUtils";
-import { getExpandedDetails } from "../utils/segmentDetails";
+import { getExpandedDetails } from "../shared/segmentDetails";
 
 interface HorizontalRouteTimelineProps {
   plan: RoutePlan;

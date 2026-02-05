@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import type { PreferencesResetResponse } from '@/lib/types/preferences';
 
 export interface UserPreferences {
   id: number;
@@ -135,8 +136,8 @@ export async function updateDriverPreferences(updates: Partial<DriverPreferences
 // RESET TO DEFAULTS
 // ============================================================================
 
-export async function resetToDefaults(scope: 'user' | 'operations' | 'driver'): Promise<any> {
-    return apiClient<any>('/preferences/reset', {
+export async function resetToDefaults(scope: 'user' | 'operations' | 'driver'): Promise<PreferencesResetResponse> {
+  return apiClient<PreferencesResetResponse>('/preferences/reset', {
     method: 'POST',
     body: JSON.stringify({ scope }),
   });

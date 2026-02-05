@@ -9,7 +9,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { PrismaService } from '../../database/prisma.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 
 @ApiTags('Scenarios')
 @Controller('scenarios')
