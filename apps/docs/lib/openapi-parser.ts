@@ -2,7 +2,7 @@ import type { ParsedOpenAPI, ParsedEndpoint } from './types/openapi'
 
 export async function parseOpenAPI(jsonPath: string = '/openapi.json'): Promise<ParsedOpenAPI> {
   const response = await fetch(jsonPath)
-  const spec = await response.json()
+  const spec: any = await response.json()
 
   const endpoints: ParsedEndpoint[] = []
   const categoriesSet = new Set<string>()
@@ -12,21 +12,22 @@ export async function parseOpenAPI(jsonPath: string = '/openapi.json'): Promise<
     for (const [method, operation] of Object.entries(pathItem as any)) {
       if (!['get', 'post', 'put', 'delete', 'patch'].includes(method)) continue
 
-      const category = operation.tags?.[0] || 'Other'
+      const op: any = operation
+      const category = op.tags?.[0] || 'Other'
       categoriesSet.add(category)
 
       const endpoint: ParsedEndpoint = {
         id: `${method}-${path}`.replace(/[^a-z0-9]/gi, '-').toLowerCase(),
-        name: operation.summary || `${method.toUpperCase()} ${path}`,
+        name: op.summary || `${method.toUpperCase()} ${path}`,
         method: method.toUpperCase() as any,
         path,
-        summary: operation.summary || '',
-        description: operation.description || '',
+        summary: op.summary || '',
+        description: op.description || '',
         category,
-        parameters: operation.parameters || [],
-        requestBody: operation.requestBody,
-        responses: operation.responses || {},
-        tags: operation.tags || []
+        parameters: op.parameters || [],
+        requestBody: op.requestBody,
+        responses: op.responses || {},
+        tags: op.tags || []
       }
 
       endpoints.push(endpoint)
