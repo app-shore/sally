@@ -18,7 +18,7 @@ export function FeaturesVisualJourney() {
       title: 'Input & Plan',
       icon: <RouteIcon />,
       features: [
-        { icon: <RouteIcon />, title: 'HOS-Aware Routing', desc: 'Routes optimized with driver hours awareness' },
+        { icon: <RouteIcon />, title: 'Smart Routing', desc: 'Routes optimized with HOS, fuel, rest, and efficiency' },
         { icon: <RestIcon />, title: 'Auto Rest Insertion', desc: 'Optimal rest stops before violations' },
         { icon: <FuelIcon />, title: 'Smart Fuel Stops', desc: 'Best price, location, and efficiency' },
       ],

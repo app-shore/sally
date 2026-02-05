@@ -38,9 +38,9 @@ export function FeaturesBentoGrid() {
                       <RouteIcon />
                     </div>
                   </div>
-                  <h3 className="text-3xl font-bold mb-4">HOS-Aware Routing</h3>
+                  <h3 className="text-3xl font-bold mb-4">Smart Routing</h3>
                   <p className="text-gray-300 dark:text-gray-700 leading-relaxed text-lg">
-                    Unlike traditional planners, SALLY optimizes routes with full awareness of driver hours of service limits. The brain of the operation.
+                    Routes optimized with HOS compliance, fuel efficiency, rest stops, and real-time conditions. The brain of the operation.
                   </p>
                 </div>
                 <div className="mt-6 pt-6 border-t border-gray-700 dark:border-gray-300">
