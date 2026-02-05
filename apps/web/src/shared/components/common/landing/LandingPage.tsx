@@ -17,7 +17,6 @@ import {
 } from './FeatureCard';
 import { ROICalculator } from './ROICalculator';
 import { MonitoringDashboard } from './MonitoringDashboard';
-import { ComparisonTable } from './ComparisonRow';
 import { CapabilitiesSection } from './CapabilitiesSection';
 import { AskSallySection } from './AskSallySection';
 import { useAuthStore } from '@/features/auth';
@@ -166,7 +165,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 3: The Solution */}
+      {/* Section 4: One Platform */}
       <section className="py-32 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
@@ -212,7 +211,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 4: Key Features */}
+      {/* Section 5: Key Features */}
       <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
@@ -292,7 +291,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 5: How It Works */}
+      {/* Section 6: How It Works */}
       <section id="how-it-works" className="py-32 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
@@ -346,10 +345,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 6: Ask SALLY */}
+      {/* Section 7: Ask SALLY */}
       <AskSallySection />
 
-      {/* Section 7: Continuous Monitoring */}
+      {/* Section 8: Continuous Monitoring */}
       <section className="py-32 bg-gradient-to-b from-foreground to-foreground/90 text-primary-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
@@ -365,7 +364,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 7: ROI Calculator */}
+      {/* Section 9: ROI Calculator */}
       <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
@@ -381,23 +380,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 8: Comparison Table */}
-      <section className="py-32 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal>
-            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
-              Traditional vs. SALLY
-            </h2>
-            <p className="text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-20">
-              We don't just route trucks. We route drivers.
-            </p>
-          </ScrollReveal>
-
-          <ComparisonTable />
-        </div>
-      </section>
-
-      {/* Section 9: Integration Ecosystem */}
+      {/* Section 10: Integration Ecosystem */}
       <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
@@ -445,7 +428,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 10: Final CTA */}
+      {/* Section 11: Final CTA */}
       <section className="py-32 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <ScrollReveal>
