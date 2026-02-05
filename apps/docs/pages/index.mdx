@@ -1,72 +1,134 @@
 ---
-title: SALLY Developer Portal
+title: SALLY - Your Fleet Operations Assistant
 ---
 
-# Welcome to SALLY Developer Portal
-
-Build powerful fleet management applications with SALLY's HOS-compliant route planning APIs.
-
-## What is SALLY?
-
-SALLY is your intelligent fleet operations assistant that generates optimized, HOS-compliant routes with automatic rest and fuel stop insertion. Our APIs enable you to:
-
-- 🚚 **Plan optimized routes** with stop sequence optimization
-- ⏰ **Ensure HOS compliance** with automatic validation
-- 🛑 **Insert rest stops** where regulations require
-- ⛽ **Optimize fuel stops** based on price and range
-- 🔄 **Update routes dynamically** when conditions change
-- 🚨 **Monitor and alert** dispatchers proactively
-
-## Getting Started
-
-<div className="not-prose mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-  <div className="rounded-lg border border-border p-6">
-    <h3 className="text-lg font-semibold mb-2">🚀 Quickstart</h3>
-    <div className="text-muted-foreground mb-4">
-      Create your first route in 5 minutes
-    </div>
-    <a href="/getting-started/quickstart" className="text-primary hover:underline">
-      Get started →
-    </a>
-  </div>
-
-  <div className="rounded-lg border border-border p-6">
-    <h3 className="text-lg font-semibold mb-2">📡 API Reference</h3>
-    <div className="text-muted-foreground mb-4">
-      Explore interactive API documentation
-    </div>
-    <a href="/api-reference" className="text-primary hover:underline">
-      View APIs →
-    </a>
-  </div>
-
-  <div className="rounded-lg border border-border p-6">
-    <h3 className="text-lg font-semibold mb-2">📖 Guides</h3>
-    <div className="text-muted-foreground mb-4">
-      Learn how to integrate SALLY
-    </div>
-    <a href="/guides" className="text-primary hover:underline">
-      Read guides →
-    </a>
-  </div>
-
-  <div className="rounded-lg border border-border p-6">
-    <h3 className="text-lg font-semibold mb-2">🏗️ Architecture</h3>
-    <div className="text-muted-foreground mb-4">
-      Understand how SALLY works
-    </div>
-    <a href="/architecture" className="text-primary hover:underline">
-      Learn more →
-    </a>
-  </div>
-</div>
-
-## Current Status
+import { FeatureCard } from "@/components/FeatureCard"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 <div className="not-prose">
-We're currently in <strong>staging</strong> phase. API keys with <code>sk_staging_</code> prefix are available for testing.
-</div>
+  {/* Hero Section */}
+  <div className="mb-12 text-center">
+    <h1 className="mb-4 text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">
+      SALLY - Your Fleet Operations Assistant
+    </h1>
+    <p className="mb-8 text-lg text-muted-foreground md:text-xl lg:text-2xl">
+      HOS-compliant route planning with automated rest stops, fuel optimization, and 24/7 monitoring
+    </p>
+    <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <Link href="/getting-started/quickstart">
+        <Button size="lg" className="w-full sm:w-auto">
+          Get Started
+        </Button>
+      </Link>
+      <Link href="/api-reference">
+        <Button size="lg" variant="outline" className="w-full sm:w-auto">
+          View API Docs
+        </Button>
+      </Link>
+    </div>
+  </div>
 
-<div className="not-prose mt-2">
-Production API keys coming soon!
+  {/* Staging Notice */}
+  <Alert className="mb-12 border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
+    <AlertDescription className="text-foreground">
+      <strong>Staging Environment:</strong> This is a staging instance for development and testing.
+      API keys with <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs dark:bg-gray-800">sk_staging_</code> prefix are available.
+      Production environment will be available soon.
+    </AlertDescription>
+  </Alert>
+
+  {/* Feature Grid */}
+  <div className="mb-12">
+    <h2 className="mb-6 text-2xl font-bold text-foreground md:text-3xl">
+      Core Features
+    </h2>
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <FeatureCard
+        icon="🚛"
+        title="Route Planning"
+        description="Optimal stop sequence with TSP/VRP optimization"
+        href="/api-reference/routes"
+      />
+      <FeatureCard
+        icon="😴"
+        title="Rest Stop Insertion"
+        description="Automatic rest stops where HOS requires"
+        href="/getting-started/understanding-hos"
+      />
+      <FeatureCard
+        icon="⛽"
+        title="Fuel Optimization"
+        description="Smart fuel stops based on range and pricing"
+        href="/api-reference/routes"
+      />
+      <FeatureCard
+        icon="✅"
+        title="HOS Compliance"
+        description="Zero violations with segment-by-segment validation"
+        href="/getting-started/understanding-hos"
+      />
+      <FeatureCard
+        icon="🔔"
+        title="24/7 Monitoring"
+        description="14 trigger types across 5 categories"
+        href="/api-reference/monitoring"
+      />
+      <FeatureCard
+        icon="🔄"
+        title="Dynamic Updates"
+        description="Proactive and reactive route adjustments"
+        href="/api-reference/routes"
+      />
+    </div>
+  </div>
+
+  {/* Quick Links Section */}
+  <div className="mb-12">
+    <h2 className="mb-6 text-2xl font-bold text-foreground md:text-3xl">
+      Quick Links
+    </h2>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h3 className="mb-2 text-lg font-semibold text-foreground">🚀 Quickstart</h3>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Create your first route in 5 minutes
+        </p>
+        <Link href="/getting-started/quickstart" className="text-sm text-foreground hover:underline">
+          Get started →
+        </Link>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h3 className="mb-2 text-lg font-semibold text-foreground">📡 API Reference</h3>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Explore interactive API documentation
+        </p>
+        <Link href="/api-reference" className="text-sm text-foreground hover:underline">
+          View APIs →
+        </Link>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h3 className="mb-2 text-lg font-semibold text-foreground">📖 Guides</h3>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Learn how to integrate SALLY
+        </p>
+        <Link href="/guides" className="text-sm text-foreground hover:underline">
+          Read guides →
+        </Link>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h3 className="mb-2 text-lg font-semibold text-foreground">🏗️ Architecture</h3>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Understand how SALLY works
+        </p>
+        <Link href="/architecture" className="text-sm text-foreground hover:underline">
+          Learn more →
+        </Link>
+      </div>
+    </div>
+  </div>
 </div>
