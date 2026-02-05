@@ -272,7 +272,7 @@ export function LandingPage() {
                 <IntegrationCard
                   title="TMS Systems"
                   description="Load data, delivery requirements"
-                  examples={["McLeod", "TMW", "SAP TM"]}
+                  examples={["project44", "McLeod", "TMW"]}
                 />
                 <IntegrationCard
                   title="ELD/Telematics"
