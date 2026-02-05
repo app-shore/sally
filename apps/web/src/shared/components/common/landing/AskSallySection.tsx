@@ -173,11 +173,8 @@ export function AskSallySection() {
           <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
             Ask SALLY Anything
           </h2>
-          <p className="text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-4">
-            Natural language interface for dispatchers and drivers
-          </p>
           <p className="text-center text-muted-foreground mb-12">
-            Just ask in plain English - SALLY understands context and provides instant answers
+            SALLY understands context and provides instant answers
           </p>
         </ScrollReveal>
 
@@ -185,7 +182,7 @@ export function AskSallySection() {
         <div className="grid md:grid-cols-2 gap-6 max-w-6xl mx-auto">
           <ScrollReveal delay={0.2}>
             <div>
-              <h3 className="text-lg font-semibold text-center mb-4">Dispatcher View</h3>
+              <h3 className="text-lg font-semibold text-center mb-4">Dispatcher</h3>
               <ChatMockup
                 title="Dispatcher Chat"
                 userType="Dispatcher"
@@ -196,7 +193,7 @@ export function AskSallySection() {
 
           <ScrollReveal delay={0.3}>
             <div>
-              <h3 className="text-lg font-semibold text-center mb-4">Driver View</h3>
+              <h3 className="text-lg font-semibold text-center mb-4">Driver</h3>
               <ChatMockup
                 title="Driver Chat"
                 userType="Driver"

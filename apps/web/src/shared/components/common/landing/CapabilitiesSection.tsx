@@ -30,7 +30,7 @@ export function CapabilitiesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
           <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
-            Three Core Capabilities
+            Core Capabilities
           </h2>
           <p className="text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-20">
             SALLY coordinates your fleet operations with automated planning, continuous monitoring, and proactive alerts

@@ -292,64 +292,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 6: How It Works */}
-      <section id="how-it-works" className="py-32 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal>
-            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-20">
-              How It Works
-            </h2>
-          </ScrollReveal>
-
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 transform -translate-y-1/2" />
-
-            <div className="grid lg:grid-cols-3 gap-16 relative">
-              <ScrollReveal delay={0}>
-                <div className="relative bg-background p-8 border-2 border-border rounded-lg text-center hover-lift">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-full text-2xl font-bold mb-6">
-                    1
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground mb-4">Input & Plan</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Select driver, add stops, set priorities. SALLY generates an optimized, HOS-compliant route with automatic rest and fuel stops in seconds.
-                  </p>
-                </div>
-              </ScrollReveal>
-
-              <ScrollReveal delay={0.2}>
-                <div className="relative bg-background p-8 border-2 border-border rounded-lg text-center hover-lift">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-full text-2xl font-bold mb-6">
-                    2
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground mb-4">Monitor 24/7</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Activate monitoring to track 14 trigger types every 60 seconds. System watches HOS limits, traffic, weather, and operational changes continuously.
-                  </p>
-                </div>
-              </ScrollReveal>
-
-              <ScrollReveal delay={0.4}>
-                <div className="relative bg-background p-8 border-2 border-border rounded-lg text-center hover-lift">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-full text-2xl font-bold mb-6">
-                    3
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground mb-4">Adapt & Update</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    When conditions change, SALLY decides whether to re-plan or update ETAs. Drivers and dispatchers get instant notifications with clear reasoning.
-                  </p>
-                </div>
-              </ScrollReveal>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Section 7: Ask SALLY */}
+      {/* Section 6: Ask SALLY */}
       <AskSallySection />
 
-      {/* Section 8: Continuous Monitoring */}
+      {/* Section 7: Continuous Monitoring */}
       <section className="py-32 bg-gradient-to-b from-foreground to-foreground/90 text-primary-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
@@ -365,7 +311,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 9: ROI Calculator */}
+      {/* Section 8: ROI Calculator */}
       <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
@@ -381,7 +327,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 10: Integration Ecosystem */}
+      {/* Section 9: Integration Ecosystem */}
       <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
@@ -429,7 +375,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 11: Final CTA */}
+        {/* Section 10: Final CTA */}
       <section className="py-32 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <ScrollReveal>
