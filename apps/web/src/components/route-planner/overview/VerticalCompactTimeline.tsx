@@ -10,7 +10,7 @@
  * - Matches Route tab styling but compact
  */
 
-import { useState } from "react";
+import { useState, memo, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { RoutePlan } from "@/lib/types/routePlan";
 import { Clock, ChevronDown, ChevronUp } from "lucide-react";
@@ -21,13 +21,13 @@ interface VerticalCompactTimelineProps {
   plan: RoutePlan;
 }
 
-export default function VerticalCompactTimeline({ plan }: VerticalCompactTimelineProps) {
-  const { segments } = plan;
+function VerticalCompactTimeline({ plan }: VerticalCompactTimelineProps) {
+  const segments = useMemo(() => plan.segments, [plan.segments]);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
-  const toggleExpand = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index);
-  };
+  const toggleExpand = useCallback((index: number) => {
+    setExpandedIndex(prev => prev === index ? null : index);
+  }, []);
 
   return (
     <Card className="bg-card border-border">
@@ -91,3 +91,5 @@ export default function VerticalCompactTimeline({ plan }: VerticalCompactTimelin
     </Card>
   );
 }
+
+export default memo(VerticalCompactTimeline);

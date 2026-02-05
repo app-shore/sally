@@ -22,7 +22,7 @@ import { ExternalSourceGuard, ExternalSourceCheck } from '../../../../shared/gua
 import { CurrentUser } from '../../../../auth/decorators/current-user.decorator';
 import { Roles } from '../../../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
-import { IntegrationManagerService } from '../../../../services/integration-manager/integration-manager.service';
+import { IntegrationManagerService } from '../../../integrations/services/integration-manager.service';
 import { DriversActivationService } from '../services/drivers-activation.service';
 import { DriversService } from '../services/drivers.service';
 import { CreateDriverDto, UpdateDriverDto } from '../dto';

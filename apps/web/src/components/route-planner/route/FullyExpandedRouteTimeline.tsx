@@ -10,6 +10,7 @@
  * - Vertical layout with full details
  */
 
+import { memo, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RoutePlan } from "@/lib/types/routePlan";
 import { Clock } from "lucide-react";
@@ -20,8 +21,9 @@ interface FullyExpandedRouteTimelineProps {
   plan: RoutePlan;
 }
 
-export default function FullyExpandedRouteTimeline({ plan }: FullyExpandedRouteTimelineProps) {
-  const { segments } = plan;
+function FullyExpandedRouteTimeline({ plan }: FullyExpandedRouteTimelineProps) {
+  // Memoize segments to prevent unnecessary re-renders
+  const segments = useMemo(() => plan.segments, [plan.segments]);
 
   return (
     <Card className="bg-card border-border">
@@ -43,7 +45,7 @@ export default function FullyExpandedRouteTimeline({ plan }: FullyExpandedRouteT
               const Icon = display.Icon;
 
               return (
-                <div key={index} className="relative flex items-start gap-4">
+                <div key={segment.sequence_order} className="relative flex items-start gap-4">
                   {/* Icon in Circle - Same size as Overview */}
                   <div className="relative z-10 flex-shrink-0">
                     <div
@@ -82,3 +84,6 @@ export default function FullyExpandedRouteTimeline({ plan }: FullyExpandedRouteT
     </Card>
   );
 }
+
+// Export memoized component to prevent unnecessary re-renders
+export default memo(FullyExpandedRouteTimeline);

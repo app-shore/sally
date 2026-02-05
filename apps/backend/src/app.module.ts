@@ -6,43 +6,27 @@ import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
 import configuration from './config/configuration';
 import { PrismaModule } from './infrastructure/database/prisma.module';
 import { AuthModule } from './auth/auth.module';
-import { SyncModule } from './services/sync/sync.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TenantGuard } from './auth/guards/tenant.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
-// Services
-import { HOSRuleEngineService } from './services/hos-rule-engine/hos-rule-engine.service';
-import { RestOptimizationService } from './services/rest-optimization/rest-optimization.service';
-import { PredictionEngineService } from './services/prediction-engine/prediction-engine.service';
-import { RestStopFinderService } from './services/rest-stop-finder/rest-stop-finder.service';
-import { FuelStopOptimizerService } from './services/fuel-stop-optimizer/fuel-stop-optimizer.service';
-import { RoutePlanningEngineService } from './services/route-planning-engine/route-planning-engine.service';
-import { DynamicUpdateHandlerService } from './services/dynamic-update-handler/dynamic-update-handler.service';
-
-// Controllers
-import { HealthController } from './health/health.controller';
-import { HOSRulesController } from './api/hos-rules/hos-rules.controller';
-import { OptimizationController } from './api/optimization/optimization.controller';
-import { PredictionController } from './api/prediction/prediction.controller';
-import { RoutePlanningController } from './api/route-planning/route-planning.controller';
+// Domain Modules
 import { FleetModule } from './domains/fleet/fleet.module';
-import { ScenariosController } from './api/scenarios/scenarios.controller';
-import { ExternalMockController } from './api/external-mock/external-mock.controller';
-import { AlertsController } from './api/alerts/alerts.controller';
-import { SessionController } from './api/session/session.controller';
-import { IntegrationsModule } from './api/integrations/integrations.module';
-import { PreferencesModule } from './api/preferences/preferences.module';
-import { TenantsModule } from './api/tenants/tenants.module';
-import { UserInvitationsModule } from './api/user-invitations/user-invitations.module';
-import { UsersModule } from './api/users/users.module';
-import { ServicesModule } from './common/services/services.module';
-import { OnboardingModule } from './api/onboarding/onboarding.module';
-import { FeatureFlagsModule } from './api/feature-flags/feature-flags.module';
-import { CacheModule } from './cache/cache.module';
-import { MockExternalModule } from './api/mock-external/mock-external.module';
-import { NotificationModule } from './services/notification/notification.module';
+import { RoutingModule } from './domains/routing/routing.module';
+import { PlatformModule } from './domains/platform/platform.module';
+import { IntegrationsModule } from './domains/integrations/integrations.module';
+import { OperationsModule } from './domains/operations/operations.module';
+import { TestingModule } from './domains/testing/testing.module';
+
+
+// Controllers (to be migrated)
+import { HealthController } from './health/health.controller';
+
+
+// Infrastructure Modules
+import { CacheModule } from './infrastructure/cache/cache.module';
 import { SharedModule } from './shared/shared.module';
+import { NotificationModule } from './infrastructure/notification/notification.module';
 
 @Module({
   imports: [
@@ -56,18 +40,15 @@ import { SharedModule } from './shared/shared.module';
     ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
-    ServicesModule,
-    SyncModule,
-    FleetModule,
-    IntegrationsModule,
-    PreferencesModule,
-    TenantsModule,
-    UserInvitationsModule,
-    UsersModule,
-    OnboardingModule,
-    FeatureFlagsModule,
-    MockExternalModule,
     NotificationModule,
+
+    // Domain Modules
+    FleetModule,
+    RoutingModule,
+    PlatformModule,
+    IntegrationsModule,
+    OperationsModule,
+    TestingModule,
   ],
   providers: [
     // Global exception filter
@@ -88,25 +69,10 @@ import { SharedModule } from './shared/shared.module';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
-    // Services
-    HOSRuleEngineService,
-    RestOptimizationService,
-    PredictionEngineService,
-    RestStopFinderService,
-    FuelStopOptimizerService,
-    RoutePlanningEngineService,
-    DynamicUpdateHandlerService,
   ],
   controllers: [
+    // Controllers (to be migrated to domains)
     HealthController,
-    HOSRulesController,
-    OptimizationController,
-    PredictionController,
-    RoutePlanningController,
-    ScenariosController,
-    ExternalMockController,
-    AlertsController,
-    SessionController,
   ],
 })
 export class AppModule {}

@@ -10,7 +10,7 @@
  * - Compact horizontal layout for overview
  */
 
-import { useState } from "react";
+import { useState, memo, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { RoutePlan } from "@/lib/types/routePlan";
@@ -24,13 +24,13 @@ interface HorizontalRouteTimelineProps {
   showHeader?: boolean;
 }
 
-export default function HorizontalRouteTimeline({ plan, onViewDetails, showHeader = true }: HorizontalRouteTimelineProps) {
-  const { segments } = plan;
+function HorizontalRouteTimeline({ plan, onViewDetails, showHeader = true }: HorizontalRouteTimelineProps) {
+  const segments = useMemo(() => plan.segments, [plan.segments]);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
-  const toggleExpand = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index);
-  };
+  const toggleExpand = useCallback((index: number) => {
+    setExpandedIndex(prev => prev === index ? null : index);
+  }, []);
 
   return (
     <Card className="bg-card border-border">
@@ -170,3 +170,5 @@ export default function HorizontalRouteTimeline({ plan, onViewDetails, showHeade
     </Card>
   );
 }
+
+export default memo(HorizontalRouteTimeline);

@@ -7,6 +7,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useAuthStore } from "@/stores/auth-store";
 import { useRoutePlanStore } from "@/stores/routePlanStore";
 import { useOnboardingStore } from "@/stores/onboardingStore";
@@ -17,9 +18,17 @@ import { LoadSelector } from "@/components/route-planner/shared/LoadSelector";
 import { DriverSelector } from "@/components/route-planner/shared/DriverSelector";
 import { VehicleSelector } from "@/components/route-planner/shared/VehicleSelector";
 import { OnboardingBlocker } from "@/components/onboarding/OnboardingBlocker";
-import RoutePlanningCockpit from "@/components/route-planner/core/RoutePlanningCockpit";
 import RoutePlanningCockpitSkeleton from "@/components/route-planner/core/RoutePlanningCockpitSkeleton";
 import { FeatureGuard } from "@/components/feature-flags/FeatureGuard";
+
+// Lazy load the heavy cockpit component to reduce initial bundle size
+const RoutePlanningCockpit = dynamic(
+  () => import("@/components/route-planner/core/RoutePlanningCockpit"),
+  {
+    loading: () => <RoutePlanningCockpitSkeleton />,
+    ssr: false,
+  }
+);
 
 export default function CreatePlanPage() {
   return (
