@@ -73,12 +73,14 @@ specs/
 | [VERIFICATION_CHECKLIST.md](../VERIFICATION_CHECKLIST.md) | Verification checklist |
 
 ### 4. Development
-| Location | Description |
+| Document | Description |
 |----------|-------------|
-| [apps/backend/README.md](../apps/backend/README.md) | Backend development guide (if exists) |
-| [apps/web/README.md](../apps/web/README.md) | Frontend development guide (if exists) |
-| [apps/backend/tests/](../apps/backend/tests/) | Backend test suite |
-| [apps/web/__tests__/](../apps/web/__tests__/) | Frontend test suite |
+| [CODING_GUIDELINES.md](./coding-guidelines.md) | **Complete coding standards** (file naming, imports, patterns) |
+| [AUTOMATION_SETUP.md](./automation-setup.md) | ESLint, Prettier, Husky configuration |
+| [apps/backend/README.md](../../apps/backend/README.md) | Backend development guide (if exists) |
+| [apps/web/README.md](../../apps/web/README.md) | Frontend development guide (if exists) |
+| [apps/backend/tests/](../../apps/backend/tests/) | Backend test suite |
+| [apps/web/__tests__/](../../apps/web/__tests__/) | Frontend test suite |
 
 ---
 
@@ -274,10 +276,11 @@ When making changes:
 ## 📋 Key Documents by Role
 
 ### Software Developer
-1. [QUICKSTART.md](../QUICKSTART.md) - Get started fast
-2. [SETUP.md](../SETUP.md) - Detailed setup
-3. [architecture/c4-level3-component-backend.puml](architecture/c4-level3-component-backend.puml) - Backend structure
-4. [architecture/c4-level3-component-frontend.puml](architecture/c4-level3-component-frontend.puml) - Frontend structure
+1. [CODING_GUIDELINES.md](./coding-guidelines.md) - **START HERE: Coding standards**
+2. [QUICKSTART.md](../QUICKSTART.md) - Get started fast
+3. [SETUP.md](../SETUP.md) - Detailed setup
+4. [architecture/c4-level3-component-backend.puml](architecture/c4-level3-component-backend.puml) - Backend structure
+5. [architecture/c4-level3-component-frontend.puml](architecture/c4-level3-component-frontend.puml) - Frontend structure
 
 ### Solutions Architect
 1. [architecture/README.md](architecture/README.md) - Architecture overview
@@ -349,5 +352,5 @@ For documentation improvements or questions:
 
 ---
 
-**Last Updated**: 2026-01-22
+**Last Updated**: 2026-02-05
 **Maintained By**: SALLY Development Team
