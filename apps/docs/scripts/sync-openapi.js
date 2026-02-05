@@ -2,6 +2,22 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
+// Load .env.local if it exists
+const envPath = path.join(__dirname, '../.env.local');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf-8');
+  envContent.split('\n').forEach(line => {
+    const match = line.match(/^([^#=]+)=(.*)$/);
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim();
+      if (!process.env[key]) {
+        process.env[key] = value;
+      }
+    }
+  });
+}
+
 const OPENAPI_URL = process.env.OPENAPI_URL || 'https://sally-api.apps.appshore.in/api/openapi.json';
 const OUTPUT_PATH = path.join(__dirname, '../public/openapi.json');
 
