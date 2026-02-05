@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api } from '@/shared/lib/api';
 
 export interface Tenant {
   tenantId: string;

@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api } from '@/shared/lib/api';
 
 export type AlertPriority = 'critical' | 'high' | 'medium' | 'low';
 export type AlertStatus = 'active' | 'acknowledged' | 'resolved';

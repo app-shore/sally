@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient } from '@/shared/lib/api';
 
 export interface Driver {
   id: string;

@@ -2,7 +2,7 @@
  * API client functions for loads
  */
 
-import { apiClient } from './client';
+import { apiClient } from '@/shared/lib/api';
 import type { Load, LoadListItem, LoadCreate } from "@/lib/types/load";
 
 export async function getLoads(params?: {

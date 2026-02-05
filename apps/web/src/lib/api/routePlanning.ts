@@ -2,7 +2,7 @@
  * API client for route planning endpoints
  */
 
-import { apiClient } from './client';
+import { apiClient } from '@/shared/lib/api';
 import type {
   RoutePlan,
   RoutePlanningRequest,

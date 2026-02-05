@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient } from '@/shared/lib/api';
 import type { PreferencesResetResponse } from '@/lib/types/preferences';
 
 export interface UserPreferences {
