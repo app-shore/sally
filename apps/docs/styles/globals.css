@@ -92,7 +92,8 @@ pre code {
 }
 
 /* Hide top-level navigation links in navbar (sidebar-only navigation) */
-.nextra-nav-container nav > div._flex._gap-4 {
+/* Target the nav links container that sits between logo and search */
+nav._mx-auto._flex > div[class*="_flex"][class*="_gap-4"][class*="_overflow-x-auto"] {
   display: none !important;
 }
 
