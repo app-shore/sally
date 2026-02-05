@@ -1,0 +1,215 @@
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/hooks/use-auth';
+import { useOnboardingStore } from '@/stores/onboardingStore';
+
+const inviteSchema = z.object({
+  email: z.string().email('Valid email is required'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  role: z.enum(['ADMIN', 'DISPATCHER', 'DRIVER']),
+  driverId: z.string().optional(),
+});
+
+type InviteFormData = z.infer<typeof inviteSchema>;
+
+interface InviteUserDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) {
+  const { accessToken, user } = useAuth();
+  const queryClient = useQueryClient();
+  const { refetchStatus } = useOnboardingStore();
+  const [error, setError] = useState<string | null>(null);
+
+  // Only OWNER can invite ADMIN users
+  const isOwner = user?.role === 'OWNER';
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<InviteFormData>({
+    resolver: zodResolver(inviteSchema),
+  });
+
+  const selectedRole = watch('role');
+
+  const inviteMutation = useMutation({
+    mutationFn: async (data: InviteFormData) => {
+      const response = await fetch(`${apiUrl}/invitations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to send invitation');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invitations'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      refetchStatus(); // Update onboarding status
+      reset();
+      onOpenChange(false);
+    },
+    onError: (err: any) => {
+      setError(err.message || 'Failed to send invitation');
+    },
+  });
+
+  const onSubmit = (data: InviteFormData) => {
+    setError(null);
+    inviteMutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Invite Team Member</DialogTitle>
+          <DialogDescription>
+            Send an invitation to join your team
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  {...register('firstName')}
+                  className="bg-background"
+                />
+                {errors.firstName && (
+                  <p className="text-sm text-red-500 dark:text-red-400 mt-1">
+                    {errors.firstName.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  {...register('lastName')}
+                  className="bg-background"
+                />
+                {errors.lastName && (
+                  <p className="text-sm text-red-500 dark:text-red-400 mt-1">
+                    {errors.lastName.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                {...register('email')}
+                className="bg-background"
+              />
+              {errors.email && (
+                <p className="text-sm text-red-500 dark:text-red-400 mt-1">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="role">Role</Label>
+              <Select onValueChange={(value) => setValue('role', value as any)}>
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isOwner && <SelectItem value="ADMIN">Admin</SelectItem>}
+                  <SelectItem value="DISPATCHER">Dispatcher</SelectItem>
+                  <SelectItem value="DRIVER">Driver</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.role && (
+                <p className="text-sm text-red-500 dark:text-red-400 mt-1">
+                  {errors.role.message}
+                </p>
+              )}
+              {!isOwner && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Only the tenant owner can invite admin users
+                </p>
+              )}
+            </div>
+
+            {selectedRole === 'DRIVER' && (
+              <div>
+                <Label htmlFor="driverId">Driver ID (optional)</Label>
+                <Input
+                  id="driverId"
+                  {...register('driverId')}
+                  placeholder="Link to existing driver record"
+                  className="bg-background"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Leave empty if this is a new driver
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={inviteMutation.isPending}>
+              {inviteMutation.isPending ? 'Sending...' : 'Send Invitation'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export default InviteUserDialog;
