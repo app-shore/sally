@@ -2,6 +2,9 @@
 FROM node:20-alpine AS deps
 WORKDIR /workspace
 
+# Cache-busting argument to force fresh build when needed
+ARG CACHEBUST=1
+
 # Copy only package files (better layer caching)
 COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
