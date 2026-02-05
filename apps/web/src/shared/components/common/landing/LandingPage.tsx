@@ -162,7 +162,7 @@ export function LandingPage() {
       </section>
 
       {/* Section 3: The Solution */}
-      <section className="py-32 bg-white">
+      <section className="py-32 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
