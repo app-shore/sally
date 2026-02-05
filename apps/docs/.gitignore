@@ -1,0 +1,25 @@
+# Dependencies
+node_modules
+
+# Next.js
+.next
+out
+.turbo
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment
+.env*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# OpenAPI spec (synced from backend)
+public/openapi.json
