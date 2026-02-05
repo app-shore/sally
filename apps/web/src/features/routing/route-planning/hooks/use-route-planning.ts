@@ -17,11 +17,11 @@ export function useOptimizeRoute() {
 
   return useMutation({
     mutationFn: (request: RoutePlanningRequest) => routePlanningApi.optimize(request),
-    onSuccess: (data) => {
+    onSuccess: (_, variables) => {
       // Invalidate route status for the driver
-      if (data.driver_id) {
+      if (variables.driver_id) {
         queryClient.invalidateQueries({
-          queryKey: [...ROUTE_PLANNING_QUERY_KEY, 'status', data.driver_id],
+          queryKey: [...ROUTE_PLANNING_QUERY_KEY, 'status', variables.driver_id],
         });
       }
     },
@@ -33,10 +33,10 @@ export function useUpdateRoute() {
 
   return useMutation({
     mutationFn: (request: RouteUpdateRequest) => routePlanningApi.update(request),
-    onSuccess: (_, variables) => {
-      // Invalidate route status
+    onSuccess: () => {
+      // Invalidate all route planning queries
       queryClient.invalidateQueries({
-        queryKey: [...ROUTE_PLANNING_QUERY_KEY, 'status', variables.driver_id],
+        queryKey: ROUTE_PLANNING_QUERY_KEY,
       });
     },
   });

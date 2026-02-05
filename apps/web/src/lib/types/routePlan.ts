@@ -18,6 +18,5 @@ export type {
   RestStopInfo,
   FuelStopInfo,
   RouteSummary,
-  CostBreakdown,
   DataSourceBadge,
 } from '@/features/routing/route-planning/types';
