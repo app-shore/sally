@@ -450,10 +450,10 @@ export function LandingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <ScrollReveal>
             <h2 className="text-6xl md:text-7xl font-bold tracking-tight mb-6">
-              Route drivers,<br />not trucks
+              Coordinate smarter,<br />not harder
             </h2>
             <p className="text-2xl text-muted-foreground mb-12">
-              Join fleets who understand that drivers have hours, not infinite time
+              Join fleets who've eliminated the coordination gap between dispatch and drivers
             </p>
 
             <motion.div
