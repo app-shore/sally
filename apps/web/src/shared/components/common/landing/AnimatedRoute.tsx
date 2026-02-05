@@ -33,24 +33,29 @@ export function AnimatedRoute() {
   }, '');
 
   useEffect(() => {
+    let isMounted = true;
+
     // Animate the traveling dot along the path
     const animateDot = async () => {
-      if (pathRef.current) {
-        const pathLength = pathRef.current.getTotalLength();
+      if (!pathRef.current || !isMounted) return;
 
-        // Infinite loop animation
-        while (true) {
-          for (let i = 0; i <= 100; i++) {
-            const point = pathRef.current.getPointAtLength((pathLength * i) / 100);
-            await dotControls.start({
-              cx: point.x,
-              cy: point.y,
-              transition: { duration: 0.03, ease: 'linear' },
-            });
-          }
-          // Pause before repeating
-          await new Promise(resolve => setTimeout(resolve, 1000));
+      const pathLength = pathRef.current.getTotalLength();
+
+      // Infinite loop animation with mount check
+      while (isMounted && pathRef.current) {
+        for (let i = 0; i <= 100; i++) {
+          // Check if still mounted and ref exists before each animation step
+          if (!isMounted || !pathRef.current) return;
+
+          const point = pathRef.current.getPointAtLength((pathLength * i) / 100);
+          await dotControls.start({
+            cx: point.x,
+            cy: point.y,
+            transition: { duration: 0.03, ease: 'linear' },
+          });
         }
+        // Pause before repeating
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     };
 
@@ -59,7 +64,10 @@ export function AnimatedRoute() {
       animateDot();
     }, 3000);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      isMounted = false;
+      clearTimeout(timeout);
+    };
   }, [dotControls]);
 
   const getStopIcon = (type: Stop['type']) => {
