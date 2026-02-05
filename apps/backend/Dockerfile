@@ -67,4 +67,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO- http://localhost:8000/api/v1/health || exit 1
 
 EXPOSE 8000
-CMD ["node", "dist/main"]
+
+# Run migrations and start application
+CMD sh -c "./apply-migration.sh && node dist/main"
