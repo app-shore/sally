@@ -1,0 +1,74 @@
+---
+title: Data Flow
+description: How data flows through SALLY's system from input to output
+---
+
+# Data Flow
+
+Understand how data moves through SALLY's system, from user input to database storage to final output.
+
+## Coming Soon
+
+This section will include:
+
+- **Request-Response Cycle** - Complete flow from browser to database and back
+- **Route Planning Flow** - How route planning requests are processed
+- **Monitoring Flow** - How the monitoring service detects and handles triggers
+- **Alert Generation Flow** - How alerts are created and delivered
+- **Update Flow** - How dynamic route updates propagate through the system
+- **Data Transformations** - How data is validated, processed, and stored
+- **Caching Layers** - Where data is cached and why
+- **State Synchronization** - How frontend and backend stay in sync
+
+## Quick Reference
+
+For a high-level overview of data flow, see the [Architecture Overview](/architecture/overview#how-the-layers-work-together).
+
+### Data Flow Diagrams
+
+The following diagrams are available in `.docs/technical/architecture/`:
+
+- **Data Flow Diagram** - `data-flow-diagram.puml` - Complete data flow visualization
+- **Sequence Diagram** - `sequence-rest-optimization.puml` - End-to-end request flow
+- **Deployment Diagram** - `deployment-diagram.puml` - How containers communicate
+
+### How to View Diagrams
+
+1. **Online:** Visit [PlantUML Web Server](http://www.plantuml.com/plantuml/uml/) and paste diagram contents
+2. **VS Code:** Install PlantUML extension, open `.puml` file, press `Alt + D`
+3. **CLI:** Run `./render-diagrams.sh` in `.docs/technical/architecture/`
+
+## Example Flows
+
+### Route Planning Flow
+
+```
+User Input (Dashboard) → Validation (Zod) → API Call (React Query)
+  → FastAPI Router → Service Layer → HOS Validation
+  → Route Optimization → Database Storage → Response
+  → State Update (Zustand) → UI Rendering
+```
+
+### Monitoring Flow
+
+```
+Background Service (60s loop) → Check Active Routes
+  → Detect Trigger → Evaluate Impact → Generate Alert
+  → Notify Dispatcher → Store in Database → Update Dashboard
+```
+
+### Dynamic Update Flow
+
+```
+Trigger Detected → Impact Analysis → Decision (Re-plan vs Update)
+  → Route Planning Engine (if needed) → Database Update
+  → Driver Notification → Dispatcher Notification → Audit Log
+```
+
+## Next Steps
+
+- **[Architecture Overview](/architecture/overview)** - System architecture and design
+- **[Tech Stack](/architecture/tech-stack)** - Technology choices and rationale
+- **[System Design](/architecture/system-design)** - Component design patterns
+- **[API Reference](/api-reference)** - Complete API documentation
+- **[Getting Started](/getting-started/quickstart)** - Start building with SALLY
