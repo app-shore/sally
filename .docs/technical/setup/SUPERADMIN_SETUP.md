@@ -1,11 +1,5 @@
 # Manual Super Admin Setup (CapRover)
 
-## Quick Fix: Run SQL Script Directly
-
-Since the TypeScript seed is having issues in CapRover, let's create the super admin directly in the database.
-
----
-
 ## Step 1: Connect to CapRover PostgreSQL
 
 ```bash
@@ -175,13 +169,7 @@ SELECT email, role, firebase_uid FROM users WHERE role = 'SUPER_ADMIN';
    - Email: `admin@sally.com`
    - Password: `SallyAdmin@2026` (or whatever you set in Firebase)
 
-**Should work now!** ✅
-
 ---
-
-## Alternative: Skip Firebase Integration (Quick Test)
-
-If you just want to test the app without Firebase:
 
 1. Create super admin in PostgreSQL (Step 2 above)
 2. Don't create Firebase user
@@ -197,24 +185,3 @@ curl -X POST https://sally-api.apps.appshore.in/api/v1/auth/login \
 **Note:** This only works if mock login is enabled in your backend.
 
 ---
-
-## Summary: Quickest Path
-
-```bash
-# 1. Connect to database
-docker exec -it sally-postgres psql -U sally_user -d sally
-
-# 2. Paste the SQL script from Step 2 above
-
-# 3. Create Firebase user via Firebase Console
-#    - Email: admin@sally.com
-#    - Password: SallyAdmin@2026
-#    - Copy the UID
-
-# 4. Update PostgreSQL with Firebase UID
-# UPDATE users SET firebase_uid = 'xyz123...' WHERE email = 'admin@sally.com';
-
-# 5. Login at https://sally.apps.appshore.in
-```
-
-**Done!** 🚀

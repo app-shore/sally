@@ -19,7 +19,6 @@ import { RestStopFinderService } from './services/rest-stop-finder/rest-stop-fin
 import { FuelStopOptimizerService } from './services/fuel-stop-optimizer/fuel-stop-optimizer.service';
 import { RoutePlanningEngineService } from './services/route-planning-engine/route-planning-engine.service';
 import { DynamicUpdateHandlerService } from './services/dynamic-update-handler/dynamic-update-handler.service';
-import { DriversActivationService } from './api/drivers/drivers-activation.service';
 
 // Controllers
 import { HealthController } from './health/health.controller';
@@ -27,9 +26,7 @@ import { HOSRulesController } from './api/hos-rules/hos-rules.controller';
 import { OptimizationController } from './api/optimization/optimization.controller';
 import { PredictionController } from './api/prediction/prediction.controller';
 import { RoutePlanningController } from './api/route-planning/route-planning.controller';
-import { DriversController } from './api/drivers/drivers.controller';
-import { VehiclesController } from './api/vehicles/vehicles.controller';
-import { LoadsController } from './api/loads/loads.controller';
+import { FleetModule } from './domains/fleet/fleet.module';
 import { ScenariosController } from './api/scenarios/scenarios.controller';
 import { ExternalMockController } from './api/external-mock/external-mock.controller';
 import { AlertsController } from './api/alerts/alerts.controller';
@@ -61,6 +58,7 @@ import { SharedModule } from './shared/shared.module';
     AuthModule,
     ServicesModule,
     SyncModule,
+    FleetModule,
     IntegrationsModule,
     PreferencesModule,
     TenantsModule,
@@ -98,7 +96,6 @@ import { SharedModule } from './shared/shared.module';
     FuelStopOptimizerService,
     RoutePlanningEngineService,
     DynamicUpdateHandlerService,
-    DriversActivationService,
   ],
   controllers: [
     HealthController,
@@ -106,9 +103,6 @@ import { SharedModule } from './shared/shared.module';
     OptimizationController,
     PredictionController,
     RoutePlanningController,
-    DriversController,
-    VehiclesController,
-    LoadsController,
     ScenariosController,
     ExternalMockController,
     AlertsController,
