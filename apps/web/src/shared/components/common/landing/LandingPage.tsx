@@ -106,7 +106,7 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-20">
-              The Broken Communication Line
+              The Coordination Gap
             </h2>
           </ScrollReveal>
 
@@ -121,10 +121,10 @@ export function LandingPage() {
                   <h3 className="text-2xl font-bold text-foreground mb-6">Dispatcher Pain</h3>
                   <ul className="space-y-4">
                     <PainPoint>Manual HOS tracking across fleet</PainPoint>
-                    <PainPoint>Constant driver check-ins</PainPoint>
+                    <PainPoint>No visibility into route feasibility</PainPoint>
                     <PainPoint>Reactive problem solving</PainPoint>
-                    <PainPoint>No visibility into violations until they happen</PainPoint>
-                    <PainPoint>Hours spent re-planning routes</PainPoint>
+                    <PainPoint>Constant driver check-ins for status</PainPoint>
+                    <PainPoint>Hours spent on coordination calls</PainPoint>
                   </ul>
                 </div>
               </div>
@@ -139,11 +139,11 @@ export function LandingPage() {
                 <div className="relative bg-background p-8 border-2 border-border rounded-lg">
                   <h3 className="text-2xl font-bold text-foreground mb-6">Driver Pain</h3>
                   <ul className="space-y-4">
-                    <PainPoint>No clear route plan</PainPoint>
-                    <PainPoint>Poor rest timing decisions</PainPoint>
+                    <PainPoint>No clear route plan from dispatch</PainPoint>
+                    <PainPoint>Manual rest timing decisions</PainPoint>
                     <PainPoint>HOS violation stress</PainPoint>
                     <PainPoint>Inefficient fuel stops</PainPoint>
-                    <PainPoint>Constant uncertainty</PainPoint>
+                    <PainPoint>Constant uncertainty about next steps</PainPoint>
                   </ul>
                 </div>
               </div>
@@ -158,7 +158,7 @@ export function LandingPage() {
               </div>
               <div className="relative flex justify-center">
                 <span className="bg-muted px-6 py-2 text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                  Communication Breakdown
+                  The Gap SALLY Fills
                 </span>
               </div>
             </div>
