@@ -92,8 +92,13 @@ pre code {
 }
 
 /* Hide top-level navigation links in navbar (sidebar-only navigation) */
-/* Target the nav links container that sits between logo and search */
-nav._mx-auto._flex > div[class*="_flex"][class*="_gap-4"][class*="_overflow-x-auto"] {
+/* Target only the navigation links, not search or other utilities */
+.nextra-nav-container a[href^="/getting-started"],
+.nextra-nav-container a[href^="/guides"],
+.nextra-nav-container a[href^="/api-reference"],
+.nextra-nav-container a[href^="/architecture"],
+.nextra-nav-container a[href^="/blog"],
+.nextra-nav-container a[href^="/resources"] {
   display: none !important;
 }
 
