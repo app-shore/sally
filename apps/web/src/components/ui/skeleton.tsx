@@ -1,15 +1,6 @@
-import { cn } from "@/lib/utils"
+/**
+ * @deprecated Import from '@/shared/components/ui/skeleton' instead.
+ * This re-export is provided for backwards compatibility.
+ */
 
-function Skeleton({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("animate-pulse rounded-md bg-muted", className)}
-      {...props}
-    />
-  )
-}
-
-export { Skeleton }
+export * from '@/shared/components/ui/skeleton';

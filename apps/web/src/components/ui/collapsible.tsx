@@ -1,11 +1,6 @@
-"use client"
+/**
+ * @deprecated Import from '@/shared/components/ui/collapsible' instead.
+ * This re-export is provided for backwards compatibility.
+ */
 
-import * as CollapsiblePrimitive from "@radix-ui/react-collapsible"
-
-const Collapsible = CollapsiblePrimitive.Root
-
-const CollapsibleTrigger = CollapsiblePrimitive.CollapsibleTrigger
-
-const CollapsibleContent = CollapsiblePrimitive.CollapsibleContent
-
-export { Collapsible, CollapsibleTrigger, CollapsibleContent }
+export * from '@/shared/components/ui/collapsible';
