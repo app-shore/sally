@@ -221,43 +221,73 @@ export function LandingPage() {
             </h2>
           </ScrollReveal>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard
-              icon={<RouteIcon />}
-              title="HOS-Aware Routing"
-              description="Unlike traditional planners, SALLY optimizes routes with full awareness of driver hours of service limits"
-              delay={0}
-            />
-            <FeatureCard
-              icon={<RestIcon />}
-              title="Automatic Rest Insertion"
-              description="System detects when rest is needed and automatically inserts optimal rest stops before violations occur"
-              delay={0.1}
-            />
-            <FeatureCard
-              icon={<FuelIcon />}
-              title="Smart Fuel Optimization"
-              description="Find the best fuel stops based on price, location, and route efficiency"
-              delay={0.2}
-            />
-            <FeatureCard
-              icon={<MonitorIcon />}
-              title="Continuous Monitoring"
-              description="14 trigger types monitored every 60 seconds to catch issues before they become problems"
-              delay={0.3}
-            />
-            <FeatureCard
-              icon={<AlertIcon />}
-              title="Proactive Alerts"
-              description="Dispatchers get notified instantly when driver intervention is needed or conditions change"
-              delay={0.4}
-            />
-            <FeatureCard
-              icon={<ComplianceIcon />}
-              title="Zero Violations"
-              description="Proactive monitoring and dynamic updates ensure 100% HOS compliance on every route"
-              delay={0.5}
-            />
+          {/* Category 1: Planning */}
+          <div className="mb-16">
+            <ScrollReveal>
+              <h3 className="text-2xl font-bold text-foreground text-center mb-8">
+                Automated Planning
+              </h3>
+            </ScrollReveal>
+            <div className="grid md:grid-cols-3 gap-8">
+              <FeatureCard
+                icon={<RouteIcon />}
+                title="HOS-Aware Routing"
+                description="Unlike traditional planners, SALLY optimizes routes with full awareness of driver hours of service limits"
+                delay={0}
+              />
+              <FeatureCard
+                icon={<RestIcon />}
+                title="Automatic Rest Insertion"
+                description="System detects when rest is needed and automatically inserts optimal rest stops before violations occur"
+                delay={0.1}
+              />
+              <FeatureCard
+                icon={<FuelIcon />}
+                title="Smart Fuel Optimization"
+                description="Find the best fuel stops based on price, location, and route efficiency"
+                delay={0.2}
+              />
+            </div>
+          </div>
+
+          {/* Category 2: Monitoring */}
+          <div className="mb-16">
+            <ScrollReveal delay={0.3}>
+              <h3 className="text-2xl font-bold text-foreground text-center mb-8">
+                Continuous Monitoring
+              </h3>
+            </ScrollReveal>
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <FeatureCard
+                icon={<MonitorIcon />}
+                title="Continuous Monitoring"
+                description="14 trigger types monitored every 60 seconds to catch issues before they become problems"
+                delay={0.3}
+              />
+              <FeatureCard
+                icon={<AlertIcon />}
+                title="Proactive Alerts"
+                description="Dispatchers get notified instantly when driver intervention is needed or conditions change"
+                delay={0.4}
+              />
+            </div>
+          </div>
+
+          {/* Category 3: Compliance */}
+          <div>
+            <ScrollReveal delay={0.6}>
+              <h3 className="text-2xl font-bold text-foreground text-center mb-8">
+                Zero Violations
+              </h3>
+            </ScrollReveal>
+            <div className="max-w-md mx-auto">
+              <FeatureCard
+                icon={<ComplianceIcon />}
+                title="Zero Violations"
+                description="Proactive monitoring and dynamic updates ensure 100% HOS compliance on every route"
+                delay={0.6}
+              />
+            </div>
           </div>
         </div>
       </section>
