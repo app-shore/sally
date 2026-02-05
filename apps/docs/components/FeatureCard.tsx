@@ -15,9 +15,9 @@ export function FeatureCard({ title, description, icon, href }: FeatureCardProps
       <Card className="h-full transition-colors hover:bg-gray-50 dark:hover:bg-gray-900">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <span className="text-3xl" role="img" aria-label={title}>
+            {/* <span className="text-3xl" role="img" aria-label={title}>
               {icon}
-            </span>
+            </span> */}
             <span className="text-lg">{title}</span>
           </CardTitle>
         </CardHeader>
