@@ -2,13 +2,13 @@ import { useConfig } from 'nextra-theme-docs';
 
 const config = {
   // Logo in minimal navbar
-  logo: <span className="font-bold">🚛 SALLY Developer Portal</span>,
+  logo: <span className="font-bold">SALLY Developer Portal</span>,
 
   // Project links
   project: {
-    link: 'https://github.com/your-org/sally'
+    link: 'https://github.com/ajaynarang/sally'
   },
-  docsRepositoryBase: 'https://github.com/your-org/sally/tree/main/apps/docs',
+  docsRepositoryBase: 'https://github.com/ajaynarang/sally/tree/main/apps/.docs',
 
   // Black, white, and gray color scheme
   primaryHue: 0,
