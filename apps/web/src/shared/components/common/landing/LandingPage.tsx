@@ -346,7 +346,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 6: Continuous Monitoring */}
+      {/* Section 6: Ask SALLY */}
+      <AskSallySection />
+
+      {/* Section 7: Continuous Monitoring */}
       <section className="py-32 bg-gradient-to-b from-foreground to-foreground/90 text-primary-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
