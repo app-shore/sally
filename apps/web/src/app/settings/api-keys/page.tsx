@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/components/ui/dialog';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
+import { Alert, AlertDescription } from '@/shared/components/ui/alert';
+import { Skeleton } from '@/shared/components/ui/skeleton';
 import { AlertCircle, Copy, Key, Trash2 } from 'lucide-react';
-import { createApiKey, listApiKeys, revokeApiKey, type ApiKey } from '@/lib/api/api-keys';
+import { createApiKey, listApiKeys, revokeApiKey, type ApiKey } from '@/shared/lib/api/api-keys';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function ApiKeysPage() {
@@ -243,7 +243,7 @@ export default function ApiKeysPage() {
                     </span>
                   </div>
                   <div className="pt-2">
-                    <Badge variant={key.isActive ? 'default' : 'secondary'}>
+                    <Badge variant={key.isActive ? 'default' : 'muted'}>
                       {key.isActive ? 'Active' : 'Revoked'}
                     </Badge>
                     <Badge variant="outline" className="ml-2">
