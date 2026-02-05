@@ -126,3 +126,4 @@ worktrees/
 apps/backend/.env.staging
 
 
+.docs/
