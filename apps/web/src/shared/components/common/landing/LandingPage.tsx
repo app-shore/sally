@@ -18,6 +18,8 @@ import { ROICalculator } from './ROICalculator';
 import { MonitoringDashboard } from './MonitoringDashboard';
 import { CapabilitiesSection } from './CapabilitiesSection';
 import { AskSallySection } from './AskSallySection';
+import { FeaturesVisualJourney } from './FeaturesVisualJourney';
+import { FeaturesBentoGrid } from './FeaturesBentoGrid';
 import { useAuthStore } from '@/features/auth';
 import { getDefaultRouteForRole } from '@/shared/lib/navigation';
 
@@ -291,6 +293,12 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Section 5B: Visual Journey Alternative */}
+      <FeaturesVisualJourney />
+
+      {/* Section 5C: Bento Grid Alternative */}
+      <FeaturesBentoGrid />
 
       {/* Section 6: Ask SALLY */}
       <AskSallySection />
