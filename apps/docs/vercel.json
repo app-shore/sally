@@ -1,5 +1,0 @@
-{
-  "buildCommand": "cd ../.. && npm install && npm run build --workspace=@sally/docs",
-  "installCommand": "cd ../.. && npm install",
-  "framework": null
-}
