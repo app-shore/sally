@@ -1,20 +1,39 @@
 import { useConfig } from 'nextra-theme-docs';
 
 const config = {
-  logo: <span className="font-bold">SALLY Developer Portal</span>,
+  // Logo in minimal navbar
+  logo: <span className="font-bold">🚛 SALLY Developer Portal</span>,
+
+  // Project links
   project: {
     link: 'https://github.com/your-org/sally'
   },
   docsRepositoryBase: 'https://github.com/your-org/sally/tree/main/apps/docs',
 
+  // Black, white, and gray color scheme
   primaryHue: 0,
   primarySaturation: 0,
 
+  // Dark mode configuration with next-themes
   darkMode: true,
   nextThemes: {
-    defaultTheme: 'dark'
+    defaultTheme: 'dark',
+    storageKey: 'sally-theme'
   },
 
+  // Sidebar configuration
+  sidebar: {
+    defaultMenuCollapseLevel: 1,
+    toggleButton: true
+  },
+
+  // Table of Contents configuration
+  toc: {
+    float: true,
+    title: 'On This Page'
+  },
+
+  // Footer
   footer: {
     text: (
       <span>
@@ -23,6 +42,7 @@ const config = {
     )
   },
 
+  // Head meta tags
   head: () => {
     const { title } = useConfig();
     return (
@@ -35,11 +55,13 @@ const config = {
     );
   },
 
+  // Navigation
   navigation: {
     prev: true,
     next: true
   },
 
+  // Search configuration
   search: {
     placeholder: 'Search documentation...'
   }
