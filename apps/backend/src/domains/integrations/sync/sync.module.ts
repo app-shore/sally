@@ -9,16 +9,16 @@ import { VehicleMerger } from './merging/vehicle-merger';
 import { DriverMerger } from './merging/driver-merger';
 import { AutoSyncJob } from '../../../infrastructure/jobs/auto-sync.job';
 import { CredentialsService } from '../credentials/credentials.service';
-import { AdapterFactoryService } from '../adapters/adapter-factory.service';
+import { AdaptersModule } from '../adapters/adapters.module';
 
 /**
  * SyncModule handles data synchronization from external systems.
  *
- * Note: Adapters are registered in IntegrationsModule (parent module)
- * to avoid duplicate registration and DI conflicts.
+ * Note: Adapters are imported from AdaptersModule (shared with IntegrationsModule)
+ * to avoid duplicate registration and circular dependency issues.
  */
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AdaptersModule],
   providers: [
     SyncService,
     TmsSyncService,
@@ -29,8 +29,6 @@ import { AdapterFactoryService } from '../adapters/adapter-factory.service';
     DriverMerger,
     AutoSyncJob,
     CredentialsService,
-    // Adapter Factory (uses adapters from parent IntegrationsModule)
-    AdapterFactoryService,
   ],
   exports: [SyncService],
 })

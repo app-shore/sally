@@ -9,15 +9,17 @@ import { IntegrationManagerService } from './services/integration-manager.servic
 import { IntegrationSchedulerService } from './services/integration-scheduler.service';
 import { RetryModule } from '../../infrastructure/retry/retry.module';
 import { AlertsModule } from '../operations/alerts/alerts.module';
-import { McLeodTMSAdapter } from './adapters/tms/mcleod-tms.adapter';
-import { Project44TMSAdapter } from './adapters/tms/project44-tms.adapter';
-import { SamsaraELDAdapter } from './adapters/eld/samsara-eld.adapter';
-import { GasBuddyFuelAdapter } from './adapters/fuel/gasbuddy-fuel.adapter';
-import { OpenWeatherAdapter } from './adapters/weather/openweather.adapter';
+import { AdaptersModule } from './adapters/adapters.module';
 
+/**
+ * IntegrationsModule handles external system integrations
+ *
+ * Uses AdaptersModule for adapter access (avoiding circular deps with SyncModule)
+ */
 @Module({
   imports: [
     PrismaModule,
+    AdaptersModule, // ← Import adapters from dedicated module
     SyncModule,
     ScheduleModule.forRoot(),
     RetryModule,
@@ -29,12 +31,6 @@ import { OpenWeatherAdapter } from './adapters/weather/openweather.adapter';
     IntegrationManagerService,
     IntegrationSchedulerService,
     CredentialsService,
-    // Adapters (registered here to avoid duplicate DI in SyncModule)
-    SamsaraELDAdapter,
-    McLeodTMSAdapter,
-    Project44TMSAdapter,
-    GasBuddyFuelAdapter,
-    OpenWeatherAdapter,
   ],
   exports: [IntegrationsService, IntegrationManagerService],
 })
