@@ -1,0 +1,179 @@
+---
+title: API Keys Setup
+description: Generate and manage your API keys
+---
+
+# API Keys Setup
+
+Learn how to generate, use, and manage your SALLY API keys.
+
+## Generating an API Key
+
+1. **Sign in** to your SALLY dashboard at [sally.appshore.in](https://sally.appshore.in)
+
+2. **Navigate** to Dashboard → API Keys
+
+3. **Click** "Generate API Key" button
+
+4. **Name your key** (e.g., "Production Server", "Testing Environment")
+
+5. **Copy the key** - You'll only see it once!
+
+<div className="rounded-lg border border-yellow-500 dark:border-yellow-400 p-4 my-6">
+  <div className="flex gap-3">
+    <div className="text-yellow-500 dark:text-yellow-400">⚠️</div>
+    <div>
+      <strong>Security Warning:</strong> API keys are shown only once during creation.
+      Store them securely in a password manager or environment variables.
+    </div>
+  </div>
+</div>
+
+## Key Types
+
+### Staging Keys
+
+- Prefix: `sk_staging_`
+- Environment: Staging API
+- Data: Mock/test data
+- Rate Limit: 1,000 requests/hour
+- Use for: Development and testing
+
+### Production Keys (Coming Soon)
+
+- Prefix: `sk_live_`
+- Environment: Production API
+- Data: Real integration data
+- Rate Limit: TBD
+- Use for: Live applications
+
+## Managing Keys
+
+### View All Keys
+
+The API Keys dashboard shows:
+- Key name
+- Key prefix (last 4 characters shown)
+- Creation date
+- Last used timestamp
+- Request count
+- Active status
+
+### Revoke a Key
+
+To revoke a key:
+1. Find the key in your dashboard
+2. Click "Revoke"
+3. Confirm the action
+
+Revoked keys:
+- Stop working immediately
+- Cannot be reactivated
+- Generate a new key instead
+
+### Rotate Keys
+
+Recommended key rotation schedule:
+- **Development**: Every 90 days
+- **Production**: Every 30 days
+- **After compromise**: Immediately
+
+To rotate:
+1. Generate a new key
+2. Update your application
+3. Test the new key
+4. Revoke the old key
+
+## Storage Best Practices
+
+### Environment Variables
+
+Store keys in `.env` files (never commit to git):
+
+```bash
+# .env
+SALLY_API_KEY=sk_staging_abc123...
+```
+
+Add to `.gitignore`:
+```
+.env
+.env.local
+```
+
+### Application Configuration
+
+```javascript
+// config.js
+export const config = {
+  sallyApiKey: process.env.SALLY_API_KEY,
+  sallyApiUrl: 'https://sally-api.apps.appshore.in/api/v1'
+};
+```
+
+### CI/CD Secrets
+
+Use your platform's secret management:
+
+**GitHub Actions:**
+```yaml
+env:
+  SALLY_API_KEY: ${{ secrets.SALLY_API_KEY }}
+```
+
+**Vercel:**
+```bash
+vercel env add SALLY_API_KEY
+```
+
+## Usage Monitoring
+
+Track your API usage in the dashboard:
+
+- **Request count** - Total requests made with this key
+- **Last used** - Timestamp of most recent request
+- **Rate limit status** - Remaining requests in current hour
+
+Set up alerts for:
+- Approaching rate limits
+- Unusual activity patterns
+- First use of a new key (verify it's you)
+
+## Security Checklist
+
+- [ ] Keys stored in environment variables
+- [ ] `.env` files in `.gitignore`
+- [ ] Staging keys for development only
+- [ ] Production keys for production only
+- [ ] Keys rotated regularly
+- [ ] Revoked keys when team members leave
+- [ ] Usage monitored for anomalies
+
+## Troubleshooting
+
+### "Invalid or expired API key"
+
+**Possible causes:**
+- Key was revoked
+- Key expired
+- Typo in key
+- Wrong environment (staging key on production endpoint)
+
+**Solution:** Generate a new key
+
+### "Rate limit exceeded"
+
+**Possible causes:**
+- Too many requests in current hour
+- Missing rate limit headers in retry logic
+
+**Solution:**
+- Wait for rate limit reset
+- Implement exponential backoff
+- Upgrade to higher tier (production)
+
+## Next Steps
+
+- [Quickstart Guide](/getting-started/quickstart) - Make your first API call
+- [Route Planning Guide](/guides/route-planning) - Build your first integration
+- [API Reference](/api-reference) - Explore all endpoints

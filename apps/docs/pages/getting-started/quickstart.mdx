@@ -1,0 +1,106 @@
+---
+title: Quickstart Guide
+description: Get started with SALLY API in 5 minutes
+---
+
+# Quickstart Guide
+
+Get your first route planned in 5 minutes.
+
+## Prerequisites
+
+- SALLY account (sign up at [sally.appshore.in](https://sally.appshore.in))
+- Staging API key (we'll generate one in step 1)
+
+## Step 1: Get Your API Key
+
+1. Sign in to your SALLY dashboard
+2. Navigate to **Dashboard → API Keys**
+3. Click **"Generate API Key"**
+4. Give it a name (e.g., "Test Key")
+5. Copy your key - it starts with `sk_staging_`
+
+<div className="rounded-lg border border-yellow-500 dark:border-yellow-400 p-4 my-6">
+  <div className="flex gap-3">
+    <div className="text-yellow-500 dark:text-yellow-400">⚠️</div>
+    <div>
+      <strong>Important:</strong> Save your API key securely. You won't be able to see it again.
+    </div>
+  </div>
+</div>
+
+## Step 2: Make Your First Request
+
+Let's plan a simple route from Los Angeles to Phoenix:
+
+```bash
+curl -X POST https://sally-api.apps.appshore.in/api/v1/routes/plan \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "driver_id": "DRV001",
+    "vehicle_id": "VEH001",
+    "stops": [
+      {
+        "location": "Los Angeles, CA",
+        "type": "origin",
+        "appointment_time": "2026-02-06T08:00:00Z"
+      },
+      {
+        "location": "Phoenix, AZ",
+        "type": "delivery",
+        "appointment_time": "2026-02-06T16:00:00Z"
+      }
+    ]
+  }'
+```
+
+Replace `YOUR_API_KEY` with your actual key.
+
+## Step 3: Review the Route Plan
+
+The API returns an optimized route with:
+
+```json
+{
+  "plan_id": "plan_abc123",
+  "status": "optimized",
+  "segments": [
+    {
+      "type": "drive",
+      "from": "Los Angeles, CA",
+      "to": "Phoenix, AZ",
+      "distance_miles": 373,
+      "duration_hours": 5.5
+    }
+  ],
+  "total_distance_miles": 373,
+  "total_duration_hours": 5.5,
+  "hos_compliant": true,
+  "feasibility": {
+    "is_feasible": true,
+    "violations": []
+  }
+}
+```
+
+✅ **HOS-compliant segments**
+✅ **Rest stops automatically inserted** (if needed)
+✅ **Fuel stops optimized for price**
+✅ **Compliance validation passed**
+
+## Step 4: Test in the API Playground
+
+Visit our [API Reference](/api-reference/route-planning) to test endpoints interactively in your browser.
+
+## What's Next?
+
+- [Understanding Authentication](/getting-started/authentication) - Learn about API key authentication
+- [Route Planning Guide](/guides/route-planning/creating-first-route) - Deep dive into route planning
+- [API Reference](/api-reference) - Explore all available endpoints
+
+## Need Help?
+
+- 📧 Email: support@sally.com
+- 💬 Discord: [Join our community](https://discord.gg/sally)
+- 🐛 GitHub: [Report issues](https://github.com/your-org/sally/issues)
