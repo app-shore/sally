@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { parseOpenAPI, groupEndpointsByCategory } from '@/lib/openapi-parser'
+import { ApiSearch } from './ApiSearch'
 import type { ParsedEndpoint } from '@/lib/types/openapi'
 
 interface ApiNavProps {
@@ -11,12 +12,15 @@ interface ApiNavProps {
 
 export function ApiNav({ activeEndpointId }: ApiNavProps) {
   const [grouped, setGrouped] = useState<Record<string, ParsedEndpoint[]>>({})
+  const [filtered, setFiltered] = useState<Record<string, ParsedEndpoint[]>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     parseOpenAPI('/openapi.json')
       .then(result => {
-        setGrouped(groupEndpointsByCategory(result.endpoints))
+        const g = groupEndpointsByCategory(result.endpoints)
+        setGrouped(g)
+        setFiltered(g)
         setLoading(false)
       })
       .catch(err => {
@@ -25,13 +29,36 @@ export function ApiNav({ activeEndpointId }: ApiNavProps) {
       })
   }, [])
 
+  const handleSearch = (query: string) => {
+    if (!query) {
+      setFiltered(grouped)
+      return
+    }
+
+    const newFiltered: Record<string, ParsedEndpoint[]> = {}
+
+    Object.entries(grouped).forEach(([category, endpoints]) => {
+      const matches = endpoints.filter(endpoint =>
+        endpoint.name.toLowerCase().includes(query) ||
+        endpoint.path.toLowerCase().includes(query) ||
+        endpoint.method.toLowerCase().includes(query)
+      )
+      if (matches.length > 0) {
+        newFiltered[category] = matches
+      }
+    })
+
+    setFiltered(newFiltered)
+  }
+
   if (loading) {
     return <div className="p-4 text-sm text-muted-foreground">Loading endpoints...</div>
   }
 
   return (
     <nav className="space-y-4">
-      {Object.entries(grouped).map(([category, endpoints]) => (
+      <ApiSearch onSearch={handleSearch} />
+      {Object.entries(filtered).map(([category, endpoints]) => (
         <div key={category}>
           <h3 className="mb-2 px-2 text-sm font-semibold text-foreground">
             {category}
