@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { ScrollReveal, StaggerContainer, StaggerItem } from './ScrollReveal';
 import { HeroRouteBackground, AnimatedRoute } from './AnimatedRoute';
