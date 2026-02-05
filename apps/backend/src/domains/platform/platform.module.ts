@@ -5,6 +5,7 @@ import { UserInvitationsModule } from './user-invitations/user-invitations.modul
 import { PreferencesModule } from './preferences/preferences.module';
 import { FeatureFlagsModule } from './feature-flags/feature-flags.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
+import { ApiKeysModule } from './api-keys/api-keys.module';
 
 /**
  * PlatformModule aggregates all platform/infrastructure modules:
@@ -14,6 +15,7 @@ import { OnboardingModule } from './onboarding/onboarding.module';
  * - Preferences: User and tenant preferences
  * - Feature Flags: Feature flag management
  * - Onboarding: User onboarding flows
+ * - API Keys: API key management for external developers
  */
 @Module({
   imports: [
@@ -23,6 +25,7 @@ import { OnboardingModule } from './onboarding/onboarding.module';
     PreferencesModule,
     FeatureFlagsModule,
     OnboardingModule,
+    ApiKeysModule,
   ],
   exports: [
     TenantsModule,
@@ -31,6 +34,7 @@ import { OnboardingModule } from './onboarding/onboarding.module';
     PreferencesModule,
     FeatureFlagsModule,
     OnboardingModule,
+    ApiKeysModule,
   ],
 })
 export class PlatformModule {}
