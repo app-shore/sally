@@ -91,6 +91,11 @@ pre code {
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
+/* Hide top-level navigation links in navbar (sidebar-only navigation) */
+.nextra-nav-container nav > div._flex._gap-4 {
+  display: none !important;
+}
+
 /* Not-prose utility for embedded components */
 .not-prose {
   all: revert;

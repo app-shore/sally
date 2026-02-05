@@ -55,11 +55,8 @@ const config = {
     );
   },
 
-  // Navigation
-  navigation: {
-    prev: true,
-    next: true
-  },
+  // Disable top-level navigation in navbar (sidebar-only navigation)
+  navigation: false,
 
   // Search configuration
   search: {
