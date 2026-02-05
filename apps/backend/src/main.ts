@@ -32,25 +32,47 @@ async function bootstrap() {
 
   // Swagger/OpenAPI documentation
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('SALLY Backend API')
-    .setDescription(
-      'Your Fleet Operations Assistant - API with Multi-Tenant Auth',
-    )
+    .setTitle('SALLY API')
+    .setDescription('Fleet Operations Assistant API')
     .setVersion('1.0.0')
     .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'API Key',
+        description: 'Enter your API key (sk_staging_...)',
+        name: 'Authorization',
+        in: 'header',
+      },
+      'api-key',
+    )
+    .addServer('https://sally-api.apps.appshore.in/api/v1', 'Staging')
+    .addServer('http://localhost:8000/api/v1', 'Local Development')
     .addTag('Authentication', 'JWT-based authentication with multi-tenancy')
+    .addTag('API Keys', 'API key management for external developers')
+    .addTag('Route Planning', 'Create and manage optimized routes')
+    .addTag('Monitoring', 'Monitor active routes in real-time')
+    .addTag('Alerts', 'Dispatcher alerts and notifications')
     .addTag('HOS Rules', 'Hours of Service compliance validation')
     .addTag('Optimization', 'REST optimization recommendations')
     .addTag('Prediction', 'Drive demand predictions')
-    .addTag('Route Planning', 'Route planning and optimization')
     .addTag('Drivers', 'Driver management')
     .addTag('Vehicles', 'Vehicle management')
     .addTag('Loads', 'Load management')
     .addTag('Scenarios', 'Test scenario management')
-    .addTag('External Mock APIs', 'Mock external API endpoints')
+    .addTag('External Mock APIs', 'Mock external API endpoints for testing')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
+
+  // Serve OpenAPI spec at /api/openapi.json for docs site
+  app.use('/api/openapi.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.json(document);
+  });
+
   SwaggerModule.setup('api', app, document);
 
   const port = 8000;
