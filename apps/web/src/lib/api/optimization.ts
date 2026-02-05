@@ -1,32 +1,15 @@
-import { api } from '@/shared/lib/api';
+/**
+ * @deprecated This file is deprecated. Import from specific feature modules instead:
+ * - '@/features/routing/optimization' for REST optimization
+ * - '@/features/routing/hos-compliance' for HOS validation
+ * This re-export is provided for backwards compatibility during migration.
+ */
 
-export const optimization = {
-  recommend: async (data: {
-    driver_id: string;
-    hours_driven: number;
-    on_duty_time: number;
-    hours_since_break: number;
-    dock_duration_hours?: number;
-    dock_location?: string;
-    remaining_distance_miles?: number;
-    destination?: string;
-    appointment_time?: string;
-    current_location?: string;
-  }) => {
-    return api.post('/rest/recommend', data);
-  },
-};
+export { optimizationApi, optimization } from '@/features/routing/optimization/api';
+export { hosComplianceApi, hosRules } from '@/features/routing/hos-compliance/api';
 
-export const hosRules = {
-  check: async (data: {
-    driver_id: string;
-    hours_driven: number;
-    on_duty_time: number;
-    hours_since_break: number;
-  }) => {
-    return api.post('/hos/validate', data);
-  },
-};
+// Prediction is not migrated yet, keeping it here
+import { apiClient } from '@/shared/lib/api';
 
 export const prediction = {
   estimate: async (data: {
@@ -36,6 +19,9 @@ export const prediction = {
     current_location?: string;
     average_speed_mph?: number;
   }) => {
-    return api.post('/prediction/estimate', data);
+    return apiClient('/prediction/estimate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 };
