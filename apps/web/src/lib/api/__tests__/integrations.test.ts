@@ -3,10 +3,10 @@
  */
 
 import { triggerSync, syncFleet } from '../integrations';
-import { apiClient } from '../client';
+import { apiClient } from '@/shared/lib/api';
 
 // Mock the apiClient
-jest.mock('../client', () => ({
+jest.mock('@/shared/lib/api', () => ({
   apiClient: jest.fn(),
 }));
 

@@ -89,7 +89,7 @@ const apiMethods = {
 };
 
 // Import sub-modules
-import { optimization, hosRules, prediction } from './optimization';
+import { optimization, hosRules, prediction } from '@/lib/api/optimization';
 
 // Export combined API object
 export const api = {
