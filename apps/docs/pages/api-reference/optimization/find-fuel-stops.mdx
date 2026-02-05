@@ -1,0 +1,81 @@
+---
+title: Find Fuel Stops
+description: Find optimal fuel stops based on price and range
+---
+
+import { ApiReference } from '@/components/ApiReference';
+
+# Find Fuel Stops
+
+Find optimal fuel stop locations based on vehicle range, fuel prices, and route constraints.
+
+## Interactive API Explorer
+
+<ApiReference tag="Optimization" />
+
+## Overview
+
+The Fuel Stop Optimizer identifies the best locations to refuel based on:
+
+- **Vehicle range** - Fuel capacity and current level
+- **Fuel prices** - Real-time diesel prices along route
+- **Route constraints** - HOS, delivery windows, driver preferences
+- **Network access** - Preferred truck stop chains
+
+## Example Request
+
+```bash
+curl -X POST https://sally-api.apps.appshore.in/api/v1/fuel/find-stops \
+  -H "Authorization: Bearer sk_staging_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "vehicle_id": "VEH001",
+    "current_fuel_gallons": 50,
+    "tank_capacity_gallons": 200,
+    "fuel_efficiency_mpg": 6.5,
+    "route_segments": [
+      {
+        "from": "Los Angeles, CA",
+        "to": "Phoenix, AZ",
+        "distance_miles": 380
+      }
+    ],
+    "preferences": {
+      "max_price_per_gallon": 4.50,
+      "preferred_chains": ["Loves", "Pilot", "TA"]
+    }
+  }'
+```
+
+## Response Structure
+
+```json
+{
+  "fuel_stops": [
+    {
+      "location": "Loves Travel Stop, Quartzsite, AZ",
+      "coordinates": [33.6633, -114.2294],
+      "distance_from_origin_miles": 200,
+      "price_per_gallon": 3.89,
+      "estimated_gallons": 75,
+      "estimated_cost": 291.75
+    }
+  ],
+  "total_fuel_cost": 291.75,
+  "total_fuel_stops": 1
+}
+```
+
+## Optimization Strategy
+
+The fuel optimizer balances:
+
+1. **Price** - Find lowest-cost fuel along route
+2. **Range** - Ensure vehicle doesn't run out
+3. **Convenience** - Minimize detours and delays
+4. **Timing** - Coordinate with rest stops when possible
+
+## Next Steps
+
+- [Fuel Optimization Guide](/guides/optimization/fuel-optimization)
+- [Plan Route](/api-reference/routes/plan-route)

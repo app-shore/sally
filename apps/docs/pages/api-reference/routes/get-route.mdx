@@ -1,0 +1,40 @@
+---
+title: Get Route
+description: Retrieve route plan details
+---
+
+import { ApiReference } from '@/components/ApiReference';
+
+# Get Route
+
+Retrieve detailed information about a planned route.
+
+## Interactive API Explorer
+
+<ApiReference tag="Route Planning" />
+
+## Overview
+
+Use this endpoint to get the current state of a route plan, including all segments, stops, ETAs, and compliance status.
+
+## Example Request
+
+```bash
+curl -X GET https://sally-api.apps.appshore.in/api/v1/routes/{plan_id} \
+  -H "Authorization: Bearer sk_staging_YOUR_KEY"
+```
+
+## Response Structure
+
+The response includes:
+
+- **Route metadata** - Plan ID, driver, vehicle, status
+- **Segments** - All route segments with types (drive, rest, fuel, delivery)
+- **ETAs** - Arrival times for each stop
+- **HOS compliance** - Current hours remaining and compliance status
+- **Optimization results** - Total distance, time, cost
+
+## Next Steps
+
+- [Plan Route](/api-reference/routes/plan-route)
+- [Get Monitoring Status](/api-reference/routes/get-monitoring)

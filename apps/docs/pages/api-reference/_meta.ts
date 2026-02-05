@@ -1,8 +1,10 @@
 export default {
   "index": "Overview",
   "authentication": "Authentication",
-  "route-planning": "Route Planning",
-  "monitoring": "Monitoring",
+  "routes": "Routes",
   "alerts": "Alerts",
+  "hos": "HOS",
+  "optimization": "Optimization",
+  "webhooks": "Webhooks",
   "external-mock": "External Mock APIs"
 }

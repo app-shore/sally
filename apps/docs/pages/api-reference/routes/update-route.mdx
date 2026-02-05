@@ -1,0 +1,47 @@
+---
+title: Update Route
+description: Update routes when conditions change
+---
+
+import { ApiReference } from '@/components/ApiReference';
+
+# Update Route
+
+Update existing routes based on real-time triggers and changing conditions.
+
+## Interactive API Explorer
+
+<ApiReference tag="Route Planning" />
+
+## Overview
+
+The Update Route API allows you to modify active routes when conditions change. This endpoint is typically called by the monitoring service when triggers are detected.
+
+## Common Update Scenarios
+
+- **Traffic delays** - Re-optimize route to avoid congestion
+- **Weather conditions** - Reroute around severe weather
+- **Driver status changes** - Update route based on HOS changes
+- **Stop time changes** - Adjust for early/late arrivals
+- **New stops added** - Insert additional deliveries
+
+## Example Request
+
+```bash
+curl -X POST https://sally-api.apps.appshore.in/api/v1/routes/update \
+  -H "Authorization: Bearer sk_staging_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "plan_id": "route_abc123",
+    "trigger_type": "traffic_delay",
+    "trigger_data": {
+      "segment_id": "seg_456",
+      "delay_minutes": 45
+    }
+  }'
+```
+
+## Next Steps
+
+- [Dynamic Updates Guide](/guides/route-planning/dynamic-updates)
+- [Monitoring API](/api-reference/routes/get-monitoring)

@@ -214,7 +214,7 @@ SALLY is built as a modern monorepo with Python backend and TypeScript frontend.
 
 ## Key Architectural Decisions
 
-### 1. Async Everything (Backend)
+### Async Everything (Backend)
 
 **Decision:** Use AsyncIO throughout the backend stack.
 
@@ -229,7 +229,7 @@ SALLY is built as a modern monorepo with Python backend and TypeScript frontend.
 - AsyncPG driver for PostgreSQL
 - Async Redis client
 
-### 2. Type Safety Across Stack
+### Type Safety Across Stack
 
 **Decision:** Enforce strong typing in both frontend and backend.
 
@@ -244,7 +244,7 @@ SALLY is built as a modern monorepo with Python backend and TypeScript frontend.
 - Auto-generated TypeScript types from OpenAPI schema
 - Zod validation for forms
 
-### 3. Layered Architecture
+### Layered Architecture
 
 **Decision:** Strict separation of concerns with defined layers.
 
@@ -264,7 +264,7 @@ Repository Layer (Data Access)
 Model Layer (Database Models)
 ```
 
-### 4. Caching Strategy
+### Caching Strategy
 
 **Decision:** Use Redis for caching validation results and session data.
 
@@ -279,7 +279,7 @@ Model Layer (Database Models)
 - Improve response times
 - Avoid recomputing expensive operations
 
-### 5. API-First Design
+### API-First Design
 
 **Decision:** Design API contracts first, implement later.
 
@@ -299,14 +299,14 @@ Model Layer (Database Models)
 
 - **Target:** 5-10 pilot carriers (5-20 trucks each)
 - **Routes:** 100-500 active routes per week
-- **Response Time:** <5s for route planning (10 stops)
+- **Response Time:** Less than 5s for route planning (10 stops)
 - **Monitoring:** 60s refresh cycle per route
 
 ### Phase 2 Scale (Fleet-Wide)
 
 - **Target:** 50 customers (50-100 trucks each)
 - **Routes:** 1,000+ routes per week
-- **Response Time:** <10s for fleet-wide optimization (50 drivers, 200 loads)
+- **Response Time:** Less than 10s for fleet-wide optimization (50 drivers, 200 loads)
 - **Monitoring:** Distributed monitoring service
 
 ### Scalability Strategies
@@ -358,19 +358,19 @@ SALLY encodes federal HOS regulations into the system:
 4. `GET /api/v1/routes/{plan_id}/monitoring` - Get monitoring status
 
 ### Alert Endpoints (Dispatcher Notifications)
-5. `GET /api/v1/alerts` - List active alerts
-6. `POST /api/v1/alerts/{alert_id}/acknowledge` - Acknowledge alert
-7. `POST /api/v1/alerts/{alert_id}/resolve` - Resolve alert
+- `GET /api/v1/alerts` - List active alerts
+- `POST /api/v1/alerts/{alert_id}/acknowledge` - Acknowledge alert
+- `POST /api/v1/alerts/{alert_id}/resolve` - Resolve alert
 
 ### Mock External API Endpoints (POC)
-8. `GET /api/v1/external/hos/{driver_id}` - Mock Samsara HOS data
-9. `GET /api/v1/external/fuel-prices` - Mock fuel prices
-10. `GET /api/v1/external/weather` - Mock weather data
+- `GET /api/v1/external/hos/{driver_id}` - Mock Samsara HOS data
+- `GET /api/v1/external/fuel-prices` - Mock fuel prices
+- `GET /api/v1/external/weather` - Mock weather data
 
 ### Component Endpoints (Called by Route Planner)
-11. `POST /api/v1/hos/validate` - HOS compliance check
-12. `POST /api/v1/rest/recommend` - REST optimization
-13. `POST /api/v1/fuel/find-stops` - Fuel stop finding
+- `POST /api/v1/hos/validate` - HOS compliance check
+- `POST /api/v1/rest/recommend` - REST optimization
+- `POST /api/v1/fuel/find-stops` - Fuel stop finding
 
 ## Detailed Architecture Documentation
 

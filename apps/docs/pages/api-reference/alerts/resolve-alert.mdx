@@ -1,0 +1,49 @@
+---
+title: Resolve Alert
+description: Mark alert as resolved
+---
+
+import { ApiReference } from '@/components/ApiReference';
+
+# Resolve Alert
+
+Mark an alert as resolved after the underlying issue has been addressed.
+
+## Interactive API Explorer
+
+<ApiReference tag="Alerts" />
+
+## Overview
+
+Resolving an alert:
+- Updates status to `resolved`
+- Records resolution details
+- Archives alert for reporting
+- Stops monitoring for this specific trigger instance
+
+## Example Request
+
+```bash
+curl -X POST https://sally-api.apps.appshore.in/api/v1/alerts/{alert_id}/resolve \
+  -H "Authorization: Bearer sk_staging_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dispatcher_id": "DISP123",
+    "resolution": "Route updated, driver now on schedule",
+    "action_taken": "reroute"
+  }'
+```
+
+## Resolution Actions
+
+Common resolution actions:
+- `reroute` - Route was updated
+- `contact_driver` - Communicated with driver
+- `adjust_schedule` - Modified appointment times
+- `no_action` - Alert resolved itself
+- `escalated` - Forwarded to management
+
+## Next Steps
+
+- [List Alerts](/api-reference/alerts/list-alerts)
+- [Acknowledge Alert](/api-reference/alerts/acknowledge-alert)
