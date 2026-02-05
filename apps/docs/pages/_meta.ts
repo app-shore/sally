@@ -16,10 +16,6 @@ export default {
     "title": "📡 API Reference",
     "type": "page"
   },
-  "architecture": {
-    "title": "🏗️ Architecture",
-    "type": "page"
-  },
   "blog": {
     "title": "📝 Blog",
     "type": "page"
