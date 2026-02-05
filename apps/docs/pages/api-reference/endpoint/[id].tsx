@@ -1,5 +1,5 @@
 import { GetStaticPaths, GetStaticProps } from 'next'
-import { parseOpenAPI } from '@/lib/openapi-parser'
+import { parseOpenAPIServer } from '@/lib/openapi-parser.server'
 import { ApiNav } from '@/components/ApiNav'
 import { ApiDoc } from '@/components/ApiDoc'
 import { ApiCodePanel } from '@/components/ApiCodePanel'
@@ -34,7 +34,7 @@ export default function EndpointPage({ endpoint, baseUrl }: EndpointPageProps) {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const result = await parseOpenAPI('public/openapi.json')
+  const result = await parseOpenAPIServer()
 
   const paths = result.endpoints.map(endpoint => ({
     params: { id: endpoint.id }
@@ -44,17 +44,18 @@ export const getStaticPaths: GetStaticPaths = async () => {
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const result = await parseOpenAPI('public/openapi.json')
+  const result = await parseOpenAPIServer()
   const endpoint = result.endpoints.find(e => e.id === params?.id)
 
   if (!endpoint) {
     return { notFound: true }
   }
 
+  // Remove undefined values by JSON round-trip
   return {
-    props: {
+    props: JSON.parse(JSON.stringify({
       endpoint,
       baseUrl: result.baseUrl
-    }
+    }))
   }
 }

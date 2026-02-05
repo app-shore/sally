@@ -1,15 +1,18 @@
 import type { ParsedOpenAPI, ParsedEndpoint } from './types/openapi'
+import fs from 'fs'
+import path from 'path'
 
-// Client-side parser for browser
-export async function parseOpenAPI(jsonPath: string = '/openapi.json'): Promise<ParsedOpenAPI> {
-  const response = await fetch(jsonPath)
-  const spec: any = await response.json()
+// Server-side parser for build time (Next.js getStaticProps)
+export async function parseOpenAPIServer(): Promise<ParsedOpenAPI> {
+  const filePath = path.join(process.cwd(), 'public', 'openapi.json')
+  const fileContent = fs.readFileSync(filePath, 'utf-8')
+  const spec: any = JSON.parse(fileContent)
 
   const endpoints: ParsedEndpoint[] = []
   const categoriesSet = new Set<string>()
 
   // Parse each path
-  for (const [path, pathItem] of Object.entries(spec.paths || {})) {
+  for (const [pathStr, pathItem] of Object.entries(spec.paths || {})) {
     for (const [method, operation] of Object.entries(pathItem as any)) {
       if (!['get', 'post', 'put', 'delete', 'patch'].includes(method)) continue
 
@@ -18,15 +21,15 @@ export async function parseOpenAPI(jsonPath: string = '/openapi.json'): Promise<
       categoriesSet.add(category)
 
       const endpoint: ParsedEndpoint = {
-        id: `${method}-${path}`.replace(/[^a-z0-9]/gi, '-').toLowerCase(),
-        name: op.summary || `${method.toUpperCase()} ${path}`,
+        id: `${method}-${pathStr}`.replace(/[^a-z0-9]/gi, '-').toLowerCase(),
+        name: op.summary || `${method.toUpperCase()} ${pathStr}`,
         method: method.toUpperCase() as any,
-        path,
+        path: pathStr,
         summary: op.summary || '',
         description: op.description || '',
         category,
         parameters: op.parameters || [],
-        requestBody: op.requestBody,
+        requestBody: op.requestBody || null,
         responses: op.responses || {},
         tags: op.tags || []
       }
@@ -42,14 +45,4 @@ export async function parseOpenAPI(jsonPath: string = '/openapi.json'): Promise<
     version: spec.info?.version || '',
     title: spec.info?.title || 'API Reference'
   }
-}
-
-export function groupEndpointsByCategory(endpoints: ParsedEndpoint[]): Record<string, ParsedEndpoint[]> {
-  return endpoints.reduce((acc, endpoint) => {
-    if (!acc[endpoint.category]) {
-      acc[endpoint.category] = []
-    }
-    acc[endpoint.category].push(endpoint)
-    return acc
-  }, {} as Record<string, ParsedEndpoint[]>)
 }

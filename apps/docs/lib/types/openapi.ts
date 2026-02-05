@@ -7,7 +7,7 @@ export interface ParsedEndpoint {
   description: string
   category: string // Group name (e.g., "Routes", "Alerts")
   parameters: Parameter[]
-  requestBody?: RequestBody
+  requestBody?: RequestBody | null
   responses: Record<string, Response>
   tags: string[]
 }
