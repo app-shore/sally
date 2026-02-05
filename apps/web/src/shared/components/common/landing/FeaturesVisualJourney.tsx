@@ -15,7 +15,7 @@ export function FeaturesVisualJourney() {
   const stages = [
     {
       number: 1,
-      title: 'Input & Plan',
+      title: 'Automated Planning',
       icon: <RouteIcon />,
       features: [
         { icon: <RouteIcon />, title: 'Smart Routing', desc: 'Routes optimized with HOS, fuel, rest, and efficiency' },
@@ -25,7 +25,7 @@ export function FeaturesVisualJourney() {
     },
     {
       number: 2,
-      title: 'Monitor & Detect',
+      title: 'Continuous Monitoring',
       icon: <MonitorIcon />,
       features: [
         { icon: <MonitorIcon />, title: '24/7 Monitoring', desc: '14 triggers every 60 seconds' },
@@ -75,13 +75,6 @@ export function FeaturesVisualJourney() {
                       <div className="w-16 h-16 rounded-full bg-black dark:bg-white flex items-center justify-center relative z-10">
                         <span className="text-2xl font-bold text-white dark:text-black">{stage.number}</span>
                       </div>
-                      {/* Pulse effect */}
-                      <motion.div
-                        className="absolute inset-0 rounded-full bg-black dark:bg-white"
-                        initial={{ scale: 1, opacity: 0.5 }}
-                        animate={{ scale: 1.5, opacity: 0 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
-                      />
                     </motion.div>
                   </div>
 
@@ -117,22 +110,6 @@ export function FeaturesVisualJourney() {
                       </motion.div>
                     ))}
                   </div>
-
-                  {/* Arrow to next stage */}
-                  {stageIndex < stages.length - 1 && (
-                    <div className="hidden lg:block absolute top-20 -right-6 z-20">
-                      <motion.div
-                        initial={{ x: -10, opacity: 0 }}
-                        whileInView={{ x: 0, opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: stageIndex * 0.2 + 0.8 }}
-                      >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-foreground">
-                          <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </motion.div>
-                    </div>
-                  )}
                 </div>
               </ScrollReveal>
             ))}

@@ -5,21 +5,11 @@ import { motion } from 'framer-motion';
 import { Button } from '@/shared/components/ui/button';
 import { ScrollReveal, StaggerContainer, StaggerItem } from './ScrollReveal';
 import { HeroRouteBackground, AnimatedRoute } from './AnimatedRoute';
-import {
-  FeatureCard,
-  RouteIcon,
-  MonitorIcon,
-  AlertIcon,
-  ComplianceIcon,
-  RestIcon,
-  FuelIcon,
-} from './FeatureCard';
 import { ROICalculator } from './ROICalculator';
 import { MonitoringDashboard } from './MonitoringDashboard';
 import { CapabilitiesSection } from './CapabilitiesSection';
 import { AskSallySection } from './AskSallySection';
 import { FeaturesVisualJourney } from './FeaturesVisualJourney';
-import { FeaturesBentoGrid } from './FeaturesBentoGrid';
 import { useAuthStore } from '@/features/auth';
 import { getDefaultRouteForRole } from '@/shared/lib/navigation';
 
@@ -214,91 +204,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 5: Key Features */}
-      <section className="py-32 bg-muted">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal>
-            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-20">
-              Intelligence That Works For You
-            </h2>
-          </ScrollReveal>
-
-          {/* Category 1: Planning */}
-          <div className="mb-16">
-            <ScrollReveal>
-              <h3 className="text-2xl font-bold text-foreground text-center mb-8">
-                Automated Planning
-              </h3>
-            </ScrollReveal>
-            <div className="grid md:grid-cols-3 gap-8">
-              <FeatureCard
-                icon={<RouteIcon />}
-                title="HOS-Aware Routing"
-                description="Unlike traditional planners, SALLY optimizes routes with full awareness of driver hours of service limits"
-                delay={0}
-              />
-              <FeatureCard
-                icon={<RestIcon />}
-                title="Automatic Rest Insertion"
-                description="System detects when rest is needed and automatically inserts optimal rest stops before violations occur"
-                delay={0.1}
-              />
-              <FeatureCard
-                icon={<FuelIcon />}
-                title="Smart Fuel Optimization"
-                description="Find the best fuel stops based on price, location, and route efficiency"
-                delay={0.2}
-              />
-            </div>
-          </div>
-
-          {/* Category 2: Monitoring */}
-          <div className="mb-16">
-            <ScrollReveal delay={0.3}>
-              <h3 className="text-2xl font-bold text-foreground text-center mb-8">
-                Continuous Monitoring
-              </h3>
-            </ScrollReveal>
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              <FeatureCard
-                icon={<MonitorIcon />}
-                title="24/7 Continuous Monitoring"
-                description="14 trigger types monitored every 60 seconds around the clock to catch issues before they become problems"
-                delay={0.3}
-              />
-              <FeatureCard
-                icon={<AlertIcon />}
-                title="Proactive Alerts"
-                description="Dispatchers get notified instantly when driver intervention is needed or conditions change"
-                delay={0.4}
-              />
-            </div>
-          </div>
-
-          {/* Category 3: Compliance */}
-          <div>
-            <ScrollReveal delay={0.6}>
-              <h3 className="text-2xl font-bold text-foreground text-center mb-8">
-                Zero Violations
-              </h3>
-            </ScrollReveal>
-            <div className="max-w-md mx-auto">
-              <FeatureCard
-                icon={<ComplianceIcon />}
-                title="Zero Violations"
-                description="Proactive monitoring and dynamic updates ensure 100% HOS compliance on every route"
-                delay={0.6}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Section 5B: Visual Journey Alternative */}
+      {/* Section 5: Visual Journey Alternative */}
       <FeaturesVisualJourney />
-
-      {/* Section 5C: Bento Grid Alternative */}
-      <FeaturesBentoGrid />
 
       {/* Section 6: Ask SALLY */}
       <AskSallySection />
