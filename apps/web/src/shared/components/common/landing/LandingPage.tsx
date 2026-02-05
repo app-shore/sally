@@ -18,6 +18,8 @@ import {
 import { ROICalculator } from './ROICalculator';
 import { MonitoringDashboard } from './MonitoringDashboard';
 import { ComparisonTable } from './ComparisonRow';
+import { CapabilitiesSection } from './CapabilitiesSection';
+import { AskSallySection } from './AskSallySection';
 import { useAuthStore } from '@/features/auth';
 import { getDefaultRouteForRole } from '@/shared/lib/navigation';
 
@@ -44,10 +46,10 @@ export function LandingPage() {
               SALLY
             </h1>
             <p className="text-2xl md:text-3xl text-foreground mb-4 font-semibold tracking-tight">
-              Stop planning routes.<br className="hidden sm:block" /> Start preventing violations.
+              Your Fleet Operations Assistant
             </p>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-12">
-              The only platform that routes <span className="font-semibold text-foreground">drivers</span>, not trucks.
+              Coordinate dispatchers and drivers with automated planning, continuous monitoring, and proactive alerts
             </p>
 
             {/* CTAs */}
@@ -96,7 +98,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Section 2: The Problem */}
+      {/* Section 2: Three Core Capabilities */}
+      <CapabilitiesSection />
+
+      {/* Section 3: The Coordination Gap */}
       <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
