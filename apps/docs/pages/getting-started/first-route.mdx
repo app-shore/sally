@@ -1,0 +1,538 @@
+---
+title: Your First Route
+description: Step-by-step guide to planning your first HOS-compliant route with SALLY
+---
+
+# Your First Route
+
+Learn how to plan a complete, HOS-compliant route from start to finish. This hands-on tutorial walks through a realistic scenario with multiple stops, rest requirements, and compliance validation.
+
+## What You'll Learn
+
+- Making authenticated API requests
+- Planning routes with multiple stops
+- Understanding HOS compliance in route planning
+- Interpreting route segments (drive, rest, fuel, dock)
+- Handling API responses and errors
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+1. **A SALLY account** - Sign up at [sally.appshore.in](https://sally.appshore.in)
+2. **An API key** - Generate one in [Dashboard → API Keys](/getting-started/api-keys)
+3. **A REST client** - Use curl, Postman, or your favorite HTTP client
+
+## Tutorial Overview
+
+We'll plan a route for a driver traveling from Los Angeles to Phoenix with two customer stops along the way. The driver has already used some of their hours of service (HOS), so SALLY will need to insert rest stops to maintain compliance.
+
+**Scenario:**
+- **Driver:** Has 6 hours of drive time remaining, 8 hours on duty
+- **Vehicle:** 75% fuel, 6.5 MPG average
+- **Stops:** 3 locations (origin, 2 customer deliveries, destination)
+- **Challenge:** Route requires more driving than available HOS allows
+
+## Step 1: Set Your API Key
+
+Save your API key as an environment variable for convenience:
+
+```bash
+export SALLY_API_KEY="sk_staging_your_key_here"
+```
+
+Or if you prefer to copy-paste, replace `$SALLY_API_KEY` in the examples below with your actual key.
+
+## Step 2: Plan Your First Route
+
+Let's send a route planning request to SALLY. This endpoint analyzes driver HOS, vehicle state, and stop requirements to generate an optimized, compliant route.
+
+### Request
+
+```bash
+curl -X POST https://sally-api.apps.appshore.in/api/v1/route-planning/optimize \
+  -H "Authorization: Bearer $SALLY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "driver_id": "DRV-001",
+    "vehicle_id": "TRUCK-123",
+    "driver_state": {
+      "hours_driven": 5.0,
+      "on_duty_time": 8.0,
+      "hours_since_break": 4.5
+    },
+    "vehicle_state": {
+      "fuel_capacity_gallons": 150.0,
+      "current_fuel_gallons": 112.5,
+      "mpg": 6.5
+    },
+    "stops": [
+      {
+        "stop_id": "STOP-001",
+        "name": "Distribution Center LA",
+        "lat": 34.0522,
+        "lon": -118.2437,
+        "location_type": "warehouse",
+        "is_origin": true,
+        "is_destination": false,
+        "estimated_dock_hours": 1.0
+      },
+      {
+        "stop_id": "STOP-002",
+        "name": "Customer - Riverside Logistics",
+        "lat": 33.9806,
+        "lon": -117.3755,
+        "location_type": "customer",
+        "is_origin": false,
+        "is_destination": false,
+        "estimated_dock_hours": 2.0,
+        "customer_name": "Riverside Logistics"
+      },
+      {
+        "stop_id": "STOP-003",
+        "name": "Customer - Phoenix Distribution",
+        "lat": 33.4484,
+        "lon": -112.0740,
+        "location_type": "customer",
+        "is_origin": false,
+        "is_destination": false,
+        "estimated_dock_hours": 1.5,
+        "customer_name": "Phoenix Distribution"
+      },
+      {
+        "stop_id": "STOP-004",
+        "name": "Phoenix Terminal",
+        "lat": 33.4255,
+        "lon": -112.0376,
+        "location_type": "terminal",
+        "is_origin": false,
+        "is_destination": true,
+        "estimated_dock_hours": 0.5
+      }
+    ],
+    "optimization_priority": "balanced"
+  }'
+```
+
+### Request Parameters Explained
+
+**Driver State:**
+- `hours_driven`: 5.0 hours already driven today (11h max)
+- `on_duty_time`: 8.0 hours on duty (14h max)
+- `hours_since_break`: 4.5 hours since last 30-min break (8h max)
+
+**Vehicle State:**
+- `fuel_capacity_gallons`: Total tank capacity
+- `current_fuel_gallons`: Current fuel level (75% = 112.5/150)
+- `mpg`: Average miles per gallon for route planning
+
+**Stops:**
+- `is_origin`: true for starting location
+- `is_destination`: true for final location
+- `estimated_dock_hours`: Time spent at customer location loading/unloading
+- `location_type`: warehouse, customer, terminal, rest_area, fuel_station
+
+**Optimization Priority:**
+- `time`: Minimize total time
+- `cost`: Minimize fuel and operational costs
+- `balanced`: Balance time and cost (recommended)
+
+## Step 3: Understand the Response
+
+SALLY returns a detailed route plan with segments, compliance validation, and cost estimates.
+
+### Response Structure
+
+```json
+{
+  "plan_id": "plan_a1b2c3d4e5f6",
+  "status": "success",
+  "driver_id": "DRV-001",
+  "vehicle_id": "TRUCK-123",
+  "optimization_priority": "balanced",
+  "segments": [
+    {
+      "sequence_order": 1,
+      "segment_type": "dock",
+      "from_location": "Distribution Center LA",
+      "to_location": "Distribution Center LA",
+      "dock_duration_hours": 1.0,
+      "estimated_arrival": "2026-02-06T08:00:00Z",
+      "estimated_departure": "2026-02-06T09:00:00Z",
+      "hos_state_after": {
+        "hours_driven": 5.0,
+        "on_duty_time": 9.0,
+        "hours_since_break": 5.5
+      }
+    },
+    {
+      "sequence_order": 2,
+      "segment_type": "drive",
+      "from_location": "Distribution Center LA",
+      "to_location": "Customer - Riverside Logistics",
+      "distance_miles": 53.2,
+      "drive_time_hours": 1.1,
+      "estimated_arrival": "2026-02-06T10:06:00Z",
+      "estimated_departure": "2026-02-06T10:06:00Z",
+      "hos_state_after": {
+        "hours_driven": 6.1,
+        "on_duty_time": 10.1,
+        "hours_since_break": 6.6
+      }
+    },
+    {
+      "sequence_order": 3,
+      "segment_type": "dock",
+      "from_location": "Customer - Riverside Logistics",
+      "to_location": "Customer - Riverside Logistics",
+      "dock_duration_hours": 2.0,
+      "customer_name": "Riverside Logistics",
+      "estimated_arrival": "2026-02-06T10:06:00Z",
+      "estimated_departure": "2026-02-06T12:06:00Z",
+      "hos_state_after": {
+        "hours_driven": 6.1,
+        "on_duty_time": 12.1,
+        "hours_since_break": 8.6
+      }
+    },
+    {
+      "sequence_order": 4,
+      "segment_type": "rest",
+      "from_location": "Customer - Riverside Logistics",
+      "to_location": "Customer - Riverside Logistics",
+      "rest_type": "full_rest",
+      "rest_duration_hours": 10.0,
+      "rest_reason": "Driver approaching 14h duty limit. Full rest required for HOS compliance.",
+      "estimated_arrival": "2026-02-06T12:06:00Z",
+      "estimated_departure": "2026-02-06T22:06:00Z",
+      "hos_state_after": {
+        "hours_driven": 0.0,
+        "on_duty_time": 0.0,
+        "hours_since_break": 0.0
+      }
+    },
+    {
+      "sequence_order": 5,
+      "segment_type": "drive",
+      "from_location": "Customer - Riverside Logistics",
+      "to_location": "Customer - Phoenix Distribution",
+      "distance_miles": 297.5,
+      "drive_time_hours": 4.8,
+      "estimated_arrival": "2026-02-07T02:54:00Z",
+      "estimated_departure": "2026-02-07T02:54:00Z",
+      "hos_state_after": {
+        "hours_driven": 4.8,
+        "on_duty_time": 4.8,
+        "hours_since_break": 4.8
+      }
+    },
+    {
+      "sequence_order": 6,
+      "segment_type": "dock",
+      "from_location": "Customer - Phoenix Distribution",
+      "to_location": "Customer - Phoenix Distribution",
+      "dock_duration_hours": 1.5,
+      "customer_name": "Phoenix Distribution",
+      "estimated_arrival": "2026-02-07T02:54:00Z",
+      "estimated_departure": "2026-02-07T04:24:00Z",
+      "hos_state_after": {
+        "hours_driven": 4.8,
+        "on_duty_time": 6.3,
+        "hours_since_break": 6.3
+      }
+    },
+    {
+      "sequence_order": 7,
+      "segment_type": "drive",
+      "from_location": "Customer - Phoenix Distribution",
+      "to_location": "Phoenix Terminal",
+      "distance_miles": 4.2,
+      "drive_time_hours": 0.2,
+      "estimated_arrival": "2026-02-07T04:36:00Z",
+      "estimated_departure": "2026-02-07T04:36:00Z",
+      "hos_state_after": {
+        "hours_driven": 5.0,
+        "on_duty_time": 6.5,
+        "hours_since_break": 6.5
+      }
+    },
+    {
+      "sequence_order": 8,
+      "segment_type": "dock",
+      "from_location": "Phoenix Terminal",
+      "to_location": "Phoenix Terminal",
+      "dock_duration_hours": 0.5,
+      "estimated_arrival": "2026-02-07T04:36:00Z",
+      "estimated_departure": "2026-02-07T05:06:00Z",
+      "hos_state_after": {
+        "hours_driven": 5.0,
+        "on_duty_time": 7.0,
+        "hours_since_break": 7.0
+      }
+    }
+  ],
+  "summary": {
+    "total_distance_miles": 354.9,
+    "total_drive_time_hours": 6.1,
+    "total_on_duty_time_hours": 16.1,
+    "total_cost_estimate": 285.43,
+    "total_driving_segments": 3,
+    "total_rest_stops": 1,
+    "total_fuel_stops": 0,
+    "total_dock_stops": 4,
+    "estimated_completion": "2026-02-07T05:06:00Z"
+  },
+  "rest_stops": [
+    {
+      "location": "Customer - Riverside Logistics",
+      "type": "full_rest",
+      "duration_hours": 10.0,
+      "reason": "Driver approaching 14h duty limit. Full rest required for HOS compliance."
+    }
+  ],
+  "fuel_stops": [],
+  "compliance": {
+    "is_feasible": true,
+    "max_drive_hours_used": 6.1,
+    "max_duty_hours_used": 12.1,
+    "breaks_required": 0,
+    "breaks_planned": 0,
+    "violations": []
+  },
+  "feasibility_issues": [],
+  "data_sources": [
+    "Distance Matrix: Static OSM Data (MVP)",
+    "HOS State: Manual Input",
+    "Fuel Prices: Static Estimates"
+  ]
+}
+```
+
+### Key Response Fields
+
+**Segment Types:**
+
+1. **drive** - Driving from one location to another
+   - `distance_miles`: Distance traveled
+   - `drive_time_hours`: Estimated drive time
+   - Consumes HOS drive time and duty time
+
+2. **rest** - Required rest stop for HOS compliance
+   - `rest_type`: full_rest (10h), partial_rest (7-8h), break (30min)
+   - `rest_duration_hours`: How long driver must rest
+   - `rest_reason`: Why this rest is needed
+   - Resets HOS hours (full rest) or allows split sleeper berth
+
+3. **dock** - Time at customer location loading/unloading
+   - `dock_duration_hours`: Estimated time at dock
+   - `customer_name`: Customer facility name
+   - Consumes HOS duty time (not drive time)
+
+4. **fuel** - Fuel stop (inserted when fuel low)
+   - `fuel_gallons`: Gallons to purchase
+   - `fuel_cost_estimate`: Estimated cost
+   - `fuel_station_name`: Station name/brand
+
+**HOS State After Each Segment:**
+- `hours_driven`: Cumulative drive time (max 11h)
+- `on_duty_time`: Cumulative on-duty time (max 14h)
+- `hours_since_break`: Time since last 30-min break (max 8h)
+
+**Compliance Report:**
+- `is_feasible`: Can driver complete route without violations?
+- `violations`: List of HOS violations (should be empty for valid routes)
+- `max_drive_hours_used`: Peak drive time reached during route
+- `max_duty_hours_used`: Peak duty time reached during route
+
+## Step 4: Analyze the Route Plan
+
+Let's break down what SALLY did:
+
+### 1. Sequenced Stops Optimally
+SALLY analyzed all stops and determined the most efficient order while respecting customer time windows.
+
+### 2. Tracked HOS Consumption
+After each segment, SALLY calculated:
+- How much drive time consumed
+- How much on-duty time consumed
+- How close to HOS limits
+
+### 3. Inserted Rest Stop
+At **sequence 4**, SALLY detected the driver would exceed the 14-hour duty limit before completing the route. It inserted a **full 10-hour rest** at the customer location (leveraging dock time).
+
+**Why this location?**
+- Driver had 12.1 hours on duty after Customer - Riverside Logistics dock
+- Remaining route requires ~5 hours drive time
+- Driver would exceed 14h duty limit without rest
+- Rest at customer location is safer and more convenient
+
+### 4. Validated Compliance
+The compliance report shows:
+- ✅ Route is feasible
+- ✅ No HOS violations
+- ✅ Maximum drive time: 6.1h (under 11h limit)
+- ✅ Maximum duty time: 12.1h (under 14h limit)
+
+### 5. Provided Transparency
+Each rest stop includes a `rest_reason` explaining why it's needed. This audit trail is critical for compliance and dispatcher decision-making.
+
+## Step 5: Common Scenarios
+
+### Scenario A: Route Without Rest Stops
+
+If the driver has enough hours available, SALLY won't insert unnecessary rest stops.
+
+**Example:** Driver has 9h drive time remaining, route only needs 4h.
+
+```json
+{
+  "driver_state": {
+    "hours_driven": 2.0,
+    "on_duty_time": 3.0,
+    "hours_since_break": 2.0
+  }
+}
+```
+
+**Result:** Direct route with no rest stops inserted.
+
+### Scenario B: Multiple Rest Stops
+
+For long-haul routes, SALLY may insert multiple rest stops.
+
+**Example:** 1,200-mile route across 3 days.
+
+**Result:** SALLY inserts 2-3 rest stops spaced appropriately to maintain compliance throughout the journey.
+
+### Scenario C: Fuel Stops Inserted
+
+When fuel runs low, SALLY automatically inserts fuel stops.
+
+**Example:**
+```json
+{
+  "vehicle_state": {
+    "fuel_capacity_gallons": 150.0,
+    "current_fuel_gallons": 30.0,
+    "mpg": 6.5
+  }
+}
+```
+
+**Result:** Route includes fuel stop segments with station names, gallons needed, and estimated cost.
+
+### Scenario D: Infeasible Route
+
+Sometimes a route cannot be completed as requested.
+
+**Example:** Customer appointment time is impossible to meet with available HOS.
+
+**Result:**
+```json
+{
+  "compliance": {
+    "is_feasible": false,
+    "violations": ["Cannot meet appointment time at STOP-003 due to HOS constraints"]
+  },
+  "feasibility_issues": [
+    "Driver needs 8h drive time but only has 5h available",
+    "Earliest arrival: 2026-02-07T10:00:00Z (3h after appointment)"
+  ]
+}
+```
+
+## Step 6: Troubleshooting
+
+### Error: 401 Unauthorized
+
+**Cause:** Invalid or missing API key
+
+**Solution:**
+```bash
+# Check your API key format
+echo $SALLY_API_KEY
+# Should start with: sk_staging_
+
+# Regenerate key if needed in dashboard
+```
+
+### Error: 400 Bad Request - Invalid driver_state
+
+**Cause:** HOS values exceed legal limits
+
+**Solution:**
+```json
+{
+  "driver_state": {
+    "hours_driven": 5.0,    // Must be ≤ 11.0
+    "on_duty_time": 8.0,    // Must be ≤ 14.0
+    "hours_since_break": 4.5 // Must be ≤ 8.0
+  }
+}
+```
+
+### Error: 400 Bad Request - Invalid stops
+
+**Cause:** Missing required fields or invalid stop configuration
+
+**Solution:**
+- Ensure exactly one stop has `is_origin: true`
+- Ensure exactly one stop has `is_destination: true`
+- All stops must have `lat`, `lon`, and `name`
+- `estimated_dock_hours` defaults to 0 if not provided
+
+### Error: 422 Unprocessable Entity
+
+**Cause:** Request schema validation failed
+
+**Solution:** Check request matches the schema:
+- All required fields present
+- Correct data types (numbers not strings)
+- Valid enum values for `optimization_priority` (time, cost, balanced)
+
+### Empty Response or Timeout
+
+**Cause:** Request payload too large or API issue
+
+**Solution:**
+- Reduce number of stops (try with 2-3 first)
+- Check API status at [status.sally.com](https://status.sally.com)
+- Contact support if issue persists
+
+## Next Steps
+
+Congratulations! You've successfully planned your first HOS-compliant route with SALLY.
+
+### Go Deeper
+
+- **[Understanding HOS Rules](/guides/understanding-hos)** - Learn how SALLY validates HOS compliance
+- **[Route Updates](/guides/route-planning/updating-routes)** - Handle dynamic changes (dock delays, traffic, etc.)
+- **[Rest Optimization](/guides/route-planning/rest-optimization)** - How SALLY decides when and where to rest
+- **[Monitoring Active Routes](/api-reference/monitoring)** - Track routes in real-time
+
+### Explore API Reference
+
+- **[POST /route-planning/optimize](/api-reference/route-planning#optimize-route)** - Full endpoint documentation
+- **[Driver State Schema](/api-reference/schemas#driver-state)** - All HOS fields explained
+- **[Segment Types](/api-reference/schemas#segment-types)** - Complete segment reference
+
+### Build Your Integration
+
+- **[Webhooks](/guides/webhooks)** - Get notified of route events
+- **[Batch Planning](/guides/fleet-optimization)** - Plan multiple routes at once
+- **[TMS Integration](/guides/integrations/tms)** - Connect your existing TMS
+
+## Summary
+
+In this tutorial, you learned:
+
+✅ How to authenticate API requests with API keys
+✅ How to structure a route planning request with driver, vehicle, and stops
+✅ How SALLY analyzes HOS and inserts rest stops automatically
+✅ How to interpret route segments (drive, rest, fuel, dock)
+✅ How to read compliance reports and feasibility validation
+✅ How to troubleshoot common API errors
+
+SALLY handles the complexity of HOS compliance so you can focus on building great fleet management experiences.
+
+Ready to plan routes for your entire fleet? Check out our [Fleet Optimization Guide](/guides/fleet-optimization).
