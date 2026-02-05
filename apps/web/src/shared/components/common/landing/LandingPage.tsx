@@ -96,12 +96,8 @@ export function LandingPage() {
           </motion.div>
         </div>
       </section>
-
-      {/* Section 2: Three Core Capabilities */}
-      <CapabilitiesSection />
-
-      {/* Section 3: The Coordination Gap */}
-      <section className="py-32 bg-muted">
+   {/* Section 2: The Coordination Gap */}
+   <section className="py-32 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-20">
@@ -164,6 +160,12 @@ export function LandingPage() {
           </ScrollReveal>
         </div>
       </section>
+
+
+      {/* Section 3: Three Core Capabilities */}
+      <CapabilitiesSection />
+
+
 
       {/* Section 4: One Platform */}
       <section className="py-32 bg-background">
@@ -259,8 +261,8 @@ export function LandingPage() {
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               <FeatureCard
                 icon={<MonitorIcon />}
-                title="Continuous Monitoring"
-                description="14 trigger types monitored every 60 seconds to catch issues before they become problems"
+                title="24/7 Continuous Monitoring"
+                description="14 trigger types monitored every 60 seconds around the clock to catch issues before they become problems"
                 delay={0.3}
               />
               <FeatureCard
@@ -296,7 +298,7 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-20">
-              Three Steps to Compliance
+              How It Works
             </h2>
           </ScrollReveal>
 

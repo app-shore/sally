@@ -26,8 +26,17 @@ export function CapabilitiesSection() {
   ];
 
   return (
-    <section className="py-24 bg-background">
+    <section className="py-32 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
+          <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
+            Three Core Capabilities
+          </h2>
+          <p className="text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-20">
+            SALLY coordinates your fleet operations with automated planning, continuous monitoring, and proactive alerts
+          </p>
+        </ScrollReveal>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {capabilities.map((capability, index) => (
             <ScrollReveal key={capability.title} delay={index * 0.2}>
