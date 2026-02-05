@@ -174,7 +174,7 @@ export function LandingPage() {
               One Platform. Zero Violations.
             </h2>
             <p className="text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-20">
-              Watch as SALLY automatically builds an HOS-compliant route with optimized stops
+              Watch as SALLY plans an HOS-compliant route with optimized stops
             </p>
           </ScrollReveal>
 
