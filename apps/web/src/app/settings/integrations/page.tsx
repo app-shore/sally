@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/auth-store';
-import { ConnectionsTab } from '@/components/settings/ConnectionsTab';
+import { useAuthStore } from '@/features/auth';
+import { ConnectionsTab } from '@/features/integrations/components/ConnectionsTab';
 
 export default function IntegrationsPage() {
   const { isAuthenticated, user } = useAuthStore();

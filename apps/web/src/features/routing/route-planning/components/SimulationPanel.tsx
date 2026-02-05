@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import { useTriggerSimulation } from "@/lib/hooks/useRoutePlanning";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import type { TriggerInput } from "@/lib/types/trigger";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import { useTriggerSimulation } from "@/features/routing/route-planning";
+import { Button } from "@/shared/components/ui/button";
+import { Card } from "@/shared/components/ui/card";
+import { Label } from "@/shared/components/ui/label";
+import { Input } from "@/shared/components/ui/input";
+import type { TriggerInput } from "@/features/routing/route-planning";
 
 export function SimulationPanel() {
   const { currentPlan, selectedTriggers, addTrigger, removeTrigger, exitSimulationMode } =

@@ -11,11 +11,11 @@
  */
 
 import { useState } from "react";
-import type { RoutePlan } from "@/lib/types/routePlan";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import RouteKPICards from "./RouteKPICards";
 import HorizontalRouteTimeline from "./HorizontalRouteTimeline";
 import VerticalCompactTimeline from "./VerticalCompactTimeline";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import { LayoutGrid, List } from "lucide-react";
 
 interface OverviewTabProps {

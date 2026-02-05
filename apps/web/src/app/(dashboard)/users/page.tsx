@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UserList } from "@/components/users/user-list";
-import { InviteUserDialog } from "@/components/users/invite-user-dialog";
+import { UserList, InviteUserDialog } from "@/features/platform/users";
 
 export default function UsersPage() {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);

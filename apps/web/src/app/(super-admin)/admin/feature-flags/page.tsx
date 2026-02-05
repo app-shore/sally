@@ -1,37 +1,36 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuthStore } from "@/stores/auth-store";
+import { useAuthStore } from "@/features/auth";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { useFeatureFlags } from "@/lib/hooks/useFeatureFlags";
-import { useFeatureFlagsStore } from "@/stores/featureFlagsStore";
-import { updateFeatureFlag } from "@/lib/api/featureFlags";
+} from "@/shared/components/ui/card";
+import { Switch } from "@/shared/components/ui/switch";
+import { Badge } from "@/shared/components/ui/badge";
+import { Label } from "@/shared/components/ui/label";
+import { Button } from "@/shared/components/ui/button";
+import { Separator } from "@/shared/components/ui/separator";
+import { useFeatureFlags } from "@/features/platform/feature-flags";
+import { updateFeatureFlag } from "@/features/platform/feature-flags";
 import { Loader2, XCircle, Flag } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/shared/hooks";
 
 export default function FeatureFlagsAdminPage() {
   const { isAuthenticated, user } = useAuthStore();
-  const { flags, isLoading, error, refetch } = useFeatureFlags();
+  const { data: flags = [], isLoading, error, refetch } = useFeatureFlags();
   const { toast } = useToast();
 
   const [localFlags, setLocalFlags] = useState<Record<string, boolean>>({});
   const [savingFlags, setSavingFlags] = useState<Set<string>>(new Set());
 
-  // Initialize local state from store
+  // Initialize local state from query data
   useEffect(() => {
     const initialState: Record<string, boolean> = {};
-    flags.forEach((flag) => {
+    flags.forEach((flag: any) => {
       initialState[flag.key] = flag.enabled;
     });
     setLocalFlags(initialState);

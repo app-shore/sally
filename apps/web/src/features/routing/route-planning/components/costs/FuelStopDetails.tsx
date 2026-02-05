@@ -9,8 +9,8 @@
  * - Alternatives (if available)
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { RoutePlan } from "@/lib/types/routePlan";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import { Fuel } from "lucide-react";
 
 interface FuelStopDetailsProps {

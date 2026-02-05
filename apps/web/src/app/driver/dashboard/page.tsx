@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/stores/auth-store";
-import { getDriver, type Driver } from "@/lib/api/drivers";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import { useAuthStore } from "@/features/auth";
+import { getDriver, type Driver } from "@/features/fleet/drivers";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Progress } from "@/shared/components/ui/progress";
+import { Badge } from "@/shared/components/ui/badge";
 import { Clock, MapPin, AlertCircle } from "lucide-react";
-import { FeatureGuard } from "@/components/feature-flags/FeatureGuard";
+import { FeatureGuard } from "@/features/platform/feature-flags";
 
 export default function DriverDashboardPage() {
   return (

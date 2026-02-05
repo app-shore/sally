@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { usePreferencesStore } from '@/stores/preferencesStore';
-import { UserPreferences } from '@/lib/api/preferences';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+import { Label } from '@/shared/components/ui/label';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/components/ui/select';
+import { Input } from '@/shared/components/ui/input';
+import { Button } from '@/shared/components/ui/button';
+import { Switch } from '@/shared/components/ui/switch';
+import { usePreferencesStore } from '@/features/platform/preferences';
+import { UserPreferences } from '@/features/platform/preferences';
 import { Loader2, Save, RotateCcw } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 
 export default function UserPreferencesTab() {
   const { userPreferences, updateUserPrefs, resetToDefaults, isSaving } = usePreferencesStore();

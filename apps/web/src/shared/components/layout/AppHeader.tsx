@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { Menu, Bell } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/shared/components/ui/badge';
 import { UserProfileMenu } from './UserProfileMenu';
 import { ThemeToggle } from './ThemeToggle';
 import { CommandPalette } from './CommandPalette';
-import { useAuthStore } from '@/stores/auth-store';
+import { useAuthStore } from '@/features/auth';
 
 interface AppHeaderProps {
   onToggleSidebar: () => void;

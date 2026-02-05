@@ -9,11 +9,11 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
 import { CheckCircle } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
-import { getDefaultRouteForRole } from "@/lib/navigation";
+import { useAuth } from "@/features/auth";
+import { getDefaultRouteForRole } from "@/shared/lib/navigation";
 
 export default function OnboardingPage() {
   const router = useRouter();

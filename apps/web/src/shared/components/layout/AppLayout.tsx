@@ -5,12 +5,12 @@ import { useRouter, usePathname } from 'next/navigation';
 import { AppSidebar } from './AppSidebar';
 import { AppHeader } from './AppHeader';
 import { AlertsPanel } from './AlertsPanel';
-import { OnboardingBanner } from '@/components/onboarding/OnboardingBanner';
-import { useAuthStore } from '@/stores/auth-store';
-import { useOnboardingStore } from '@/stores/onboardingStore';
+import { OnboardingBanner } from '@/features/platform/onboarding';
+import { useAuthStore } from '@/features/auth';
+import { useOnboardingStore } from '@/features/platform/onboarding';
 import { useQuery } from '@tanstack/react-query';
-import { listAlerts } from '@/lib/api/alerts';
-import { cn } from '@/lib/utils';
+import { listAlerts } from '@/features/operations/alerts';
+import { cn } from '@/shared/lib/utils';
 
 interface AppLayoutProps {
   children: React.ReactNode;

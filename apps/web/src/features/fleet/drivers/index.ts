@@ -1,5 +1,13 @@
 // API
-export { driversApi } from './api';
+export {
+  driversApi,
+  listDrivers,
+  getDriver,
+  createDriver,
+  updateDriver,
+  deleteDriver,
+  getDriverHOS,
+} from './api';
 
 // Types
 export type { Driver, CreateDriverRequest, UpdateDriverRequest, DriverHOS } from './types';

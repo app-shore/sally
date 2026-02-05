@@ -3,7 +3,7 @@
  * Centralizes common logic to avoid code duplication
  */
 
-import type { RouteSegment } from "@/lib/types/routePlan";
+import type { RouteSegment } from "@/features/routing/route-planning";
 import { Navigation, Bed, Fuel, Building2, Circle, Flag } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 

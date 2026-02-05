@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { OnboardingWidget } from "@/components/onboarding/OnboardingWidget";
-import { useOnboardingStore } from "@/stores/onboardingStore";
-import { useAuth } from "@/hooks/use-auth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
+import { OnboardingWidget } from "@/features/platform/onboarding";
+import { useOnboardingStore } from "@/features/platform/onboarding";
+import { useAuth } from "@/features/auth";
 import {
   BarChart3,
   Users,

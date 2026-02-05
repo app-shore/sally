@@ -12,9 +12,9 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import { Card } from "@/shared/components/ui/card";
 import RouteHeader from "./RouteHeader";
 import OverviewTab from "../overview/OverviewTab";
 import FullyExpandedRouteTimeline from "../route/FullyExpandedRouteTimeline";

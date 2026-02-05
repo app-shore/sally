@@ -1,5 +1,11 @@
 // API
-export { featureFlagsApi } from './api';
+export {
+  featureFlagsApi,
+  fetchAllFeatureFlags,
+  fetchFeatureFlag,
+  checkFeatureEnabled,
+  updateFeatureFlag,
+} from './api';
 
 // Types
 export type {
@@ -8,7 +14,7 @@ export type {
   FeatureFlagEnabledResponse,
 } from './types';
 
-// Hooks
+// Hooks - React Query based
 export {
   useFeatureFlags,
   useFeatureFlag,

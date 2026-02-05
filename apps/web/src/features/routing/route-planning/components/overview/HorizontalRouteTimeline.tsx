@@ -11,9 +11,9 @@
  */
 
 import { useState, memo, useMemo, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import type { RoutePlan } from "@/lib/types/routePlan";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import { ArrowRight, X } from "lucide-react";
 import { formatTime, getSegmentDisplay, getMinimalLabel } from "../utils/routeTimelineUtils";
 import { getExpandedDetails } from "../shared/segmentDetails";

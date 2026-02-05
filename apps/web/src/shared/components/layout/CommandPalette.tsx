@@ -11,9 +11,9 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
-import { getNavigationForRole } from '@/lib/navigation';
-import { useAuthStore } from '@/stores/auth-store';
+} from '@/shared/components/ui/command';
+import { getNavigationForRole } from '@/shared/lib/navigation';
+import { useAuthStore } from '@/features/auth';
 
 export function CommandPalette() {
   const router = useRouter();
@@ -65,7 +65,7 @@ export function CommandPalette() {
           <CommandGroup heading="Navigation">
             {navItems.filter((item) => !('type' in item)).map((item) => {
               // Type guard: we filtered out separators, so this is NavItem
-              const navItem = item as import('@/lib/navigation').NavItem;
+              const navItem = item as import('@/shared/lib/navigation').NavItem;
               const Icon = navItem.icon;
               return (
                 <CommandItem

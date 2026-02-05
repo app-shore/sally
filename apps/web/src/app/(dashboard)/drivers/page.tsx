@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DriverList } from "@/components/drivers/driver-list";
-import { DriverActivationDialog } from "@/components/drivers/driver-activation-dialog";
+import { DriverList, DriverActivationDialog } from "@/features/fleet/drivers";
 
 export default function DriversPage() {
   const [selectedDriver, setSelectedDriver] = useState<any>(null);

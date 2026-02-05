@@ -11,8 +11,8 @@
  */
 
 import { useState, memo, useMemo, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import type { RoutePlan } from "@/lib/types/routePlan";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import { Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { formatTime, getSegmentDisplay, getMinimalSummary } from "../utils/routeTimelineUtils";
 import { getFullDetails } from "../shared/segmentDetails";

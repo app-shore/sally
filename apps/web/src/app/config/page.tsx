@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/auth-store";
+import { useAuthStore } from "@/features/auth";
 import {
   listDrivers,
   createDriver,
@@ -10,7 +10,7 @@ import {
   deleteDriver,
   type Driver,
   type CreateDriverRequest,
-} from "@/lib/api/drivers";
+} from "@/features/fleet/drivers";
 import {
   listVehicles,
   createVehicle,
@@ -18,19 +18,19 @@ import {
   deleteVehicle,
   type Vehicle,
   type CreateVehicleRequest,
-} from "@/lib/api/vehicles";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@/features/fleet/vehicles";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/shared/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -38,7 +38,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/shared/components/ui/table";
 
 export default function ConfigPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);

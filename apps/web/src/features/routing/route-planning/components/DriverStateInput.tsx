@@ -1,11 +1,11 @@
 "use client";
 
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import { Card } from "@/shared/components/ui/card";
+import { Label } from "@/shared/components/ui/label";
+import { Slider } from "@/shared/components/ui/slider";
 import { useQuery } from "@tanstack/react-query";
-import { listDrivers } from "@/lib/api/drivers";
+import { listDrivers } from "@/features/fleet/drivers";
 
 export function DriverStateInput() {
   const { driverId, setDriverId, driverState, setDriverState, selectedScenario } = useRoutePlanStore();

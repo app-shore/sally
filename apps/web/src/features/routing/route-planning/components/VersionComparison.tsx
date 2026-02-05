@@ -1,7 +1,7 @@
 "use client";
 
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import { Card } from "@/components/ui/card";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import { Card } from "@/shared/components/ui/card";
 
 export function VersionComparison() {
   const { planVersions, currentVersion } = useRoutePlanStore();

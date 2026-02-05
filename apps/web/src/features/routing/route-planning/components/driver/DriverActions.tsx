@@ -9,9 +9,9 @@
  * - View full details link
  */
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import type { RoutePlan } from "@/lib/types/routePlan";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import { MessageSquare, Clock, FileText } from "lucide-react";
 
 interface DriverActionsProps {

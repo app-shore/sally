@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback } from "react";
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import { Card } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
 
 export function StopsManager() {
   const { stops, addStop, removeStop } = useRoutePlanStore();

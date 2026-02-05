@@ -10,9 +10,9 @@
  * - Plan status badges
  */
 
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import type { RoutePlan } from "@/lib/types/routePlan";
+import { Badge } from "@/shared/components/ui/badge";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 
 interface RouteHeaderProps {

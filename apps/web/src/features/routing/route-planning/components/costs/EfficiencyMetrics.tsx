@@ -10,9 +10,9 @@
  * - Cost vs optimal delta
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import type { RoutePlan } from "@/lib/types/routePlan";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 interface EfficiencyMetricsProps {

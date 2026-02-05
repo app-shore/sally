@@ -1,13 +1,13 @@
 'use client';
 
 import { CheckCircle2, AlertTriangle, Zap, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/components/ui/button';
 import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
-import { OnboardingItem } from '@/stores/onboardingStore';
+} from '@/shared/components/ui/accordion';
+import { OnboardingItem } from '@/features/platform/onboarding';
 import { useRouter } from 'next/navigation';
 
 interface OnboardingItemCardProps {

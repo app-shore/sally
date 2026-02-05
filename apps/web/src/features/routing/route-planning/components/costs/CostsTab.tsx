@@ -9,7 +9,7 @@
  * - Efficiency metrics
  */
 
-import type { RoutePlan } from "@/lib/types/routePlan";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import CostBreakdownChart from "./CostBreakdownChart";
 import FuelStopDetails from "./FuelStopDetails";
 import EfficiencyMetrics from "./EfficiencyMetrics";

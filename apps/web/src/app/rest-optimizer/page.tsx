@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ControlPanel } from "@/components/dashboard/ControlPanel";
-import { VisualizationArea } from "@/components/dashboard/VisualizationArea";
-import { ResizableSidebar } from "@/components/dashboard/ResizableSidebar";
-import { useEngineRun } from "@/lib/hooks/useEngineRun";
+import { ControlPanel } from "@/shared/components/common/dashboard/ControlPanel";
+import { VisualizationArea } from "@/shared/components/common/dashboard/VisualizationArea";
+import { ResizableSidebar } from "@/shared/components/common/dashboard/ResizableSidebar";
+import { useEngineRun } from "@/features/routing/optimization";
 
 export default function RestOptimizerPage() {
   const { mutate: runEngine, isPending } = useEngineRun();

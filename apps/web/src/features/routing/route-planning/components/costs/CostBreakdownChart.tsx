@@ -9,8 +9,8 @@
  * - Delay costs (if applicable)
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { RoutePlan } from "@/lib/types/routePlan";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 
 interface CostBreakdownChartProps {

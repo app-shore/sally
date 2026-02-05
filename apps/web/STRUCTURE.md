@@ -1,544 +1,636 @@
-# Frontend Structure Guide
-**Last Updated:** 2026-02-05
-**Next.js Version:** 15 (App Router)
+# Frontend Architecture - SALLY Web App
+
+**Last Updated:** February 5, 2026
+**Architecture:** Domain-Driven Design (DDD) with Feature-Sliced Architecture
 
 ---
 
-## 📁 Directory Overview
+## Overview
+
+The frontend mirrors the backend's domain structure for consistency and developer experience. We use a hybrid architecture:
+- **`features/`** - Domain-aligned business logic (mirrors backend domains)
+- **`app/`** - Next.js App Router pages (route-based organization)
+- **`shared/`** - Cross-cutting concerns and utilities
+
+---
+
+## Directory Structure
 
 ```
 apps/web/src/
-├── app/                    # Next.js App Router (pages & layouts)
-├── components/             # React components
-├── stores/                 # Zustand state management
-├── lib/                    # Utilities, hooks, types, API clients
-├── hooks/                  # Custom React hooks (shared)
-└── styles/                 # Global styles
-```
-
----
-
-## 🗂️ Detailed Structure
-
-### `/app` - Next.js App Router (Routes & Pages)
-
-```
-app/
-├── layout.tsx              # Root layout (fonts, metadata, providers)
-├── layout-client.tsx       # Client-side layout logic (auth routing)
-├── providers.tsx           # React Query + Auth providers
-├── page.tsx                # Landing page (/)
+├── app/                          # Next.js 15 App Router (route-based pages)
+│   ├── (dashboard)/             # Dashboard layout group
+│   ├── (super-admin)/           # Admin layout group
+│   ├── dispatcher/              # Dispatcher role pages
+│   ├── driver/                  # Driver role pages
+│   ├── settings/                # Settings pages
+│   └── layout.tsx               # Root layout
 │
-├── login/                  # Auth routes
-│   └── page.tsx
-├── register/
-│   └── page.tsx
-│
-├── dispatcher/             # Dispatcher dashboard
-│   ├── overview/           # Dashboard home
-│   ├── create-plan/        # ⭐ Route planning (heaviest page)
-│   └── active-routes/      # Monitor active routes
-│
-├── driver/                 # Driver mobile view
-│   ├── dashboard/
-│   ├── current-route/
-│   └── messages/
-│
-├── (dashboard)/            # Route group (shared layout)
-│   ├── drivers/            # Driver management
-│   └── users/              # User management
-│
-├── (super-admin)/          # Super admin only
-│   └── admin/
-│       ├── tenants/        # Multi-tenant management
-│       └── feature-flags/  # Feature flag controls
-│
-└── settings/               # Settings pages
-    ├── fleet/
-    ├── integrations/
-    ├── operations/
-    └── preferences/
-```
-
-**Critical Files:**
-- `layout.tsx` - Root layout, metadata, font loading
-- `providers.tsx` - React Query + Auth setup
-- `dispatcher/create-plan/page.tsx` - Main route planning UI (lazy loaded)
-
----
-
-### `/components` - React Components
-
-```
-components/
-├── ui/                     # Shadcn UI primitives (32 components)
-│   ├── button.tsx
-│   ├── card.tsx
-│   ├── dialog.tsx
-│   └── ...                 # All Shadcn components
-│
-├── route-planner/          # ⭐ Route planning components (biggest module)
-│   ├── core/               # Main containers
-│   │   ├── RoutePlanningCockpit.tsx     # Tab container (lazy loaded)
-│   │   ├── RoutePlanningCockpitSkeleton.tsx
-│   │   └── RouteHeader.tsx
+├── features/                    # Domain-aligned feature modules
 │   │
-│   ├── overview/           # Overview tab
-│   │   ├── OverviewTab.tsx
-│   │   ├── RouteKPICards.tsx
-│   │   ├── HorizontalRouteTimeline.tsx  # Memoized
-│   │   └── VerticalCompactTimeline.tsx  # Memoized
+│   ├── auth/                    # Authentication (top-level domain)
+│   │   ├── api.ts              # Auth API client
+│   │   ├── types.ts            # Auth types
+│   │   ├── hooks/              # React Query hooks
+│   │   │   └── use-auth.ts    # useAuth hook
+│   │   ├── components/         # Auth UI components
+│   │   │   ├── LoginScreen.tsx
+│   │   │   ├── login-form.tsx
+│   │   │   └── registration-form.tsx
+│   │   ├── store.ts            # Zustand store for auth state
+│   │   ├── __tests__/          # Auth tests
+│   │   └── index.ts            # Barrel export
 │   │
-│   ├── route/              # Route tab
-│   │   └── FullyExpandedRouteTimeline.tsx  # Memoized
+│   ├── integrations/            # Integrations (top-level domain)
+│   │   ├── api.ts              # Integrations API
+│   │   ├── components/         # Integration components
+│   │   └── index.ts
 │   │
-│   ├── costs/              # Costs tab (lazy loaded)
-│   │   ├── CostsTab.tsx
-│   │   ├── CostBreakdownChart.tsx  # Uses Recharts
-│   │   ├── FuelStopDetails.tsx
-│   │   └── EfficiencyMetrics.tsx
+│   ├── fleet/                   # Fleet Management Domain
+│   │   ├── drivers/
+│   │   │   ├── api.ts          # driversApi + legacy exports
+│   │   │   ├── types.ts        # Driver, CreateDriverRequest, etc.
+│   │   │   ├── hooks/
+│   │   │   │   └── use-drivers.ts  # useDrivers, useCreateDriver, etc.
+│   │   │   ├── components/
+│   │   │   │   ├── driver-list.tsx
+│   │   │   │   └── driver-activation-dialog.tsx
+│   │   │   └── index.ts
+│   │   ├── vehicles/
+│   │   │   ├── api.ts
+│   │   │   ├── types.ts
+│   │   │   ├── hooks/
+│   │   │   └── index.ts
+│   │   └── loads/
+│   │       ├── api.ts
+│   │       ├── types.ts
+│   │       ├── hooks/
+│   │       ├── components/
+│   │       └── index.ts
 │   │
-│   ├── shared/             # Reusable components
-│   │   ├── LoadSelector.tsx
-│   │   ├── DriverSelector.tsx
-│   │   ├── VehicleSelector.tsx
-│   │   ├── ComplianceStatus.tsx
-│   │   └── segmentDetails.tsx
+│   ├── routing/                 # Routing Domain
+│   │   ├── route-planning/
+│   │   │   ├── api.ts          # routePlanningApi + legacy exports
+│   │   │   ├── types.ts        # RoutePlan, triggers, etc.
+│   │   │   ├── hooks/
+│   │   │   │   ├── use-route-planning.ts
+│   │   │   │   └── useRoutePlanning.ts  # Store-based hooks
+│   │   │   ├── components/     # 40+ planning components
+│   │   │   │   ├── core/
+│   │   │   │   ├── costs/
+│   │   │   │   ├── driver/
+│   │   │   │   ├── overview/
+│   │   │   │   ├── route/
+│   │   │   │   └── shared/
+│   │   │   ├── store.ts        # Route planning Zustand store
+│   │   │   └── index.ts
+│   │   ├── optimization/
+│   │   │   ├── api.ts          # optimizationApi + legacy
+│   │   │   ├── types.ts        # REST optimization types
+│   │   │   ├── hooks/
+│   │   │   │   ├── use-optimization.ts
+│   │   │   │   └── useEngineRun.ts
+│   │   │   ├── store.ts        # Engine store
+│   │   │   └── index.ts
+│   │   └── hos-compliance/
+│   │       ├── api.ts          # hosComplianceApi + legacy
+│   │       ├── types.ts
+│   │       ├── hooks/
+│   │       └── index.ts
 │   │
-│   └── utils/              # Pure functions
-│       └── routeTimelineUtils.ts
+│   ├── operations/              # Operations Domain
+│   │   ├── alerts/
+│   │   │   ├── api.ts
+│   │   │   ├── types.ts
+│   │   │   ├── hooks/
+│   │   │   ├── components/
+│   │   │   └── index.ts
+│   │   └── monitoring/
+│   │       └── (existing structure)
+│   │
+│   └── platform/                # Platform Domain
+│       ├── preferences/
+│       │   ├── api.ts          # User, operations, driver preferences
+│       │   ├── types.ts
+│       │   ├── hooks/
+│       │   ├── components/
+│       │   ├── store.ts
+│       │   └── index.ts
+│       ├── feature-flags/
+│       │   ├── api.ts
+│       │   ├── types.ts
+│       │   ├── hooks/
+│       │   │   └── use-feature-flags.ts  # React Query hooks ONLY
+│       │   ├── components/
+│       │   │   ├── ComingSoonBanner.tsx
+│       │   │   └── FeatureGuard.tsx
+│       │   └── index.ts
+│       ├── onboarding/
+│       │   ├── api.ts
+│       │   ├── types.ts
+│       │   ├── hooks/
+│       │   ├── components/
+│       │   ├── store.ts
+│       │   └── index.ts
+│       ├── users/
+│       │   └── (existing structure)
+│       ├── admin/
+│       │   ├── components/
+│       │   │   └── tenant-list.tsx
+│       │   └── index.ts
+│       └── chat/
+│           ├── components/
+│           │   ├── FloatingSallyButton.tsx
+│           │   ├── GlobalSallyChat.tsx
+│           │   └── SallyChatPanel.tsx
+│           ├── store.ts
+│           └── index.ts
 │
-├── layout/                 # App layout components
-│   ├── AppLayout.tsx       # Main app shell
-│   ├── AppSidebar.tsx      # Navigation sidebar
-│   ├── AppHeader.tsx       # Top header
-│   ├── UserProfileMenu.tsx
-│   ├── CommandPalette.tsx  # Cmd+K search
-│   ├── ThemeToggle.tsx
-│   └── AlertsPanel.tsx
+├── shared/                      # Shared utilities and components
+│   ├── components/
+│   │   ├── ui/                 # 28 Shadcn UI components
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── input.tsx
+│   │   │   └── ... (25 more)
+│   │   ├── layout/             # Layout components
+│   │   │   ├── AppLayout.tsx
+│   │   │   ├── AppSidebar.tsx
+│   │   │   ├── AppHeader.tsx
+│   │   │   └── ... (5 more)
+│   │   └── common/             # Shared common components
+│   │       ├── ThemeProvider.tsx
+│   │       ├── dashboard/      # Dashboard widgets
+│   │       ├── landing/        # Landing page components
+│   │       └── providers/      # App-wide providers
+│   │
+│   ├── hooks/
+│   │   ├── use-toast.ts
+│   │   └── index.ts
+│   │
+│   ├── lib/
+│   │   ├── api/
+│   │   │   ├── client.ts       # Base API client
+│   │   │   ├── external.ts     # Mock external APIs
+│   │   │   ├── scenarios.ts    # Test scenarios
+│   │   │   └── scenarios-types.ts
+│   │   ├── utils/
+│   │   │   ├── cn.ts           # Tailwind class merging
+│   │   │   ├── formatters.ts   # Date/number formatters
+│   │   │   ├── validation.ts   # Validation utilities
+│   │   │   └── index.ts
+│   │   ├── validation/
+│   │   │   ├── schemas.ts      # Zod schemas
+│   │   │   └── index.ts
+│   │   ├── firebase.ts
+│   │   └── navigation.ts
+│   │
+│   ├── config/
+│   │   └── comingSoonContent.ts
+│   │
+│   └── types/
+│       └── (shared type definitions)
 │
-├── auth/                   # Authentication
-│   ├── LoginScreen.tsx
-│   ├── login-form.tsx
-│   ├── registration-form.tsx
-│   └── accept-invitation-form.tsx
-│
-├── landing/                # Marketing landing page
-│   ├── LandingPage.tsx
-│   ├── FeatureCard.tsx
-│   ├── ROICalculator.tsx
-│   └── AnimatedRoute.tsx
-│
-├── drivers/                # Driver management
-│   ├── driver-list.tsx
-│   └── driver-activation-dialog.tsx
-│
-├── users/                  # User management
-│   ├── user-list.tsx
-│   └── invite-user-dialog.tsx
-│
-├── settings/               # Settings components
-│   ├── IntegrationCard.tsx
-│   ├── ConnectionsTab.tsx
-│   └── ConfigureIntegrationForm.tsx
-│
-├── onboarding/             # Onboarding flow
-│   ├── OnboardingWidget.tsx
-│   ├── OnboardingBlocker.tsx
-│   └── OnboardingItemCard.tsx
-│
-├── feature-flags/          # Feature flag system
-│   ├── FeatureGuard.tsx
-│   └── ComingSoonBanner.tsx
-│
-└── chat/                   # Sally AI chat
-    ├── GlobalSallyChat.tsx
-    ├── FloatingSallyButton.tsx
-    └── SallyChatPanel.tsx
-```
-
-**Critical Components:**
-- `route-planner/core/RoutePlanningCockpit.tsx` - Main planning interface (lazy loaded)
-- `route-planner/costs/CostsTab.tsx` - Cost analysis with charts (lazy loaded)
-- `layout/AppLayout.tsx` - Main app shell
-- `ui/*` - All UI primitives (use these, not plain HTML)
-
----
-
-### `/stores` - Zustand State Management
-
-```
-stores/
-├── auth-store.ts           # ⭐ Authentication state (Firebase + JWT)
-├── routePlanStore.ts       # ⭐ Route planning state (biggest store)
-├── onboardingStore.ts      # Onboarding progress
-├── featureFlagsStore.ts    # Feature flags
-├── preferencesStore.ts     # User preferences
-├── chatStore.ts            # Sally chat state
-└── engineStore.ts          # Route engine state
-```
-
-**Critical Stores:**
-- `auth-store.ts` - User auth, tokens, session management
-- `routePlanStore.ts` - All route planning state (plan, stops, versions)
-
-**Key Pattern:**
-```typescript
-// Stores own their mutations
-export const useRoutePlanStore = create<Store>((set, get) => ({
-  // State
-  currentPlan: null,
-
-  // Actions (mutations)
-  addPlanWithSnapshot: (plan) => {
-    // Business logic here
-    set({ currentPlan: plan });
-  },
-}));
-```
-
----
-
-### `/lib` - Core Library Code
-
-```
-lib/
-├── api/                    # API client modules (15 files)
-│   ├── client.ts           # ⭐ Base API client (auth, error handling)
-│   ├── routePlanning.ts    # Route planning endpoints
-│   ├── auth.ts             # Authentication endpoints
-│   ├── drivers.ts          # Driver management
-│   ├── vehicles.ts         # Vehicle management
-│   ├── loads.ts            # Load management
-│   ├── scenarios.ts        # Scenario endpoints
-│   ├── preferences.ts      # User preferences
-│   ├── integrations.ts     # External integrations
-│   ├── featureFlags.ts     # Feature flags
-│   ├── onboarding.ts       # Onboarding
-│   ├── alerts.ts           # Alert system
-│   └── external.ts         # Mock external APIs
-│
-├── types/                  # TypeScript type definitions
-│   ├── routePlan.ts        # ⭐ Route planning types
-│   ├── driver.ts           # Driver types
-│   ├── load.ts             # Load types
-│   ├── scenario.ts         # Scenario types
-│   ├── trigger.ts          # Route trigger types
-│   ├── engine.ts           # Engine types
-│   └── preferences.ts      # Preferences types
-│
-├── hooks/                  # Custom React hooks
-│   ├── useRoutePlanning.ts # ⭐ Route planning operations
-│   ├── useFeatureFlags.ts  # Feature flag access
-│   ├── useFeatureGuard.ts  # Feature flag guards
-│   └── useEngineRun.ts     # Engine execution
-│
-├── store/                  # [REMOVED - migrated to /stores]
-│
-├── config/                 # Configuration
-│   └── comingSoonContent.ts
-│
-├── utils/                  # Utility functions
-│   ├── formatters.ts       # Date, number, string formatters
-│   └── validation.ts       # Form validation
-│
-├── validation/             # Validation schemas
-│   └── schemas.ts          # Zod schemas
-│
-├── firebase.ts             # Firebase configuration
-├── navigation.ts           # Navigation config (sidebar items)
-└── utils.ts                # Generic utilities (cn, etc)
-```
-
-**Critical Files:**
-- `api/client.ts` - Base API client (all requests go through this)
-- `types/routePlan.ts` - Core route planning types
-- `hooks/useRoutePlanning.ts` - React Query integration for planning
-- `firebase.ts` - Firebase auth setup
-
----
-
-### `/hooks` - Shared Custom Hooks
-
-```
-hooks/
-├── use-auth.ts             # Auth state hook (wraps auth-store)
-└── use-toast.ts            # Toast notifications
+└── styles/
+    └── globals.css
 ```
 
 ---
 
-## 🎯 Critical Files Reference
+## Architecture Principles
 
-### **Must Understand Files**
+### 1. Domain Alignment
 
-1. **`app/layout.tsx`**
-   - Root layout, metadata, font loading
-   - Providers setup (Theme, React Query, Auth)
+**Frontend domains mirror backend domains:**
 
-2. **`app/providers.tsx`**
-   - React Query configuration
-   - Auth provider setup
-   - **Recently optimized:** Increased staleTime to 5 minutes
+| Frontend Feature | Backend Domain | Purpose |
+|-----------------|----------------|---------|
+| `features/auth` | `auth/` | Authentication & authorization |
+| `features/integrations` | `domains/platform/integrations` | External system integrations |
+| `features/fleet/drivers` | `domains/fleet/drivers` | Driver management |
+| `features/fleet/vehicles` | `domains/fleet/vehicles` | Vehicle fleet |
+| `features/fleet/loads` | `domains/fleet/loads` | Load management |
+| `features/routing/route-planning` | `domains/routing/route-planning` | TSP/VRP optimization |
+| `features/routing/optimization` | `domains/routing/optimization` | REST optimization |
+| `features/routing/hos-compliance` | `domains/routing/hos-compliance` | HOS validation |
+| `features/operations/alerts` | `domains/operations/alerts` | Dispatcher alerts |
+| `features/platform/preferences` | `domains/platform/preferences` | User settings |
 
-3. **`stores/auth-store.ts`**
-   - Firebase authentication
-   - JWT token management
-   - User session state
+### 2. Feature Module Pattern
 
-4. **`stores/routePlanStore.ts`**
-   - Route planning state (plan, stops, versions)
-   - Form validation
-   - **Recently added:** `addPlanWithSnapshot()` action
-
-5. **`lib/api/client.ts`**
-   - Base API client
-   - JWT token injection
-   - Auto token refresh on 401
-
-6. **`lib/hooks/useRoutePlanning.ts`**
-   - React Query mutations for planning
-   - Coordinates API calls + store updates
-   - **Recently simplified:** Moved logic to store
-
-7. **`components/route-planner/core/RoutePlanningCockpit.tsx`**
-   - Main planning interface
-   - Tab container (Overview, Route, Map, Costs)
-   - **Recently optimized:** Lazy loaded, CostsTab lazy loaded
-
-8. **`components/ui/*`**
-   - Shadcn UI components
-   - **ALWAYS use these** instead of plain HTML elements
-
----
-
-## 📊 Bundle Size Breakdown
-
-### Main Bundle (203 KB - Optimized)
-```
-+ First Load JS shared by all: 103 KB
-  ├── React + Next.js core: ~50 KB
-  ├── Zustand stores: ~10 KB
-  ├── UI components: ~30 KB
-  └── Utils + hooks: ~13 KB
-```
-
-### Page Bundles
-```
-/dispatcher/create-plan:     12 KB (page) + 203 KB (shared) = 215 KB
-  + Lazy loaded chunks:
-    - RoutePlanningCockpit:  ~100 KB (loads when plan generated)
-    - CostsTab (Recharts):   ~60 KB (loads when Costs tab clicked)
-
-/login:                      6 KB (page) + 220 KB (shared) = 226 KB
-/register:                   9 KB (page) + 252 KB (shared) = 261 KB
-```
-
----
-
-## 🏗️ Architecture Patterns
-
-### 1. **State Management**
-```
-Server State (React Query) → API calls, caching
-    ↓
-Client State (Zustand) → UI state, form data
-    ↓
-Components → Display, interactions
-```
-
-### 2. **Data Flow**
-```
-User Action
-    ↓
-Component calls hook (useRoutePlanning)
-    ↓
-Hook triggers React Query mutation
-    ↓
-Mutation calls API (lib/api/*)
-    ↓
-On success: Hook calls store action
-    ↓
-Store updates state
-    ↓
-Components re-render (with memoization)
-```
-
-### 3. **Code Splitting**
-```
-Initial Load (203 KB)
-    ↓
-User generates plan → Load cockpit (~100 KB)
-    ↓
-User clicks Costs tab → Load charts (~60 KB)
-```
-
----
-
-## 🎨 UI Component Guidelines
-
-### Always Use Shadcn Components
+**Each feature follows a consistent structure:**
 
 ```typescript
-// ❌ WRONG - Plain HTML
-<button className="...">Click</button>
-<input type="text" />
-<div className="border rounded p-4">Card</div>
-
-// ✅ CORRECT - Shadcn Components
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
-
-<Button>Click</Button>
-<Input type="text" />
-<Card>Content</Card>
+feature-name/
+├── api.ts           // API client (object pattern: featureApi)
+├── types.ts         // TypeScript types
+├── hooks/           // React Query + custom hooks
+├── components/      // Feature-specific components
+├── store.ts         // Zustand store (if needed)
+├── __tests__/       // Feature tests
+└── index.ts         // Barrel export (public API)
 ```
 
-### Color System
+**Barrel Export Pattern:**
 ```typescript
-// Background colors
-bg-background        // Main page background
-bg-card             // Card/panel backgrounds
-bg-muted            // Muted backgrounds
+// features/fleet/drivers/index.ts
 
-// Text colors
-text-foreground          // Primary text
-text-muted-foreground    // Secondary text
+// API
+export {
+  driversApi,          // Modern: object with methods
+  listDrivers,         // Legacy: direct function (backwards compat)
+  getDriver,
+  createDriver,
+  // ... more legacy exports
+} from './api';
 
-// Borders
-border-border       // Standard borders
+// Types
+export type {
+  Driver,
+  CreateDriverRequest,
+  UpdateDriverRequest,
+} from './types';
 
-// ALWAYS support dark mode
-bg-gray-50 dark:bg-gray-900
-text-gray-900 dark:text-gray-100
+// Hooks
+export {
+  useDrivers,
+  useDriverById,
+  useCreateDriver,
+} from './hooks/use-drivers';
+
+// Components
+export { default as DriverList } from './components/driver-list';
+```
+
+### 3. Data Fetching Strategy
+
+**React Query for ALL server state:**
+- ✅ Feature flags: React Query hooks only (removed duplicate Zustand store)
+- ✅ Drivers, vehicles, loads: React Query
+- ✅ Routes, HOS, optimization: React Query
+- ✅ Alerts, preferences: React Query
+
+**Zustand for UI/client state only:**
+- Auth state (user session, tokens)
+- Route planning form state
+- Chat panel state (open/closed)
+- Onboarding progress
+
+**Why this matters:**
+- React Query handles caching, refetching, synchronization
+- Zustand only for ephemeral UI state
+- No duplication of server data
+
+### 4. Import Paths
+
+**TypeScript path aliases:**
+
+```typescript
+// Feature imports
+import { useDrivers, DriverList } from '@/features/fleet/drivers';
+import { useAuth } from '@/features/auth';
+import { optimizationApi } from '@/features/routing/optimization';
+
+// Shared imports
+import { Button, Card } from '@/shared/components/ui';
+import { AppLayout } from '@/shared/components/layout';
+import { cn } from '@/shared/lib/utils';
+import { useToast } from '@/shared/hooks';
+
+// App imports (rare - usually features are consumed, not app)
+import { metadata } from '@/app/layout';
+```
+
+### 5. Backwards Compatibility
+
+**Legacy function exports for gradual migration:**
+
+```typescript
+// Old code (still works)
+import { listDrivers, createDriver } from '@/features/fleet/drivers';
+const drivers = await listDrivers();
+
+// New code (recommended)
+import { driversApi } from '@/features/fleet/drivers';
+const drivers = await driversApi.list();
+```
+
+Both work during transition. Eventually remove legacy exports.
+
+---
+
+## Component Organization
+
+### UI Components (`shared/components/ui/`)
+
+**28 Shadcn UI components** - Design system foundation
+
+All imports use: `@/shared/components/ui`
+
+```typescript
+import { Button, Card, Input, Label } from '@/shared/components/ui';
+```
+
+**DO NOT import from** `@/components/ui` (old path removed)
+
+### Layout Components (`shared/components/layout/`)
+
+**8 layout components** - App-wide layouts
+
+- AppLayout, AppSidebar, AppHeader
+- PublicLayout, CommandPalette
+- UserProfileMenu
+
+### Common Components (`shared/components/common/`)
+
+**Shared across features:**
+- ThemeProvider
+- Dashboard widgets (ControlPanel, ResizableSidebar, VisualizationArea)
+- Landing page components
+- App-wide providers
+
+### Feature Components
+
+**Live in their feature directory:**
+
+```
+features/routing/route-planning/components/
+├── core/                # Core planning UI
+├── costs/               # Cost breakdown
+├── driver/              # Driver timeline
+├── overview/            # Route overview
+├── route/               # Route details
+└── shared/              # Shared within route-planning
 ```
 
 ---
 
-## 🚀 Performance Best Practices
+## State Management
 
-### 1. Lazy Loading (Implemented)
+### React Query (Server State)
+
+**For all API data:**
+- Automatic caching with stale-while-revalidate
+- Background refetching
+- Optimistic updates
+- Request deduplication
+
+**Query keys convention:**
 ```typescript
-// Heavy components
-const RoutePlanningCockpit = dynamic(() => import('./RoutePlanningCockpit'), {
-  loading: () => <Skeleton />,
-  ssr: false,
-});
+['feature-flags']                    // List
+['feature-flags', flagKey]          // Detail
+['drivers']                         // List
+['drivers', driverId]               // Detail
+['vehicles']                        // List
 ```
 
-### 2. Memoization (Implemented)
+### Zustand (Client State)
+
+**For UI/form state only:**
+
 ```typescript
-// Expensive components
-export default memo(FullyExpandedRouteTimeline);
+// Auth store - session state
+features/auth/store.ts
+- user, tokens, isAuthenticated
 
-// Expensive calculations
-const segments = useMemo(() => plan.segments, [plan.segments]);
+// Route planning store - form state
+features/routing/route-planning/store.ts
+- stops, driver state, vehicle state, selected scenario
 
-// Event handlers
-const handleClick = useCallback(() => {...}, [deps]);
+// Chat store - UI state
+features/platform/chat/store.ts
+- isOpen, isDocked
+
+// Onboarding store - progress tracking
+features/platform/onboarding/store.ts
+- completed items, current step
 ```
 
-### 3. React Query (Optimized)
+**Stores export hooks:**
 ```typescript
-// Server state caching
-staleTime: 5 * 60 * 1000,  // 5 minutes
-gcTime: 10 * 60 * 1000,     // 10 minutes
-retry: 1,                   // Fast failure
+export const useAuthStore = create<AuthState>((set) => ({...}));
 ```
 
 ---
 
-## 📝 Quick Reference
+## TypeScript Configuration
 
-### Adding a New Page
-1. Create `app/my-route/page.tsx`
-2. Add to navigation in `lib/navigation.ts`
-3. Add route guard if needed in `layout-client.tsx`
-
-### Adding a New API Endpoint
-1. Add function to appropriate file in `lib/api/`
-2. Define types in `lib/types/`
-3. Create hook if needed in `lib/hooks/`
-
-### Adding a New Store
-1. Create file in `stores/`
-2. Define interface with state + actions
-3. Use Zustand `create()` pattern
-4. Export hook
-
-### Using Existing Components
-1. Check `components/ui/` first (Shadcn)
-2. Then check feature folders (`route-planner/`, `layout/`, etc.)
-3. Import and use (they're all memoized/optimized)
-
----
-
-## 🔍 Finding Things Quickly
-
-### "Where is the route planning UI?"
-→ `components/route-planner/core/RoutePlanningCockpit.tsx`
-
-### "Where is authentication handled?"
-→ `stores/auth-store.ts` + `lib/api/auth.ts`
-
-### "Where are API calls made?"
-→ `lib/api/*` (15 modules)
-
-### "Where is the sidebar navigation?"
-→ `components/layout/AppSidebar.tsx` + `lib/navigation.ts`
-
-### "Where are types defined?"
-→ `lib/types/*` (7 type files)
-
-### "Where is the main layout?"
-→ `app/layout.tsx` (root) + `components/layout/AppLayout.tsx`
-
----
-
-## 📚 Key Dependencies
+**Path aliases** (tsconfig.json):
 
 ```json
 {
-  "next": "15.1.3",              // Framework
-  "react": "18.3.1",             // UI library
-  "zustand": "5.0.2",            // State management
-  "@tanstack/react-query": "5.62.9",  // Server state
-  "firebase": "12.8.0",          // Authentication
-  "recharts": "2.15.0",          // Charts (lazy loaded)
-  "framer-motion": "12.29.2",    // Animations
-  "tailwindcss": "3.4.17",       // Styling
-  "next-themes": "0.4.6",        // Dark mode
-  "@radix-ui/*": "various",      // Shadcn UI primitives
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/shared/*": ["./src/shared/*"]
+    }
+  }
 }
+```
+
+**Strict mode enabled:**
+- No implicit any
+- Strict null checks
+- Strict function types
+
+---
+
+## Testing Structure
+
+**Co-located with features:**
+
+```
+features/fleet/drivers/
+├── __tests__/
+│   ├── api.test.ts
+│   ├── hooks.test.ts
+│   └── components.test.tsx
+```
+
+**Shared test utilities:**
+```
+shared/lib/test-utils/
+├── render.tsx        # Custom render with providers
+├── mocks.ts          # Mock data factories
+└── server.ts         # MSW server setup
 ```
 
 ---
 
-## ✅ Recent Optimizations (2026-02-05)
+## Migration Guide
 
-1. **Consolidated stores** → Single `/stores` directory
-2. **Removed dead code** → session.ts, empty directories
-3. **Lazy loading** → Cockpit (-105 KB), Charts (-60 KB)
-4. **Memoization** → Timeline components (50-70% fewer re-renders)
-5. **Type safety** → Zero `Promise<any>`, all APIs typed
-6. **React Query** → Optimized cache config
+### From Old to New Structure
 
-**Result:** 308 KB → 203 KB (-34%) on main route planning page
+**Old:**
+```typescript
+import { listDrivers } from '@/lib/api/drivers';
+import { Driver } from '@/lib/types/driver';
+import DriverList from '@/components/drivers/driver-list';
+```
+
+**New:**
+```typescript
+import {
+  driversApi,      // or listDrivers (legacy)
+  useDrivers,      // React Query hook
+  DriverList,      // Component
+  type Driver,     // Type
+} from '@/features/fleet/drivers';
+```
+
+### Removed Directories
+
+The following have been **removed** and replaced:
+- ❌ `src/components/` (except re-exports - now in `shared/components/`)
+- ❌ `src/lib/api/` (now in feature `api.ts` files)
+- ❌ `src/lib/types/` (now in feature `types.ts` files)
+- ❌ `src/lib/hooks/` (now in feature `hooks/` directories)
+- ❌ `src/stores/` (now in feature `store.ts` files)
+- ❌ `src/hooks/` (moved to `shared/hooks/`)
 
 ---
 
-## 🎯 Summary
+## Key Decisions
 
-**Frontend is organized by:**
-- **`/app`** - Pages (Next.js routes)
-- **`/components`** - UI components (feature-based)
-- **`/stores`** - State management (Zustand)
-- **`/lib`** - Utilities (API, hooks, types, utils)
+### 1. Feature Flags: React Query Only
 
-**Key concepts:**
-- Use Shadcn components, never plain HTML
-- React Query for server state, Zustand for client state
-- Lazy load heavy components
-- Memoize expensive renders
-- Support dark mode always
+**Previously:** Duplicate implementations (Zustand store + React Query)
+**Now:** React Query only
+
+**Reasoning:**
+- React Query provides all needed features (caching, loading, error states)
+- Eliminates code duplication
+- Better type safety
+- Follows same pattern as rest of app
+- Simpler mental model
+
+### 2. Auth & Integrations: Top-Level
+
+**Structure:**
+```
+features/
+├── auth/              # NOT platform/auth
+├── integrations/      # NOT platform/integrations
+└── platform/
+    ├── preferences/
+    ├── feature-flags/
+    └── ...
+```
+
+**Reasoning:** Matches backend domain structure exactly
+
+### 3. Shared vs Features
+
+**Shared:**
+- UI components (Shadcn)
+- Layout components
+- Utilities (cn, formatters, validation)
+- Hooks used across 3+ features
+
+**Features:**
+- Domain-specific logic
+- API clients
+- Business components
+- Domain types
+
+---
+
+## Performance Considerations
+
+### Code Splitting
+
+**Automatic route-based splitting:**
+- Each `app/` page is a separate chunk
+- Feature components lazy-loaded when needed
+
+**Manual splitting for large features:**
+```typescript
+const RouteTimeline = lazy(() =>
+  import('@/features/routing/route-planning/components/timeline')
+);
+```
+
+### React Query Configuration
+
+**Default settings:**
+- `staleTime: 0` - Always refetch on mount
+- `cacheTime: 5 minutes` - Keep in cache for 5 min
+- `refetchOnWindowFocus: true` - Refetch on tab focus
+
+**Override per query:**
+```typescript
+useQuery({
+  queryKey: ['drivers'],
+  queryFn: driversApi.list,
+  staleTime: 30000,  // 30 seconds
+});
+```
+
+---
+
+## Future Considerations
+
+### When to Create a New Feature
+
+**Create a new feature when:**
+1. It maps to a backend domain/subdomain
+2. It has 3+ components AND API endpoints
+3. It has distinct types and business logic
+4. Multiple pages will consume it
+
+**Don't create a feature for:**
+1. Single-use components (put in `app/` page)
+2. Pure UI utilities (put in `shared/`)
+3. Helpers with no domain logic
+
+### Monorepo Considerations
+
+**Current:** Apps in `apps/web/`
+
+**Future:** Extract shared logic
+```
+packages/
+├── ui/              # Shadcn components
+├── api-client/      # API client
+└── types/           # Shared types
+```
+
+---
+
+## Quick Reference
+
+**Adding a new feature:**
+
+```bash
+# Create structure
+mkdir -p src/features/domain/feature-name/{api.ts,types.ts,hooks,components,__tests__}
+
+# Create barrel export
+touch src/features/domain/feature-name/index.ts
+```
+
+**Feature barrel template:**
+```typescript
+// API
+export { featureApi, ...legacyExports } from './api';
+
+// Types
+export type { Type1, Type2 } from './types';
+
+// Hooks
+export { useFeature, useFeatureById } from './hooks/use-feature';
+
+// Components (if any)
+export { FeatureList } from './components/feature-list';
+
+// Store (if needed)
+export { useFeatureStore } from './store';
+```
+
+---
+
+**Last Reviewed:** February 5, 2026
+**Status:** ✅ Production Ready
+**Build:** Passing
+**Migration:** Complete

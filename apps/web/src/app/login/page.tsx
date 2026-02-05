@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LoginForm } from "@/components/auth/login-form";
-import { useAuthStore } from "@/stores/auth-store";
-import { HeroRouteBackground } from "@/components/landing/AnimatedRoute";
+import { LoginForm } from "@/features/auth";
+import { useAuthStore } from "@/features/auth";
+import { HeroRouteBackground } from "@/shared/components/common/landing/AnimatedRoute";
 
 export default function LoginPage() {
   const router = useRouter();

@@ -3,7 +3,7 @@
  * Centralizes how segment details are displayed across components
  */
 
-import type { RouteSegment } from "@/lib/types/routePlan";
+import type { RouteSegment } from "@/features/routing/route-planning";
 import { formatTime } from "../utils/routeTimelineUtils";
 
 /**

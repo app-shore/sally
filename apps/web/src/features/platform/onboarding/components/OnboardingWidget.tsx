@@ -1,11 +1,11 @@
 'use client';
 
 import { CheckCircle2, Circle, Rocket } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { Progress } from '@/shared/components/ui/progress';
 import { useRouter } from 'next/navigation';
-import { OnboardingStatus } from '@/stores/onboardingStore';
+import { OnboardingStatus } from '@/features/platform/onboarding';
 
 interface OnboardingWidgetProps {
   status: OnboardingStatus;

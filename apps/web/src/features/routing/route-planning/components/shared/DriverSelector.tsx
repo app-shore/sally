@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { listDrivers, getDriverHOS, type Driver } from "@/lib/api/drivers";
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import { formatRelativeTime } from "@/lib/api/integrations";
-import type { DriverStateInput } from "@/lib/types/routePlan";
+import { Label } from "@/shared/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { Badge } from "@/shared/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/components/ui/collapsible";
+import { listDrivers, getDriverHOS, type Driver } from "@/features/fleet/drivers";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import { formatRelativeTime } from "@/features/integrations";
+import type { DriverStateInput } from "@/features/routing/route-planning";
 
 export function DriverSelector() {
   const {

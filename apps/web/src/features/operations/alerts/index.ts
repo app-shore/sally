@@ -1,5 +1,11 @@
 // API
-export { alertsApi } from './api';
+export {
+  alertsApi,
+  listAlerts,
+  getAlert,
+  acknowledgeAlert,
+  resolveAlert,
+} from './api';
 
 // Types
 export type {

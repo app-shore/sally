@@ -11,8 +11,8 @@
  */
 
 import { memo, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { RoutePlan } from "@/lib/types/routePlan";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import { Clock } from "lucide-react";
 import { formatTime, getSegmentDisplay } from "../utils/routeTimelineUtils";
 import { getFullDetails } from "../shared/segmentDetails";

@@ -1,5 +1,11 @@
 // API
-export { routePlanningApi } from './api';
+export {
+  routePlanningApi,
+  optimizeRoute,
+  updateRoute,
+  getRouteStatus,
+  simulateTriggers,
+} from './api';
 
 // Types - Route Planning
 export type {
@@ -42,6 +48,18 @@ export {
   useUpdateRoute,
   useSimulateTriggers,
 } from './hooks/use-route-planning';
+export {
+  useRoutePlanning,
+  useTriggerSimulation,
+  useScenarios,
+  useScenario,
+  useInstantiateScenario,
+  useLoads,
+  useLoad,
+} from './hooks/useRoutePlanning';
+
+// Store
+export { useRoutePlanStore } from './store';
 
 // Components
 export { default as DriverStateInputComponent } from './components/DriverStateInput';

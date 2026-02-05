@@ -2,12 +2,12 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { AppLayout } from "@/components/layout/AppLayout";
-import { PublicLayout } from "@/components/layout/PublicLayout";
-import { GlobalSallyChat } from "@/components/chat/GlobalSallyChat";
-import { useChatStore } from "@/stores/chatStore";
-import { useAuthStore } from "@/stores/auth-store";
-import { isProtectedRoute, getDefaultRouteForRole } from "@/lib/navigation";
+import { AppLayout } from "@/shared/components/layout/AppLayout";
+import { PublicLayout } from "@/shared/components/layout/PublicLayout";
+import { GlobalSallyChat } from "@/features/platform/chat/components/GlobalSallyChat";
+import { useChatStore } from "@/features/platform/chat";
+import { useAuthStore } from "@/features/auth";
+import { isProtectedRoute, getDefaultRouteForRole } from "@/shared/lib/navigation";
 
 export function LayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

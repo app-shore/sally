@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { HeroRouteBackground } from "@/components/landing/AnimatedRoute";
+import { HeroRouteBackground } from "@/shared/components/common/landing/AnimatedRoute";
 import Link from "next/link";
 
 export default function PendingApprovalPage() {

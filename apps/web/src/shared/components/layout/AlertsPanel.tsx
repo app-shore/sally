@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { X, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { ScrollArea } from '@/shared/components/ui/scroll-area';
+import { Separator } from '@/shared/components/ui/separator';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { listAlerts, acknowledgeAlert, resolveAlert } from '@/lib/api/alerts';
+import { listAlerts, acknowledgeAlert, resolveAlert } from '@/features/operations/alerts';
 
 interface AlertsPanelProps {
   isOpen: boolean;

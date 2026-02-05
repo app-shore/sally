@@ -11,3 +11,6 @@ export {
   useUpdateDriverPreferences,
   useResetPreferences,
 } from './hooks/use-preferences';
+
+// Store
+export { usePreferencesStore } from './store';

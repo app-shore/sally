@@ -1,12 +1,12 @@
 "use client";
 
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import { Card } from "@/shared/components/ui/card";
+import { Label } from "@/shared/components/ui/label";
+import { Input } from "@/shared/components/ui/input";
+import { Slider } from "@/shared/components/ui/slider";
 import { useQuery } from "@tanstack/react-query";
-import { listVehicles } from "@/lib/api/vehicles";
+import { listVehicles } from "@/features/fleet/vehicles";
 
 export function VehicleStateInput() {
   const { vehicleId, setVehicleId, vehicleState, setVehicleState, selectedScenario } = useRoutePlanStore();

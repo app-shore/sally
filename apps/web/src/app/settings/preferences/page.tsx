@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardHeader } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs';
+import { Card, CardHeader } from '@/shared/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { useAuthStore } from '@/stores/auth-store';
-import { usePreferencesStore } from '@/stores/preferencesStore';
+import { useAuthStore } from '@/features/auth';
+import { usePreferencesStore } from '@/features/platform/preferences';
 import UserPreferencesTab from './components/UserPreferencesTab';
 import DriverPreferencesTab from './components/DriverPreferencesTab';
 

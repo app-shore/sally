@@ -11,8 +11,8 @@
  * - Mobile-first design with large touch targets
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { RoutePlan, RouteSegment } from "@/lib/types/routePlan";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import type { RoutePlan, RouteSegment } from "@/features/routing/route-planning";
 import { Navigation, Bed, Fuel, Building2, MapPin } from "lucide-react";
 
 interface DriverTimelineProps {

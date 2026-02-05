@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { listVehicles, type Vehicle } from "@/lib/api/vehicles";
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import type { VehicleStateInput } from "@/lib/types/routePlan";
+import { Label } from "@/shared/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { Badge } from "@/shared/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/components/ui/collapsible";
+import { listVehicles, type Vehicle } from "@/features/fleet/vehicles";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import type { VehicleStateInput } from "@/features/routing/route-planning";
 
 export function VehicleSelector() {
   const {

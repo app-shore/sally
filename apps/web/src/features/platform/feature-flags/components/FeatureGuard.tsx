@@ -1,10 +1,9 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { useFeatureGuard } from '@/lib/hooks/useFeatureGuard';
+import { useFeatureFlagEnabled, useFeatureFlag } from '@/features/platform/feature-flags';
 import { ComingSoonBanner } from './ComingSoonBanner';
-import { comingSoonContent } from '@/lib/config/comingSoonContent';
-import { useFeatureFlagsStore } from '@/stores/featureFlagsStore';
+import { comingSoonContent } from '@/shared/config/comingSoonContent';
 
 export interface FeatureGuardProps {
   featureKey: string;
@@ -23,8 +22,8 @@ export interface FeatureGuardProps {
  * </FeatureGuard>
  */
 export function FeatureGuard({ featureKey, children, loadingFallback }: FeatureGuardProps) {
-  const { isEnabled, isLoading, error } = useFeatureGuard(featureKey);
-  const getFlag = useFeatureFlagsStore((state) => state.getFlag);
+  const { data: isEnabled, isLoading, error } = useFeatureFlagEnabled(featureKey);
+  const { data: flag } = useFeatureFlag(featureKey);
 
   // Show loading state
   if (isLoading) {
@@ -49,7 +48,6 @@ export function FeatureGuard({ featureKey, children, loadingFallback }: FeatureG
   // Feature is disabled - show coming soon banner
   if (!isEnabled) {
     const content = comingSoonContent[featureKey];
-    const flag = getFlag(featureKey);
 
     if (!content) {
       console.warn(`No coming soon content found for feature key: ${featureKey}`);
@@ -64,7 +62,9 @@ export function FeatureGuard({ featureKey, children, loadingFallback }: FeatureG
 
     return (
       <ComingSoonBanner
-        {...content}
+        title={content.title}
+        description={content.description}
+        features={content.features}
         category={flag?.category}
       />
     );

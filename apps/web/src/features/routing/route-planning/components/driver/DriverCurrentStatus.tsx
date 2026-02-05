@@ -9,9 +9,9 @@
  * - On-time vs delayed status
  */
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import type { RoutePlan } from "@/lib/types/routePlan";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
+import type { RoutePlan } from "@/features/routing/route-planning";
 import { MapPin, Navigation, Clock, CheckCircle2 } from "lucide-react";
 
 interface DriverCurrentStatusProps {

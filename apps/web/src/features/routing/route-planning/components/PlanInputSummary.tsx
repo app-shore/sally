@@ -1,7 +1,7 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { useRoutePlanStore } from "@/stores/routePlanStore";
+import { Card } from "@/shared/components/ui/card";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
 
 /**
  * Displays the input values that were used to generate the current plan

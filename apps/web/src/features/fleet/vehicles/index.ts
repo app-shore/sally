@@ -1,5 +1,12 @@
 // API
-export { vehiclesApi } from './api';
+export {
+  vehiclesApi,
+  listVehicles,
+  getVehicle,
+  createVehicle,
+  updateVehicle,
+  deleteVehicle,
+} from './api';
 
 // Types
 export type { Vehicle, CreateVehicleRequest, UpdateVehicleRequest } from './types';

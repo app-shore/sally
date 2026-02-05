@@ -1,7 +1,7 @@
 "use client";
 
-import { useAuthStore } from "@/stores/auth-store";
-import { LandingPage } from "@/components/landing/LandingPage";
+import { useAuthStore } from "@/features/auth";
+import { LandingPage } from "@/shared/components/common/landing/LandingPage";
 
 export default function HomePage() {
   const { isAuthenticated } = useAuthStore();

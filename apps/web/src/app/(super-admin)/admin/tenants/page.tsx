@@ -1,4 +1,4 @@
-import { TenantList } from "@/components/super-admin/tenant-list";
+import { TenantList } from "@/features/platform/admin/components/tenant-list";
 
 export default function SuperAdminTenantsPage() {
   return (

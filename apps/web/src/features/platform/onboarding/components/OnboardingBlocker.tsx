@@ -1,10 +1,10 @@
 'use client';
 
 import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent } from '@/shared/components/ui/card';
 import { useRouter } from 'next/navigation';
-import { OnboardingItem } from '@/stores/onboardingStore';
+import { OnboardingItem } from '@/features/platform/onboarding';
 
 interface OnboardingBlockerProps {
   incompleteCriticalItems: OnboardingItem[];

@@ -3,13 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Bell, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useAuthStore } from '@/stores/auth-store';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { getNavigationForRole, type NavItem } from '@/lib/navigation';
-import { useOnboardingStore } from '@/stores/onboardingStore';
+import { cn } from '@/shared/lib/utils';
+import { useAuthStore } from '@/features/auth';
+import { Badge } from '@/shared/components/ui/badge';
+import { ScrollArea } from '@/shared/components/ui/scroll-area';
+import { Separator } from '@/shared/components/ui/separator';
+import { getNavigationForRole, type NavItem } from '@/shared/lib/navigation';
+import { useOnboardingStore } from '@/features/platform/onboarding';
 import { CheckCircle2 } from 'lucide-react';
 
 interface AppSidebarProps {

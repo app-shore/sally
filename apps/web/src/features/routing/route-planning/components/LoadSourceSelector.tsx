@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useScenarios, useLoads, useInstantiateScenario, useLoad } from "@/lib/hooks/useRoutePlanning";
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { useScenarios, useLoads, useInstantiateScenario, useLoad } from "@/features/routing/route-planning";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import { Button } from "@/shared/components/ui/button";
+import { Card } from "@/shared/components/ui/card";
 
 export function LoadSourceSelector() {
   const [selectedLoadId, setSelectedLoadId] = useState<string>("");
@@ -42,7 +42,7 @@ export function LoadSourceSelector() {
     setSelectedScenarioId(scenarioId);
     if (scenarioId) {
       // Find and save full scenario object
-      const scenario = scenarios?.find(s => s.scenario_id === scenarioId);
+      const scenario = scenarios?.find((s: any) => s.scenario_id === scenarioId);
       if (scenario) {
         selectScenario(scenario as any);
       }

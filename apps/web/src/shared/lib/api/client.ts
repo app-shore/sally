@@ -2,7 +2,7 @@
  * API client with JWT authentication and automatic token refresh
  */
 
-import { useAuthStore } from '@/stores/auth-store';
+import { useAuthStore } from '@/features/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -89,12 +89,12 @@ const apiMethods = {
 };
 
 // Import sub-modules
-import { optimization, hosRules, prediction } from '@/lib/api/optimization';
+import { optimization } from '@/features/routing/optimization';
+import { hosRules } from '@/features/routing/hos-compliance';
 
 // Export combined API object
 export const api = {
   ...apiMethods,
   optimization,
   hos: hosRules,
-  prediction,
 };

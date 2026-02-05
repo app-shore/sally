@@ -8,22 +8,22 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { useAuthStore } from "@/stores/auth-store";
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import { useOnboardingStore } from "@/stores/onboardingStore";
-import { useRoutePlanning } from "@/lib/hooks/useRoutePlanning";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { LoadSelector } from "@/components/route-planner/shared/LoadSelector";
-import { DriverSelector } from "@/components/route-planner/shared/DriverSelector";
-import { VehicleSelector } from "@/components/route-planner/shared/VehicleSelector";
-import { OnboardingBlocker } from "@/components/onboarding/OnboardingBlocker";
-import RoutePlanningCockpitSkeleton from "@/components/route-planner/core/RoutePlanningCockpitSkeleton";
-import { FeatureGuard } from "@/components/feature-flags/FeatureGuard";
+import { useAuthStore } from "@/features/auth";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import { useOnboardingStore } from "@/features/platform/onboarding";
+import { useRoutePlanning } from "@/features/routing/route-planning";
+import { Button } from "@/shared/components/ui/button";
+import { Card } from "@/shared/components/ui/card";
+import { LoadSelector } from "@/features/routing/route-planning/components/shared/LoadSelector";
+import { DriverSelector } from "@/features/routing/route-planning/components/shared/DriverSelector";
+import { VehicleSelector } from "@/features/routing/route-planning/components/shared/VehicleSelector";
+import { OnboardingBlocker } from "@/features/platform/onboarding/components/OnboardingBlocker";
+import RoutePlanningCockpitSkeleton from "@/features/routing/route-planning/components/core/RoutePlanningCockpitSkeleton";
+import { FeatureGuard } from "@/features/platform/feature-flags";
 
 // Lazy load the heavy cockpit component to reduce initial bundle size
 const RoutePlanningCockpit = dynamic(
-  () => import("@/components/route-planner/core/RoutePlanningCockpit"),
+  () => import("@/features/routing/route-planning/components/core/RoutePlanningCockpit"),
   {
     loading: () => <RoutePlanningCockpitSkeleton />,
     ssr: false,

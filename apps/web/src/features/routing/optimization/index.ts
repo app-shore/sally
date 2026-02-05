@@ -17,3 +17,7 @@ export type {
 
 // Hooks
 export { useRestRecommendation } from './hooks/use-optimization';
+export { useEngineRun } from './hooks/useEngineRun';
+
+// Store
+export { useEngineStore } from './store';

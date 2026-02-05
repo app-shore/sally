@@ -3,8 +3,8 @@ import { Inter, Space_Grotesk, Sora, Outfit } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { LayoutClient } from "./layout-client";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/shared/components/common";
+import { Toaster } from "@/shared/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 

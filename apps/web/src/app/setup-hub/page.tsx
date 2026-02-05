@@ -2,13 +2,13 @@
 
 import { useEffect } from 'react';
 import { Rocket, AlertTriangle, Zap, CheckCircle2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Accordion } from '@/components/ui/accordion';
-import { OnboardingItemCard } from '@/components/onboarding/OnboardingItemCard';
-import { useOnboardingStore } from '@/stores/onboardingStore';
-import { useAuth } from '@/hooks/use-auth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Progress } from '@/shared/components/ui/progress';
+import { Badge } from '@/shared/components/ui/badge';
+import { Accordion } from '@/shared/components/ui/accordion';
+import { OnboardingItemCard } from '@/features/platform/onboarding/components/OnboardingItemCard';
+import { useOnboardingStore } from '@/features/platform/onboarding';
+import { useAuth } from '@/features/auth';
 import { useRouter } from 'next/navigation';
 
 export default function SetupHubPage() {

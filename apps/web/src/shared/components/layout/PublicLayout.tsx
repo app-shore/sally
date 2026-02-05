@@ -4,8 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Menu, X, LogIn, LogOut } from 'lucide-react';
-import { useAuthStore } from '@/stores/auth-store';
-import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/features/auth';
+import { Button } from '@/shared/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
 
 interface PublicLayoutProps {

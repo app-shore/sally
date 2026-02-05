@@ -16,13 +16,13 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/auth-store";
-import { useRoutePlanStore } from "@/stores/routePlanStore";
-import { Card } from "@/components/ui/card";
-import DriverTimeline from "@/components/route-planner/driver/DriverTimeline";
-import DriverCurrentStatus from "@/components/route-planner/driver/DriverCurrentStatus";
-import DriverHOSSummary from "@/components/route-planner/driver/DriverHOSSummary";
-import DriverActions from "@/components/route-planner/driver/DriverActions";
+import { useAuthStore } from "@/features/auth";
+import { useRoutePlanStore } from "@/features/routing/route-planning";
+import { Card } from "@/shared/components/ui/card";
+import DriverTimeline from "@/features/routing/route-planning/components/driver/DriverTimeline";
+import DriverCurrentStatus from "@/features/routing/route-planning/components/driver/DriverCurrentStatus";
+import DriverHOSSummary from "@/features/routing/route-planning/components/driver/DriverHOSSummary";
+import DriverActions from "@/features/routing/route-planning/components/driver/DriverActions";
 
 export default function DriverRoutePage() {
   const router = useRouter();

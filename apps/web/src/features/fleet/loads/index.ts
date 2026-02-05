@@ -1,5 +1,10 @@
 // API
-export { loadsApi } from './api';
+export {
+  loadsApi,
+  getLoads,
+  getLoad,
+  createLoad,
+} from './api';
 
 // Types
 export type {
