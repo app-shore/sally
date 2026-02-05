@@ -50,7 +50,7 @@ Let's send a route planning request to SALLY. This endpoint analyzes driver HOS,
 ### Request
 
 ```bash
-curl -X POST https://sally-api.apps.appshore.in/api/v1/route-planning/optimize \
+curl -X POST https://sally-api.apps.appshore.in/api/v1/routes/plan \
   -H "Authorization: Bearer $SALLY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -110,7 +110,7 @@ curl -X POST https://sally-api.apps.appshore.in/api/v1/route-planning/optimize \
         "estimated_dock_hours": 0.5
       }
     ],
-    "optimization_priority": "balanced"
+    "optimization_priority": "balance"
   }'
 ```
 
@@ -135,7 +135,7 @@ curl -X POST https://sally-api.apps.appshore.in/api/v1/route-planning/optimize \
 **Optimization Priority:**
 - `time`: Minimize total time
 - `cost`: Minimize fuel and operational costs
-- `balanced`: Balance time and cost (recommended)
+- `balance`: Balance time and cost (recommended)
 
 ## Step 3: Understand the Response
 
@@ -146,10 +146,7 @@ SALLY returns a detailed route plan with segments, compliance validation, and co
 ```json
 {
   "plan_id": "plan_a1b2c3d4e5f6",
-  "status": "success",
-  "driver_id": "DRV-001",
-  "vehicle_id": "TRUCK-123",
-  "optimization_priority": "balanced",
+  "optimization_priority": "balance",
   "segments": [
     {
       "sequence_order": 1,
@@ -291,7 +288,7 @@ SALLY returns a detailed route plan with segments, compliance validation, and co
     }
   ],
   "fuel_stops": [],
-  "compliance": {
+  "compliance_report": {
     "is_feasible": true,
     "max_drive_hours_used": 6.1,
     "max_duty_hours_used": 12.1,
@@ -430,7 +427,7 @@ Sometimes a route cannot be completed as requested.
 **Result:**
 ```json
 {
-  "compliance": {
+  "compliance_report": {
     "is_feasible": false,
     "violations": ["Cannot meet appointment time at STOP-003 due to HOS constraints"]
   },
@@ -488,7 +485,7 @@ echo $SALLY_API_KEY
 **Solution:** Check request matches the schema:
 - All required fields present
 - Correct data types (numbers not strings)
-- Valid enum values for `optimization_priority` (time, cost, balanced)
+- Valid enum values for `optimization_priority` (time, cost, balance)
 
 ### Empty Response or Timeout
 
