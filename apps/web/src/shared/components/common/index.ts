@@ -9,7 +9,6 @@ export { VisualizationArea } from './dashboard/VisualizationArea';
 // Landing page components
 export { LandingPage } from './landing/LandingPage';
 export { AnimatedRoute } from './landing/AnimatedRoute';
-export { ComparisonRow } from './landing/ComparisonRow';
 export { FeatureCard } from './landing/FeatureCard';
 export { MonitoringDashboard } from './landing/MonitoringDashboard';
 export { ROICalculator } from './landing/ROICalculator';
