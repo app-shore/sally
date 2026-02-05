@@ -28,6 +28,7 @@
     "backend-py:migrate": "docker-compose exec backend uv run alembic upgrade head",
     "backend-py:seed": "docker-compose exec backend uv run python scripts/db_seed.py",
     "frontend:dev": "turbo run dev --filter=@sally/web",
+    "docs:dev": "turbo run dev --filter=@sally/docs",
     "docker:up": "docker-compose up -d",
     "docker:build": "docker-compose up -d --build",
     "docker:down": "docker-compose down",

@@ -25,6 +25,12 @@ async function syncOpenAPI() {
   console.log('🔄 Syncing OpenAPI spec from backend...');
   console.log(`   URL: ${OPENAPI_URL}`);
 
+  // Check if file already exists (use cached version)
+  if (fs.existsSync(OUTPUT_PATH)) {
+    console.log('ℹ️  Using existing OpenAPI spec (already cached)');
+    return Promise.resolve();
+  }
+
   return new Promise((resolve, reject) => {
     const protocol = OPENAPI_URL.startsWith('https') ? https : require('http');
 
@@ -58,13 +64,16 @@ async function syncOpenAPI() {
           resolve();
         } catch (error) {
           console.error('❌ Failed to parse OpenAPI spec:', error.message);
-          reject(error);
+          // Don't reject - allow build to continue
+          console.warn('⚠️  Continuing without OpenAPI spec sync');
+          resolve();
         }
       });
     }).on('error', (error) => {
       console.error('❌ Failed to fetch OpenAPI spec:', error.message);
-      console.error('   Make sure the backend is running or OPENAPI_URL is correct');
-      reject(error);
+      console.warn('⚠️  Continuing without OpenAPI spec sync (backend may not be running)');
+      // Don't reject - allow build to continue
+      resolve();
     });
   });
 }

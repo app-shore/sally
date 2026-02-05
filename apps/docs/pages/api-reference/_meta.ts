@@ -1,4 +1,4 @@
-{
+export default {
   "index": "Overview",
   "authentication": "Authentication",
   "route-planning": "Route Planning",

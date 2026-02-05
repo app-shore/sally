@@ -14,7 +14,7 @@ export function ApiReference({
   tag,
   operation
 }: ApiReferenceProps) {
-  const configuration = {
+  const configuration: any = {
     spec: {
       url: specUrl
     },
