@@ -3,6 +3,7 @@ import { parseOpenAPIServer } from '@/lib/openapi-parser.server'
 import { ApiNav } from '@/components/ApiNav'
 import { ApiDoc } from '@/components/ApiDoc'
 import { ApiCodePanel } from '@/components/ApiCodePanel'
+import { MobileApiNav } from '@/components/MobileApiNav'
 import type { ParsedEndpoint } from '@/lib/types/openapi'
 
 interface EndpointPageProps {
@@ -12,23 +13,29 @@ interface EndpointPageProps {
 
 export default function EndpointPage({ endpoint, baseUrl }: EndpointPageProps) {
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr_400px]">
-      {/* Left: Endpoint Navigation */}
-      <aside className="hidden lg:block">
-        <div className="sticky top-20">
-          <ApiNav activeEndpointId={endpoint.id} />
-        </div>
-      </aside>
+    <div>
+      {/* Mobile Navigation */}
+      <MobileApiNav activeEndpointId={endpoint.id} />
 
-      {/* Center: Documentation */}
-      <main className="min-w-0">
-        <ApiDoc endpoint={endpoint} />
-      </main>
+      {/* Desktop 3-Column Layout */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr_400px]">
+        {/* Left: Endpoint Navigation */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-20">
+            <ApiNav activeEndpointId={endpoint.id} />
+          </div>
+        </aside>
 
-      {/* Right: Code Examples */}
-      <aside className="hidden xl:block">
-        <ApiCodePanel endpoint={endpoint} baseUrl={baseUrl} />
-      </aside>
+        {/* Center: Documentation */}
+        <main className="min-w-0">
+          <ApiDoc endpoint={endpoint} />
+        </main>
+
+        {/* Right: Code Examples */}
+        <aside className="hidden xl:block">
+          <ApiCodePanel endpoint={endpoint} baseUrl={baseUrl} />
+        </aside>
+      </div>
     </div>
   )
 }
