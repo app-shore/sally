@@ -1,9 +1,6 @@
 /**
- * TypeScript types for user preferences
+ * @deprecated This file is deprecated. Import from '@/features/platform/preferences' instead.
+ * This re-export is provided for backwards compatibility during migration.
  */
 
-/**
- * Response from preferences reset endpoint
- * Returns the actual preferences object (type depends on scope parameter)
- */
-export type PreferencesResetResponse = any; // Backend returns UserPreferences | OperationsSettings | DriverPreferences
+export * from '@/features/platform/preferences/types';
