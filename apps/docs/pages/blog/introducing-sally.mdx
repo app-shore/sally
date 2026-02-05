@@ -1,0 +1,172 @@
+# Introducing SALLY: HOS-Compliant Route Planning
+
+**Published: February 5, 2026**
+
+---
+
+We're excited to introduce **SALLY** (Smart Automated Logistics and Logistics Yielding) - an intelligent dispatch and driver coordination platform built to solve a fundamental problem in trucking: the coordination gap between dispatchers and drivers.
+
+## The Problem We're Solving
+
+In the US trucking industry, there's a critical disconnect between planning and execution. Dispatchers assign loads and track shipments, but they don't plan actual routes. Drivers receive a list of stops but no detailed route plan - they're left to figure out stop sequences, rest timing, and fuel stops on their own.
+
+**The result?**
+- Manual HOS calculations prone to errors
+- Suboptimal stop sequences (unnecessary miles)
+- Poor rest timing (forced breaks at inconvenient locations)
+- HOS violations that could have been prevented
+- Missed appointments due to poor planning
+- Constant phone calls between dispatchers and drivers
+
+This is a massive gap in the trucking tech stack. Current TMS systems assign loads but don't plan routes. ELDs log hours but don't recommend when or where to rest. Telematics track trucks but don't optimize routing.
+
+**SALLY fills this gap.**
+
+## Our Solution: Route Planning Platform with HOS Compliance
+
+SALLY is a compliance-first route planning engine that generates optimized end-to-end plans, continuously monitors real-world conditions, and simplifies communication between dispatchers and drivers through automated alerts and dynamic route updates.
+
+### Key Capabilities
+
+**1. HOS-Compliant Route Planning**
+
+We don't just optimize for shortest distance - we optimize for HOS compliance, rest timing, and fuel efficiency. Every route is validated against FMCSA regulations before a driver starts.
+
+- Stop sequence optimization (TSP/VRP algorithms)
+- Automatic rest stop insertion where HOS requires
+- Automatic fuel stop insertion based on range and price
+- Zero HOS violations by design
+
+**2. Continuous Monitoring**
+
+SALLY monitors 14 different trigger types across 5 categories, checking active routes every 60 seconds:
+
+- HOS approaching limits (proactive warnings)
+- Driver not moving during drive segments
+- Dock time exceeding estimates
+- Route delays impacting downstream appointments
+- Fuel levels dropping below thresholds
+
+**3. Automated Dispatcher Alerts**
+
+Instead of requiring dispatchers to constantly check on drivers, SALLY automatically generates priority-based alerts when intervention is needed:
+
+- **Critical alerts**: HOS violations, missed appointments
+- **High priority**: Driver not moving, dock time exceeded, fuel low
+- **Medium priority**: HOS approaching limit, route delays
+
+Dispatchers can acknowledge, resolve, and take action directly from the alert dashboard.
+
+**4. Dynamic Route Updates**
+
+When conditions change (dock delays, traffic, load changes), SALLY automatically determines whether to update ETAs or trigger a full re-plan. Drivers receive updated guidance automatically, and the system maintains a complete audit trail of all changes.
+
+**5. Intelligent REST Optimization**
+
+REST optimization is a critical component of our route planning engine. When the HOS simulation detects a shortfall (driver will run out of hours before completing the route), the system analyzes whether to:
+
+- Insert a dedicated rest stop
+- Leverage dock time for rest
+- Recommend full rest (10h) vs partial rest (7h)
+
+Every recommendation includes audit-ready reasoning for compliance.
+
+## Target Users
+
+**Primary: Dispatchers and Operations Managers**
+- Create HOS-compliant routes with confidence
+- Monitor all active routes in real-time
+- Receive proactive alerts when intervention is needed
+- Reduce constant phone calls with drivers
+
+**Secondary: Drivers**
+- Follow clear turn-by-turn guidance with rest and fuel stops inserted
+- View HOS status and compliance in real-time
+- Receive automatic plan updates as conditions change
+- Spend less time planning, more time driving
+
+**Also For: Developers and Integrators**
+- Complete REST API for route planning and monitoring
+- Mock external API endpoints for POC/testing
+- Webhooks for real-time event notifications
+- Comprehensive API documentation and examples
+
+## Architecture: Three-Layer System
+
+**Layer 1: Route Planning Engine** (Primary)
+- TSP optimization for stop sequence
+- Segment-by-segment HOS simulation
+- Rest stop and fuel stop insertion
+- Feasibility validation
+
+**Layer 2: Continuous Monitoring Service**
+- Runs every 60 seconds per active route
+- Monitors 14 trigger types
+- Proactive HOS monitoring
+- Alert generation
+
+**Layer 3: Dynamic Update Handler**
+- Receives triggers from monitoring
+- Decides: Re-plan vs ETA update
+- Generates new routes when needed
+- Notifies drivers and dispatchers
+
+REST optimization integrates seamlessly - the route planner calls the REST engine whenever HOS simulation detects a shortfall, receives a recommendation, and inserts the appropriate rest segment.
+
+## Built for Mid-Size Carriers
+
+SALLY is designed for mid-size carriers (50-500 trucks) who are currently using TMS and ELD systems but struggling with the coordination gap. We integrate with your existing stack:
+
+- Pull HOS data from ELDs (Samsara, KeepTruckin)
+- Pull load data from TMS (McLeod, TMW)
+- Enhance with route planning and continuous monitoring
+- Return drivers to your existing workflows
+
+**We don't replace your TMS. We don't replace your ELD. We fill the gap between them.**
+
+## What's Next
+
+We're currently in MVP development with the following roadmap:
+
+**Phase 1 (Current): Single-Driver Route Planning**
+- Core route planning engine with HOS compliance
+- Automated alert system for dispatchers
+- Dynamic route updates
+- Mock external API integrations for POC
+
+**Phase 2: Fleet-Wide Optimization**
+- Multi-driver assignment (VRP solver)
+- Load matching optimization
+- Driver preferences and home time
+- Team driving support
+
+**Phase 3: Live Data Integration**
+- Real-time ELD/TMS/Telematics integration
+- Google Maps traffic and directions
+- Weather and fuel price APIs
+- Fully automated route planning
+
+**Phase 4: Predictive Intelligence**
+- ML-based ETA prediction
+- Driver preference learning
+- Lane-specific optimization
+- Demand forecasting
+
+## Get Involved
+
+We're working with pilot carriers to validate and refine SALLY. If you're interested in:
+
+- Participating in our pilot program
+- Integrating SALLY with your fleet operations
+- Learning more about our API and developer tools
+- Providing feedback on our roadmap
+
+Visit our [Getting Started](/getting-started) guide or explore our [API Reference](/api-reference) to dive deeper.
+
+---
+
+**SALLY: Where routing meets reality.**
+
+We don't just route trucks. We route drivers with hours, fuel, and rest built into every mile.
+
+Stay tuned for more technical deep-dives, feature announcements, and insights from our engineering team.
