@@ -4,4 +4,4 @@ import { MockTmsController } from './mock-tms.controller';
 @Module({
   controllers: [MockTmsController],
 })
-export class MockExternalModule {}
+export class MockTmsModule {}

@@ -9,8 +9,19 @@ import {
 /**
  * McLeod TMS Adapter
  *
- * NOTE: Currently returns MOCK data for development/testing
- * In Phase 2, this will make real API calls to McLeod TMS
+ * ⚠️ MVP STUB IMPLEMENTATION - MOCK DATA ONLY
+ *
+ * STATUS: This adapter is registered and functional but returns mock data only.
+ * Real McLeod TMS API integration is planned for Phase 2/3.
+ *
+ * REQUIRED FOR PRODUCTION:
+ * 1. Obtain McLeod TMS API credentials from customer
+ * 2. Review McLeod API documentation (contact McLeod support)
+ * 3. Implement real API calls (see TODOs below)
+ * 4. Add proper authentication and error handling
+ * 5. Test connection with real McLeod instance
+ * 6. Implement sync logic for loads, vehicles, drivers
+ * 7. Set useMockData = false
  *
  * Real McLeod API: Contact McLeod for API documentation
  */

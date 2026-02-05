@@ -9,11 +9,10 @@ import { IntegrationManagerService } from './services/integration-manager.servic
 import { IntegrationSchedulerService } from './services/integration-scheduler.service';
 import { RetryModule } from '../../infrastructure/retry/retry.module';
 import { AlertsModule } from '../operations/alerts/alerts.module';
-import { SamsaraHOSAdapter } from './adapters/hos/samsara-hos.adapter';
 import { McLeodTMSAdapter } from './adapters/tms/mcleod-tms.adapter';
 import { Project44TMSAdapter } from './adapters/tms/project44-tms.adapter';
+import { SamsaraELDAdapter } from './adapters/eld/samsara-eld.adapter';
 import { GasBuddyFuelAdapter } from './adapters/fuel/gasbuddy-fuel.adapter';
-import { FuelFinderAdapter } from './adapters/fuel/fuelfinder-fuel.adapter';
 import { OpenWeatherAdapter } from './adapters/weather/openweather.adapter';
 
 @Module({
@@ -30,12 +29,11 @@ import { OpenWeatherAdapter } from './adapters/weather/openweather.adapter';
     IntegrationManagerService,
     IntegrationSchedulerService,
     CredentialsService,
-    // Adapters
-    SamsaraHOSAdapter,
+    // Adapters (registered here to avoid duplicate DI in SyncModule)
+    SamsaraELDAdapter,
     McLeodTMSAdapter,
     Project44TMSAdapter,
     GasBuddyFuelAdapter,
-    FuelFinderAdapter,
     OpenWeatherAdapter,
   ],
   exports: [IntegrationsService, IntegrationManagerService],

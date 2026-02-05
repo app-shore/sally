@@ -15,7 +15,7 @@ import axios from 'axios';
 @Injectable()
 export class SamsaraELDAdapter implements IELDAdapter {
   private readonly baseUrl = 'https://api.samsara.com';
-  private useMockData = true; // Set to false when ready for production
+  private useMockData = false; // Using real Samsara API (keys configured)
 
   /**
    * Get all vehicles from Samsara ELD

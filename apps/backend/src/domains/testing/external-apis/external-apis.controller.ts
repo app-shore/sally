@@ -40,8 +40,8 @@ interface WeatherData {
 
 @ApiTags('External API Mock')
 @Controller('external')
-export class ExternalMockController {
-  private readonly logger = new Logger(ExternalMockController.name);
+export class ExternalApisController {
+  private readonly logger = new Logger(ExternalApisController.name);
 
   // Mock HOS data for different drivers
   private readonly mockHOSData: Record<string, HOSData> = {

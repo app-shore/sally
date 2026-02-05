@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { IntegrationManagerService } from './integration-manager.service';
@@ -13,6 +13,8 @@ import { IntegrationManagerService } from './integration-manager.service';
  */
 @Injectable()
 export class IntegrationSchedulerService {
+  private readonly logger = new Logger(IntegrationSchedulerService.name);
+
   constructor(
     private prisma: PrismaService,
     private integrationManager: IntegrationManagerService,
@@ -24,7 +26,7 @@ export class IntegrationSchedulerService {
    */
   @Cron(CronExpression.EVERY_5_MINUTES)
   async syncHOSData() {
-    console.log('🔄 Starting scheduled HOS sync...');
+    this.logger.log('🔄 Starting scheduled HOS sync...');
 
     try {
       // Get all tenants with active HOS integrations
@@ -41,11 +43,11 @@ export class IntegrationSchedulerService {
       });
 
       if (activeIntegrations.length === 0) {
-        console.log('No active HOS integrations found, skipping sync');
+        this.logger.log('No active HOS integrations found, skipping sync');
         return;
       }
 
-      console.log(`Syncing HOS for ${activeIntegrations.length} tenants`);
+      this.logger.log(`Syncing HOS for ${activeIntegrations.length} tenants`);
 
       // Sync each tenant's drivers
       for (const integration of activeIntegrations) {
@@ -54,16 +56,16 @@ export class IntegrationSchedulerService {
             integration.tenantId,
           );
         } catch (error) {
-          console.error(
+          this.logger.error(
             `Failed to sync HOS for tenant ${integration.tenantId}:`,
             error.message,
           );
         }
       }
 
-      console.log('✅ HOS sync completed');
+      this.logger.log('✅ HOS sync completed');
     } catch (error) {
-      console.error('Failed to run HOS sync job:', error);
+      this.logger.error('Failed to run HOS sync job:', error);
     }
   }
 
@@ -73,7 +75,7 @@ export class IntegrationSchedulerService {
    */
   @Cron('0 */15 * * * *')
   async syncDriverLists() {
-    console.log('🔄 Starting scheduled driver list sync...');
+    this.logger.log('🔄 Starting scheduled driver list sync...');
 
     try {
       const activeIntegrations = await this.prisma.integrationConfig.findMany({
@@ -85,14 +87,14 @@ export class IntegrationSchedulerService {
       });
 
       if (activeIntegrations.length === 0) {
-        console.log('No active TMS integrations found, skipping sync');
+        this.logger.log('No active TMS integrations found, skipping sync');
         return;
       }
 
       // TODO: Implement TMS driver sync in Phase 3
-      console.log('TMS driver sync not yet implemented');
+      this.logger.log('TMS driver sync not yet implemented');
     } catch (error) {
-      console.error('Failed to run driver list sync job:', error);
+      this.logger.error('Failed to run driver list sync job:', error);
     }
   }
 
@@ -102,7 +104,7 @@ export class IntegrationSchedulerService {
    */
   @Cron('0 2 * * *')
   async cleanupOldSyncLogs() {
-    console.log('🧹 Cleaning up old sync logs...');
+    this.logger.log('🧹 Cleaning up old sync logs...');
 
     try {
       const thirtyDaysAgo = new Date();
@@ -116,9 +118,9 @@ export class IntegrationSchedulerService {
         },
       });
 
-      console.log(`✅ Deleted ${deleted.count} old sync logs`);
+      this.logger.log(`✅ Deleted ${deleted.count} old sync logs`);
     } catch (error) {
-      console.error('Failed to cleanup sync logs:', error);
+      this.logger.error('Failed to cleanup sync logs:', error);
     }
   }
 }

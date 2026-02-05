@@ -8,8 +8,17 @@ import {
 /**
  * GasBuddy Fuel Price Adapter
  *
- * NOTE: Currently returns MOCK data for development/testing
- * In Phase 2, this will make real API calls to GasBuddy Business API
+ * ⚠️ MVP STUB IMPLEMENTATION - MOCK DATA ONLY
+ *
+ * STATUS: This adapter is registered and functional but returns mock data only.
+ * Real GasBuddy API integration is planned for Phase 2/3.
+ *
+ * REQUIRED FOR PRODUCTION:
+ * 1. Obtain GasBuddy Business API credentials
+ * 2. Implement real API calls (see TODOs below)
+ * 3. Add proper error handling and retry logic
+ * 4. Test connection with real API
+ * 5. Set useMockData = false
  *
  * Real GasBuddy API: https://www.gasbuddy.com/business
  */

@@ -10,10 +10,13 @@ import { DriverMerger } from './merging/driver-merger';
 import { AutoSyncJob } from '../../../infrastructure/jobs/auto-sync.job';
 import { CredentialsService } from '../credentials/credentials.service';
 import { AdapterFactoryService } from '../adapters/adapter-factory.service';
-import { Project44TMSAdapter } from '../adapters/tms/project44-tms.adapter';
-import { McLeodTMSAdapter } from '../adapters/tms/mcleod-tms.adapter';
-import { SamsaraELDAdapter } from '../adapters/eld/samsara-eld.adapter';
 
+/**
+ * SyncModule handles data synchronization from external systems.
+ *
+ * Note: Adapters are registered in IntegrationsModule (parent module)
+ * to avoid duplicate registration and DI conflicts.
+ */
 @Module({
   imports: [PrismaModule],
   providers: [
@@ -26,13 +29,8 @@ import { SamsaraELDAdapter } from '../adapters/eld/samsara-eld.adapter';
     DriverMerger,
     AutoSyncJob,
     CredentialsService,
-    // Adapter Factory
+    // Adapter Factory (uses adapters from parent IntegrationsModule)
     AdapterFactoryService,
-    // TMS Adapters
-    Project44TMSAdapter,
-    McLeodTMSAdapter,
-    // ELD Adapters
-    SamsaraELDAdapter,
   ],
   exports: [SyncService],
 })
