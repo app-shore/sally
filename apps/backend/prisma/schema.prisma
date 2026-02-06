@@ -59,6 +59,15 @@ model Tenant {
   rejectedAt            DateTime?    @map("rejected_at") @db.Timestamptz
   rejectionReason       String?      @map("rejection_reason")
 
+  // Suspension tracking
+  suspendedAt           DateTime?    @map("suspended_at") @db.Timestamptz
+  suspendedBy           String?      @map("suspended_by") @db.VarChar(100)
+  suspensionReason      String?      @map("suspension_reason")
+
+  // Reactivation tracking
+  reactivatedAt         DateTime?    @map("reactivated_at") @db.Timestamptz
+  reactivatedBy         String?      @map("reactivated_by") @db.VarChar(100)
+
   // Onboarding tracking
   onboardingCompletedAt DateTime?    @map("onboarding_completed_at") @db.Timestamptz
   onboardingProgress    Json?        @map("onboarding_progress")
