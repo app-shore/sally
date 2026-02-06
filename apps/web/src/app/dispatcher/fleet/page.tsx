@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/features/auth';
 import {
@@ -44,7 +44,7 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { formatRelativeTime } from '@/features/integrations';
 import { getLoads, getLoad } from '@/features/fleet/loads';
 import type { LoadListItem, Load } from '@/features/fleet/loads';
-import { Lock, Plus, RefreshCw, ChevronDown, ChevronRight, MapPin } from 'lucide-react';
+import { Lock, Plus, RefreshCw, ChevronDown, ChevronRight, MapPin, Settings, Package } from 'lucide-react';
 
 export default function FleetPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -87,14 +87,14 @@ export default function FleetPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Fleet Management</h1>
         <p className="text-muted-foreground mt-1">
-          Manage drivers, vehicles, and load assignments
+          Manage drivers, assets, and load assignments
         </p>
       </div>
 
       <Tabs defaultValue="drivers" className="space-y-4">
         <TabsList>
           <TabsTrigger value="drivers">Drivers</TabsTrigger>
-          <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
+          <TabsTrigger value="assets">Assets</TabsTrigger>
           <TabsTrigger value="loads">Loads</TabsTrigger>
         </TabsList>
 
@@ -107,8 +107,8 @@ export default function FleetPage() {
           />
         </TabsContent>
 
-        <TabsContent value="vehicles">
-          <VehiclesTab
+        <TabsContent value="assets">
+          <AssetsTab
             vehicles={vehicles}
             isLoading={isLoading}
             error={error}
@@ -434,7 +434,7 @@ function DriverForm({
   );
 }
 
-function VehiclesTab({
+function AssetsTab({
   vehicles,
   isLoading,
   error,
@@ -445,6 +445,7 @@ function VehiclesTab({
   error: string | null;
   onRefresh: () => Promise<void>;
 }) {
+  const [activeSubTab, setActiveSubTab] = useState<'trucks' | 'trailers' | 'equipment'>('trucks');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
@@ -491,42 +492,82 @@ function VehiclesTab({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Vehicles</CardTitle>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Assets</CardTitle>
+
+          {/* Add Truck Dialog - Only show when on Trucks tab */}
+          {activeSubTab === 'trucks' && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => setEditingVehicle(null)}
+                  disabled
+                  className="opacity-50 cursor-not-allowed"
+                  title="Add Truck disabled - PUSH capability required"
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Truck
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingVehicle ? 'Edit Truck' : 'Add Truck'}
+                  </DialogTitle>
+                </DialogHeader>
+                <VehicleForm
+                  vehicle={editingVehicle}
+                  onSuccess={handleSuccess}
+                  onCancel={handleCloseDialog}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+
+        {/* Segmented Control for Asset Types */}
+        <div className="mt-4">
+          <div className="inline-flex items-center rounded-lg border border-border p-1 bg-muted">
             <Button
-              onClick={() => setEditingVehicle(null)}
-              disabled
-              className="opacity-50 cursor-not-allowed"
-              title="Add Vehicle disabled - PUSH capability required"
+              variant={activeSubTab === 'trucks' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveSubTab('trucks')}
+              className="gap-1.5"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Vehicle
+              <Package className="h-4 w-4" />
+              Trucks
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'}
-              </DialogTitle>
-            </DialogHeader>
-            <VehicleForm
-              vehicle={editingVehicle}
-              onSuccess={handleSuccess}
-              onCancel={handleCloseDialog}
-            />
-          </DialogContent>
-        </Dialog>
+            <Button
+              variant={activeSubTab === 'trailers' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveSubTab('trailers')}
+              className="gap-1.5"
+            >
+              <Package className="h-4 w-4" />
+              Trailers
+            </Button>
+            <Button
+              variant={activeSubTab === 'equipment' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveSubTab('equipment')}
+              className="gap-1.5"
+            >
+              <Settings className="h-4 w-4" />
+              Equipment
+            </Button>
+          </div>
+        </div>
       </CardHeader>
 
-      {vehicles.some(v => v.external_source) && (
-        <div className="mx-6 mt-4 mb-2">
+      {activeSubTab === 'trucks' && vehicles.some(v => v.external_source) && (
+        <div className="mx-6 mt-2 mb-2">
           <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
             <AlertDescription className="text-sm text-blue-900 dark:text-blue-100 flex items-center justify-between">
               <span>
                 <span className="font-medium">🔗 One-way PULL integration active</span>
-                {' '}— Vehicles synced from Truckbase TMS. Edit/delete/add disabled (read-only).
+                {' '}— Trucks synced from Truckbase TMS. Edit/delete/add disabled (read-only).
                 <span className="text-blue-700 dark:text-blue-300"> PUSH capability required for modifications.</span>
               </span>
               <Button
@@ -545,107 +586,137 @@ function VehiclesTab({
       )}
 
       <CardContent>
-        {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading vehicles...</div>
-        ) : error ? (
-          <div className="text-center py-8">
-            <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
-            <Button onClick={onRefresh}>Retry</Button>
+        {activeSubTab === 'trucks' && (
+          <>
+            {isLoading ? (
+              <div className="text-center py-8 text-muted-foreground">Loading trucks...</div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+                <Button onClick={onRefresh}>Retry</Button>
+              </div>
+            ) : vehicles.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No trucks found. Trucks will sync automatically from your TMS integration.
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Unit Number</TableHead>
+                    <TableHead>Make/Model</TableHead>
+                    <TableHead>Year</TableHead>
+                    <TableHead>Fuel Capacity</TableHead>
+                    <TableHead>MPG</TableHead>
+                    <TableHead>Source</TableHead>
+                    <TableHead>Last Synced</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {vehicles.map((vehicle) => (
+                    <TableRow key={vehicle.id}>
+                      <TableCell className="font-medium text-foreground">{vehicle.unit_number}</TableCell>
+                      <TableCell className="text-foreground">
+                        {vehicle.make && vehicle.model
+                          ? `${vehicle.make} ${vehicle.model}`
+                          : '-'}
+                      </TableCell>
+                      <TableCell className="text-foreground">{vehicle.year || '-'}</TableCell>
+                      <TableCell className="text-foreground">{vehicle.fuel_capacity_gallons} gal</TableCell>
+                      <TableCell className="text-foreground">{vehicle.mpg ? `${vehicle.mpg} mpg` : '-'}</TableCell>
+                      <TableCell>
+                        {vehicle.external_source ? (
+                          <Badge variant="muted" className="gap-1">
+                            <span className="text-xs">🔗</span>
+                            {getSourceLabel(vehicle.external_source)}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="gap-1">
+                            <span className="text-xs">✋</span>
+                            Manual
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {vehicle.last_synced_at ? formatRelativeTime(vehicle.last_synced_at) : 'Never'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {vehicle.external_source ? (
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled
+                              className="opacity-50 cursor-not-allowed"
+                              title={`Read-only - synced from ${getSourceLabel(vehicle.external_source)}`}
+                            >
+                              <Lock className="h-3 w-3 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled
+                              className="opacity-50 cursor-not-allowed"
+                              title={`Read-only - synced from ${getSourceLabel(vehicle.external_source)}`}
+                            >
+                              <Lock className="h-3 w-3 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEdit(vehicle)}
+                              className="mr-2"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDelete(vehicle.vehicle_id)}
+                            >
+                              Delete
+                            </Button>
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </>
+        )}
+
+        {activeSubTab === 'trailers' && (
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Trailer Tracking</h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
+              Track trailers, monitor availability, and sync trailer data from your TMS integration.
+            </p>
+            <Badge variant="outline" className="text-xs">Coming Soon</Badge>
           </div>
-        ) : vehicles.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No vehicles found. Add your first vehicle to get started.
+        )}
+
+        {activeSubTab === 'equipment' && (
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+              <Settings className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Equipment Management</h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
+              Manage specialized equipment like reefer units, tarps, and other fleet assets.
+            </p>
+            <Badge variant="outline" className="text-xs">Coming Soon</Badge>
           </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Unit Number</TableHead>
-                <TableHead>Make/Model</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Fuel Capacity</TableHead>
-                <TableHead>MPG</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Last Synced</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {vehicles.map((vehicle) => (
-                <TableRow key={vehicle.id}>
-                  <TableCell className="font-medium text-foreground">{vehicle.unit_number}</TableCell>
-                  <TableCell className="text-foreground">
-                    {vehicle.make && vehicle.model
-                      ? `${vehicle.make} ${vehicle.model}`
-                      : '-'}
-                  </TableCell>
-                  <TableCell className="text-foreground">{vehicle.year || '-'}</TableCell>
-                  <TableCell className="text-foreground">{vehicle.fuel_capacity_gallons} gal</TableCell>
-                  <TableCell className="text-foreground">{vehicle.mpg ? `${vehicle.mpg} mpg` : '-'}</TableCell>
-                  <TableCell>
-                    {vehicle.external_source ? (
-                      <Badge variant="muted" className="gap-1">
-                        <span className="text-xs">🔗</span>
-                        {getSourceLabel(vehicle.external_source)}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="gap-1">
-                        <span className="text-xs">✋</span>
-                        Manual
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {vehicle.last_synced_at ? formatRelativeTime(vehicle.last_synced_at) : 'Never'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {vehicle.external_source ? (
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled
-                          className="opacity-50 cursor-not-allowed"
-                          title={`Read-only - synced from ${getSourceLabel(vehicle.external_source)}`}
-                        >
-                          <Lock className="h-3 w-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          disabled
-                          className="opacity-50 cursor-not-allowed"
-                          title={`Read-only - synced from ${getSourceLabel(vehicle.external_source)}`}
-                        >
-                          <Lock className="h-3 w-3 mr-1" />
-                          Delete
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(vehicle)}
-                          className="mr-2"
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleDelete(vehicle.vehicle_id)}
-                        >
-                          Delete
-                        </Button>
-                      </>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         )}
       </CardContent>
     </Card>
@@ -953,9 +1024,8 @@ function LoadsTab() {
                 const isLoadingDetails = loadingDetails.has(load.id);
 
                 return (
-                  <>
+                  <React.Fragment key={load.id}>
                     <TableRow
-                      key={load.id}
                       className="cursor-pointer hover:bg-muted/50 transition-colors"
                       onClick={() => toggleLoadExpansion(load)}
                     >
@@ -1109,7 +1179,7 @@ function LoadsTab() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })}
             </TableBody>
