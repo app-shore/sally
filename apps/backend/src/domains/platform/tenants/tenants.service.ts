@@ -352,4 +352,69 @@ export class TenantsService {
 
     return result;
   }
+
+  /**
+   * Get tenant details with users and metrics
+   */
+  async getTenantDetails(tenantId: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { tenantId },
+      include: {
+        users: {
+          select: {
+            userId: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            isActive: true,
+            lastLoginAt: true,
+          },
+          orderBy: [{ role: 'asc' }, { firstName: 'asc' }],
+        },
+        _count: {
+          select: {
+            users: true,
+            drivers: true,
+            vehicles: true,
+            routePlans: true,
+          },
+        },
+      },
+    });
+
+    if (!tenant) {
+      throw new BadRequestException('Tenant not found');
+    }
+
+    return {
+      tenant: {
+        tenantId: tenant.tenantId,
+        companyName: tenant.companyName,
+        subdomain: tenant.subdomain,
+        status: tenant.status,
+        dotNumber: tenant.dotNumber,
+        fleetSize: tenant.fleetSize,
+        contactEmail: tenant.contactEmail,
+        contactPhone: tenant.contactPhone,
+        createdAt: tenant.createdAt.toISOString(),
+        approvedAt: tenant.approvedAt?.toISOString(),
+        approvedBy: tenant.approvedBy,
+        rejectedAt: tenant.rejectedAt?.toISOString(),
+        rejectionReason: tenant.rejectionReason,
+        suspendedAt: tenant.suspendedAt?.toISOString(),
+        suspendedBy: tenant.suspendedBy,
+        suspensionReason: tenant.suspensionReason,
+        reactivatedAt: tenant.reactivatedAt?.toISOString(),
+        reactivatedBy: tenant.reactivatedBy,
+      },
+      users: tenant.users,
+      metrics: {
+        totalUsers: tenant._count.users,
+        totalDrivers: tenant._count.drivers,
+        totalVehicles: tenant._count.vehicles,
+        totalRoutePlans: tenant._count.routePlans,
+      },
+    };
+  }
 }
