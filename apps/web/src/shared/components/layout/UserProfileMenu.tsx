@@ -61,7 +61,13 @@ export function UserProfileMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push('/settings')}>
+        <DropdownMenuItem onClick={() => {
+          if (user?.role === 'SUPER_ADMIN') {
+            router.push('/admin/settings');
+          } else {
+            router.push('/settings/preferences');
+          }
+        }}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>
