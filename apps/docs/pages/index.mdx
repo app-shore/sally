@@ -46,7 +46,7 @@ import Link from "next/link"
         icon="🚛"
         title="Route Planning"
         description="Optimal stop sequence with TSP/VRP optimization"
-        href="/api-reference/routes"
+        href="/api-playground#tag/Routes"
       />
       <FeatureCard
         icon="😴"
@@ -58,7 +58,7 @@ import Link from "next/link"
         icon="⛽"
         title="Fuel Optimization"
         description="Smart fuel stops based on range and pricing"
-        href="/api-reference/routes"
+        href="/api-playground#tag/Routes"
       />
       <FeatureCard
         icon="✅"
@@ -70,13 +70,13 @@ import Link from "next/link"
         icon="🔔"
         title="24/7 Monitoring"
         description="14 trigger types across 5 categories"
-        href="/api-reference/routes/get-monitoring"
+        href="/api-playground#operation/getRouteMonitoring"
       />
       <FeatureCard
         icon="🔄"
         title="Dynamic Updates"
         description="Proactive and reactive route adjustments"
-        href="/api-reference/routes"
+        href="/api-playground#tag/Routes"
       />
     </div>
   </div>
@@ -98,12 +98,22 @@ import Link from "next/link"
       </div>
 
       <div className="rounded-lg border border-border bg-card p-6">
-        <h3 className="mb-2 text-lg font-semibold text-foreground">API Reference</h3>
+        <h3 className="mb-2 text-lg font-semibold text-foreground">🎮 API Playground</h3>
         <p className="mb-4 text-sm text-muted-foreground">
-          Explore interactive API documentation
+          Interactive explorer - test endpoints and see live responses
+        </p>
+        <Link href="/api-playground" className="text-sm text-foreground hover:underline">
+          Try it now →
+        </Link>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h3 className="mb-2 text-lg font-semibold text-foreground">📡 API Reference</h3>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Authentication, response formats, and quick start guide
         </p>
         <Link href="/api-reference" className="text-sm text-foreground hover:underline">
-          View APIs →
+          View reference →
         </Link>
       </div>
 

@@ -16,6 +16,10 @@ export default {
     "title": "📡 API Reference",
     "type": "page"
   },
+  "api-playground": {
+    "title": "🎮 API Playground",
+    "type": "page"
+  },
   "blog": {
     "title": "📝 Blog",
     "type": "page"

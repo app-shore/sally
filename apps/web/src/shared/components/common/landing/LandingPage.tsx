@@ -159,7 +159,7 @@ export function LandingPage() {
 
 
       {/* Section 4: One Platform */}
-      <section className="py-32 bg-background">
+      {/* <section className="py-32 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
@@ -174,7 +174,6 @@ export function LandingPage() {
             <AnimatedRoute />
           </ScrollReveal>
 
-          {/* Solution stats */}
           <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20">
             <StaggerItem>
               <div className="text-center">
@@ -202,7 +201,7 @@ export function LandingPage() {
             </StaggerItem>
           </StaggerContainer>
         </div>
-      </section>
+      </section> */}
 
       {/* Section 5: Visual Journey Alternative */}
       <FeaturesVisualJourney />

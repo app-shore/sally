@@ -1,13 +1,11 @@
 ---
 title: API Reference
-description: Interactive API documentation for SALLY
+description: Complete reference for SALLY REST API
 ---
-
-import { EndpointLinks } from '@/components/EndpointLinks'
 
 # API Reference
 
-Explore SALLY's REST APIs with interactive examples. Test endpoints directly in your browser.
+SALLY provides a powerful REST API for route planning, HOS compliance, and fleet management.
 
 ## Base URL
 
@@ -15,22 +13,48 @@ Explore SALLY's REST APIs with interactive examples. Test endpoints directly in 
 https://sally-api.apps.appshore.in/api/v1
 ```
 
-## Authentication
+## Quick Start
 
-All API requests require authentication using an API key in the `Authorization` header:
+1. [Get your API key](/getting-started/api-keys)
+2. [Authenticate your requests](/api-reference/authentication)
+3. [Explore endpoints](/api-playground) in the interactive playground
 
-```bash
-Authorization: Bearer sk_staging_YOUR_KEY
-```
+## Core Endpoints
 
-See [Authentication Guide](/getting-started/authentication) for details.
+### Routes
+Plan optimized, HOS-compliant routes with automatic rest and fuel stop insertion.
+
+**Key endpoints:**
+- `POST /api/v1/routes/plan` - Plan a new route
+- `GET /api/v1/routes/{id}` - Get route details
+- `POST /api/v1/routes/{id}/update` - Update route with triggers
+
+[Explore in playground →](/api-playground#tag/Routes)
+
+### Alerts
+Manage dispatcher alerts and notifications for proactive fleet management.
+
+**Key endpoints:**
+- `GET /api/v1/alerts` - List active alerts
+- `POST /api/v1/alerts/{id}/acknowledge` - Acknowledge alert
+- `POST /api/v1/alerts/{id}/resolve` - Resolve alert
+
+[Explore in playground →](/api-playground#tag/Alerts)
+
+### HOS Validation
+Validate Hours of Service compliance and ensure routes meet FMCSA regulations.
+
+**Key endpoints:**
+- `POST /api/v1/hos/validate` - Validate HOS compliance
+- `GET /api/v1/hos/limits` - Get current HOS limits
+
+[Explore in playground →](/api-playground#tag/HOS)
 
 ## Response Format
 
 All API responses follow this structure:
 
-### Success Response (200 OK)
-
+### Success (200 OK)
 ```json
 {
   "data": {
@@ -39,8 +63,7 @@ All API responses follow this structure:
 }
 ```
 
-### Error Response (4xx, 5xx)
-
+### Error (4xx, 5xx)
 ```json
 {
   "statusCode": 400,
@@ -51,15 +74,13 @@ All API responses follow this structure:
 
 ## Rate Limits
 
-Rate limits are applied per API key:
-
 - **Staging keys**: 1,000 requests/hour
-- **Production keys**: Coming soon
+- **Production keys**: 10,000 requests/hour
 
-Rate limit headers included in responses:
-- `X-RateLimit-Limit`: Total requests allowed per hour
-- `X-RateLimit-Remaining`: Requests remaining in current window
-- `X-RateLimit-Reset`: Unix timestamp when limit resets
+Rate limit headers:
+- `X-RateLimit-Limit` - Total requests allowed
+- `X-RateLimit-Remaining` - Requests remaining
+- `X-RateLimit-Reset` - Reset timestamp
 
 ## Status Codes
 
@@ -67,21 +88,14 @@ Rate limit headers included in responses:
 |------|-------------|
 | 200 | Success |
 | 201 | Created |
-| 204 | No Content |
-| 400 | Bad Request - Invalid input |
-| 401 | Unauthorized - Invalid/missing API key |
-| 404 | Not Found - Resource doesn't exist |
-| 429 | Too Many Requests - Rate limit exceeded |
-| 500 | Internal Server Error |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 404 | Not Found |
+| 429 | Rate Limit Exceeded |
+| 500 | Server Error |
 
-## Explore Endpoints
+## Next Steps
 
-Browse all available endpoints by category:
-
-<EndpointLinks />
-
-## Need Help?
-
-- [Quickstart Guide](/getting-started/quickstart) - Create your first route in 5 minutes
-- [API Keys](/getting-started/api-keys) - Generate and manage your API keys
-- [Support](/resources/support) - Get help from our team
+- [Authentication Guide](/api-reference/authentication) - Learn how to authenticate
+- [API Playground](/api-playground) - Test endpoints interactively
+- [Quickstart](/getting-started/quickstart) - Build your first integration
