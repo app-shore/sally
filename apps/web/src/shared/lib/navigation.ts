@@ -28,11 +28,12 @@ export type NavigationItem = NavItem | NavSeparator;
 export const navigationConfig: Record<string, NavigationItem[]> = {
   dispatcher: [
     { label: 'Command Center', href: '/dispatcher/overview', icon: Home },
+    { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Truck },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
-    { label: 'Fleet', href: '/settings/fleet', icon: Package },
+
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
     { label: 'Preferences', href: '/settings/preferences', icon: Settings },
   ],
@@ -54,11 +55,12 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { type: 'separator', label: 'Operations' } as NavSeparator,
     // Dispatcher operations
     { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
+    { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
-    { label: 'Fleet', href: '/settings/fleet', icon: Package },
+
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
     { label: 'Preferences', href: '/settings/preferences', icon: Settings },
   ],
@@ -74,11 +76,11 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { type: 'separator', label: 'Operations' } as NavSeparator,
     // Dispatcher operations
     { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
+    { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
-    { label: 'Fleet', href: '/settings/fleet', icon: Package },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
     { label: 'Preferences', href: '/settings/preferences', icon: Settings },
   ],
