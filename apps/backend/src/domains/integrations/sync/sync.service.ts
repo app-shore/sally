@@ -69,11 +69,12 @@ export class SyncService {
         const driversBefore = await this.prisma.driver.count({
           where: { tenantId: integration.tenantId },
         });
+        const loadsBefore = await this.prisma.load.count();
 
-        // Sync vehicles and drivers (load syncing disabled until schema supports TMS load data)
+        // Sync vehicles, drivers, and loads from TMS
         await this.tmsSyncService.syncVehicles(integrationId);
         await this.tmsSyncService.syncDrivers(integrationId);
-        // TODO: await this.tmsSyncService.syncLoads(integrationId); // Re-enable after schema update
+        await this.tmsSyncService.syncLoads(integrationId);
 
         // Get counts after sync
         const vehiclesAfter = await this.prisma.vehicle.count({
@@ -82,9 +83,10 @@ export class SyncService {
         const driversAfter = await this.prisma.driver.count({
           where: { tenantId: integration.tenantId },
         });
+        const loadsAfter = await this.prisma.load.count();
 
-        recordsProcessed = vehiclesAfter + driversAfter;
-        recordsCreated = (vehiclesAfter - vehiclesBefore) + (driversAfter - driversBefore);
+        recordsProcessed = vehiclesAfter + driversAfter + loadsAfter;
+        recordsCreated = (vehiclesAfter - vehiclesBefore) + (driversAfter - driversBefore) + (loadsAfter - loadsBefore);
         recordsUpdated = recordsProcessed - recordsCreated;
       } else if (vendorMeta.integrationType === IntegrationType.HOS_ELD) {
         this.logger.log(`Syncing ELD integration: ${integration.vendor}`);
