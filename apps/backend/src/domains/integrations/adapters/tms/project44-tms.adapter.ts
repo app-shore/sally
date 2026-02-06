@@ -337,6 +337,10 @@ export class Project44TMSAdapter implements ITMSAdapter {
   private transformLoadData(p44Load: any): LoadData {
     return {
       load_id: p44Load.externalLoadNumber || p44Load.id,
+      load_number: p44Load.externalLoadNumber || p44Load.id,
+      customer_name: p44Load.customerName || 'Unknown',
+      weight_lbs: p44Load.weight || 0,
+      commodity_type: p44Load.commodityType || 'General Freight',
       pickup_location: {
         address: p44Load.pickupStopReference?.address || '',
         city: p44Load.pickupStopReference?.city || '',
