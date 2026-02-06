@@ -62,4 +62,13 @@ export class TenantsController {
       user.email,
     );
   }
+
+  @Roles(UserRole.SUPER_ADMIN)
+  @Post(':tenantId/reactivate')
+  async reactivateTenant(
+    @Param('tenantId') tenantId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.tenantsService.reactivateTenant(tenantId, user.email);
+  }
 }
