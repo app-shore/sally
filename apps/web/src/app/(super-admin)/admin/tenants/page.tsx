@@ -1,4 +1,4 @@
-import { TenantList } from "@/features/platform/admin/components/tenant-list";
+import { TenantManagementTabs } from "@/features/platform/admin/components/tenant-management-tabs";
 
 export default function SuperAdminTenantsPage() {
   return (
@@ -8,10 +8,10 @@ export default function SuperAdminTenantsPage() {
           Tenant Management
         </h1>
         <p className="text-muted-foreground mt-1">
-          Approve or reject tenant registrations
+          Manage tenant registrations and lifecycle across all statuses
         </p>
       </div>
-      <TenantList />
+      <TenantManagementTabs />
     </div>
   );
 }
