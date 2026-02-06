@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   Param,
   Query,
@@ -60,5 +61,23 @@ export class LoadsController extends BaseTenantController {
   @ApiOperation({ summary: 'Get load details with stops' })
   async getLoad(@Param('load_id') loadId: string) {
     return this.loadsService.findOne(loadId);
+  }
+
+  @Patch(':load_id/status')
+  @ApiOperation({ summary: 'Update load status' })
+  async updateLoadStatus(
+    @Param('load_id') loadId: string,
+    @Body() body: { status: string },
+  ) {
+    return this.loadsService.updateStatus(loadId, body.status);
+  }
+
+  @Post(':load_id/assign')
+  @ApiOperation({ summary: 'Assign driver and vehicle to load' })
+  async assignLoad(
+    @Param('load_id') loadId: string,
+    @Body() body: { driver_id: string; vehicle_id: string },
+  ) {
+    return this.loadsService.assignLoad(loadId, body.driver_id, body.vehicle_id);
   }
 }
