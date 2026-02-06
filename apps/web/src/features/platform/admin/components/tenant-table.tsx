@@ -2,6 +2,7 @@
 
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import { formatDateTimeFriendly } from '@/shared/lib/utils/formatters';
 import {
   Table,
   TableBody,
@@ -82,27 +83,15 @@ export function TenantTable({
   }
 
   const getStatusDate = (tenant: Tenant) => {
-    const formatDateTime = (dateStr: string) => {
-      const date = new Date(dateStr);
-      return date.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-    };
-
     switch (status) {
       case 'PENDING_APPROVAL':
-        return formatDateTime(tenant.createdAt);
+        return formatDateTimeFriendly(tenant.createdAt);
       case 'ACTIVE':
-        return tenant.approvedAt ? formatDateTime(tenant.approvedAt) : '-';
+        return tenant.approvedAt ? formatDateTimeFriendly(tenant.approvedAt) : '-';
       case 'SUSPENDED':
-        return tenant.suspendedAt ? formatDateTime(tenant.suspendedAt) : '-';
+        return tenant.suspendedAt ? formatDateTimeFriendly(tenant.suspendedAt) : '-';
       case 'REJECTED':
-        return tenant.rejectedAt ? formatDateTime(tenant.rejectedAt) : '-';
+        return tenant.rejectedAt ? formatDateTimeFriendly(tenant.rejectedAt) : '-';
       default:
         return '-';
     }

@@ -25,6 +25,7 @@ import {
 } from '@/shared/components/ui/table';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/features/auth';
+import { formatDateTimeFriendly } from '@/shared/lib/utils/formatters';
 
 interface TenantDetailsDialogProps {
   open: boolean;
@@ -41,18 +42,6 @@ export function TenantDetailsDialog({
 }: TenantDetailsDialogProps) {
   const { accessToken } = useAuth();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-
-  const formatDateTime = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
 
   // Fetch tenant details
   const { data, isLoading } = useQuery({
@@ -140,26 +129,26 @@ export function TenantDetailsDialog({
                   </div>
                   {data.tenant.approvedAt && (
                     <div className="text-muted-foreground">
-                      Approved on {formatDateTime(data.tenant.approvedAt)} by{' '}
+                      Approved on {formatDateTimeFriendly(data.tenant.approvedAt)} by{' '}
                       {data.tenant.approvedBy}
                     </div>
                   )}
                   {data.tenant.suspendedAt && (
                     <div className="text-muted-foreground">
-                      Suspended on {formatDateTime(data.tenant.suspendedAt)} by{' '}
+                      Suspended on {formatDateTimeFriendly(data.tenant.suspendedAt)} by{' '}
                       {data.tenant.suspendedBy}
                       <p className="italic mt-1">Reason: {data.tenant.suspensionReason}</p>
                     </div>
                   )}
                   {data.tenant.rejectedAt && (
                     <div className="text-muted-foreground">
-                      Rejected on {formatDateTime(data.tenant.rejectedAt)}
+                      Rejected on {formatDateTimeFriendly(data.tenant.rejectedAt)}
                       <p className="italic mt-1">Reason: {data.tenant.rejectionReason}</p>
                     </div>
                   )}
                   {data.tenant.reactivatedAt && (
                     <div className="text-muted-foreground">
-                      Reactivated on {formatDateTime(data.tenant.reactivatedAt)} by{' '}
+                      Reactivated on {formatDateTimeFriendly(data.tenant.reactivatedAt)} by{' '}
                       {data.tenant.reactivatedBy}
                     </div>
                   )}
@@ -198,7 +187,7 @@ export function TenantDetailsDialog({
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {user.lastLoginAt
-                          ? formatDateTime(user.lastLoginAt)
+                          ? formatDateTimeFriendly(user.lastLoginAt)
                           : 'Never'}
                       </TableCell>
                     </TableRow>
@@ -252,12 +241,12 @@ export function TenantDetailsDialog({
                 <dl className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <dt className="text-muted-foreground">Account Created:</dt>
-                    <dd>{formatDateTime(data.tenant.createdAt)}</dd>
+                    <dd>{formatDateTimeFriendly(data.tenant.createdAt)}</dd>
                   </div>
                   {data.tenant.approvedAt && (
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Approved:</dt>
-                      <dd>{formatDateTime(data.tenant.approvedAt)}</dd>
+                      <dd>{formatDateTimeFriendly(data.tenant.approvedAt)}</dd>
                     </div>
                   )}
                 </dl>

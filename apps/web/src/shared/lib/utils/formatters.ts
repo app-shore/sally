@@ -105,6 +105,107 @@ export function formatDateTime(date: Date, dateFormat: string = 'MM/DD/YYYY', ti
   return `${formatDate(date, dateFormat)} ${formatTime(date, timeFormat)}`;
 }
 
+/**
+ * Format a date/time with a more readable, user-friendly format
+ * Accepts both Date objects and ISO date strings
+ * @param date - Date object or ISO date string
+ * @returns Formatted string like "Jan 15, 2024, 3:45 PM"
+ *
+ * @example
+ * formatDateTimeFriendly(new Date()) // "Jan 15, 2024, 3:45 PM"
+ * formatDateTimeFriendly("2024-01-15T15:45:00Z") // "Jan 15, 2024, 3:45 PM"
+ */
+export function formatDateTimeFriendly(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  return dateObj.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
+/**
+ * Format just the date portion in a friendly way
+ * Accepts both Date objects and ISO date strings
+ * @param date - Date object or ISO date string
+ * @returns Formatted string like "Jan 15, 2024"
+ *
+ * @example
+ * formatDateFriendly(new Date()) // "Jan 15, 2024"
+ * formatDateFriendly("2024-01-15") // "Jan 15, 2024"
+ */
+export function formatDateFriendly(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  return dateObj.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+/**
+ * Format just the time portion in a friendly way
+ * Accepts both Date objects and ISO date strings
+ * @param date - Date object or ISO date string
+ * @returns Formatted string like "3:45 PM"
+ *
+ * @example
+ * formatTimeFriendly(new Date()) // "3:45 PM"
+ * formatTimeFriendly("2024-01-15T15:45:00Z") // "3:45 PM"
+ */
+export function formatTimeFriendly(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  return dateObj.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
+/**
+ * Format a date as relative time (e.g., "2 hours ago", "in 3 days")
+ * @param date - Date object or ISO date string
+ * @returns Relative time string
+ *
+ * @example
+ * formatRelativeTime(new Date(Date.now() - 2 * 60 * 60 * 1000)) // "2 hours ago"
+ */
+export function formatRelativeTime(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
+
+  const intervals = {
+    year: 31536000,
+    month: 2592000,
+    week: 604800,
+    day: 86400,
+    hour: 3600,
+    minute: 60,
+    second: 1,
+  };
+
+  for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+    const interval = Math.floor(Math.abs(diffInSeconds) / secondsInUnit);
+
+    if (interval >= 1) {
+      const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+      return rtf.format(
+        diffInSeconds > 0 ? -interval : interval,
+        unit as Intl.RelativeTimeFormatUnit
+      );
+    }
+  }
+
+  return 'just now';
+}
+
 // ============================================================================
 // DURATION FORMATTING
 // ============================================================================
