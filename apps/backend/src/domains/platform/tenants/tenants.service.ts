@@ -300,4 +300,56 @@ export class TenantsService {
 
     return result;
   }
+
+  /**
+   * Reactivate tenant
+   */
+  async reactivateTenant(tenantId: string, reactivatedBy: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { tenantId },
+      include: { users: { where: { role: 'OWNER' } } },
+    });
+
+    if (!tenant) {
+      throw new BadRequestException('Tenant not found');
+    }
+
+    if (tenant.status !== 'SUSPENDED') {
+      throw new BadRequestException('Can only reactivate SUSPENDED tenants');
+    }
+
+    // Update tenant and reactivate all users in transaction
+    const result = await this.prisma.$transaction(async (tx) => {
+      const updatedTenant = await tx.tenant.update({
+        where: { tenantId },
+        data: {
+          status: 'ACTIVE',
+          isActive: true,
+          reactivatedAt: new Date(),
+          reactivatedBy,
+        },
+      });
+
+      // Reactivate all tenant users
+      await tx.user.updateMany({
+        where: { tenantId: tenant.id },
+        data: { isActive: true },
+      });
+
+      return updatedTenant;
+    });
+
+    // Send reactivation notification email
+    const ownerUser = tenant.users.find((u) => u.role === 'OWNER');
+    if (ownerUser) {
+      await this.notificationService.sendTenantReactivationNotification(
+        tenantId,
+        ownerUser.email,
+        ownerUser.firstName,
+        result.companyName,
+      );
+    }
+
+    return result;
+  }
 }
