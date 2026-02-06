@@ -71,4 +71,10 @@ export class TenantsController {
   ) {
     return this.tenantsService.reactivateTenant(tenantId, user.email);
   }
+
+  @Roles(UserRole.SUPER_ADMIN)
+  @Get(':tenantId/details')
+  async getTenantDetails(@Param('tenantId') tenantId: string) {
+    return this.tenantsService.getTenantDetails(tenantId);
+  }
 }
