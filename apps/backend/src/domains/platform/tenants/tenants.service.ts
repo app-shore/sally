@@ -240,4 +240,64 @@ export class TenantsService {
 
     return result;
   }
+
+  /**
+   * Suspend tenant
+   */
+  async suspendTenant(tenantId: string, reason: string, suspendedBy: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { tenantId },
+      include: { users: { where: { role: 'OWNER' } } },
+    });
+
+    if (!tenant) {
+      throw new BadRequestException('Tenant not found');
+    }
+
+    if (tenant.status !== 'ACTIVE') {
+      throw new BadRequestException('Can only suspend ACTIVE tenants');
+    }
+
+    if (!reason || reason.trim().length < 10) {
+      throw new BadRequestException(
+        'Suspension reason must be at least 10 characters',
+      );
+    }
+
+    // Update tenant and deactivate all users in transaction
+    const result = await this.prisma.$transaction(async (tx) => {
+      const updatedTenant = await tx.tenant.update({
+        where: { tenantId },
+        data: {
+          status: 'SUSPENDED',
+          isActive: false,
+          suspendedAt: new Date(),
+          suspendedBy,
+          suspensionReason: reason,
+        },
+      });
+
+      // Deactivate all tenant users (logs them out)
+      await tx.user.updateMany({
+        where: { tenantId: tenant.id },
+        data: { isActive: false },
+      });
+
+      return updatedTenant;
+    });
+
+    // Send suspension notification email
+    const ownerUser = tenant.users.find((u) => u.role === 'OWNER');
+    if (ownerUser) {
+      await this.notificationService.sendTenantSuspensionNotification(
+        tenantId,
+        ownerUser.email,
+        ownerUser.firstName,
+        result.companyName,
+        reason,
+      );
+    }
+
+    return result;
+  }
 }
