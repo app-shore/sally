@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Body, Param, Query } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
+import { SuspendTenantDto } from './dto/suspend-tenant.dto';
 import { Public } from '../../../auth/decorators/public.decorator';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
@@ -46,5 +47,19 @@ export class TenantsController {
     @Body('reason') reason: string,
   ) {
     return this.tenantsService.rejectTenant(tenantId, reason);
+  }
+
+  @Roles(UserRole.SUPER_ADMIN)
+  @Post(':tenantId/suspend')
+  async suspendTenant(
+    @Param('tenantId') tenantId: string,
+    @Body() dto: SuspendTenantDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.tenantsService.suspendTenant(
+      tenantId,
+      dto.reason,
+      user.email,
+    );
   }
 }
