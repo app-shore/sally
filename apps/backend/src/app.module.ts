@@ -16,7 +16,6 @@ import { RoutingModule } from './domains/routing/routing.module';
 import { PlatformModule } from './domains/platform/platform.module';
 import { IntegrationsModule } from './domains/integrations/integrations.module';
 import { OperationsModule } from './domains/operations/operations.module';
-import { TestingModule } from './domains/testing/testing.module';
 
 
 // Controllers (to be migrated)
@@ -48,7 +47,6 @@ import { NotificationModule } from './infrastructure/notification/notification.m
     PlatformModule,
     IntegrationsModule,
     OperationsModule,
-    TestingModule,
   ],
   providers: [
     // Global exception filter
