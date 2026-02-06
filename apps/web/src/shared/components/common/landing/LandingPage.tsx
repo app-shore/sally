@@ -210,13 +210,13 @@ export function LandingPage() {
       <AskSallySection />
 
       {/* Section 7: Continuous Monitoring */}
-      <section className="py-32 bg-gradient-to-b from-foreground to-foreground/90 text-primary-foreground">
+      <section className="py-32 bg-gradient-to-b from-black to-gray-900 dark:from-gray-950 dark:to-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
-            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12">
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-center mb-12 text-white">
               Always Watching. Always Ready.
             </h2>
-            <p className="text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-20">
+            <p className="text-xl text-gray-400 text-center max-w-3xl mx-auto mb-20">
               SALLY monitors every active route continuously to catch and prevent issues before they impact your operations
             </p>
           </ScrollReveal>
@@ -290,13 +290,13 @@ export function LandingPage() {
       </section>
 
         {/* Section 10: Final CTA */}
-      <section className="py-32 bg-primary text-primary-foreground">
+      <section className="py-32 bg-black dark:bg-gray-950">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <ScrollReveal>
-            <h2 className="text-6xl md:text-7xl font-bold tracking-tight mb-6">
+            <h2 className="text-6xl md:text-7xl font-bold tracking-tight mb-6 text-white">
               Coordinate smarter,<br />not harder
             </h2>
-            <p className="text-2xl text-muted-foreground mb-12">
+            <p className="text-2xl text-gray-400 mb-12">
               Join fleets who've eliminated the coordination gap between dispatch and drivers
             </p>
 
@@ -307,14 +307,14 @@ export function LandingPage() {
               <Link href={getStartedUrl}>
                 <Button
                   size="lg"
-                  className="bg-background text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 px-12 py-8 text-xl h-auto rounded-lg"
+                  className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-200 px-12 py-8 text-xl h-auto rounded-lg"
                 >
                   {isAuthenticated ? 'Go to Dashboard' : 'Start Free Trial'}
                 </Button>
               </Link>
             </motion.div>
 
-            <p className="text-sm text-muted-foreground mt-8">
+            <p className="text-sm text-gray-500 mt-8">
               Trusted by forward-thinking fleets
             </p>
           </ScrollReveal>
