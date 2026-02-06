@@ -144,6 +144,43 @@ export class NotificationService {
   }
 
   /**
+   * Send tenant suspension notification
+   */
+  async sendTenantSuspensionNotification(
+    tenantId: string,
+    email: string,
+    firstName: string,
+    companyName: string,
+    reason: string,
+  ): Promise<void> {
+    console.log(
+      `[Notification] Sending tenant suspension notification to ${email}`,
+    );
+    console.log(`Tenant: ${companyName} (${tenantId})`);
+    console.log(`Reason: ${reason}`);
+    // TODO: Implement actual email sending via SendGrid/AWS SES
+    // For now, just log the notification
+  }
+
+  /**
+   * Send tenant reactivation notification
+   */
+  async sendTenantReactivationNotification(
+    tenantId: string,
+    email: string,
+    firstName: string,
+    companyName: string,
+  ): Promise<void> {
+    console.log(
+      `[Notification] Sending tenant reactivation notification to ${email}`,
+    );
+    console.log(`Tenant: ${companyName} (${tenantId})`);
+    console.log(`Your account has been reactivated and is now active.`);
+    // TODO: Implement actual email sending via SendGrid/AWS SES
+    // For now, just log the notification
+  }
+
+  /**
    * Get notification history for a tenant
    */
   async getNotificationHistory(
