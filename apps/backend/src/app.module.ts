@@ -14,6 +14,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { FleetModule } from './domains/fleet/fleet.module';
 import { RoutingModule } from './domains/routing/routing.module';
 import { PlatformModule } from './domains/platform/platform.module';
+import { PreferencesModule } from './domains/platform/preferences/preferences.module';
 import { IntegrationsModule } from './domains/integrations/integrations.module';
 import { OperationsModule } from './domains/operations/operations.module';
 
@@ -45,6 +46,7 @@ import { NotificationModule } from './infrastructure/notification/notification.m
     FleetModule,
     RoutingModule,
     PlatformModule,
+    PreferencesModule,
     IntegrationsModule,
     OperationsModule,
   ],
