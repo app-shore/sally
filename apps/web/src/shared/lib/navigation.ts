@@ -86,6 +86,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
   super_admin: [
     { label: 'Tenant Management', href: '/admin/tenants', icon: Building2 },
     { label: 'Feature Flags', href: '/admin/feature-flags', icon: Flag },
+    { label: 'Settings', href: '/admin/settings', icon: Settings },
     // User and driver management is handled by tenant OWNER/ADMIN users
     // We can add more SUPER_ADMIN features later (analytics, billing, etc.)
   ],
