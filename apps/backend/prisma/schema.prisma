@@ -134,6 +134,7 @@ model User {
   apiKeys           ApiKey[]
   preferences       UserPreferences?
   driverPreferences DriverPreferences?
+  superAdminPreferences SuperAdminPreferences?
   invitationsSent   UserInvitation[] @relation("InvitedBy")
   invitationsAccepted UserInvitation[] @relation("AcceptedBy")
   driversActivated  Driver[]         @relation("ActivatedBy")
@@ -148,6 +149,22 @@ model User {
   @@index([isActive])
   @@index([deletedAt])
   @@map("users")
+}
+
+model SuperAdminPreferences {
+  id                      Int      @id @default(autoincrement())
+  userId                  Int      @unique @map("user_id")
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  notifyNewTenants        Boolean  @default(true) @map("notify_new_tenants")
+  notifyStatusChanges     Boolean  @default(true) @map("notify_status_changes")
+  notificationFrequency   String   @default("immediate") @map("notification_frequency") @db.VarChar(20)
+
+  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([userId])
+  @@map("super_admin_preferences")
 }
 
 model RefreshToken {
