@@ -42,6 +42,18 @@ export function TenantDetailsDialog({
   const { accessToken } = useAuth();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
+  const formatDateTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
   // Fetch tenant details
   const { data, isLoading } = useQuery({
     queryKey: ['tenant-details', tenantId],
@@ -128,26 +140,26 @@ export function TenantDetailsDialog({
                   </div>
                   {data.tenant.approvedAt && (
                     <div className="text-muted-foreground">
-                      Approved on {new Date(data.tenant.approvedAt).toLocaleDateString()} by{' '}
+                      Approved on {formatDateTime(data.tenant.approvedAt)} by{' '}
                       {data.tenant.approvedBy}
                     </div>
                   )}
                   {data.tenant.suspendedAt && (
                     <div className="text-muted-foreground">
-                      Suspended on {new Date(data.tenant.suspendedAt).toLocaleDateString()} by{' '}
+                      Suspended on {formatDateTime(data.tenant.suspendedAt)} by{' '}
                       {data.tenant.suspendedBy}
                       <p className="italic mt-1">Reason: {data.tenant.suspensionReason}</p>
                     </div>
                   )}
                   {data.tenant.rejectedAt && (
                     <div className="text-muted-foreground">
-                      Rejected on {new Date(data.tenant.rejectedAt).toLocaleDateString()}
+                      Rejected on {formatDateTime(data.tenant.rejectedAt)}
                       <p className="italic mt-1">Reason: {data.tenant.rejectionReason}</p>
                     </div>
                   )}
                   {data.tenant.reactivatedAt && (
                     <div className="text-muted-foreground">
-                      Reactivated on {new Date(data.tenant.reactivatedAt).toLocaleDateString()} by{' '}
+                      Reactivated on {formatDateTime(data.tenant.reactivatedAt)} by{' '}
                       {data.tenant.reactivatedBy}
                     </div>
                   )}
@@ -186,7 +198,7 @@ export function TenantDetailsDialog({
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {user.lastLoginAt
-                          ? new Date(user.lastLoginAt).toLocaleDateString()
+                          ? formatDateTime(user.lastLoginAt)
                           : 'Never'}
                       </TableCell>
                     </TableRow>
@@ -240,12 +252,12 @@ export function TenantDetailsDialog({
                 <dl className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <dt className="text-muted-foreground">Account Created:</dt>
-                    <dd>{new Date(data.tenant.createdAt).toLocaleDateString()}</dd>
+                    <dd>{formatDateTime(data.tenant.createdAt)}</dd>
                   </div>
                   {data.tenant.approvedAt && (
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Approved:</dt>
-                      <dd>{new Date(data.tenant.approvedAt).toLocaleDateString()}</dd>
+                      <dd>{formatDateTime(data.tenant.approvedAt)}</dd>
                     </div>
                   )}
                 </dl>

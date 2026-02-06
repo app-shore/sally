@@ -82,21 +82,27 @@ export function TenantTable({
   }
 
   const getStatusDate = (tenant: Tenant) => {
+    const formatDateTime = (dateStr: string) => {
+      const date = new Date(dateStr);
+      return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+    };
+
     switch (status) {
       case 'PENDING_APPROVAL':
-        return new Date(tenant.createdAt).toLocaleDateString();
+        return formatDateTime(tenant.createdAt);
       case 'ACTIVE':
-        return tenant.approvedAt
-          ? new Date(tenant.approvedAt).toLocaleDateString()
-          : '-';
+        return tenant.approvedAt ? formatDateTime(tenant.approvedAt) : '-';
       case 'SUSPENDED':
-        return tenant.suspendedAt
-          ? new Date(tenant.suspendedAt).toLocaleDateString()
-          : '-';
+        return tenant.suspendedAt ? formatDateTime(tenant.suspendedAt) : '-';
       case 'REJECTED':
-        return tenant.rejectedAt
-          ? new Date(tenant.rejectedAt).toLocaleDateString()
-          : '-';
+        return tenant.rejectedAt ? formatDateTime(tenant.rejectedAt) : '-';
       default:
         return '-';
     }
