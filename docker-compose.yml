@@ -29,30 +29,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # backend-py:
-  #   build:
-  #     context: ./apps/backend-py
-  #     dockerfile: Dockerfile
-  #   container_name: sally-backend-py
-  #   working_dir: /app
-  #   environment:
-  #     ENVIRONMENT: development
-  #     DEBUG: "true"
-  #     DATABASE_URL: postgresql+asyncpg://sally_user:sally_password@postgres:5432/sally
-  #     REDIS_URL: redis://redis:6379/0
-  #     CORS_ORIGINS: http://localhost:3000,http://frontend:3000
-  #     LOG_LEVEL: DEBUG
-  #   ports:
-  #     - "8001:8000"
-  #   volumes:
-  #     - ./apps/backend-py:/app
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   command: uv run fastapi dev app/main.py --host 0.0.0.0 --port 8000
-
   backend:
     build:
       context: .
