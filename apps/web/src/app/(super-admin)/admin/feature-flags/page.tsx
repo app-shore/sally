@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "@/features/auth";
 import {
   Card,
@@ -26,14 +26,18 @@ export default function FeatureFlagsAdminPage() {
 
   const [localFlags, setLocalFlags] = useState<Record<string, boolean>>({});
   const [savingFlags, setSavingFlags] = useState<Set<string>>(new Set());
+  const isInitialized = useRef(false);
 
-  // Initialize local state from query data
+  // Initialize local state from query data (only once)
   useEffect(() => {
-    const initialState: Record<string, boolean> = {};
-    flags.forEach((flag: any) => {
-      initialState[flag.key] = flag.enabled;
-    });
-    setLocalFlags(initialState);
+    if (flags.length > 0 && !isInitialized.current) {
+      const initialState: Record<string, boolean> = {};
+      flags.forEach((flag: any) => {
+        initialState[flag.key] = flag.enabled;
+      });
+      setLocalFlags(initialState);
+      isInitialized.current = true;
+    }
   }, [flags]);
 
   // Auth check - SUPER_ADMIN only (affects all tenants globally)
