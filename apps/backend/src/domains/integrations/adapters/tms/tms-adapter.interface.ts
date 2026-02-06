@@ -36,6 +36,11 @@ export interface DriverData {
  */
 export interface LoadData {
   load_id: string;
+  load_number: string;
+  customer_name: string;
+  weight_lbs: number;
+  commodity_type: string;
+  special_requirements?: string;
   pickup_location: {
     address: string;
     city: string;

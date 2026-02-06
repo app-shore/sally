@@ -60,8 +60,6 @@ async function bootstrap() {
     .addTag('Drivers', 'Driver management')
     .addTag('Vehicles', 'Vehicle management')
     .addTag('Loads', 'Load management')
-    .addTag('Scenarios', 'Test scenario management')
-    .addTag('External Mock APIs', 'Mock external API endpoints for testing')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

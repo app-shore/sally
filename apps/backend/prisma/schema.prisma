@@ -304,7 +304,6 @@ model Driver {
   // Relations
   user                  User?
   routePlans            RoutePlan[]
-  scenarios             Scenario[]
   driverPreferences     DriverPreferences?
   invitations           UserInvitation[]
 
@@ -349,7 +348,6 @@ model Vehicle {
   tenantId              Int          @map("tenant_id")
 
   routePlans            RoutePlan[]
-  scenarios             Scenario[]
 
   @@unique([vehicleId, tenantId])
   @@unique([externalVehicleId, tenantId])
@@ -505,31 +503,6 @@ model LoadStop {
   @@map("load_stops")
 }
 
-model Scenario {
-  id                    Int          @id @default(autoincrement())
-  scenarioId            String       @unique @map("scenario_id") @db.VarChar(50)
-  name                  String       @db.VarChar(200)
-  description           String       @db.Text
-  category              String       @db.VarChar(50)
-  driverRefId           Int?         @map("driver_ref_id")
-  vehicleRefId          Int?         @map("vehicle_ref_id")
-  driverStateTemplate   Json         @map("driver_state_template")
-  vehicleStateTemplate  Json         @map("vehicle_state_template")
-  stopsTemplate         Json         @map("stops_template")
-  expectedRestStops     Int          @default(0) @map("expected_rest_stops")
-  expectedFuelStops     Int          @default(0) @map("expected_fuel_stops")
-  expectedViolations    Json?        @map("expected_violations")
-  isActive              Boolean      @default(true) @map("is_active")
-  displayOrder          Int          @default(0) @map("display_order")
-  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
-
-  driver                Driver?      @relation(fields: [driverRefId], references: [id])
-  vehicle               Vehicle?     @relation(fields: [vehicleRefId], references: [id])
-
-  @@index([category])
-  @@map("scenarios")
-}
 
 model Event {
   id                    Int          @id @default(autoincrement())

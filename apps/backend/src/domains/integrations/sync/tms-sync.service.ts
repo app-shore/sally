@@ -177,11 +177,196 @@ export class TmsSyncService {
     this.logger.log(`Synced ${tmsDrivers.length} drivers from ${vendor}`);
   }
 
-  // TODO: Re-enable load syncing after updating Load schema to support TMS data
-  // The current Load model is for route planning only and doesn't have the required fields
-  // for TMS integration (pickupAddress, deliveryCity, pickupLatitude, etc.)
-  //
-  // async syncLoads(integrationId: number): Promise<void> { ... }
+  /**
+   * Sync loads from TMS API
+   */
+  async syncLoads(integrationId: number): Promise<void> {
+    this.logger.log(
+      `Starting TMS load sync for integration: ${integrationId}`,
+    );
+
+    const integration = await this.prisma.integrationConfig.findUnique({
+      where: { id: integrationId },
+    });
+
+    if (!integration) {
+      throw new Error('Integration not found');
+    }
+
+    const { tenantId, vendor } = integration;
+
+    // Get adapter from factory
+    const adapter = this.adapterFactory.getTMSAdapter(vendor);
+    if (!adapter) {
+      throw new Error(`No TMS adapter available for vendor: ${vendor}`);
+    }
+
+    // Get credentials
+    const credentials = this.getVendorCredentials(
+      integration.credentials,
+      vendor,
+    );
+
+    // Fetch loads from TMS using adapter
+    const tmsLoads = await adapter.getActiveLoads(
+      credentials.primary,
+      credentials.secondary,
+    );
+
+    // Upsert each load
+    for (const tmsLoad of tmsLoads) {
+      // Find or create stops from TMS load data
+      const stopIds: number[] = [];
+
+      // Process all stops if available
+      if (tmsLoad.stops && tmsLoad.stops.length > 0) {
+        for (const tmsStop of tmsLoad.stops) {
+          const stop = await this.findOrCreateStop(
+            tmsStop.address,
+            tmsStop.city,
+            tmsStop.state,
+            tmsStop.zip,
+            tmsStop.latitude,
+            tmsStop.longitude,
+          );
+          stopIds.push(stop.id);
+        }
+      } else {
+        // Fallback to pickup/delivery locations
+        const pickupStop = await this.findOrCreateStop(
+          tmsLoad.pickup_location.address,
+          tmsLoad.pickup_location.city,
+          tmsLoad.pickup_location.state,
+          tmsLoad.pickup_location.zip,
+          tmsLoad.pickup_location.latitude,
+          tmsLoad.pickup_location.longitude,
+        );
+        stopIds.push(pickupStop.id);
+
+        const deliveryStop = await this.findOrCreateStop(
+          tmsLoad.delivery_location.address,
+          tmsLoad.delivery_location.city,
+          tmsLoad.delivery_location.state,
+          tmsLoad.delivery_location.zip,
+          tmsLoad.delivery_location.latitude,
+          tmsLoad.delivery_location.longitude,
+        );
+        stopIds.push(deliveryStop.id);
+      }
+
+      // Upsert load
+      const load = await this.prisma.load.upsert({
+        where: {
+          externalLoadId: tmsLoad.load_id,
+        },
+        update: {
+          loadNumber: tmsLoad.load_number,
+          customerName: tmsLoad.customer_name,
+          weightLbs: tmsLoad.weight_lbs ?? 0,
+          commodityType: tmsLoad.commodity_type ?? 'general',
+          specialRequirements: tmsLoad.special_requirements || null,
+          status: this.mapLoadStatus(tmsLoad.status),
+          externalSource: vendor,
+          lastSyncedAt: new Date(),
+        },
+        create: {
+          loadId: `LOAD-${tmsLoad.load_number}`,
+          loadNumber: tmsLoad.load_number,
+          customerName: tmsLoad.customer_name,
+          weightLbs: tmsLoad.weight_lbs ?? 0,
+          commodityType: tmsLoad.commodity_type ?? 'general',
+          specialRequirements: tmsLoad.special_requirements || null,
+          status: this.mapLoadStatus(tmsLoad.status),
+          externalLoadId: tmsLoad.load_id,
+          externalSource: vendor,
+          lastSyncedAt: new Date(),
+          isActive: true,
+        },
+      });
+
+      // Delete existing load_stops and recreate
+      await this.prisma.loadStop.deleteMany({
+        where: { loadId: load.id },
+      });
+
+      // Create new load_stops
+      let sequence = 1;
+      for (const stopId of stopIds) {
+        const isPickup = sequence === 1;
+        await this.prisma.loadStop.create({
+          data: {
+            loadId: load.id,
+            stopId: stopId,
+            sequenceOrder: sequence,
+            actionType: isPickup ? 'pickup' : 'delivery',
+            estimatedDockHours: 1.0,
+          },
+        });
+        sequence++;
+      }
+    }
+
+    await this.prisma.integrationConfig.update({
+      where: { id: integrationId },
+      data: { lastSyncAt: new Date() },
+    });
+
+    this.logger.log(`Synced ${tmsLoads.length} loads from ${vendor}`);
+  }
+
+  /**
+   * Find or create a stop (location) from TMS data
+   */
+  private async findOrCreateStop(
+    address: string,
+    city: string,
+    state: string,
+    zip: string,
+    latitude: number,
+    longitude: number,
+  ) {
+    let stop = await this.prisma.stop.findFirst({
+      where: {
+        address,
+        city,
+        state,
+      },
+    });
+
+    if (!stop) {
+      stop = await this.prisma.stop.create({
+        data: {
+          stopId: `TMS-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: `${city}, ${state}`,
+          address,
+          city,
+          state,
+          lat: latitude,
+          lon: longitude,
+          locationType: 'customer',
+          isActive: true,
+        },
+      });
+    }
+
+    return stop;
+  }
+
+  /**
+   * Map TMS load status to SALLY load status
+   */
+  private mapLoadStatus(
+    tmsStatus: 'UNASSIGNED' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED',
+  ): string {
+    const statusMap: Record<string, string> = {
+      UNASSIGNED: 'pending',
+      ASSIGNED: 'pending',
+      IN_TRANSIT: 'in_transit',
+      DELIVERED: 'completed',
+      CANCELLED: 'cancelled',
+    };
+    return statusMap[tmsStatus] || 'pending';
+  }
 
   /**
    * Get vendor credentials in the format expected by adapters

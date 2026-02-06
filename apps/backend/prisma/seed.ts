@@ -102,54 +102,58 @@ async function main() {
   });
 
   if (existingSuperAdmin) {
-    console.log('⏭️  Super admin already exists - skipping seed');
+    console.log('⏭️  Super admin already exists - skipping admin creation');
     console.log(`   Email: ${existingSuperAdmin.email}`);
     console.log(`   Created: ${existingSuperAdmin.createdAt}\n`);
-    console.log('✅ Database already seeded. Nothing to do.\n');
-    return;
+  } else {
+    console.log('📝 Creating super admin...\n');
+
+    // ============================================================================
+    // CREATE SUPER ADMIN
+    // ============================================================================
+    console.log('Creating SUPER_ADMIN user...');
+
+    // Create Firebase user first
+    const superAdminFirebaseUid = await createFirebaseUser(
+      'admin@sally.com',
+      SUPER_ADMIN_PASSWORD,
+      'SALLY Admin'
+    );
+
+    const superAdmin = await prisma.user.create({
+      data: {
+        userId: 'user_sally_superadmin_001',
+        email: 'admin@sally.com',
+        firstName: 'SALLY',
+        lastName: 'Admin',
+        role: 'SUPER_ADMIN',
+        tenantId: null,
+        firebaseUid: superAdminFirebaseUid,
+        isActive: true,
+        emailVerified: true,
+      },
+    });
+
+    // Create user preferences for super admin
+    await prisma.userPreferences.create({
+      data: { userId: superAdmin.id },
+    });
+
+    console.log(`✓ Created SUPER_ADMIN user: ${superAdmin.email}`);
+    if (superAdminFirebaseUid) {
+      console.log(`✓ Linked to Firebase UID: ${superAdminFirebaseUid}`);
+    }
+    console.log('');
   }
 
-  console.log('📝 Database is empty - seeding super admin and initial data...\n');
-
   // ============================================================================
-  // CREATE SUPER ADMIN (ALWAYS)
+  // SEED DATA (ALWAYS RUN - UPSERTS ARE IDEMPOTENT)
   // ============================================================================
-  console.log('Creating SUPER_ADMIN user...');
-
-  // Create Firebase user first
-  const superAdminFirebaseUid = await createFirebaseUser(
-    'admin@sally.com',
-    SUPER_ADMIN_PASSWORD,
-    'SALLY Admin'
-  );
-
-  const superAdmin = await prisma.user.create({
-    data: {
-      userId: 'user_sally_superadmin_001',
-      email: 'admin@sally.com',
-      firstName: 'SALLY',
-      lastName: 'Admin',
-      role: 'SUPER_ADMIN',
-      tenantId: null,
-      firebaseUid: superAdminFirebaseUid,
-      isActive: true,
-      emailVerified: true,
-    },
-  });
-
-  // Create user preferences for super admin
-  await prisma.userPreferences.create({
-    data: { userId: superAdmin.id },
-  });
-
-  console.log(`✓ Created SUPER_ADMIN user: ${superAdmin.email}`);
-  if (superAdminFirebaseUid) {
-    console.log(`✓ Linked to Firebase UID: ${superAdminFirebaseUid}`);
-  }
-  console.log('');
 
   // Seed feature flags
   await seedFeatureFlags();
+
+  // Note: Stops and Loads are created automatically via TMS integration sync
 
   // Final summary
   console.log('\n✅ Database seeded successfully!\n');
@@ -162,7 +166,8 @@ async function main() {
 
   console.log('📝 What was seeded:');
   console.log('  ✓ Super admin user (with Firebase auth)');
-  console.log('  ✓ Feature flags\n');
+  console.log('  ✓ Feature flags');
+  console.log('  ℹ️  Stops and Loads sync from TMS integration (not seeded)\n');
   console.log('📝 Next Steps:');
   console.log('  1. Login as super admin');
   console.log('  2. Review/approve tenant registrations');

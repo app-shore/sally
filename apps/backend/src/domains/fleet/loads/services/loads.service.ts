@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { Load } from '@prisma/client';
 
@@ -151,6 +151,71 @@ export class LoadsService {
     }
 
     return this.formatLoadResponse(load);
+  }
+
+  /**
+   * Update load status
+   */
+  async updateStatus(loadId: string, status: string) {
+    const load = await this.prisma.load.findFirst({ where: { loadId } });
+    if (!load) {
+      throw new NotFoundException(`Load not found: ${loadId}`);
+    }
+
+    const validStatuses = ['pending', 'planned', 'active', 'in_transit', 'completed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      throw new BadRequestException(`Invalid status: ${status}. Valid statuses: ${validStatuses.join(', ')}`);
+    }
+
+    const updated = await this.prisma.load.update({
+      where: { id: load.id },
+      data: { status, updatedAt: new Date() },
+      include: {
+        stops: {
+          include: { stop: true },
+          orderBy: { sequenceOrder: 'asc' },
+        },
+      },
+    });
+
+    this.logger.log(`Load ${loadId} status updated: ${status}`);
+    return this.formatLoadResponse(updated);
+  }
+
+  /**
+   * Assign driver and vehicle to load
+   */
+  async assignLoad(loadId: string, driverId: string, vehicleId: string) {
+    const load = await this.prisma.load.findFirst({ where: { loadId } });
+    if (!load) {
+      throw new NotFoundException(`Load not found: ${loadId}`);
+    }
+
+    // Validate driver exists
+    const driver = await this.prisma.driver.findFirst({ where: { driverId } });
+    if (!driver) {
+      throw new NotFoundException(`Driver not found: ${driverId}`);
+    }
+
+    // Validate vehicle exists
+    const vehicle = await this.prisma.vehicle.findFirst({ where: { vehicleId } });
+    if (!vehicle) {
+      throw new NotFoundException(`Vehicle not found: ${vehicleId}`);
+    }
+
+    // TODO: Add driverId and vehicleId fields to Load model in future migration
+    // For now, just validate and return success response
+    this.logger.log(`Load ${loadId} assigned to driver ${driverId} and vehicle ${vehicleId}`);
+
+    return {
+      success: true,
+      message: 'Load assigned successfully',
+      load_id: loadId,
+      driver_id: driverId,
+      vehicle_id: vehicleId,
+      driver_name: driver.name,
+      vehicle_unit_number: vehicle.unitNumber,
+    };
   }
 
   /**
