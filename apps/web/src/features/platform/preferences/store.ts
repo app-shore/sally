@@ -80,28 +80,37 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
 
   // Load all preferences based on role
+  // Each type loads independently so one failure doesn't block others
   loadAllPreferences: async (userRole: string) => {
     set({ isLoading: true, error: null });
+
     try {
-      // Always load user preferences
       const userPrefs = await getUserPreferences();
       set({ userPreferences: userPrefs });
+    } catch (error: any) {
+      console.warn('[Preferences] Failed to load user preferences:', error.message);
+    }
 
-      // Load role-specific preferences
-      if (userRole === 'DISPATCHER' || userRole === 'ADMIN' || userRole === 'OWNER') {
+    if (userRole === 'DISPATCHER' || userRole === 'ADMIN' || userRole === 'OWNER') {
+      try {
         const operationsSettings = await getOperationsSettings();
         set({ operationsSettings });
+      } catch (error: any) {
+        console.error('[Preferences] Failed to load operations settings:', error.message);
+        set({ error: error.message });
       }
+    }
 
-      if (userRole === 'DRIVER') {
+    if (userRole === 'DRIVER') {
+      try {
         const driverPrefs = await getDriverPreferences();
         set({ driverPreferences: driverPrefs });
+      } catch (error: any) {
+        console.warn('[Preferences] Failed to load driver preferences:', error.message);
       }
-
-      set({ isLoading: false });
-    } catch (error: any) {
-      set({ error: error.message, isLoading: false });
     }
+
+    set({ isLoading: false });
   },
 
   // Update user preferences

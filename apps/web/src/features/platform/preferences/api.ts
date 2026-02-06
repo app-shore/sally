@@ -137,24 +137,14 @@ export async function updateDriverPreferences(updates: Partial<DriverPreferences
 // ============================================================================
 
 export async function resetToDefaults(scope: 'user' | 'operations' | 'driver'): Promise<PreferencesResetResponse> {
+  if (scope === 'operations') {
+    return apiClient<PreferencesResetResponse>('/preferences/operations/reset', {
+      method: 'POST',
+    });
+  }
   return apiClient<PreferencesResetResponse>('/preferences/reset', {
     method: 'POST',
     body: JSON.stringify({ scope }),
   });
 }
 
-// ============================================================================
-// GET DEFAULTS
-// ============================================================================
-
-export async function getDefaults(): Promise<{
-  user: Partial<UserPreferences>;
-  operations: Partial<OperationsSettings>;
-  driver: Partial<DriverPreferences>;
-}> {
-  return apiClient<{
-    user: Partial<UserPreferences>;
-    operations: Partial<OperationsSettings>;
-    driver: Partial<DriverPreferences>;
-  }>('/preferences/defaults');
-}

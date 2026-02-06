@@ -13,12 +13,18 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/features/auth';
 import { useToast } from '@/shared/hooks/use-toast';
+import { apiClient } from '@/shared/lib/api';
+
+interface SuperAdminPreferences {
+  notifyNewTenants: boolean;
+  notifyStatusChanges: boolean;
+  notificationFrequency: string;
+}
 
 export default function SuperAdminSettingsPage() {
-  const { user, accessToken } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
   const [notifyNewTenants, setNotifyNewTenants] = useState(true);
   const [notifyStatusChanges, setNotifyStatusChanges] = useState(true);
@@ -26,17 +32,9 @@ export default function SuperAdminSettingsPage() {
 
   // Fetch preferences
   const { data: preferences, isLoading } = useQuery({
-    queryKey: ['preferences'],
-    queryFn: async () => {
-      const response = await fetch(`${apiUrl}/users/me/preferences`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch preferences');
-      return response.json();
-    },
-    enabled: !!accessToken,
+    queryKey: ['preferences', 'admin'],
+    queryFn: () => apiClient<SuperAdminPreferences>('/preferences/admin'),
+    enabled: !!user,
   });
 
   // Update local state when preferences load
@@ -50,20 +48,13 @@ export default function SuperAdminSettingsPage() {
 
   // Update preferences mutation
   const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await fetch(`${apiUrl}/users/me/preferences`, {
+    mutationFn: (data: Partial<SuperAdminPreferences>) =>
+      apiClient<SuperAdminPreferences>('/preferences/admin', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
         body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to update preferences');
-      return response.json();
-    },
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['preferences'] });
+      queryClient.invalidateQueries({ queryKey: ['preferences', 'admin'] });
       toast({
         title: 'Preferences saved',
         description: 'Your notification preferences have been updated.',

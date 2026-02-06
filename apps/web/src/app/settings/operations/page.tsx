@@ -17,11 +17,12 @@ import { useRouter } from 'next/navigation';
 export default function RoutePlanningPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { operationsSettings, updateOperationsSettings, resetToDefaults, loadAllPreferences, isSaving } = usePreferencesStore();
+  const { operationsSettings, updateOperationsSettings, resetToDefaults, loadAllPreferences, isSaving, isLoading, error } = usePreferencesStore();
   const [formData, setFormData] = useState<Partial<OperationsSettings>>(operationsSettings || {});
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const isDispatcher = user?.role === 'DISPATCHER' || user?.role === 'ADMIN' || user?.role === 'OWNER';
+  const canView = user?.role === 'DISPATCHER' || user?.role === 'ADMIN' || user?.role === 'OWNER';
+  const canEdit = user?.role === 'ADMIN' || user?.role === 'OWNER';
 
   useEffect(() => {
     if (user) {
@@ -31,10 +32,10 @@ export default function RoutePlanningPage() {
 
   // Redirect non-dispatchers
   useEffect(() => {
-    if (user && !isDispatcher) {
+    if (user && !canView) {
       router.push('/settings/preferences');
     }
-  }, [user, isDispatcher, router]);
+  }, [user, canView, router]);
 
   useEffect(() => {
     if (operationsSettings) {
@@ -81,16 +82,32 @@ export default function RoutePlanningPage() {
     );
   }
 
-  if (!isDispatcher) {
+  if (!canView) {
     return null; // Will redirect in useEffect
+  }
+
+  if (!operationsSettings && !isLoading && error) {
+    return (
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-5xl">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+            <p className="text-sm text-destructive">Failed to load operations settings: {error}</p>
+            <Button variant="outline" onClick={() => user && loadAllPreferences(user.role)}>
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (!operationsSettings) {
     return (
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-5xl">
         <Card>
-          <CardContent className="flex items-center justify-center py-12">
+          <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
             <Loader2 className="h-8 w-8 animate-spin" />
+            <p className="text-sm text-muted-foreground">Loading operations settings...</p>
           </CardContent>
         </Card>
       </div>
@@ -107,6 +124,11 @@ export default function RoutePlanningPage() {
         <p className="text-muted-foreground mt-1">
           Configure how SALLY manages fleet operations for your organization. These settings apply to route planning, monitoring, and dispatcher workflows.
         </p>
+        {!canEdit && (
+          <p className="text-sm text-muted-foreground mt-2">
+            You have read-only access. Contact an admin or owner to make changes.
+          </p>
+        )}
       </div>
 
       <div className="space-y-6">
@@ -133,6 +155,7 @@ export default function RoutePlanningPage() {
                   min="0"
                   max="11"
                   step="0.5"
+                  disabled={!canEdit}
                   value={formData.defaultDriveHours || 0}
                   onChange={(e) => handleChange('defaultDriveHours', parseFloat(e.target.value))}
                 />
@@ -145,6 +168,7 @@ export default function RoutePlanningPage() {
                   min="0"
                   max="14"
                   step="0.5"
+                  disabled={!canEdit}
                   value={formData.defaultOnDutyHours || 0}
                   onChange={(e) => handleChange('defaultOnDutyHours', parseFloat(e.target.value))}
                 />
@@ -157,6 +181,7 @@ export default function RoutePlanningPage() {
                   min="0"
                   max="8"
                   step="0.5"
+                  disabled={!canEdit}
                   value={formData.defaultSinceBreakHours || 0}
                   onChange={(e) => handleChange('defaultSinceBreakHours', parseFloat(e.target.value))}
                 />
@@ -181,6 +206,7 @@ export default function RoutePlanningPage() {
                   type="number"
                   min="0"
                   max="100"
+                  disabled={!canEdit}
                   value={formData.driveHoursWarningPct || 75}
                   onChange={(e) => handleChange('driveHoursWarningPct', parseInt(e.target.value))}
                 />
@@ -192,6 +218,7 @@ export default function RoutePlanningPage() {
                   type="number"
                   min="0"
                   max="100"
+                  disabled={!canEdit}
                   value={formData.driveHoursCriticalPct || 90}
                   onChange={(e) => handleChange('driveHoursCriticalPct', parseInt(e.target.value))}
                 />
@@ -211,6 +238,7 @@ export default function RoutePlanningPage() {
               <Select
                 value={formData.defaultOptimizationMode || 'BALANCE'}
                 onValueChange={(value) => handleChange('defaultOptimizationMode', value)}
+                disabled={!canEdit}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -230,6 +258,7 @@ export default function RoutePlanningPage() {
                   type="number"
                   min="0"
                   step="0.01"
+                  disabled={!canEdit}
                   value={formData.costPerMile || 1.85}
                   onChange={(e) => handleChange('costPerMile', parseFloat(e.target.value))}
                 />
@@ -241,6 +270,7 @@ export default function RoutePlanningPage() {
                   type="number"
                   min="0"
                   step="0.01"
+                  disabled={!canEdit}
                   value={formData.laborCostPerHour || 25}
                   onChange={(e) => handleChange('laborCostPerHour', parseFloat(e.target.value))}
                 />
@@ -263,6 +293,7 @@ export default function RoutePlanningPage() {
               <Switch
                 checked={formData.preferFullRest !== false}
                 onCheckedChange={(checked) => handleChange('preferFullRest', checked)}
+                disabled={!canEdit}
               />
             </div>
 
@@ -274,6 +305,7 @@ export default function RoutePlanningPage() {
               <Switch
                 checked={formData.allowDockRest !== false}
                 onCheckedChange={(checked) => handleChange('allowDockRest', checked)}
+                disabled={!canEdit}
               />
             </div>
 
@@ -283,6 +315,7 @@ export default function RoutePlanningPage() {
                 type="number"
                 min="0"
                 max="120"
+                disabled={!canEdit}
                 value={formData.restStopBuffer || 30}
                 onChange={(e) => handleChange('restStopBuffer', parseInt(e.target.value))}
               />
@@ -303,6 +336,7 @@ export default function RoutePlanningPage() {
                   type="number"
                   min="0"
                   step="0.01"
+                  disabled={!canEdit}
                   value={formData.fuelPriceThreshold || 0.15}
                   onChange={(e) => handleChange('fuelPriceThreshold', parseFloat(e.target.value))}
                 />
@@ -314,6 +348,7 @@ export default function RoutePlanningPage() {
                   type="number"
                   min="0"
                   max="50"
+                  disabled={!canEdit}
                   value={formData.maxFuelDetour || 10}
                   onChange={(e) => handleChange('maxFuelDetour', parseInt(e.target.value))}
                 />
@@ -323,6 +358,7 @@ export default function RoutePlanningPage() {
         </Card>
 
         {/* Action Buttons */}
+        {canEdit && (
         <div className="flex justify-between">
           <Button variant="outline" onClick={handleReset} disabled={isSaving}>
             <RotateCcw className="h-4 w-4 mr-2" />
@@ -342,6 +378,7 @@ export default function RoutePlanningPage() {
             )}
           </Button>
         </div>
+        )}
       </div>
     </div>
   );

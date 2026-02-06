@@ -10,7 +10,7 @@ import { Switch } from '@/shared/components/ui/switch';
 import { usePreferencesStore } from '@/features/platform/preferences';
 import { UserPreferences } from '@/features/platform/preferences';
 import { Loader2, Save, RotateCcw } from 'lucide-react';
-import { Alert, AlertDescription } from '@/shared/compoyou usenents/ui/alert';
+import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 
 export default function UserPreferencesTab() {
   const { userPreferences, updateUserPrefs, resetToDefaults, isSaving } = usePreferencesStore();

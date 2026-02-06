@@ -1,25 +1,32 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
-import { UpdatePreferencesDto } from './dto/update-preferences.dto';
+import { UpdateSuperAdminPreferencesDto } from './dto/super-admin-preferences.dto';
 
 @Injectable()
-export class PreferencesService {
+export class SuperAdminPreferencesService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Get super admin preferences
-   * Creates default preferences if they don't exist
+   * Get super admin preferences (creates defaults if not exist)
    */
-  async getPreferences(userId: number) {
-    let preferences = await this.prisma.superAdminPreferences.findUnique({
+  async getPreferences(userId: string) {
+    const user = await this.prisma.user.findUnique({
       where: { userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    let preferences = await this.prisma.superAdminPreferences.findUnique({
+      where: { userId: user.id },
     });
 
     if (!preferences) {
-      // Create default preferences
       preferences = await this.prisma.superAdminPreferences.create({
         data: {
-          userId,
+          userId: user.id,
           notifyNewTenants: true,
           notifyStatusChanges: true,
           notificationFrequency: 'immediate',
@@ -37,21 +44,20 @@ export class PreferencesService {
   /**
    * Update super admin preferences
    */
-  async updatePreferences(userId: number, dto: UpdatePreferencesDto) {
-    // Check if user exists
+  async updatePreferences(userId: string, dto: UpdateSuperAdminPreferencesDto) {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+      where: { userId },
+      select: { id: true },
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // Upsert preferences
     const preferences = await this.prisma.superAdminPreferences.upsert({
-      where: { userId },
+      where: { userId: user.id },
       create: {
-        userId,
+        userId: user.id,
         notifyNewTenants: dto.notifyNewTenants ?? true,
         notifyStatusChanges: dto.notifyStatusChanges ?? true,
         notificationFrequency: dto.notificationFrequency ?? 'immediate',

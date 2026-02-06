@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
@@ -18,6 +19,15 @@ async function bootstrap() {
 
   // Cookie parser for refresh tokens
   app.use(cookieParser());
+
+  // Global validation pipe - enables class-validator DTO validation
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   // Global API prefix
   app.setGlobalPrefix('api/v1');

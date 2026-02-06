@@ -182,6 +182,25 @@ export class TenantsService {
         },
       });
 
+      // Create default operations settings for the tenant
+      await tx.fleetOperationsSettings.upsert({
+        where: { tenantId: tenant.id },
+        create: { tenantId: tenant.id },
+        update: {},
+      });
+
+      // Create default user preferences for the owner
+      const ownerUser = await tx.user.findFirst({
+        where: { tenantId: tenant.id, role: 'OWNER' },
+      });
+      if (ownerUser) {
+        await tx.userPreferences.upsert({
+          where: { userId: ownerUser.id },
+          create: { userId: ownerUser.id },
+          update: {},
+        });
+      }
+
       return updatedTenant;
     });
 

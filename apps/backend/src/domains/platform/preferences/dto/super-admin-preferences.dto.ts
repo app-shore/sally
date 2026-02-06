@@ -5,7 +5,7 @@ enum NotificationFrequency {
   DAILY = 'daily',
 }
 
-export class UpdatePreferencesDto {
+export class UpdateSuperAdminPreferencesDto {
   @IsOptional()
   @IsBoolean()
   notifyNewTenants?: boolean;
