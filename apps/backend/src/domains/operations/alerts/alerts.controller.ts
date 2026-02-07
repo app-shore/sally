@@ -18,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
+import { Public } from '../../../auth/decorators/public.decorator';
 import { AlertStatsService } from './services/alert-stats.service';
 import { AlertAnalyticsService } from './services/alert-analytics.service';
 import { AlertTriggersService } from './services/alert-triggers.service';
@@ -420,9 +421,12 @@ export class AlertsController {
   }
 
   @Post('seed')
+  @Public()
   @ApiOperation({ summary: 'Seed sample alerts for testing (dev only)' })
-  async seedAlerts(@CurrentUser() user: any) {
-    this.logger.log(`Seeding sample alerts for tenant ${user.tenantDbId}`);
+  @ApiQuery({ name: 'tenant_id', required: false, description: 'Tenant ID (default: 1)' })
+  async seedAlerts(@Query('tenant_id') tenantIdParam?: string) {
+    const tenantId = tenantIdParam ? parseInt(tenantIdParam, 10) : 1;
+    this.logger.log(`Seeding sample alerts for tenant ${tenantId}`);
 
     const seedData = [
       {
@@ -525,19 +529,26 @@ export class AlertsController {
     ];
 
     const results = [];
+    const errors = [];
     for (const seed of seedData) {
-      const alert = await this.triggersService.trigger(
-        seed.type,
-        user.tenantDbId,
-        seed.driverId,
-        seed.params,
-      );
-      if (alert) results.push(alert.alertId);
+      try {
+        const alert = await this.triggersService.trigger(
+          seed.type,
+          tenantId,
+          seed.driverId,
+          seed.params,
+        );
+        if (alert) results.push(alert.alertId);
+      } catch (error: any) {
+        errors.push({ type: seed.type, error: error.message });
+        this.logger.error(`Failed to seed ${seed.type}: ${error.message}`);
+      }
     }
 
     return {
-      message: `Seeded ${results.length} alerts`,
+      message: `Seeded ${results.length} alerts${errors.length ? `, ${errors.length} failed` : ''}`,
       alertIds: results,
+      errors: errors.length > 0 ? errors : undefined,
     };
   }
 }
