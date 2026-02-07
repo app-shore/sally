@@ -17,8 +17,8 @@ export class AlertStatsService {
   ) {}
 
   async getStats(tenantId: number): Promise<AlertStats> {
-    const cacheKey = `stats:${tenantId}`;
-    const cached = this.cache.get<AlertStats>(cacheKey);
+    const cacheKey = `alert-stats:${tenantId}`;
+    const cached = await this.cache.get<AlertStats>(cacheKey);
     if (cached) return cached;
 
     const todayStart = new Date();
@@ -61,7 +61,7 @@ export class AlertStatsService {
     }
 
     const result = { active, critical, avgResponseTimeMinutes, resolvedToday };
-    this.cache.set(cacheKey, result, 30);
+    await this.cache.set(cacheKey, result, 30);
     return result;
   }
 }

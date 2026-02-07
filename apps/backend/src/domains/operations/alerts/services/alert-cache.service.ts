@@ -1,36 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
-
-interface CacheEntry<T> {
-  data: T;
-  expiresAt: number;
-}
+import { Injectable, Inject, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AlertCacheService {
   private readonly logger = new Logger(AlertCacheService.name);
-  private readonly cache = new Map<string, CacheEntry<any>>();
 
-  get<T>(key: string): T | null {
-    const entry = this.cache.get(key);
-    if (!entry || Date.now() > entry.expiresAt) {
-      this.cache.delete(key);
-      return null;
-    }
-    return entry.data as T;
+  constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
+
+  async get<T>(key: string): Promise<T | null> {
+    const value = await this.cacheManager.get<T>(key);
+    return value ?? null;
   }
 
-  set<T>(key: string, data: T, ttlSeconds: number) {
-    this.cache.set(key, {
-      data,
-      expiresAt: Date.now() + ttlSeconds * 1000,
-    });
+  async set<T>(key: string, data: T, ttlSeconds: number): Promise<void> {
+    await this.cacheManager.set(key, data, ttlSeconds * 1000);
   }
 
-  invalidate(pattern: string) {
-    for (const key of this.cache.keys()) {
-      if (key.startsWith(pattern)) {
-        this.cache.delete(key);
-      }
-    }
+  async invalidate(key: string): Promise<void> {
+    await this.cacheManager.del(key);
   }
 }

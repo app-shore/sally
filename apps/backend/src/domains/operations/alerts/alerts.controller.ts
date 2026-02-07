@@ -20,6 +20,7 @@ import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
 import { AlertStatsService } from './services/alert-stats.service';
 import { AlertAnalyticsService } from './services/alert-analytics.service';
+import { AlertTriggersService } from './services/alert-triggers.service';
 import { SnoozeAlertDto } from './dto/snooze-alert.dto';
 import { AddNoteDto } from './dto/add-note.dto';
 import { ResolveAlertDto } from './dto/resolve-alert.dto';
@@ -34,6 +35,7 @@ export class AlertsController {
     private readonly prisma: PrismaService,
     private readonly alertStatsService: AlertStatsService,
     private readonly analyticsService: AlertAnalyticsService,
+    private readonly triggersService: AlertTriggersService,
   ) {}
 
   @Get()
@@ -415,5 +417,127 @@ export class AlertsController {
     });
 
     return { updated: result.count, message: `${result.count} alerts resolved` };
+  }
+
+  @Post('seed')
+  @ApiOperation({ summary: 'Seed sample alerts for testing (dev only)' })
+  async seedAlerts(@CurrentUser() user: any) {
+    this.logger.log(`Seeding sample alerts for tenant ${user.tenantDbId}`);
+
+    const seedData = [
+      {
+        type: 'HOS_VIOLATION',
+        driverId: 'DRV-001',
+        params: {
+          driverName: 'Mike Johnson',
+          hoursType: 'driving',
+          currentHours: '11.5',
+          limitHours: '11',
+          routePlanId: 'RP-100',
+        },
+      },
+      {
+        type: 'HOS_APPROACHING_LIMIT',
+        driverId: 'DRV-002',
+        params: {
+          driverName: 'Sarah Chen',
+          remainingMinutes: '45',
+          hoursType: 'on-duty',
+          routePlanId: 'RP-101',
+        },
+      },
+      {
+        type: 'MISSED_APPOINTMENT',
+        driverId: 'DRV-003',
+        params: {
+          driverName: 'Tom Williams',
+          stopName: 'Walmart DC #4521',
+          scheduledTime: '2:00 PM',
+          routePlanId: 'RP-102',
+        },
+      },
+      {
+        type: 'DRIVER_NOT_MOVING',
+        driverId: 'DRV-001',
+        params: {
+          driverName: 'Mike Johnson',
+          stationaryMinutes: '47',
+          location: 'I-95 Exit 42, NJ',
+          vehicleId: 'VH-200',
+        },
+      },
+      {
+        type: 'FUEL_LOW',
+        driverId: 'DRV-004',
+        params: {
+          driverName: 'Lisa Park',
+          fuelPercent: '12',
+          rangeEstimateMiles: '45',
+          vehicleId: 'VH-201',
+        },
+      },
+      {
+        type: 'ROAD_CLOSURE',
+        driverId: 'DRV-002',
+        params: {
+          driverName: 'Sarah Chen',
+          road: 'I-81 Northbound near Exit 114',
+          reason: 'Multi-vehicle accident',
+        },
+      },
+      {
+        type: 'SPEEDING',
+        driverId: 'DRV-005',
+        params: {
+          driverName: 'James Rodriguez',
+          speed: '78',
+          speedLimit: '65',
+          vehicleId: 'VH-202',
+        },
+      },
+      {
+        type: 'APPOINTMENT_AT_RISK',
+        driverId: 'DRV-003',
+        params: {
+          driverName: 'Tom Williams',
+          stopName: 'Target DC #1022',
+          etaDelay: '35',
+          routePlanId: 'RP-102',
+        },
+      },
+      {
+        type: 'INTEGRATION_FAILURE',
+        driverId: 'SYSTEM',
+        params: {
+          integrationName: 'Samsara ELD',
+          error: 'API rate limit exceeded (429)',
+        },
+      },
+      {
+        type: 'BREAK_REQUIRED',
+        driverId: 'DRV-004',
+        params: {
+          driverName: 'Lisa Park',
+          remainingMinutes: '22',
+          routePlanId: 'RP-103',
+        },
+      },
+    ];
+
+    const results = [];
+    for (const seed of seedData) {
+      const alert = await this.triggersService.trigger(
+        seed.type,
+        user.tenantDbId,
+        seed.driverId,
+        seed.params,
+      );
+      if (alert) results.push(alert.alertId);
+    }
+
+    return {
+      message: `Seeded ${results.length} alerts`,
+      alertIds: results,
+    };
   }
 }
