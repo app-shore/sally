@@ -1,35 +1,28 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
   AlertCircle,
   Clock,
   CheckCircle2,
-  Search,
-  BellOff,
-  Eye,
-  Timer,
+  Truck,
+  ArrowRight,
+  Plus,
+  MapPin,
+  Activity,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
-import { Input } from "@/shared/components/ui/input";
 import { Skeleton } from "@/shared/components/ui/skeleton";
+import { Separator } from "@/shared/components/ui/separator";
 import { FeatureGuard } from "@/features/platform/feature-flags";
 import {
   useAlerts,
   useAlertStats,
   useAcknowledgeAlert,
-  useSnoozeAlert,
   useResolveAlert,
 } from "@/features/operations/alerts";
 import type { Alert, AlertPriority, AlertCategory } from "@/features/operations/alerts";
@@ -44,11 +37,11 @@ function formatRelativeTime(dateStr: string): string {
   const diffMs = now - then;
   const diffMin = Math.floor(diffMs / 60_000);
   if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin} min ago`;
+  if (diffMin < 60) return `${diffMin}m ago`;
   const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} hr ago`;
+  if (diffHr < 24) return `${diffHr}h ago`;
   const diffDays = Math.floor(diffHr / 24);
-  return `${diffDays} days ago`;
+  return `${diffDays}d ago`;
 }
 
 const PRIORITY_BORDER: Record<AlertPriority, string> = {
@@ -56,13 +49,6 @@ const PRIORITY_BORDER: Record<AlertPriority, string> = {
   high: "border-l-orange-500",
   medium: "border-l-yellow-500",
   low: "border-l-blue-500",
-};
-
-const PRIORITY_BADGE_VARIANT: Record<AlertPriority, "destructive" | "outline" | "secondary" | "default"> = {
-  critical: "destructive",
-  high: "outline",
-  medium: "secondary",
-  low: "default",
 };
 
 const CATEGORY_LABELS: Record<AlertCategory, string> = {
@@ -87,41 +73,22 @@ export default function DispatcherOverviewPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Main content
+// Main content - Multi-section operational hub
 // ---------------------------------------------------------------------------
 
 function CommandCenterContent() {
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [priorityTab, setPriorityTab] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Data fetching
-  const { data: alerts = [], isLoading: alertsLoading } = useAlerts(
-    buildQueryParams(statusFilter, categoryFilter),
-  );
+  const { data: alerts = [], isLoading: alertsLoading } = useAlerts({ status: "active" });
   const { data: stats } = useAlertStats();
   const acknowledgeMutation = useAcknowledgeAlert();
   const resolveMutation = useResolveAlert();
-  const snoozeMutation = useSnoozeAlert();
 
-  // Client-side filtering by priority tab + search
-  const filteredAlerts = useMemo(() => {
-    let result = alerts;
-    if (priorityTab !== "all") {
-      result = result.filter((a) => a.priority === priorityTab);
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (a) =>
-          a.title.toLowerCase().includes(q) ||
-          a.message.toLowerCase().includes(q) ||
-          a.driver_id.toLowerCase().includes(q),
-      );
-    }
-    return result;
-  }, [alerts, priorityTab, searchQuery]);
+  // Top alerts: critical + high first, max 6
+  const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+  const topAlerts = useMemo(() => {
+    return [...alerts]
+      .sort((a, b) => (priorityOrder[a.priority] ?? 9) - (priorityOrder[b.priority] ?? 9))
+      .slice(0, 6);
+  }, [alerts]);
 
   return (
     <div className="space-y-6">
@@ -131,19 +98,20 @@ function CommandCenterContent() {
           Command Center
         </h1>
         <p className="text-muted-foreground mt-1 text-sm md:text-base">
-          Monitor and manage fleet alerts in real-time
+          Operational overview of your fleet
         </p>
       </div>
 
-      {/* ---- Stats Bar ---- */}
+      {/* ---- Stats Overview ---- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Active Alerts"
           value={stats?.active}
           icon={<AlertTriangle className="h-4 w-4 text-muted-foreground" />}
+          href="/dispatcher/alerts"
         />
         <StatCard
-          label="Critical Alerts"
+          label="Critical"
           value={stats?.critical}
           icon={<AlertCircle className="h-4 w-4 text-red-500 dark:text-red-400" />}
           valueClassName={
@@ -151,9 +119,10 @@ function CommandCenterContent() {
               ? "text-red-600 dark:text-red-400"
               : undefined
           }
+          href="/dispatcher/alerts"
         />
         <StatCard
-          label="Avg Response Time"
+          label="Avg Response"
           value={stats?.avgResponseTimeMinutes != null ? `${stats.avgResponseTimeMinutes} min` : undefined}
           icon={<Clock className="h-4 w-4 text-muted-foreground" />}
         />
@@ -164,81 +133,155 @@ function CommandCenterContent() {
         />
       </div>
 
-      {/* ---- Filters Row ---- */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search alerts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="acknowledged">Acknowledged</SelectItem>
-            <SelectItem value="snoozed">Snoozed</SelectItem>
-            <SelectItem value="resolved">Resolved</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="hos">HOS</SelectItem>
-            <SelectItem value="route">Route</SelectItem>
-            <SelectItem value="driver">Driver</SelectItem>
-            <SelectItem value="vehicle">Vehicle</SelectItem>
-            <SelectItem value="external">External</SelectItem>
-            <SelectItem value="system">System</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* ---- Two-column layout: Alerts + Quick Actions ---- */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column: Recent Alerts (2/3 width) */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Recent Alerts</h2>
+            <Link
+              href="/dispatcher/alerts"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 border border-input bg-background hover:bg-muted hover:text-foreground transition-colors"
+            >
+              View All
+              <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+            </Link>
+          </div>
 
-      {/* ---- Priority Tabs ---- */}
-      <Tabs value={priorityTab} onValueChange={setPriorityTab}>
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="critical">Critical</TabsTrigger>
-          <TabsTrigger value="high">High</TabsTrigger>
-          <TabsTrigger value="medium">Medium</TabsTrigger>
-          <TabsTrigger value="low">Low</TabsTrigger>
-        </TabsList>
-
-        {/* Shared content for every tab value */}
-        {["all", "critical", "high", "medium", "low"].map((tab) => (
-          <TabsContent key={tab} value={tab} className="mt-4 space-y-3">
-            {alertsLoading ? (
-              <LoadingSkeleton />
-            ) : filteredAlerts.length === 0 ? (
-              <EmptyState />
-            ) : (
-              filteredAlerts.map((alert) => (
-                <AlertCard
+          {alertsLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex gap-2">
+                      <Skeleton className="h-5 w-16" />
+                      <Skeleton className="h-5 w-14" />
+                    </div>
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : topAlerts.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-10 text-center">
+                <CheckCircle2 className="h-10 w-10 text-green-500 dark:text-green-400 mb-3" />
+                <h3 className="font-semibold text-foreground">All Clear</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  No active alerts. Your fleet is running smoothly.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {topAlerts.map((alert) => (
+                <CompactAlertCard
                   key={alert.alert_id}
                   alert={alert}
                   onAcknowledge={() => acknowledgeMutation.mutate(alert.alert_id)}
                   onResolve={() => resolveMutation.mutate({ alertId: alert.alert_id })}
-                  onSnooze={(mins) =>
-                    snoozeMutation.mutate({ alertId: alert.alert_id, durationMinutes: mins })
-                  }
                   isAcknowledging={acknowledgeMutation.isPending}
                   isResolving={resolveMutation.isPending}
-                  isSnoozing={snoozeMutation.isPending}
                 />
-              ))
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right column: Quick Actions + Fleet Status (1/3 width) */}
+        <div className="space-y-6">
+          {/* Quick Actions */}
+          <div>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-1 gap-3">
+              <Link
+                href="/dispatcher/create-plan"
+                className="flex items-center justify-start h-auto py-3 px-4 rounded-md border border-input bg-background hover:bg-muted transition-colors"
+              >
+                <Plus className="h-4 w-4 mr-3 shrink-0" />
+                <div className="text-left">
+                  <div className="text-sm font-medium">Plan New Route</div>
+                  <div className="text-xs text-muted-foreground">Create optimized route</div>
+                </div>
+              </Link>
+              <Link
+                href="/dispatcher/active-routes"
+                className="flex items-center justify-start h-auto py-3 px-4 rounded-md border border-input bg-background hover:bg-muted transition-colors"
+              >
+                <MapPin className="h-4 w-4 mr-3 shrink-0" />
+                <div className="text-left">
+                  <div className="text-sm font-medium">Live Routes</div>
+                  <div className="text-xs text-muted-foreground">Track active routes</div>
+                </div>
+              </Link>
+              <Link
+                href="/dispatcher/fleet"
+                className="flex items-center justify-start h-auto py-3 px-4 rounded-md border border-input bg-background hover:bg-muted transition-colors"
+              >
+                <Truck className="h-4 w-4 mr-3 shrink-0" />
+                <div className="text-left">
+                  <div className="text-sm font-medium">Fleet Overview</div>
+                  <div className="text-xs text-muted-foreground">View assets & drivers</div>
+                </div>
+              </Link>
+              <Link
+                href="/dispatcher/analytics"
+                className="flex items-center justify-start h-auto py-3 px-4 rounded-md border border-input bg-background hover:bg-muted transition-colors"
+              >
+                <Activity className="h-4 w-4 mr-3 shrink-0" />
+                <div className="text-left">
+                  <div className="text-sm font-medium">Analytics</div>
+                  <div className="text-xs text-muted-foreground">Alert trends & reports</div>
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Fleet Status Placeholder */}
+          <div>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Fleet Status</h2>
+            <Card>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-green-500" />
+                    <span className="text-sm text-foreground">Drivers On-Duty</span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">--</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-blue-500" />
+                    <span className="text-sm text-foreground">Active Routes</span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">--</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                    <span className="text-sm text-foreground">Pending Loads</span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">--</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-gray-400" />
+                    <span className="text-sm text-foreground">Off-Duty Drivers</span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">--</span>
+                </div>
+                <Separator />
+                <p className="text-xs text-muted-foreground text-center">
+                  Live fleet data coming soon
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -252,14 +295,16 @@ function StatCard({
   value,
   icon,
   valueClassName,
+  href,
 }: {
   label: string;
   value: number | string | undefined;
   icon: React.ReactNode;
   valueClassName?: string;
+  href?: string;
 }) {
-  return (
-    <Card>
+  const content = (
+    <Card className={href ? "hover:bg-muted/50 transition-colors cursor-pointer" : ""}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{label}</CardTitle>
         {icon}
@@ -273,95 +318,75 @@ function StatCard({
       </CardContent>
     </Card>
   );
+
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+
+  return content;
 }
 
-function AlertCard({
+function CompactAlertCard({
   alert,
   onAcknowledge,
   onResolve,
-  onSnooze,
   isAcknowledging,
   isResolving,
-  isSnoozing,
 }: {
   alert: Alert;
   onAcknowledge: () => void;
   onResolve: () => void;
-  onSnooze: (mins: number) => void;
   isAcknowledging: boolean;
   isResolving: boolean;
-  isSnoozing: boolean;
 }) {
   const borderClass = PRIORITY_BORDER[alert.priority];
   const isActive = alert.status === "active";
-  const isResolved = alert.status === "resolved" || alert.status === "auto_resolved";
 
   return (
     <Card className={`border-l-4 ${borderClass}`}>
-      <CardContent className="p-4 md:p-5">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-          {/* Left section */}
-          <div className="flex-1 min-w-0 space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={PRIORITY_BADGE_VARIANT[alert.priority]}>
+      <CardContent className="p-3 md:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <Badge
+                variant={alert.priority === "critical" ? "destructive" : "outline"}
+                className="text-xs"
+              >
                 {alert.priority}
               </Badge>
-              <Badge variant="outline">{CATEGORY_LABELS[alert.category]}</Badge>
-              <Badge variant="secondary" className="text-xs">
-                {alert.status}
+              <Badge variant="outline" className="text-xs">
+                {CATEGORY_LABELS[alert.category]}
               </Badge>
+              <span className="text-xs text-muted-foreground">
+                {formatRelativeTime(alert.created_at)}
+              </span>
             </div>
-
-            <h3 className="font-semibold text-foreground leading-tight">
+            <h3 className="text-sm font-medium text-foreground truncate">
               {alert.title}
             </h3>
-            <p className="text-sm text-muted-foreground line-clamp-2">
+            <p className="text-xs text-muted-foreground truncate">
               {alert.message}
             </p>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span>Driver: {alert.driver_id}</span>
-              {alert.vehicle_id && <span>Vehicle: {alert.vehicle_id}</span>}
-              <span>{formatRelativeTime(alert.created_at)}</span>
-            </div>
-
-            {alert.recommended_action && (
-              <p className="text-xs text-muted-foreground italic mt-1">
-                Recommended: {alert.recommended_action}
-              </p>
-            )}
           </div>
 
-          {/* Right section - actions */}
-          {!isResolved && (
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              {isActive && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={onAcknowledge}
-                  disabled={isAcknowledging}
-                >
-                  <Eye className="h-3.5 w-3.5 mr-1.5" />
-                  Acknowledge
-                </Button>
-              )}
+          {isActive && (
+            <div className="flex items-center gap-2 shrink-0">
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => onSnooze(15)}
-                disabled={isSnoozing}
+                onClick={onAcknowledge}
+                disabled={isAcknowledging}
+                className="h-7 text-xs"
               >
-                <Timer className="h-3.5 w-3.5 mr-1.5" />
-                Snooze 15m
+                Acknowledge
               </Button>
               <Button
                 size="sm"
                 variant="default"
                 onClick={onResolve}
                 disabled={isResolving}
+                className="h-7 text-xs"
               >
-                <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
                 Resolve
               </Button>
             </div>
@@ -370,50 +395,4 @@ function AlertCard({
       </CardContent>
     </Card>
   );
-}
-
-function EmptyState() {
-  return (
-    <Card>
-      <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-        <BellOff className="h-10 w-10 text-muted-foreground mb-3" />
-        <h3 className="font-semibold text-foreground">No alerts found</h3>
-        <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-          There are no alerts matching your current filters. Adjust the filters above or
-          check back later.
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="space-y-3">
-      {[1, 2, 3].map((i) => (
-        <Card key={i}>
-          <CardContent className="p-4 md:p-5 space-y-3">
-            <div className="flex gap-2">
-              <Skeleton className="h-5 w-16" />
-              <Skeleton className="h-5 w-14" />
-            </div>
-            <Skeleton className="h-5 w-3/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-3 w-1/3" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Utils
-// ---------------------------------------------------------------------------
-
-function buildQueryParams(status: string, category: string) {
-  const params: Record<string, string> = {};
-  if (status !== "all") params.status = status;
-  if (category !== "all") params.category = category;
-  return Object.keys(params).length > 0 ? params : undefined;
 }

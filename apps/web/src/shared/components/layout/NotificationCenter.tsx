@@ -1,6 +1,7 @@
 'use client';
 
-import { Bell, Truck, Users, Link2, MessageSquare, X, Check, Settings } from 'lucide-react';
+import Link from 'next/link';
+import { Bell, Truck, Users, Link2, MessageSquare, X, Check, Settings, ArrowRight } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
@@ -190,16 +191,16 @@ export function NotificationCenter() {
         </ScrollArea>
 
         {/* Footer */}
-        {notifications.length > 0 && (
-          <>
-            <Separator />
-            <div className="p-2 flex justify-center">
-              <Button variant="ghost" size="sm" className="text-xs w-full">
-                View All Notifications
-              </Button>
-            </div>
-          </>
-        )}
+        <Separator />
+        <div className="p-2">
+          <Link
+            href="/notifications"
+            className="inline-flex items-center justify-center w-full rounded-md text-xs font-medium h-9 px-3 hover:bg-muted hover:text-foreground transition-colors"
+          >
+            View All Notifications
+            <ArrowRight className="h-3 w-3 ml-1" />
+          </Link>
+        </div>
       </PopoverContent>
     </Popover>
   );

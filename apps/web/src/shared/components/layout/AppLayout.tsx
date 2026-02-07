@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { AppSidebar } from './AppSidebar';
 import { AppHeader } from './AppHeader';
-import { AlertsPanel } from './AlertsPanel';
 import { OnboardingBanner } from '@/features/platform/onboarding';
 import { useAuthStore } from '@/features/auth';
 import { useOnboardingStore } from '@/features/platform/onboarding';
@@ -32,7 +31,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   } = useOnboardingStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [alertsPanelOpen, setAlertsPanelOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Fetch alert count
@@ -57,9 +55,6 @@ export function AppLayout({ children }: AppLayoutProps) {
       playAlertSound(alert.priority);
     },
   });
-
-  // Auth is already checked by layout-client.tsx
-  // No need to check again here
 
   // Initialize onboarding store for OWNER/ADMIN
   useEffect(() => {
@@ -90,7 +85,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     pathname !== '/setup-hub';
 
   if (!isAuthenticated) {
-    return null; // Will redirect in useEffect
+    return null;
   }
 
   return (
@@ -99,7 +94,6 @@ export function AppLayout({ children }: AppLayoutProps) {
       <AppHeader
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         alertCount={alertCount}
-        onOpenAlerts={() => setAlertsPanelOpen(true)}
       />
 
       {/* Onboarding Banner - Below header */}
@@ -116,8 +110,6 @@ export function AppLayout({ children }: AppLayoutProps) {
         <AppSidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          alertCount={alertCount}
-          onOpenAlerts={() => setAlertsPanelOpen(true)}
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
@@ -135,12 +127,6 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
         </main>
       </div>
-
-      {/* Alerts panel */}
-      <AlertsPanel
-        isOpen={alertsPanelOpen}
-        onClose={() => setAlertsPanelOpen(false)}
-      />
     </div>
   );
 }

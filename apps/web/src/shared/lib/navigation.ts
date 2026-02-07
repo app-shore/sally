@@ -1,4 +1,4 @@
-import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2, Rocket, Flag, Bell, History } from 'lucide-react';
+import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2, Rocket, Flag } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -17,13 +17,12 @@ export type NavigationItem = NavItem | NavSeparator;
 
 /**
  * Centralized navigation configuration for SALLY
- * Defines all navigation items for authenticated users
  *
- * Label Guidelines (Marketing & PO Perspective):
- * - Use value-driven language (what user gets, not just what it is)
- * - Use industry-standard terminology (fleet management best practices)
- * - Keep labels concise but descriptive (2-3 words max)
- * - Focus on action and outcomes
+ * Design philosophy:
+ * - Sidebar = places you GO (workspaces, tools)
+ * - Header icons = things that COME TO YOU (alerts, notifications)
+ * - Every item must earn its spot through daily-use frequency
+ * - Alerts & notifications are header-level concerns (icon → popover → full page)
  */
 export const navigationConfig: Record<string, NavigationItem[]> = {
   dispatcher: [
@@ -31,12 +30,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Truck },
-    { label: 'Notifications', href: '/notifications', icon: Bell },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
-    { label: 'Alert History', href: '/dispatcher/alerts-history', icon: History },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
-
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
     { label: 'Preferences', href: '/settings/preferences', icon: Settings },
   ],
@@ -45,50 +41,38 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'My Routes', href: '/driver/dashboard', icon: Home },
     { label: 'Today\'s Route', href: '/driver/current-route', icon: Map },
     { label: 'Dispatch Messages', href: '/driver/messages', icon: MessageSquare },
-    { label: 'Notifications', href: '/notifications', icon: Bell },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Preferences', href: '/settings/preferences', icon: Settings },
   ],
 
   admin: [
-    // Admin/Management Section - High-level admin functions
     { label: 'Setup Hub', href: '/setup-hub', icon: Rocket },
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { label: 'Team', href: '/users', icon: Users },
     { label: 'Drivers', href: '/drivers', icon: Truck },
     { type: 'separator', label: 'Operations' } as NavSeparator,
-    // Dispatcher operations
     { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
-    { label: 'Notifications', href: '/notifications', icon: Bell },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
-    { label: 'Alert History', href: '/dispatcher/alerts-history', icon: History },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
-
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
     { label: 'Preferences', href: '/settings/preferences', icon: Settings },
   ],
 
-  // OWNER has same capabilities as ADMIN plus full user management control
   owner: [
-    // Admin/Management Section - High-level admin functions
     { label: 'Setup Hub', href: '/setup-hub', icon: Rocket },
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { label: 'Team', href: '/users', icon: Users },
     { label: 'Drivers', href: '/drivers', icon: Truck },
-
     { type: 'separator', label: 'Operations' } as NavSeparator,
-    // Dispatcher operations
     { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
-    { label: 'Notifications', href: '/notifications', icon: Bell },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
-    { label: 'Alert History', href: '/dispatcher/alerts-history', icon: History },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
@@ -99,8 +83,6 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Tenant Management', href: '/admin/tenants', icon: Building2 },
     { label: 'Feature Flags', href: '/admin/feature-flags', icon: Flag },
     { label: 'Settings', href: '/admin/settings', icon: Settings },
-    // User and driver management is handled by tenant OWNER/ADMIN users
-    // We can add more SUPER_ADMIN features later (analytics, billing, etc.)
   ],
 };
 
