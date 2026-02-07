@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+import { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/shared/components/ui/card';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/components/ui/select';
 import { Input } from '@/shared/components/ui/input';
@@ -9,13 +9,69 @@ import { Button } from '@/shared/components/ui/button';
 import { Switch } from '@/shared/components/ui/switch';
 import { usePreferencesStore } from '@/features/platform/preferences';
 import { UserPreferences } from '@/features/platform/preferences';
-import { Loader2, Save, RotateCcw } from 'lucide-react';
+import { Loader2, Save, RotateCcw, Bell, Volume2, Lock } from 'lucide-react';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
+import { apiClient } from '@/shared/lib/api';
+
+interface NotificationPrefs {
+  soundEnabled: Record<string, boolean>;
+  browserNotifications: boolean;
+  flashTabOnCritical: boolean;
+  defaultSnoozeDuration: number;
+}
+
+const PRIORITY_LEVELS = ['critical', 'high', 'medium', 'low'];
+const SNOOZE_OPTIONS = [
+  { value: 5, label: '5 minutes' },
+  { value: 15, label: '15 minutes' },
+  { value: 30, label: '30 minutes' },
+  { value: 60, label: '1 hour' },
+  { value: 120, label: '2 hours' },
+  { value: 240, label: '4 hours' },
+  { value: 480, label: '8 hours' },
+];
 
 export default function UserPreferencesTab() {
   const { userPreferences, updateUserPrefs, resetToDefaults, isSaving } = usePreferencesStore();
   const [formData, setFormData] = useState<Partial<UserPreferences>>(userPreferences || {});
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Notification preferences state
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs | null>(null);
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifSaveSuccess, setNotifSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    apiClient<NotificationPrefs>('/preferences/notifications')
+      .then(setNotifPrefs)
+      .catch(() => {
+        // Set defaults if endpoint not available
+        setNotifPrefs({
+          soundEnabled: { critical: true, high: true, medium: false, low: false },
+          browserNotifications: true,
+          flashTabOnCritical: true,
+          defaultSnoozeDuration: 15,
+        });
+      });
+  }, []);
+
+  const handleSaveNotifPrefs = async () => {
+    if (!notifPrefs) return;
+    setNotifSaving(true);
+    try {
+      const updated = await apiClient<NotificationPrefs>('/preferences/notifications', {
+        method: 'PUT',
+        body: JSON.stringify(notifPrefs),
+      });
+      setNotifPrefs(updated);
+      setNotifSaveSuccess(true);
+      setTimeout(() => setNotifSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error('Failed to save notification preferences:', err);
+    } finally {
+      setNotifSaving(false);
+    }
+  };
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -246,6 +302,127 @@ export default function UserPreferencesTab() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Notification Preferences */}
+      {notifPrefs && (
+        <>
+          {notifSaveSuccess && (
+            <Alert>
+              <AlertDescription>Notification preferences saved!</AlertDescription>
+            </Alert>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Volume2 className="h-5 w-5" />
+                Sound Notifications
+              </CardTitle>
+              <CardDescription>
+                Choose which alert priorities play a sound
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {PRIORITY_LEVELS.map((priority) => {
+                const isMandatory = priority === 'critical';
+                return (
+                  <div key={priority} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Label className="capitalize">{priority} Priority</Label>
+                      {isMandatory && (
+                        <span title="Required by your organization"><Lock className="h-3 w-3 text-muted-foreground" /></span>
+                      )}
+                    </div>
+                    <Switch
+                      checked={isMandatory ? true : (notifPrefs.soundEnabled?.[priority] ?? false)}
+                      onCheckedChange={(checked) =>
+                        setNotifPrefs({
+                          ...notifPrefs,
+                          soundEnabled: { ...notifPrefs.soundEnabled, [priority]: checked },
+                        })
+                      }
+                      disabled={isMandatory}
+                    />
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Browser & Display
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Browser Notifications</Label>
+                  <p className="text-sm text-muted-foreground">Show browser push notifications for alerts</p>
+                </div>
+                <Switch
+                  checked={notifPrefs.browserNotifications}
+                  onCheckedChange={(checked) =>
+                    setNotifPrefs({ ...notifPrefs, browserNotifications: checked })
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Flash Tab on Critical</Label>
+                  <p className="text-sm text-muted-foreground">Flash browser tab title when critical alerts are active</p>
+                </div>
+                <Switch
+                  checked={notifPrefs.flashTabOnCritical}
+                  onCheckedChange={(checked) =>
+                    setNotifPrefs({ ...notifPrefs, flashTabOnCritical: checked })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Default Snooze Duration</Label>
+                <Select
+                  value={String(notifPrefs.defaultSnoozeDuration)}
+                  onValueChange={(value) =>
+                    setNotifPrefs({ ...notifPrefs, defaultSnoozeDuration: parseInt(value) })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SNOOZE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={String(opt.value)}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button onClick={handleSaveNotifPrefs} disabled={notifSaving}>
+              {notifSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Notification Preferences
+                </>
+              )}
+            </Button>
+          </div>
+        </>
+      )}
 
       {/* Action Buttons */}
       <div className="flex justify-between">

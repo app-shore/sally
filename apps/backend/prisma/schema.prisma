@@ -85,6 +85,7 @@ model Tenant {
   fleetOperationsSettings FleetOperationsSettings?
   invitations           UserInvitation[]
   notifications         Notification[]
+  alertConfiguration    AlertConfiguration?
 
   @@index([tenantId])
   @@index([subdomain])
@@ -141,6 +142,8 @@ model User {
   driversDeactivated Driver[]        @relation("DeactivatedBy")
   driversReactivated Driver[]        @relation("ReactivatedBy")
   notifications     Notification[]
+  notificationPreferences UserNotificationPreferences?
+  pushSubscriptions PushSubscription[]
 
   @@index([tenantId])
   @@index([email])
@@ -559,29 +562,117 @@ model Recommendation {
 model Alert {
   id                    Int          @id @default(autoincrement())
   alertId               String       @unique @map("alert_id") @db.VarChar(50)
+  tenantId              Int          @map("tenant_id")
+
+  // Context
   driverId              String       @map("driver_id") @db.VarChar(50)
   routePlanId           String?      @map("route_plan_id") @db.VarChar(50)
+  vehicleId             String?      @map("vehicle_id") @db.VarChar(50)
+
+  // Classification
   alertType             String       @map("alert_type") @db.VarChar(50)
+  category              String       @default("system") @db.VarChar(30)
   priority              String       @db.VarChar(20)
+
+  // Content
   title                 String       @db.VarChar(200)
   message               String       @db.Text
-  recommendedAction     String       @map("recommended_action") @db.Text
+  recommendedAction     String?      @map("recommended_action") @db.Text
+  metadata              Json?
+
+  // Lifecycle
   status                String       @default("active") @db.VarChar(20)
   acknowledgedAt        DateTime?    @map("acknowledged_at") @db.Timestamptz
   acknowledgedBy        String?      @map("acknowledged_by") @db.VarChar(50)
+  snoozedUntil          DateTime?    @map("snoozed_until") @db.Timestamptz
   resolvedAt            DateTime?    @map("resolved_at") @db.Timestamptz
+  resolvedBy            String?      @map("resolved_by") @db.VarChar(50)
+  resolutionNotes       String?      @map("resolution_notes") @db.Text
+  autoResolved          Boolean      @default(false) @map("auto_resolved")
+  autoResolveReason     String?      @map("auto_resolve_reason") @db.Text
+
+  // Grouping
+  parentAlertId         String?      @map("parent_alert_id") @db.VarChar(50)
+  groupKey              String?      @map("group_key") @db.VarChar(200)
+
+  // Escalation
+  escalationLevel       Int          @default(0) @map("escalation_level")
+  escalatedAt           DateTime?    @map("escalated_at") @db.Timestamptz
+
+  // Deduplication
+  dedupKey              String?      @map("dedup_key") @db.VarChar(200)
+
+  // Timestamps
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
+  // Relations
   tenant                Tenant       @relation(fields: [tenantId], references: [id])
-  tenantId              Int          @map("tenant_id")
+  notes                 AlertNote[]
+  parentAlert           Alert?       @relation("AlertGroup", fields: [parentAlertId], references: [alertId])
+  childAlerts           Alert[]      @relation("AlertGroup")
 
-  @@index([driverId])
-  @@index([status])
-  @@index([priority])
-  @@index([createdAt])
-  @@index([tenantId])
+  @@index([tenantId, status, priority, createdAt])
+  @@index([tenantId, createdAt])
+  @@index([dedupKey, status])
+  @@index([driverId, status])
+  @@index([routePlanId, status])
+  @@index([parentAlertId])
+  @@index([groupKey])
+  @@index([snoozedUntil])
   @@map("alerts")
+}
+
+model AlertNote {
+  id            Int       @id @default(autoincrement())
+  noteId        String    @unique @default(cuid()) @map("note_id") @db.VarChar(50)
+  alertId       String    @map("alert_id") @db.VarChar(50)
+  authorId      String    @map("author_id") @db.VarChar(50)
+  authorName    String    @map("author_name") @db.VarChar(200)
+  content       String    @db.Text
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  alert         Alert     @relation(fields: [alertId], references: [alertId])
+
+  @@index([alertId, createdAt])
+  @@map("alert_notes")
+}
+
+model AlertConfiguration {
+  id              Int       @id @default(autoincrement())
+  tenantId        Int       @unique @map("tenant_id")
+
+  alertTypes      Json      @map("alert_types")
+  escalationPolicy Json     @map("escalation_policy")
+  groupingConfig  Json      @map("grouping_config")
+  defaultChannels Json      @map("default_channels")
+
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@map("alert_configurations")
+}
+
+model UserNotificationPreferences {
+  id                    Int       @id @default(autoincrement())
+  userId                Int       @unique @map("user_id")
+  tenantId              Int       @map("tenant_id")
+
+  alertChannels         Json      @default("{}") @map("alert_channels")
+  notificationChannels  Json      @default("{}") @map("notification_channels")
+  soundEnabled          Json      @default("{}") @map("sound_enabled")
+  browserNotifications  Boolean   @default(true) @map("browser_notifications")
+  flashTabOnCritical    Boolean   @default(true) @map("flash_tab_on_critical")
+  defaultSnoozeDuration Int       @default(15) @map("default_snooze_duration")
+
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  user                  User      @relation(fields: [userId], references: [id])
+
+  @@map("user_notification_preferences")
 }
 
 // ============================================================================
@@ -844,10 +935,34 @@ model FeatureFlag {
 // ============================================================================
 
 enum NotificationType {
+  // Existing
   USER_INVITATION
   TENANT_REGISTRATION_CONFIRMATION
   TENANT_APPROVED
   TENANT_REJECTED
+
+  // System Events
+  ROUTE_PLANNED
+  ROUTE_UPDATED
+  ROUTE_COMPLETED
+  INTEGRATION_SYNCED
+  INTEGRATION_FAILED
+
+  // Team Events
+  USER_JOINED
+  ROLE_CHANGED
+  DRIVER_ACTIVATED
+  SETTINGS_UPDATED
+
+  // Operations
+  LOAD_ASSIGNED
+  LOAD_STATUS_CHANGED
+  SCHEDULE_CHANGED
+
+  // Communications
+  DISPATCH_MESSAGE
+  ACKNOWLEDGMENT_REQUEST
+  ACKNOWLEDGMENT_RECEIVED
 }
 
 enum NotificationChannel {
@@ -881,8 +996,18 @@ model Notification {
   invitationId    Int?                @map("invitation_id")
   invitation      UserInvitation?     @relation(fields: [invitationId], references: [id], onDelete: Cascade)
 
+  // In-App Notification fields
+  category        String?             @db.VarChar(30)
+  title           String?             @db.VarChar(255)
+  message         String?             @db.Text
+  actionUrl       String?             @map("action_url") @db.VarChar(500)
+  actionLabel     String?             @map("action_label") @db.VarChar(100)
+  iconType        String?             @map("icon_type") @db.VarChar(30)
+  readAt          DateTime?           @map("read_at") @db.Timestamptz
+  dismissedAt     DateTime?           @map("dismissed_at") @db.Timestamptz
+
   // Metadata
-  metadata        Json?               // Flexible field for additional data
+  metadata        Json?
   errorMessage    String?             @map("error_message") @db.Text
   sentAt          DateTime?           @map("sent_at")
 
@@ -895,5 +1020,31 @@ model Notification {
   @@index([type])
   @@index([status])
   @@index([createdAt])
+  @@index([tenantId, status])
+  @@index([type, status])
+  @@index([userId, readAt, dismissedAt])
+  @@index([userId, category, createdAt])
   @@map("notifications")
+}
+
+// ============================================================================
+// PUSH SUBSCRIPTIONS
+// ============================================================================
+
+model PushSubscription {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @map("user_id")
+  tenantId        Int       @map("tenant_id")
+  endpoint        String    @db.Text
+  p256dh          String    @db.VarChar(200)
+  auth            String    @db.VarChar(100)
+  userAgent       String?   @map("user_agent") @db.VarChar(500)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, endpoint])
+  @@index([userId])
+  @@map("push_subscriptions")
 }

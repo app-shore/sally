@@ -133,6 +133,55 @@ export async function updateDriverPreferences(updates: Partial<DriverPreferences
 }
 
 // ============================================================================
+// ALERT CONFIGURATION
+// ============================================================================
+
+export interface AlertTypeConfig {
+  enabled: boolean;
+  mandatory?: boolean;
+  thresholdMinutes?: number;
+  thresholdPercent?: number;
+}
+
+export interface EscalationPolicyConfig {
+  acknowledgeSlaMinutes: number;
+  escalateTo: string;
+  channels: string[];
+}
+
+export interface GroupingConfig {
+  dedupWindowMinutes: number;
+  groupSameTypePerDriver: boolean;
+  smartGroupAcrossDrivers: boolean;
+  linkCascading: boolean;
+}
+
+export interface ChannelConfig {
+  inApp: boolean;
+  email: boolean;
+  push: boolean;
+  sms: boolean;
+}
+
+export interface AlertConfiguration {
+  alertTypes: Record<string, AlertTypeConfig>;
+  escalationPolicy: Record<string, EscalationPolicyConfig>;
+  groupingConfig: GroupingConfig;
+  defaultChannels: Record<string, ChannelConfig>;
+}
+
+export async function getAlertConfig(): Promise<AlertConfiguration> {
+  return apiClient<AlertConfiguration>('/settings/alerts');
+}
+
+export async function updateAlertConfig(updates: Partial<AlertConfiguration>): Promise<AlertConfiguration> {
+  return apiClient<AlertConfiguration>('/settings/alerts', {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  });
+}
+
+// ============================================================================
 // RESET TO DEFAULTS
 // ============================================================================
 

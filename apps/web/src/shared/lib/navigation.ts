@@ -1,4 +1,4 @@
-import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2, Rocket, Flag } from 'lucide-react';
+import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2, Rocket, Flag, Bell, History } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -31,6 +31,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Truck },
+    { label: 'Notifications', href: '/notifications', icon: Bell },
+    { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
+    { label: 'Alert History', href: '/dispatcher/alerts-history', icon: History },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
 
@@ -42,6 +45,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'My Routes', href: '/driver/dashboard', icon: Home },
     { label: 'Today\'s Route', href: '/driver/current-route', icon: Map },
     { label: 'Dispatch Messages', href: '/driver/messages', icon: MessageSquare },
+    { label: 'Notifications', href: '/notifications', icon: Bell },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Preferences', href: '/settings/preferences', icon: Settings },
   ],
@@ -58,6 +62,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
+    { label: 'Notifications', href: '/notifications', icon: Bell },
+    { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
+    { label: 'Alert History', href: '/dispatcher/alerts-history', icon: History },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
 
@@ -79,6 +86,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
+    { label: 'Notifications', href: '/notifications', icon: Bell },
+    { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
+    { label: 'Alert History', href: '/dispatcher/alerts-history', icon: History },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
@@ -110,6 +120,7 @@ export const protectedRoutePatterns = [
   '/users',
   '/drivers',
   '/setup-hub',
+  '/notifications',
 ] as const;
 
 /**

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/shared/components/ui/badge';
@@ -30,7 +30,7 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ['alerts', 'active'],
     queryFn: () => listAlerts({ status: 'active' }),
-    refetchInterval: 30000, // Poll every 30 seconds
+    refetchInterval: 30000,
     enabled: isOpen,
   });
 
@@ -133,7 +133,7 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
                     const config = getAlertConfig(alert.priority);
                     return (
                       <div
-                        key={alert.id}
+                        key={alert.alert_id}
                         className={`p-4 rounded-lg border ${config.bgColor} border-border`}
                       >
                         <div className="flex items-start gap-3">
@@ -170,7 +170,7 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => acknowledgeMutation.mutate(alert.id)}
+                              onClick={() => acknowledgeMutation.mutate(alert.alert_id)}
                               disabled={acknowledgeMutation.isPending}
                             >
                               Acknowledge
@@ -178,7 +178,7 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
                           )}
                           <Button
                             size="sm"
-                            onClick={() => resolveMutation.mutate(alert.id)}
+                            onClick={() => resolveMutation.mutate(alert.alert_id)}
                             disabled={resolveMutation.isPending}
                           >
                             Resolve
