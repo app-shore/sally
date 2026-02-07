@@ -11,6 +11,9 @@ import { useOnboardingStore } from '@/features/platform/onboarding';
 import { useQuery } from '@tanstack/react-query';
 import { listAlerts } from '@/features/operations/alerts';
 import { cn } from '@/shared/lib/utils';
+import { useSSE } from '@/shared/hooks/use-sse';
+import { useAlertSound } from '@/shared/hooks/use-alert-sound';
+import { useTabTitle } from '@/shared/hooks/use-tab-title';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -41,6 +44,19 @@ export function AppLayout({ children }: AppLayoutProps) {
   });
 
   const alertCount = alerts.length;
+  const criticalCount = alerts.filter((a) => a.priority === 'critical' && a.status === 'active').length;
+
+  // Sound and tab title notifications
+  const { playAlertSound } = useAlertSound();
+  useTabTitle(criticalCount);
+
+  // Real-time updates via SSE
+  useSSE({
+    enabled: isAuthenticated,
+    onAlertNew: (alert) => {
+      playAlertSound(alert.priority);
+    },
+  });
 
   // Auth is already checked by layout-client.tsx
   // No need to check again here

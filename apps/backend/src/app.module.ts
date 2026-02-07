@@ -26,6 +26,10 @@ import { HealthController } from './health/health.controller';
 import { CacheModule } from './infrastructure/cache/cache.module';
 import { SharedModule } from './shared/shared.module';
 import { NotificationModule } from './infrastructure/notification/notification.module';
+import { SseModule } from './infrastructure/sse/sse.module';
+import { PushModule } from './infrastructure/push/push.module';
+import { SmsModule } from './infrastructure/sms/sms.module';
+import { WebSocketModule } from './infrastructure/websocket/websocket.module';
 
 @Module({
   imports: [
@@ -40,6 +44,10 @@ import { NotificationModule } from './infrastructure/notification/notification.m
     PrismaModule,
     AuthModule,
     NotificationModule,
+    SseModule,
+    PushModule,
+    SmsModule,
+    WebSocketModule,
 
     // Domain Modules
     FleetModule,
