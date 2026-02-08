@@ -4,29 +4,38 @@ import type { PreferencesResetResponse } from './types';
 export interface UserPreferences {
   id: number;
   userId: number;
+  // Display
   distanceUnit: string;
   timeFormat: string;
   temperatureUnit: string;
   currency: string;
   timezone: string;
   dateFormat: string;
+  // Dashboard
   autoRefreshInterval: number;
   defaultView: string;
   compactMode: boolean;
   highContrastMode: boolean;
-  alertMethods: string[];
+  // Alert Delivery
+  alertChannels: Record<string, { inApp: boolean; email: boolean; push: boolean; sms: boolean }>;
   minAlertPriority: string;
   alertCategories: string[];
+  // Sound & Browser
+  soundSettings: Record<string, boolean>;
+  browserNotifications: boolean;
+  flashTabOnCritical: boolean;
+  // Quiet Hours
+  quietHoursEnabled: boolean;
   quietHoursStart: string | null;
   quietHoursEnd: string | null;
+  // Snooze & Digest
+  defaultSnoozeDuration: number;
   emailDigestFrequency: string;
-  desktopNotifications: boolean;
-  soundEnabled: boolean;
-  emailNotifications: boolean;
-  smsNotifications: boolean;
+  // Accessibility
   fontSize: string;
   reduceMotion: boolean;
   screenReaderOptimized: boolean;
+  // Timestamps
   createdAt: string;
   updatedAt: string;
 }
@@ -127,6 +136,55 @@ export async function getDriverPreferences(): Promise<DriverPreferences> {
 
 export async function updateDriverPreferences(updates: Partial<DriverPreferences>): Promise<DriverPreferences> {
   return apiClient<DriverPreferences>('/preferences/driver', {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  });
+}
+
+// ============================================================================
+// ALERT CONFIGURATION
+// ============================================================================
+
+export interface AlertTypeConfig {
+  enabled: boolean;
+  mandatory?: boolean;
+  thresholdMinutes?: number;
+  thresholdPercent?: number;
+}
+
+export interface EscalationPolicyConfig {
+  acknowledgeSlaMinutes: number;
+  escalateTo: string;
+  channels: string[];
+}
+
+export interface GroupingConfig {
+  dedupWindowMinutes: number;
+  groupSameTypePerDriver: boolean;
+  smartGroupAcrossDrivers: boolean;
+  linkCascading: boolean;
+}
+
+export interface ChannelConfig {
+  inApp: boolean;
+  email: boolean;
+  push: boolean;
+  sms: boolean;
+}
+
+export interface AlertConfiguration {
+  alertTypes: Record<string, AlertTypeConfig>;
+  escalationPolicy: Record<string, EscalationPolicyConfig>;
+  groupingConfig: GroupingConfig;
+  defaultChannels: Record<string, ChannelConfig>;
+}
+
+export async function getAlertConfig(): Promise<AlertConfiguration> {
+  return apiClient<AlertConfiguration>('/settings/alerts');
+}
+
+export async function updateAlertConfig(updates: Partial<AlertConfiguration>): Promise<AlertConfiguration> {
+  return apiClient<AlertConfiguration>('/settings/alerts', {
     method: 'PUT',
     body: JSON.stringify(updates),
   });

@@ -2,10 +2,11 @@
 export {
   alertsApi,
   listAlerts,
-  getAlert,
   acknowledgeAlert,
   resolveAlert,
 } from './api';
+
+export { alertAnalyticsApi } from './api-analytics';
 
 // Types
 export type {
@@ -13,15 +14,28 @@ export type {
   AlertStatus,
   AlertCategory,
   Alert,
+  AlertNote,
+  AlertStats,
   ListAlertsParams,
-  AcknowledgeAlertResponse,
-  ResolveAlertResponse,
 } from './types';
 
 // Hooks
 export {
   useAlerts,
   useAlertById,
+  useAlertStats,
   useAcknowledgeAlert,
+  useSnoozeAlert,
   useResolveAlert,
+  useAddAlertNote,
+  useBulkAcknowledge,
+  useBulkResolve,
 } from './hooks/use-alerts';
+
+export {
+  useAlertVolume,
+  useResponseTimeTrend,
+  useResolutionRates,
+  useTopAlertTypes,
+  useAlertHistory,
+} from './hooks/use-alert-analytics';

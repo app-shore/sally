@@ -1,12 +1,9 @@
 import { Module } from '@nestjs/common';
 import { AlertsModule } from './alerts/alerts.module';
+import { InAppNotificationsModule } from './notifications/notifications.module';
 
-/**
- * OperationsModule aggregates all operations-related modules:
- * - Alerts: Alert management and notifications
- */
 @Module({
-  imports: [AlertsModule],
-  exports: [AlertsModule],
+  imports: [AlertsModule, InAppNotificationsModule],
+  exports: [AlertsModule, InAppNotificationsModule],
 })
 export class OperationsModule {}

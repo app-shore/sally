@@ -4,13 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { AppSidebar } from './AppSidebar';
 import { AppHeader } from './AppHeader';
-import { AlertsPanel } from './AlertsPanel';
 import { OnboardingBanner } from '@/features/platform/onboarding';
 import { useAuthStore } from '@/features/auth';
 import { useOnboardingStore } from '@/features/platform/onboarding';
 import { useQuery } from '@tanstack/react-query';
 import { listAlerts } from '@/features/operations/alerts';
 import { cn } from '@/shared/lib/utils';
+import { useSSE } from '@/shared/hooks/use-sse';
+import { useAlertSound } from '@/shared/hooks/use-alert-sound';
+import { useTabTitle } from '@/shared/hooks/use-tab-title';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -29,7 +31,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   } = useOnboardingStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [alertsPanelOpen, setAlertsPanelOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Fetch alert count
@@ -41,9 +42,19 @@ export function AppLayout({ children }: AppLayoutProps) {
   });
 
   const alertCount = alerts.length;
+  const criticalCount = alerts.filter((a) => a.priority === 'critical' && a.status === 'active').length;
 
-  // Auth is already checked by layout-client.tsx
-  // No need to check again here
+  // Sound and tab title notifications
+  const { playAlertSound } = useAlertSound();
+  useTabTitle(criticalCount);
+
+  // Real-time updates via SSE
+  useSSE({
+    enabled: isAuthenticated,
+    onAlertNew: (alert) => {
+      playAlertSound(alert.priority);
+    },
+  });
 
   // Initialize onboarding store for OWNER/ADMIN
   useEffect(() => {
@@ -74,7 +85,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     pathname !== '/setup-hub';
 
   if (!isAuthenticated) {
-    return null; // Will redirect in useEffect
+    return null;
   }
 
   return (
@@ -83,7 +94,6 @@ export function AppLayout({ children }: AppLayoutProps) {
       <AppHeader
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         alertCount={alertCount}
-        onOpenAlerts={() => setAlertsPanelOpen(true)}
       />
 
       {/* Onboarding Banner - Below header */}
@@ -100,8 +110,6 @@ export function AppLayout({ children }: AppLayoutProps) {
         <AppSidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          alertCount={alertCount}
-          onOpenAlerts={() => setAlertsPanelOpen(true)}
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
@@ -119,12 +127,6 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
         </main>
       </div>
-
-      {/* Alerts panel */}
-      <AlertsPanel
-        isOpen={alertsPanelOpen}
-        onClose={() => setAlertsPanelOpen(false)}
-      />
     </div>
   );
 }

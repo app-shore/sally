@@ -13,22 +13,30 @@ import { UserPreferencesService } from './user-preferences.service';
 import { OperationsSettingsController } from './operations-settings.controller';
 import { OperationsSettingsService } from './operations-settings.service';
 
+// Alert configuration (per-tenant alert thresholds, escalation, channels)
+import { AlertConfigController } from './alert-config.controller';
+import { AlertConfigService } from './alert-config.service';
+
+
 @Module({
   imports: [PrismaModule],
   controllers: [
     SuperAdminPreferencesController,
     UserPreferencesController,
     OperationsSettingsController,
+    AlertConfigController,
   ],
   providers: [
     SuperAdminPreferencesService,
     UserPreferencesService,
     OperationsSettingsService,
+    AlertConfigService,
   ],
   exports: [
     SuperAdminPreferencesService,
     UserPreferencesService,
     OperationsSettingsService,
+    AlertConfigService,
   ],
 })
 export class PreferencesModule {}
