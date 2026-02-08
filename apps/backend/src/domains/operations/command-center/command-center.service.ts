@@ -147,6 +147,38 @@ export class CommandCenterService {
     };
   }
 
+  async togglePinShiftNote(tenantId: number, noteId: string): Promise<ShiftNoteDto> {
+    const note = await this.prisma.shiftNote.findFirst({
+      where: { noteId, tenantId, deletedAt: null },
+    });
+
+    if (!note) {
+      throw new Error('Note not found');
+    }
+
+    const updated = await this.prisma.shiftNote.update({
+      where: { id: note.id },
+      data: { isPinned: !note.isPinned },
+      include: {
+        createdByUser: {
+          select: { userId: true, firstName: true, lastName: true },
+        },
+      },
+    });
+
+    return {
+      note_id: updated.noteId,
+      content: updated.content,
+      created_by: {
+        user_id: updated.createdByUser.userId,
+        name: `${updated.createdByUser.firstName} ${updated.createdByUser.lastName}`,
+      },
+      created_at: updated.createdAt.toISOString(),
+      expires_at: updated.expiresAt.toISOString(),
+      is_pinned: updated.isPinned,
+    };
+  }
+
   async deleteShiftNote(tenantId: number, noteId: string): Promise<void> {
     await this.prisma.shiftNote.updateMany({
       where: { noteId, tenantId, deletedAt: null },

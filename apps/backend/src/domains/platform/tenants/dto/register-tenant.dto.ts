@@ -23,7 +23,7 @@ export class RegisterTenantDto {
 
   @IsString()
   @IsNotEmpty()
-  @Matches(/^\d{8}$/, { message: 'DOT number must be exactly 8 digits' })
+  @Matches(/^\d{1,8}$/, { message: 'DOT number must be 1-8 digits' })
   dotNumber: string;
 
   @IsEnum(FleetSize)

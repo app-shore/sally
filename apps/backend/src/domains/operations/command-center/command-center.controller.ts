@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Param, Body, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
 import { CommandCenterService } from './command-center.service';
@@ -35,6 +35,15 @@ export class CommandCenterController {
       dto.content,
       dto.isPinned,
     );
+  }
+
+  @Patch('shift-notes/:noteId/pin')
+  @ApiOperation({ summary: 'Toggle pin on a shift note' })
+  async togglePinShiftNote(
+    @CurrentUser() user: any,
+    @Param('noteId') noteId: string,
+  ) {
+    return this.service.togglePinShiftNote(user.tenantDbId, noteId);
   }
 
   @Delete('shift-notes/:noteId')

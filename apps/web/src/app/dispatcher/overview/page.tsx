@@ -36,6 +36,7 @@ import {
   useCommandCenterOverview,
   useShiftNotes,
   useCreateShiftNote,
+  useTogglePinShiftNote,
   useDeleteShiftNote,
 } from "@/features/operations/command-center";
 import type { ActiveRoute, DriverHOSChip, ShiftNote } from "@/features/operations/command-center";
@@ -162,6 +163,12 @@ function CommandCenterContent() {
       {/* KPI Strip */}
       <KPIStrip kpis={overview?.kpis} isLoading={overviewLoading} />
 
+      {/* Driver HOS Strip — safety-critical, always visible without scrolling */}
+      <HOSDriverStrip
+        drivers={overview?.driver_hos_strip}
+        isLoading={overviewLoading}
+      />
+
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Active Routes (2/3) */}
@@ -227,12 +234,6 @@ function CommandCenterContent() {
           <ShiftNotesPanel />
         </div>
       </div>
-
-      {/* HOS Driver Strip */}
-      <HOSDriverStrip
-        drivers={overview?.driver_hos_strip}
-        isLoading={overviewLoading}
-      />
     </div>
   );
 }
@@ -654,20 +655,33 @@ function QuickActionsPanel({
 function ShiftNotesPanel() {
   const { data: notesData, isLoading } = useShiftNotes();
   const createMutation = useCreateShiftNote();
+  const togglePinMutation = useTogglePinShiftNote();
   const deleteMutation = useDeleteShiftNote();
   const [noteText, setNoteText] = useState("");
+  const [pinOnCreate, setPinOnCreate] = useState(false);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
 
   const handleSubmit = () => {
     const trimmed = noteText.trim();
     if (!trimmed) return;
-    createMutation.mutate({ content: trimmed });
+    createMutation.mutate({ content: trimmed, isPinned: pinOnCreate });
     setNoteText("");
+    setPinOnCreate(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
+    }
+  };
+
+  const handleDeleteClick = (noteId: string) => {
+    if (confirmingDeleteId === noteId) {
+      deleteMutation.mutate(noteId);
+      setConfirmingDeleteId(null);
+    } else {
+      setConfirmingDeleteId(noteId);
     }
   };
 
@@ -684,6 +698,15 @@ function ShiftNotesPanel() {
           onKeyDown={handleKeyDown}
           className="text-sm"
         />
+        <Button
+          size="sm"
+          variant={pinOnCreate ? "default" : "ghost"}
+          onClick={() => setPinOnCreate(!pinOnCreate)}
+          className="shrink-0 h-9 w-9 p-0"
+          title={pinOnCreate ? "Will be pinned" : "Pin this note"}
+        >
+          <Pin className="h-3.5 w-3.5" />
+        </Button>
         <Button
           size="sm"
           variant="outline"
@@ -708,24 +731,54 @@ function ShiftNotesPanel() {
               key={note.note_id}
               className="flex items-start gap-2 p-2 rounded-md bg-muted/50"
             >
-              {note.is_pinned && (
-                <Pin className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-              )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-foreground">{note.content}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {note.created_by.name} &middot; {formatRelativeTime(note.created_at)}
                 </p>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => deleteMutation.mutate(note.note_id)}
-                disabled={deleteMutation.isPending}
-                className="h-6 w-6 p-0 shrink-0"
-              >
-                <X className="h-3 w-3" />
-              </Button>
+              <div className="flex items-center gap-0.5 shrink-0">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => togglePinMutation.mutate(note.note_id)}
+                  disabled={togglePinMutation.isPending}
+                  className="h-6 w-6 p-0"
+                  title={note.is_pinned ? "Unpin note" : "Pin note"}
+                >
+                  <Pin className={`h-3 w-3 ${note.is_pinned ? "text-foreground" : "text-muted-foreground/40"}`} />
+                </Button>
+                {confirmingDeleteId === note.note_id ? (
+                  <div className="flex items-center gap-0.5">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteClick(note.note_id)}
+                      disabled={deleteMutation.isPending}
+                      className="h-6 text-xs px-1.5"
+                    >
+                      Delete
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setConfirmingDeleteId(null)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDeleteClick(note.note_id)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <X className="h-3 w-3 text-muted-foreground/40" />
+                  </Button>
+                )}
+              </div>
             </div>
           ))}
         </div>

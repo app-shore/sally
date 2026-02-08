@@ -19,7 +19,8 @@ const registrationSchema = z.object({
     .min(3, 'Subdomain must be at least 3 characters')
     .regex(/^[a-z0-9-]+$/, 'Only lowercase letters, numbers, and hyphens'),
   dotNumber: z.string()
-    .length(8, 'DOT number must be exactly 8 digits')
+    .min(1, 'DOT number is required')
+    .max(8, 'DOT number must be 1-8 digits')
     .regex(/^\d+$/, 'DOT number must be numeric'),
   fleetSize: z.enum(['SIZE_1_10', 'SIZE_11_50', 'SIZE_51_100', 'SIZE_101_500', 'SIZE_500_PLUS']),
 
@@ -103,7 +104,7 @@ export function RegistrationForm() {
       return !!(
         watchAllFields.companyName &&
         watchAllFields.subdomain &&
-        watchAllFields.dotNumber?.length === 8 &&
+        watchAllFields.dotNumber?.length >= 1 &&
         watchAllFields.fleetSize &&
         subdomainAvailable === true &&
         !errors.companyName &&
@@ -413,7 +414,7 @@ export function RegistrationForm() {
                       animate={{ opacity: 1, y: 0 }}
                       className="text-sm text-muted-foreground mt-2 ml-2"
                     >
-                      US DOT Number (8 digits)
+                      US DOT Number (1-8 digits)
                     </motion.p>
                   )}
 

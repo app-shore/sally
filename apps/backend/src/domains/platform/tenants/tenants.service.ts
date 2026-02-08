@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
+import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { generateId } from '../../../shared/utils/id-generator';
 import { TenantStatus } from '@prisma/client';
 import { NotificationService } from '../../../infrastructure/notification/notification.service';
@@ -368,6 +369,70 @@ export class TenantsService {
         result.companyName,
       );
     }
+
+    return result;
+  }
+
+  /**
+   * Update tenant details (SUPER_ADMIN only)
+   */
+  async updateTenant(tenantId: string, dto: UpdateTenantDto) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { tenantId },
+      include: { users: { where: { role: 'OWNER' } } },
+    });
+
+    if (!tenant) {
+      throw new BadRequestException('Tenant not found');
+    }
+
+    // If subdomain is being changed, check availability
+    if (dto.subdomain && dto.subdomain !== tenant.subdomain) {
+      const isAvailable = await this.checkSubdomainAvailability(dto.subdomain);
+      if (!isAvailable) {
+        throw new ConflictException('Subdomain is already taken or reserved');
+      }
+    }
+
+    // Build tenant update data (only include provided fields)
+    const tenantUpdate: any = {};
+    if (dto.companyName !== undefined) tenantUpdate.companyName = dto.companyName;
+    if (dto.subdomain !== undefined)
+      tenantUpdate.subdomain = dto.subdomain.toLowerCase();
+    if (dto.dotNumber !== undefined) tenantUpdate.dotNumber = dto.dotNumber;
+    if (dto.fleetSize !== undefined) tenantUpdate.fleetSize = dto.fleetSize;
+
+    // Build owner user update data
+    const ownerUpdate: any = {};
+    if (dto.ownerFirstName !== undefined)
+      ownerUpdate.firstName = dto.ownerFirstName;
+    if (dto.ownerLastName !== undefined)
+      ownerUpdate.lastName = dto.ownerLastName;
+    if (dto.ownerEmail !== undefined) {
+      ownerUpdate.email = dto.ownerEmail;
+      tenantUpdate.contactEmail = dto.ownerEmail;
+    }
+    if (dto.ownerPhone !== undefined) {
+      tenantUpdate.contactPhone = dto.ownerPhone;
+    }
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const updatedTenant = await tx.tenant.update({
+        where: { tenantId },
+        data: tenantUpdate,
+      });
+
+      // Update owner user if any owner fields provided
+      const ownerUser = tenant.users.find((u) => u.role === 'OWNER');
+      if (ownerUser && Object.keys(ownerUpdate).length > 0) {
+        await tx.user.update({
+          where: { id: ownerUser.id },
+          data: ownerUpdate,
+        });
+      }
+
+      return updatedTenant;
+    });
 
     return result;
   }

@@ -17,6 +17,12 @@ export const commandCenterApi = {
     });
   },
 
+  togglePinShiftNote: async (noteId: string): Promise<ShiftNote> => {
+    return apiClient<ShiftNote>(`/command-center/shift-notes/${noteId}/pin`, {
+      method: 'PATCH',
+    });
+  },
+
   deleteShiftNote: async (noteId: string): Promise<void> => {
     await apiClient(`/command-center/shift-notes/${noteId}`, {
       method: 'DELETE',

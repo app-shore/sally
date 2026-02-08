@@ -20,6 +20,14 @@ export function useCreateShiftNote() {
   });
 }
 
+export function useTogglePinShiftNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (noteId: string) => commandCenterApi.togglePinShiftNote(noteId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: SHIFT_NOTES_KEY }),
+  });
+}
+
 export function useDeleteShiftNote() {
   const queryClient = useQueryClient();
   return useMutation({
