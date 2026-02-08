@@ -133,9 +133,8 @@ export class AlertGenerationService {
           flashTab: resolved.flashTab,
         });
 
-        // Deliver to non-in-app channels (email, push, sms)
-        const externalChannels = resolved.channels.filter(c => c !== 'in_app');
-        if (externalChannels.length > 0) {
+        // Deliver to all resolved channels (in_app creates notification record + SSE, others go external)
+        if (resolved.channels.length > 0) {
           await this.deliveryService.deliver({
             recipientUserId: dispatcher.userId,
             recipientDbId: dispatcher.id,
@@ -144,7 +143,7 @@ export class AlertGenerationService {
             category: alert.category,
             title: alert.title,
             message: alert.message,
-            channels: externalChannels,
+            channels: resolved.channels,
             recipientEmail: dispatcher.email,
           });
         }
