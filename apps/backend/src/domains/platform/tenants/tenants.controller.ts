@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Patch, Body, Param, Query } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
+import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { SuspendTenantDto } from './dto/suspend-tenant.dto';
 import { Public } from '../../../auth/decorators/public.decorator';
 import { Roles } from '../../../auth/decorators/roles.decorator';
@@ -70,6 +71,15 @@ export class TenantsController {
     @CurrentUser() user: any,
   ) {
     return this.tenantsService.reactivateTenant(tenantId, user.email);
+  }
+
+  @Roles(UserRole.SUPER_ADMIN)
+  @Patch(':tenantId')
+  async updateTenant(
+    @Param('tenantId') tenantId: string,
+    @Body() dto: UpdateTenantDto,
+  ) {
+    return this.tenantsService.updateTenant(tenantId, dto);
   }
 
   @Roles(UserRole.SUPER_ADMIN)

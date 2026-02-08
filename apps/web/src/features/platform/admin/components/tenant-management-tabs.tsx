@@ -338,6 +338,27 @@ export function TenantManagementTabs() {
           onOpenChange={(open) => setDetailsDialog({ open })}
           tenantId={detailsDialog.tenant.tenantId}
           tenantName={detailsDialog.tenant.companyName}
+          tenantStatus={detailsDialog.tenant.status}
+          onApprove={(tenantId) => {
+            if (confirm(`Approve ${detailsDialog.tenant!.companyName}?`)) {
+              approveMutation.mutate(tenantId);
+              setDetailsDialog({ open: false });
+            }
+          }}
+          onReject={() => {
+            const tenant = detailsDialog.tenant!;
+            setDetailsDialog({ open: false });
+            setRejectDialog({ open: true, tenant });
+          }}
+          onSuspend={() => {
+            const tenant = detailsDialog.tenant!;
+            setDetailsDialog({ open: false });
+            setSuspendDialog({ open: true, tenant });
+          }}
+          onReactivate={(tenantId) => {
+            reactivateMutation.mutate(tenantId);
+            setDetailsDialog({ open: false });
+          }}
         />
       )}
     </>
