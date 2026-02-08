@@ -99,6 +99,9 @@ export class AlertGenerationService {
       }
     }
 
+    // Map alert category to notification category
+    const notificationCategory = this.mapAlertCategoryToNotificationCategory(alert.category);
+
     // Step 5: Resolve channels and deliver per-user
     try {
       const dispatchers = await this.prisma.user.findMany({
@@ -140,7 +143,7 @@ export class AlertGenerationService {
             recipientDbId: dispatcher.id,
             tenantId: params.tenantId,
             type: 'DISPATCH_MESSAGE',
-            category: alert.category,
+            category: notificationCategory,
             title: alert.title,
             message: alert.message,
             channels: resolved.channels,
@@ -157,5 +160,16 @@ export class AlertGenerationService {
     );
 
     return alert;
+  }
+
+  private mapAlertCategoryToNotificationCategory(alertCategory: string): string {
+    switch (alertCategory) {
+      case 'system':
+      case 'external':
+        return 'SYSTEM';
+      default:
+        // hos, route, driver, vehicle → all operational alerts
+        return 'OPERATIONS';
+    }
   }
 }
