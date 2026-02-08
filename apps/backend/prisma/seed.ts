@@ -2,6 +2,7 @@ import { PrismaClient, UserRole } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import { seedFeatureFlags } from './seeds/feature-flags.seed';
+import { seedTruckStops } from './seeds/truck-stops.seed';
 import * as admin from 'firebase-admin';
 import * as dotenv from 'dotenv';
 
@@ -153,7 +154,10 @@ async function main() {
   // Seed feature flags
   await seedFeatureFlags();
 
-  // Note: Stops and Loads are created automatically via TMS integration sync
+  // Seed truck stops (real US truck stops along major interstates)
+  await seedTruckStops(prisma);
+
+  // Note: Customer stops and Loads are created automatically via TMS integration sync
 
   // Final summary
   console.log('\n✅ Database seeded successfully!\n');
@@ -167,7 +171,8 @@ async function main() {
   console.log('📝 What was seeded:');
   console.log('  ✓ Super admin user (with Firebase auth)');
   console.log('  ✓ Feature flags');
-  console.log('  ℹ️  Stops and Loads sync from TMS integration (not seeded)\n');
+  console.log('  ✓ Truck stops (50 stops across 10 major interstates)');
+  console.log('  ℹ️  Customer stops and Loads sync from TMS integration (not seeded)\n');
   console.log('📝 Next Steps:');
   console.log('  1. Login as super admin');
   console.log('  2. Review/approve tenant registrations');
