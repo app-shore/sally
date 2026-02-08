@@ -100,7 +100,7 @@ export function TenantDetailsDialog({
 
                   <dt className="text-muted-foreground">Fleet Size:</dt>
                   <dd>
-                    <Badge variant="secondary">
+                    <Badge variant="muted">
                       {data.tenant.fleetSize?.replace('SIZE_', '')}
                     </Badge>
                   </dd>
@@ -178,10 +178,10 @@ export function TenantDetailsDialog({
                         {user.email}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{user.role}</Badge>
+                        <Badge variant="muted">{user.role}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.isActive ? 'default' : 'secondary'}>
+                        <Badge variant={user.isActive ? 'default' : 'muted'}>
                           {user.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>

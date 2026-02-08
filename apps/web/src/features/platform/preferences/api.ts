@@ -4,29 +4,38 @@ import type { PreferencesResetResponse } from './types';
 export interface UserPreferences {
   id: number;
   userId: number;
+  // Display
   distanceUnit: string;
   timeFormat: string;
   temperatureUnit: string;
   currency: string;
   timezone: string;
   dateFormat: string;
+  // Dashboard
   autoRefreshInterval: number;
   defaultView: string;
   compactMode: boolean;
   highContrastMode: boolean;
-  alertMethods: string[];
+  // Alert Delivery
+  alertChannels: Record<string, { inApp: boolean; email: boolean; push: boolean; sms: boolean }>;
   minAlertPriority: string;
   alertCategories: string[];
+  // Sound & Browser
+  soundSettings: Record<string, boolean>;
+  browserNotifications: boolean;
+  flashTabOnCritical: boolean;
+  // Quiet Hours
+  quietHoursEnabled: boolean;
   quietHoursStart: string | null;
   quietHoursEnd: string | null;
+  // Snooze & Digest
+  defaultSnoozeDuration: number;
   emailDigestFrequency: string;
-  desktopNotifications: boolean;
-  soundEnabled: boolean;
-  emailNotifications: boolean;
-  smsNotifications: boolean;
+  // Accessibility
   fontSize: string;
   reduceMotion: boolean;
   screenReaderOptimized: boolean;
+  // Timestamps
   createdAt: string;
   updatedAt: string;
 }
