@@ -1,26 +1,25 @@
 import { Module } from '@nestjs/common';
-import { RoutePlanningController } from './controllers/route-planning.controller';
-import { RoutePlanningEngineService } from './services/route-planning-engine.service';
+import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../../../infrastructure/database/prisma.module';
 import { HOSComplianceModule } from '../hos-compliance/hos-compliance.module';
-import { PredictionModule } from '../prediction/prediction.module';
-import { OptimizationModule } from '../optimization/optimization.module';
-import { MonitoringModule } from '../monitoring/monitoring.module';
+import { RoutingProviderModule } from '../providers/routing/routing-provider.module';
+import { WeatherProviderModule } from '../providers/weather/weather-provider.module';
+import { FuelProviderModule } from '../providers/fuel/fuel-provider.module';
+import { RoutePlanningEngineService } from './services/route-planning-engine.service';
+import { RoutePlanPersistenceService } from './services/route-plan-persistence.service';
+import { RoutePlanningController } from './controllers/route-planning.controller';
 
-/**
- * RoutePlanningModule handles complete route planning with TSP optimization,
- * HOS compliance checking, and dynamic updates.
- */
 @Module({
   imports: [
     PrismaModule,
     HOSComplianceModule,
-    PredictionModule,
-    OptimizationModule,
-    MonitoringModule,
+    RoutingProviderModule,
+    WeatherProviderModule,
+    FuelProviderModule,
+    ConfigModule,
   ],
   controllers: [RoutePlanningController],
-  providers: [RoutePlanningEngineService],
-  exports: [RoutePlanningEngineService],
+  providers: [RoutePlanningEngineService, RoutePlanPersistenceService],
+  exports: [RoutePlanningEngineService, RoutePlanPersistenceService],
 })
 export class RoutePlanningModule {}

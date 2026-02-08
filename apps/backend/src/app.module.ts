@@ -12,10 +12,11 @@ import { RolesGuard } from './auth/guards/roles.guard';
 
 // Domain Modules
 import { FleetModule } from './domains/fleet/fleet.module';
-import { RoutingModule } from './domains/routing/routing.module';
+
 import { PlatformModule } from './domains/platform/platform.module';
 import { IntegrationsModule } from './domains/integrations/integrations.module';
 import { OperationsModule } from './domains/operations/operations.module';
+import { RoutingModule } from './domains/routing/routing.module';
 
 
 // Controllers (to be migrated)
@@ -43,10 +44,11 @@ import { NotificationModule } from './infrastructure/notification/notification.m
 
     // Domain Modules
     FleetModule,
-    RoutingModule,
+
     PlatformModule,
     IntegrationsModule,
     OperationsModule,
+    RoutingModule,
   ],
   providers: [
     // Global exception filter

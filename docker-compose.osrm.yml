@@ -1,0 +1,18 @@
+# Optional: OSRM routing engine for real road distances
+# Usage: docker compose -f docker-compose.yml -f docker-compose.osrm.yml up
+# Engine falls back to haversine estimates when OSRM is not running
+
+services:
+  osrm:
+    image: osrm/osrm-backend:latest
+    container_name: sally-osrm
+    ports:
+      - "5000:5000"
+    volumes:
+      - osrm-data:/data
+    command: osrm-routed --algorithm mld /data/us-latest.osrm
+    restart: unless-stopped
+
+volumes:
+  osrm-data:
+    driver: local
