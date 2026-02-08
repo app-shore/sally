@@ -125,5 +125,8 @@ logs
 worktrees/
 apps/backend/.env.staging
 
+# Firebase
+firebase-admin-sdk.json
 
 .docs/
+
