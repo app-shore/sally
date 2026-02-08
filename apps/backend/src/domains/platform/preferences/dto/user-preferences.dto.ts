@@ -5,6 +5,7 @@ import {
   IsBoolean,
   IsArray,
   IsIn,
+  IsObject,
   Min,
   Max,
 } from 'class-validator';
@@ -58,11 +59,7 @@ export class UpdateUserPreferencesDto {
   @IsBoolean()
   highContrastMode?: boolean;
 
-  // Alert Preferences
-  @IsOptional()
-  @IsArray()
-  alertMethods?: string[];
-
+  // Alert Delivery
   @IsOptional()
   @IsString()
   @IsIn(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])
@@ -73,6 +70,27 @@ export class UpdateUserPreferencesDto {
   alertCategories?: string[];
 
   @IsOptional()
+  @IsObject()
+  alertChannels?: Record<string, { inApp: boolean; email: boolean; push: boolean; sms: boolean }>;
+
+  @IsOptional()
+  @IsObject()
+  soundSettings?: Record<string, boolean>;
+
+  @IsOptional()
+  @IsBoolean()
+  browserNotifications?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  flashTabOnCritical?: boolean;
+
+  // Quiet Hours
+  @IsOptional()
+  @IsBoolean()
+  quietHoursEnabled?: boolean;
+
+  @IsOptional()
   @IsString()
   quietHoursStart?: string;
 
@@ -80,27 +98,17 @@ export class UpdateUserPreferencesDto {
   @IsString()
   quietHoursEnd?: string;
 
+  // Snooze & Digest
+  @IsOptional()
+  @IsInt()
+  @Min(5)
+  @Max(480)
+  defaultSnoozeDuration?: number;
+
   @IsOptional()
   @IsString()
   @IsIn(['NEVER', 'HOURLY', 'DAILY', 'WEEKLY'])
   emailDigestFrequency?: string;
-
-  // Notification Preferences
-  @IsOptional()
-  @IsBoolean()
-  desktopNotifications?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  soundEnabled?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  emailNotifications?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  smsNotifications?: boolean;
 
   // Accessibility
   @IsOptional()

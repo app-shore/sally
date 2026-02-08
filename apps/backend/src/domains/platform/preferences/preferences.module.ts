@@ -17,9 +17,6 @@ import { OperationsSettingsService } from './operations-settings.service';
 import { AlertConfigController } from './alert-config.controller';
 import { AlertConfigService } from './alert-config.service';
 
-// Notification preferences (per-user sound, browser, tab flash settings)
-import { NotificationPreferencesController } from './notification-preferences.controller';
-import { NotificationPreferencesService } from './notification-preferences.service';
 
 @Module({
   imports: [PrismaModule],
@@ -28,21 +25,18 @@ import { NotificationPreferencesService } from './notification-preferences.servi
     UserPreferencesController,
     OperationsSettingsController,
     AlertConfigController,
-    NotificationPreferencesController,
   ],
   providers: [
     SuperAdminPreferencesService,
     UserPreferencesService,
     OperationsSettingsService,
     AlertConfigService,
-    NotificationPreferencesService,
   ],
   exports: [
     SuperAdminPreferencesService,
     UserPreferencesService,
     OperationsSettingsService,
     AlertConfigService,
-    NotificationPreferencesService,
   ],
 })
 export class PreferencesModule {}

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/features/auth';
+import { playAlertSound } from '@/shared/lib/alert-sounds';
+import { flashTabTitle } from '@/shared/lib/tab-flash';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -32,8 +34,29 @@ export function useSSE(options: UseSSEOptions = {}) {
     eventSourceRef.current = eventSource;
 
     eventSource.addEventListener('alert:new', (e) => {
+      const data = JSON.parse(e.data);
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      options.onAlertNew?.(JSON.parse(e.data));
+
+      if (!document.hasFocus()) {
+        if (data.playSound) {
+          playAlertSound(data.priority ?? 'medium');
+        }
+        if (data.flashTab) {
+          flashTabTitle(`⚠ ${data.title ?? 'New Alert'}`);
+        }
+        if (
+          data.showBrowserNotification &&
+          typeof Notification !== 'undefined' &&
+          Notification.permission === 'granted'
+        ) {
+          new Notification(data.title ?? 'New Alert', {
+            body: data.message ?? '',
+            tag: `alert-${data.alertId ?? Date.now()}`,
+          });
+        }
+      }
+
+      options.onAlertNew?.(data);
     });
 
     eventSource.addEventListener('alert:updated', () => {

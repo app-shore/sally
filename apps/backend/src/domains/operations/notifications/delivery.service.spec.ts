@@ -11,7 +11,7 @@ describe('NotificationDeliveryService', () => {
   let service: NotificationDeliveryService;
 
   const mockInApp = { create: jest.fn() };
-  const mockPrisma = { userNotificationPreferences: { findUnique: jest.fn() } };
+  const mockPrisma = { userPreferences: { findUnique: jest.fn() } };
   const mockSse = { emitToUser: jest.fn() };
   const mockPush = { sendPushToUser: jest.fn() };
   const mockSms = { sendSms: jest.fn(), getIsConfigured: jest.fn().mockReturnValue(false) };

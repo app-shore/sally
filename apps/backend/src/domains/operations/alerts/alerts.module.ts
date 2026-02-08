@@ -13,9 +13,10 @@ import { AlertCacheService } from './services/alert-cache.service';
 import { PrismaModule } from '../../../infrastructure/database/prisma.module';
 import { NotificationModule } from '../../../infrastructure/notification/notification.module';
 import { CacheModule } from '../../../infrastructure/cache/cache.module';
+import { InAppNotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, NotificationModule, CacheModule],
+  imports: [PrismaModule, NotificationModule, CacheModule, InAppNotificationsModule],
   controllers: [AlertsController],
   providers: [
     AlertService,

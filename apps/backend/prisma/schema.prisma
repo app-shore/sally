@@ -142,7 +142,6 @@ model User {
   driversDeactivated Driver[]        @relation("DeactivatedBy")
   driversReactivated Driver[]        @relation("ReactivatedBy")
   notifications     Notification[]
-  notificationPreferences UserNotificationPreferences?
   pushSubscriptions PushSubscription[]
 
   @@index([tenantId])
@@ -655,25 +654,6 @@ model AlertConfiguration {
   @@map("alert_configurations")
 }
 
-model UserNotificationPreferences {
-  id                    Int       @id @default(autoincrement())
-  userId                Int       @unique @map("user_id")
-  tenantId              Int       @map("tenant_id")
-
-  alertChannels         Json      @default("{}") @map("alert_channels")
-  notificationChannels  Json      @default("{}") @map("notification_channels")
-  soundEnabled          Json      @default("{}") @map("sound_enabled")
-  browserNotifications  Boolean   @default(true) @map("browser_notifications")
-  flashTabOnCritical    Boolean   @default(true) @map("flash_tab_on_critical")
-  defaultSnoozeDuration Int       @default(15) @map("default_snooze_duration")
-
-  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz
-
-  user                  User      @relation(fields: [userId], references: [id])
-
-  @@map("user_notification_preferences")
-}
 
 // ============================================================================
 // INTEGRATION MODELS
@@ -790,19 +770,26 @@ model UserPreferences {
   compactMode               Boolean   @default(false)    @map("compact_mode")
   highContrastMode          Boolean   @default(false)    @map("high_contrast_mode")
 
-  // Alert Preferences
-  alertMethods              Json      @default("[]")     @map("alert_methods") // ["IN_APP", "EMAIL", "SMS"]
-  minAlertPriority          String    @default("MEDIUM") @map("min_alert_priority") @db.VarChar(20) // LOW | MEDIUM | HIGH | CRITICAL
-  alertCategories           Json      @default("[\"hos\",\"delay\",\"route\",\"vehicle\",\"weather\"]") @map("alert_categories")
-  quietHoursStart           String?   @map("quiet_hours_start") @db.VarChar(10)    // "22:00" (24h format)
-  quietHoursEnd             String?   @map("quiet_hours_end") @db.VarChar(10)    // "06:00"
-  emailDigestFrequency      String    @default("NEVER")  @map("email_digest_frequency") @db.VarChar(20)  // NEVER | HOURLY | DAILY | WEEKLY
+  // Alert Delivery (per-priority channel overrides)
+  // User's override of tenant defaults. Empty = use tenant defaults.
+  // Shape: { "critical": { "inApp": true, "email": true, "push": true, "sms": true }, ... }
+  alertChannels             Json      @default("{}") @map("alert_channels")
+  minAlertPriority          String    @default("LOW") @map("min_alert_priority") @db.VarChar(20)
+  alertCategories           Json      @default("[\"hos\",\"delay\",\"route\",\"driver\",\"vehicle\",\"external\"]") @map("alert_categories")
 
-  // Notification Preferences
-  desktopNotifications      Boolean   @default(true)     @map("desktop_notifications")
-  soundEnabled              Boolean   @default(true)     @map("sound_enabled")
-  emailNotifications        Boolean   @default(false)    @map("email_notifications")
-  smsNotifications          Boolean   @default(false)    @map("sms_notifications")
+  // Sound & Browser
+  soundSettings             Json      @default("{\"critical\":true,\"high\":true,\"medium\":false,\"low\":false}") @map("sound_settings")
+  browserNotifications      Boolean   @default(true)     @map("browser_notifications")
+  flashTabOnCritical        Boolean   @default(true)     @map("flash_tab_on_critical")
+
+  // Quiet Hours
+  quietHoursEnabled         Boolean   @default(false)    @map("quiet_hours_enabled")
+  quietHoursStart           String?   @map("quiet_hours_start") @db.VarChar(10)
+  quietHoursEnd             String?   @map("quiet_hours_end") @db.VarChar(10)
+
+  // Snooze & Digest
+  defaultSnoozeDuration     Int       @default(15)       @map("default_snooze_duration")
+  emailDigestFrequency      String    @default("NEVER")  @map("email_digest_frequency") @db.VarChar(20)
 
   // Accessibility
   fontSize                  String    @default("MEDIUM") @map("font_size") @db.VarChar(10) // SMALL | MEDIUM | LARGE | XL

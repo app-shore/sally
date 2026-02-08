@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { SseService } from '../../../../infrastructure/sse/sse.service';
 import { AlertGroupingService } from './alert-grouping.service';
+import { ChannelResolutionService } from '../../notifications/channel-resolution.service';
+import { NotificationDeliveryService } from '../../notifications/delivery.service';
 import { randomUUID } from 'crypto';
 
 interface GenerateAlertParams {
@@ -26,6 +28,8 @@ export class AlertGenerationService {
     private readonly prisma: PrismaService,
     private readonly sseService: SseService,
     private readonly groupingService: AlertGroupingService,
+    private readonly channelResolution: ChannelResolutionService,
+    private readonly deliveryService: NotificationDeliveryService,
   ) {}
 
   async generateAlert(params: GenerateAlertParams) {
@@ -95,17 +99,59 @@ export class AlertGenerationService {
       }
     }
 
-    // Step 5: Emit SSE event
-    this.sseService.emitToTenant(params.tenantId, 'alert:new', {
-      alert_id: alert.alertId,
-      alert_type: alert.alertType,
-      category: alert.category,
-      priority: alert.priority,
-      title: alert.title,
-      message: alert.message,
-      driver_id: alert.driverId,
-      created_at: alert.createdAt,
-    });
+    // Step 5: Resolve channels and deliver per-user
+    try {
+      const dispatchers = await this.prisma.user.findMany({
+        where: {
+          tenantId: params.tenantId,
+          role: { in: ['OWNER', 'ADMIN', 'DISPATCHER'] },
+          isActive: true,
+          deletedAt: null,
+        },
+        select: { id: true, userId: true, email: true },
+      });
+
+      for (const dispatcher of dispatchers) {
+        const resolved = await this.channelResolution.resolveChannels({
+          tenantId: params.tenantId,
+          userId: dispatcher.id,
+          alertPriority: params.priority.toLowerCase(),
+          alertType: params.alertType,
+        });
+
+        // Emit per-user SSE with preference-resolved flags
+        this.sseService.emitToUser(dispatcher.userId, 'alert:new', {
+          alert_id: alert.alertId,
+          alert_type: alert.alertType,
+          category: alert.category,
+          priority: alert.priority,
+          title: alert.title,
+          message: alert.message,
+          driver_id: alert.driverId,
+          created_at: alert.createdAt,
+          playSound: resolved.playSound,
+          flashTab: resolved.flashTab,
+        });
+
+        // Deliver to non-in-app channels (email, push, sms)
+        const externalChannels = resolved.channels.filter(c => c !== 'in_app');
+        if (externalChannels.length > 0) {
+          await this.deliveryService.deliver({
+            recipientUserId: dispatcher.userId,
+            recipientDbId: dispatcher.id,
+            tenantId: params.tenantId,
+            type: 'DISPATCH_MESSAGE',
+            category: alert.category,
+            title: alert.title,
+            message: alert.message,
+            channels: externalChannels,
+            recipientEmail: dispatcher.email,
+          });
+        }
+      }
+    } catch (error: any) {
+      this.logger.error(`Per-user delivery failed: ${error.message}`);
+    }
 
     this.logger.log(
       `Generated alert ${alert.alertId}: ${alert.alertType} (${alert.priority}) for driver ${alert.driverId}`,
