@@ -4,15 +4,14 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AppLayout } from "@/shared/components/layout/AppLayout";
 import { PublicLayout } from "@/shared/components/layout/PublicLayout";
-import { GlobalSallyChat } from "@/features/platform/chat/components/GlobalSallyChat";
-import { useChatStore } from "@/features/platform/chat";
+import { SallyGlobalProvider, useSallyStore } from "@/features/platform/sally-ai";
 import { useAuthStore } from "@/features/auth";
 import { isProtectedRoute, getDefaultRouteForRole } from "@/shared/lib/navigation";
 
 export function LayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isOpen } = useChatStore();
+  const { isOpen } = useSallyStore();
   const { isAuthenticated, _hasHydrated, isInitialized, accessToken, user } =
     useAuthStore();
 
@@ -81,7 +80,7 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
       <div className={`sally-chat-container ${isOpen ? "docked" : ""}`}>
         <Layout>{children}</Layout>
       </div>
-      <GlobalSallyChat />
+      <SallyGlobalProvider />
     </>
   );
 }
