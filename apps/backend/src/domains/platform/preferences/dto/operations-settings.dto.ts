@@ -30,43 +30,6 @@ export class UpdateOperationsSettingsDto {
   @Max(8)
   defaultSinceBreakHours?: number;
 
-  // HOS Compliance Thresholds
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  driveHoursWarningPct?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  driveHoursCriticalPct?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  onDutyWarningPct?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  onDutyCriticalPct?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  sinceBreakWarningPct?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  sinceBreakCriticalPct?: number;
-
   // Optimization Defaults
   @IsOptional()
   @IsString()
@@ -135,24 +98,6 @@ export class UpdateOperationsSettingsDto {
   @IsString()
   @IsIn(['MANUAL', 'AUTO_ASSIGN', 'DRIVER_DEFAULT'])
   defaultVehicleSelection?: string;
-
-  // Alert Thresholds
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  delayThresholdMinutes?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  hosApproachingPct?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  costOverrunPct?: number;
 
   // Report Preferences
   @IsOptional()
