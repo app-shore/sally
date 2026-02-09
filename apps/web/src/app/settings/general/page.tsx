@@ -157,8 +157,6 @@ export default function GeneralSettingsPage() {
               <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="USD">USD ($)</SelectItem>
-                <SelectItem value="CAD">CAD ($)</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
               </SelectContent>
             </Select>
           </div>
