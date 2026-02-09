@@ -34,3 +34,15 @@ export function useCreateLoad() {
     },
   });
 }
+
+export function useUpdateLoadStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ loadId, status }: { loadId: string; status: string }) =>
+      loadsApi.updateStatus(loadId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LOADS_QUERY_KEY });
+    },
+  });
+}

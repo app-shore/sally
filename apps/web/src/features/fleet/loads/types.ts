@@ -57,6 +57,10 @@ export interface LoadStopCreate {
   earliest_arrival?: string;
   latest_arrival?: string;
   estimated_dock_hours: number;
+  name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
 }
 
 export interface LoadCreate {

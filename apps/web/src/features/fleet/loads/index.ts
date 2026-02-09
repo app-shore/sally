@@ -20,4 +20,5 @@ export {
   useLoads,
   useLoadById,
   useCreateLoad,
+  useUpdateLoadStatus,
 } from './hooks/use-loads';

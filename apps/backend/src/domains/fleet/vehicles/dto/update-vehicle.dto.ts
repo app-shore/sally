@@ -12,6 +12,42 @@ export class UpdateVehicleDto {
   unit_number?: string;
 
   @ApiProperty({
+    example: 'Freightliner',
+    description: 'Vehicle make',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  make?: string;
+
+  @ApiProperty({
+    example: 'Cascadia',
+    description: 'Vehicle model',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  model?: string;
+
+  @ApiProperty({
+    example: 2024,
+    description: 'Vehicle year',
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  year?: number;
+
+  @ApiProperty({
+    example: '1FUJGBDV7CLBP8834',
+    description: 'Vehicle identification number',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  vin?: string;
+
+  @ApiProperty({
     example: 150,
     description: 'Fuel tank capacity in gallons',
     required: false,

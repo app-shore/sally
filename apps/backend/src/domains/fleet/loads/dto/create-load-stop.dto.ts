@@ -18,8 +18,8 @@ export class CreateLoadStopDto {
   sequence_order: number;
 
   @ApiProperty({
-    example: 'PICKUP',
-    description: 'Action type at stop (PICKUP, DELIVERY)',
+    example: 'pickup',
+    description: 'Action type at stop (pickup, delivery)',
   })
   @IsString()
   @IsNotEmpty()
@@ -49,4 +49,40 @@ export class CreateLoadStopDto {
   })
   @IsNumber()
   estimated_dock_hours: number;
+
+  @ApiProperty({
+    example: 'Walmart DC #4523',
+    description: 'Stop name (for inline creation during manual entry)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @ApiProperty({
+    example: '123 Main St',
+    description: 'Stop address (for inline creation during manual entry)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  address?: string;
+
+  @ApiProperty({
+    example: 'Dallas',
+    description: 'Stop city (for inline creation during manual entry)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @ApiProperty({
+    example: 'TX',
+    description: 'Stop state (for inline creation during manual entry)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  state?: string;
 }
