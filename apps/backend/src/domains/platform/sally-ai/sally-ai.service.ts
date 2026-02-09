@@ -8,7 +8,19 @@ import { generateResponse, getGreeting } from './engine/response-generator';
 export class SallyAiService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createConversation(userId: number, tenantId: number, userMode: string) {
+  private async getUserDbId(userId: string): Promise<number> {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user.id;
+  }
+
+  async createConversation(userId: string, tenantId: number, userMode: string) {
+    const userDbId = await this.getUserDbId(userId);
     const conversationId = generateId('conv');
     const greetingMessageId = generateId('msg');
     const greetingText = getGreeting(userMode);
@@ -17,7 +29,7 @@ export class SallyAiService {
       data: {
         conversationId,
         tenantId,
-        userId,
+        userId: userDbId,
         userMode,
         messages: {
           create: {
@@ -55,9 +67,11 @@ export class SallyAiService {
     conversationId: string,
     content: string,
     inputMode: string,
-    userId: number,
+    userId: string,
     tenantId: number,
   ) {
+    const userDbId = await this.getUserDbId(userId);
+
     // Find and verify ownership
     const conversation = await this.prisma.conversation.findUnique({
       where: { conversationId },
@@ -67,7 +81,7 @@ export class SallyAiService {
       throw new NotFoundException(`Conversation ${conversationId} not found`);
     }
 
-    if (conversation.userId !== userId || conversation.tenantId !== tenantId) {
+    if (conversation.userId !== userDbId || conversation.tenantId !== tenantId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -136,9 +150,11 @@ export class SallyAiService {
     };
   }
 
-  async listConversations(userId: number, tenantId: number, limit: number = 10) {
+  async listConversations(userId: string, tenantId: number, limit: number = 10) {
+    const userDbId = await this.getUserDbId(userId);
+
     const conversations = await this.prisma.conversation.findMany({
-      where: { userId, tenantId },
+      where: { userId: userDbId, tenantId },
       orderBy: { updatedAt: 'desc' },
       take: limit,
       include: {
@@ -163,7 +179,9 @@ export class SallyAiService {
     };
   }
 
-  async getMessages(conversationId: string, userId: number, tenantId: number) {
+  async getMessages(conversationId: string, userId: string, tenantId: number) {
+    const userDbId = await this.getUserDbId(userId);
+
     const conversation = await this.prisma.conversation.findUnique({
       where: { conversationId },
       include: {
@@ -177,7 +195,7 @@ export class SallyAiService {
       throw new NotFoundException(`Conversation ${conversationId} not found`);
     }
 
-    if (conversation.userId !== userId || conversation.tenantId !== tenantId) {
+    if (conversation.userId !== userDbId || conversation.tenantId !== tenantId) {
       throw new ForbiddenException('Access denied');
     }
 

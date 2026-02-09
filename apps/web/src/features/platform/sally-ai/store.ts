@@ -260,21 +260,17 @@ export const useSallyStore = create<SallyState>((set, get) => ({
       const sessionId = state.sessionId;
       if (!sessionId) return;
 
+      const tempMessageId = userMessage.id;
+
       sendMessageApi(sessionId, content, inputMode)
         .then(res => {
-          // Update user message ID from backend
           const assistantMsg = apiMessageToChatMessage(res.assistantMessage, 'assistant');
 
           set(s => {
-            // Replace the optimistic user message with backend-confirmed one
-            const msgs = [...s.messages];
-            const lastUserIdx = msgs.length - 1;
-            if (msgs[lastUserIdx]?.role === 'user') {
-              msgs[lastUserIdx] = {
-                ...msgs[lastUserIdx],
-                id: res.userMessage.messageId,
-              };
-            }
+            // Replace the optimistic user message with backend-confirmed one (match by temp ID)
+            const msgs = s.messages.map(m =>
+              m.id === tempMessageId ? { ...m, id: res.userMessage.messageId } : m,
+            );
             return {
               messages: [...msgs, assistantMsg],
               orbState: 'idle' as OrbState,

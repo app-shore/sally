@@ -1,4 +1,4 @@
-import type { ClassifiedIntent, UserMode, Intent } from './types';
+import type { ClassifiedIntent, Intent } from './types';
 
 interface KeywordRule {
   intent: Intent;

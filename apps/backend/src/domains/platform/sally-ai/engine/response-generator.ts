@@ -302,5 +302,5 @@ export function generateResponse(classified: ClassifiedIntent, mode: string): Sa
 function getTimeFromNow(hours: number): string {
   const now = new Date();
   now.setMinutes(now.getMinutes() + hours * 60);
-  return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
