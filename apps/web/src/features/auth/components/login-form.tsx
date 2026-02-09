@@ -147,19 +147,19 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-[500px] mx-auto relative isolate">
-      {/* SALLY Wordmark */}
+      {/* Page heading */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className="text-center mb-12"
       >
-        <h1 className="text-6xl md:text-7xl font-bold tracking-tighter mb-4 text-gradient font-space-grotesk">
-          SALLY
-        </h1>
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
           Sign In
-        </h2>
+        </h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          Smart Routes. Confident Dispatchers. Happy Drivers.
+        </p>
       </motion.div>
 
       {/* Form */}
