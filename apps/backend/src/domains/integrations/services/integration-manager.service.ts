@@ -3,7 +3,7 @@ import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { CredentialsService } from '../credentials/credentials.service';
 import { RetryService } from '../../../infrastructure/retry/retry.service';
 import { AlertService, AlertSeverity } from '../../operations/alerts/services/alert.service';
-import { SamsaraELDAdapter } from '../adapters/eld/samsara-eld.adapter';
+import { SamsaraELDAdapter, VehicleLocationData } from '../adapters/eld/samsara-eld.adapter';
 import { McLeodTMSAdapter } from '../adapters/tms/mcleod-tms.adapter';
 import { Project44TMSAdapter } from '../adapters/tms/project44-tms.adapter';
 import { GasBuddyFuelAdapter } from '../adapters/fuel/gasbuddy-fuel.adapter';
@@ -108,18 +108,22 @@ export class IntegrationManagerService {
             'apiToken',
           );
 
-          // TODO: Implement HOS data fetching via Samsara ELD API
-          // The getDriverHOS method needs to be added to SamsaraELDAdapter
-          // or HOS data should be retrieved differently
-          this.logger.warn('HOS data fetching not yet implemented - returning mock data');
+          const hosClocks = await this.samsaraAdapter.getHOSClocks(apiToken);
+          const driverClock = hosClocks.find((c) => c.driverId === driverId);
 
-          // Return mock HOS data for now
+          if (!driverClock) {
+            throw new Error(`Driver ${driverId} not found in Samsara HOS data`);
+          }
+
           return {
-            data_source: 'mock',
+            data_source: 'samsara',
             cached: false,
-            hoursRemaining: 10,
-            cycleRemaining: 60,
-            lastUpdate: new Date().toISOString(),
+            currentDutyStatus: driverClock.currentDutyStatus,
+            driveTimeRemainingMs: driverClock.driveTimeRemainingMs,
+            shiftTimeRemainingMs: driverClock.shiftTimeRemainingMs,
+            cycleTimeRemainingMs: driverClock.cycleTimeRemainingMs,
+            timeUntilBreakMs: driverClock.timeUntilBreakMs,
+            lastUpdated: driverClock.lastUpdated,
           } as HOSData;
         },
         {
@@ -162,6 +166,32 @@ export class IntegrationManagerService {
         `No HOS data available for driver ${driverId}: ${error.message}`,
       );
     }
+  }
+
+  /**
+   * Fetch vehicle GPS location via Samsara
+   */
+  async getVehicleLocation(
+    tenantId: number,
+    vehicleId: string,
+  ): Promise<VehicleLocationData> {
+    const integration = await this.prisma.integrationConfig.findFirst({
+      where: { tenantId, integrationType: 'HOS_ELD', status: 'ACTIVE' },
+    });
+
+    if (!integration) {
+      throw new Error('No active HOS integration configured');
+    }
+
+    const apiToken = this.getCredentialField(integration.credentials, 'apiToken');
+    const locations = await this.samsaraAdapter.getVehicleLocations(apiToken);
+    const match = locations.find((l) => l.vehicleId === vehicleId);
+
+    if (!match) {
+      throw new Error(`Vehicle ${vehicleId} not found in Samsara GPS data`);
+    }
+
+    return match;
   }
 
   /**
