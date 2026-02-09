@@ -37,6 +37,13 @@ export const loadsApi = {
       body: JSON.stringify(data),
     });
   },
+
+  updateStatus: async (loadId: string, status: string): Promise<Load> => {
+    return apiClient<Load>(`/loads/${loadId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
 };
 
 // Re-export legacy functions for backwards compatibility during migration

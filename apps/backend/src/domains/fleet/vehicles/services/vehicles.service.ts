@@ -46,23 +46,32 @@ export class VehiclesService {
   }
 
   /**
-   * Create a new vehicle
+   * Create a new vehicle (auto-generates vehicleId)
    */
   async create(
     tenantId: number,
-    vehicleId: string,
     data: {
       unit_number: string;
+      make?: string;
+      model?: string;
+      year?: number;
+      vin?: string;
       fuel_capacity_gallons?: number;
       current_fuel_gallons?: number;
       mpg?: number;
     },
   ): Promise<Vehicle> {
+    const vehicleId = `VEH-${Date.now().toString(36).toUpperCase()}`;
+
     try {
       const vehicle = await this.prisma.vehicle.create({
         data: {
           vehicleId,
           unitNumber: data.unit_number,
+          make: data.make || null,
+          model: data.model || null,
+          year: data.year || null,
+          vin: data.vin || null,
           fuelCapacityGallons: data.fuel_capacity_gallons,
           currentFuelGallons: data.current_fuel_gallons,
           mpg: data.mpg,
@@ -89,6 +98,10 @@ export class VehiclesService {
     tenantId: number,
     data: {
       unit_number?: string;
+      make?: string;
+      model?: string;
+      year?: number;
+      vin?: string;
       fuel_capacity_gallons?: number;
       current_fuel_gallons?: number;
       mpg?: number;
@@ -102,7 +115,11 @@ export class VehiclesService {
         },
       },
       data: {
-        ...(data.unit_number ? { unitNumber: data.unit_number } : {}),
+        ...(data.unit_number !== undefined ? { unitNumber: data.unit_number } : {}),
+        ...(data.make !== undefined ? { make: data.make } : {}),
+        ...(data.model !== undefined ? { model: data.model } : {}),
+        ...(data.year !== undefined ? { year: data.year } : {}),
+        ...(data.vin !== undefined ? { vin: data.vin } : {}),
         ...(data.fuel_capacity_gallons !== undefined
           ? { fuelCapacityGallons: data.fuel_capacity_gallons }
           : {}),

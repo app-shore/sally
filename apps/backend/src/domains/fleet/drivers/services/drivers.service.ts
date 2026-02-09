@@ -50,14 +50,23 @@ export class DriversService {
    */
   async create(
     tenantId: number,
-    driverId: string,
-    name: string,
+    data: {
+      name: string;
+      license_number?: string;
+      phone?: string;
+      email?: string;
+    },
   ): Promise<Driver> {
+    const driverId = `DRV-${Date.now().toString(36).toUpperCase()}`;
+
     try {
       const driver = await this.prisma.driver.create({
         data: {
           driverId,
-          name,
+          name: data.name,
+          licenseNumber: data.license_number || null,
+          phone: data.phone || null,
+          email: data.email || null,
           status: 'ACTIVE',
           isActive: true,
           tenantId,
@@ -65,7 +74,7 @@ export class DriversService {
         },
       });
 
-      this.logger.log(`Driver created: ${driverId} - ${name}`);
+      this.logger.log(`Driver created: ${driverId} - ${data.name}`);
       return driver;
     } catch (error) {
       if (error.code === 'P2002') {
@@ -76,12 +85,17 @@ export class DriversService {
   }
 
   /**
-   * Update driver basic info
+   * Update driver info
    */
   async update(
     driverId: string,
     tenantId: number,
-    name?: string,
+    data: {
+      name?: string;
+      license_number?: string;
+      phone?: string;
+      email?: string;
+    },
   ): Promise<Driver> {
     const driver = await this.prisma.driver.update({
       where: {
@@ -91,7 +105,10 @@ export class DriversService {
         },
       },
       data: {
-        ...(name ? { name } : {}),
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.license_number !== undefined ? { licenseNumber: data.license_number } : {}),
+        ...(data.phone !== undefined ? { phone: data.phone } : {}),
+        ...(data.email !== undefined ? { email: data.email } : {}),
       },
     });
 
