@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui
 import { Card, CardHeader } from '@/shared/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth';
-import { usePreferencesStore } from '@/features/platform/preferences';
+import { usePreferencesStore } from '@/features/platform/settings';
 import UserPreferencesTab from './components/UserPreferencesTab';
 import DriverPreferencesTab from './components/DriverPreferencesTab';
 
