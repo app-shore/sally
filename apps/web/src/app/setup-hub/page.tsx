@@ -222,7 +222,7 @@ export default function SetupHubPage() {
               priority="optional"
               description="Customize route planning preferences"
               whyMatters="Default preferences work fine for most cases. Users can customize later as needed."
-              actionLink="/settings/operations"
+              actionLink="/settings/route-planning"
               actionLabel="Configure Preferences"
               statusText={
                 status.items.optional[1].metadata.usingDefaults
