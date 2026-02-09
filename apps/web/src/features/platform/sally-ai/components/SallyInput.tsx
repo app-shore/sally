@@ -66,7 +66,7 @@ export function SallyInput() {
   }, [isListening, startSTT, stopSTT, setMicActive]);
 
   return (
-    <div className="border-t border-border bg-background p-3 space-y-2">
+    <div className="bg-background p-3 space-y-2">
       {/* Interim transcript preview */}
       <AnimatePresence>
         {interimTranscript && (

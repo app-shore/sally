@@ -11,7 +11,7 @@ import { isProtectedRoute, getDefaultRouteForRole } from "@/shared/lib/navigatio
 export function LayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isOpen } = useSallyStore();
+  const { isExpanded } = useSallyStore();
   const { isAuthenticated, _hasHydrated, isInitialized, accessToken, user } =
     useAuthStore();
 
@@ -77,7 +77,7 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div className={`sally-chat-container ${isOpen ? "docked" : ""}`}>
+      <div className={`sally-main-content ${isExpanded ? 'sally-panel-open' : ''}`}>
         <Layout>{children}</Layout>
       </div>
       <SallyGlobalProvider />
