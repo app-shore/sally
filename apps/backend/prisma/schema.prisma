@@ -836,14 +836,6 @@ model FleetOperationsSettings {
   defaultOnDutyHours        Float     @default(0.0)      @map("default_on_duty_hours")
   defaultSinceBreakHours    Float     @default(0.0)      @map("default_since_break_hours")
 
-  // HOS Compliance Thresholds
-  driveHoursWarningPct      Int       @default(75)       @map("drive_hours_warning_pct")
-  driveHoursCriticalPct     Int       @default(90)       @map("drive_hours_critical_pct")
-  onDutyWarningPct          Int       @default(75)       @map("on_duty_warning_pct")
-  onDutyCriticalPct         Int       @default(90)       @map("on_duty_critical_pct")
-  sinceBreakWarningPct      Int       @default(75)       @map("since_break_warning_pct")
-  sinceBreakCriticalPct     Int       @default(90)       @map("since_break_critical_pct")
-
   // Optimization Defaults
   defaultOptimizationMode   String    @default("BALANCE") @map("default_optimization_mode") @db.VarChar(30)
   costPerMile               Float     @default(1.85)     @map("cost_per_mile")
@@ -864,11 +856,6 @@ model FleetOperationsSettings {
   defaultLoadAssignment     String    @default("MANUAL") @map("default_load_assignment") @db.VarChar(30)
   defaultDriverSelection    String    @default("AUTO_SUGGEST") @map("default_driver_selection") @db.VarChar(30)
   defaultVehicleSelection   String    @default("AUTO_ASSIGN") @map("default_vehicle_selection") @db.VarChar(30)
-
-  // Alert Thresholds
-  delayThresholdMinutes     Int       @default(30)       @map("delay_threshold_minutes")
-  hosApproachingPct         Int       @default(85)       @map("hos_approaching_pct")
-  costOverrunPct            Int       @default(10)       @map("cost_overrun_pct")
 
   // Report Preferences
   reportTimezone            String    @default("America/New_York") @map("report_timezone") @db.VarChar(100)
