@@ -220,10 +220,10 @@ export default function SetupHubPage() {
             <OnboardingItemCard
               item={status.items.optional[1]}
               priority="optional"
-              description="Customize route planning preferences"
-              whyMatters="Default preferences work fine for most cases. Users can customize later as needed."
-              actionLink="/settings/route-planning"
-              actionLabel="Configure Preferences"
+              description="Customize operations settings"
+              whyMatters="Default settings work fine for most cases. Users can customize later as needed."
+              actionLink="/settings/operations"
+              actionLabel="Configure Settings"
               statusText={
                 status.items.optional[1].metadata.usingDefaults
                   ? 'Using defaults'

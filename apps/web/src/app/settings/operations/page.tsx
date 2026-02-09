@@ -14,7 +14,7 @@ import { usePreferencesStore } from '@/features/platform/settings';
 import type { OperationsSettings } from '@/features/platform/settings';
 import { Loader2, Save, RotateCcw } from 'lucide-react';
 
-export default function RoutePlanningSettingsPage() {
+export default function OperationsSettingsPage() {
   const { user } = useAuthStore();
   const { operationsSettings, updateOperationsSettings, resetToDefaults, loadAllPreferences, isSaving, isLoading } = usePreferencesStore();
   const [formData, setFormData] = useState<Partial<OperationsSettings>>(operationsSettings || {});
@@ -42,12 +42,12 @@ export default function RoutePlanningSettingsPage() {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
-      console.error('Failed to save route planning settings:', error);
+      console.error('Failed to save operations settings:', error);
     }
   };
 
   const handleReset = async () => {
-    if (confirm('Reset route planning settings to defaults?')) {
+    if (confirm('Reset operations settings to defaults?')) {
       try {
         await resetToDefaults('operations');
         const resetSettings = usePreferencesStore.getState().operationsSettings;
@@ -55,7 +55,7 @@ export default function RoutePlanningSettingsPage() {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       } catch (error) {
-        console.error('Failed to reset route planning settings:', error);
+        console.error('Failed to reset operations settings:', error);
       }
     }
   };
@@ -74,7 +74,7 @@ export default function RoutePlanningSettingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-foreground">Route Planning</h2>
+          <h2 className="text-xl font-semibold text-foreground">Operations</h2>
           <p className="text-sm text-muted-foreground">Company-wide defaults for how Sally plans routes. These apply to all dispatchers unless overridden per-route.</p>
         </div>
         <Badge variant={canEdit ? 'default' : 'muted'}>
@@ -84,7 +84,7 @@ export default function RoutePlanningSettingsPage() {
 
       {saveSuccess && (
         <Alert>
-          <AlertDescription>Route planning settings saved successfully!</AlertDescription>
+          <AlertDescription>Operations settings saved successfully!</AlertDescription>
         </Alert>
       )}
 

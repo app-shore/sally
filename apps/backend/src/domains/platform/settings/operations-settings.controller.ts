@@ -5,7 +5,7 @@ import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
 import { UpdateOperationsSettingsDto } from './dto/operations-settings.dto';
 import { UserRole } from '@prisma/client';
 
-@Controller('settings/route-planning')
+@Controller('settings/operations')
 export class OperationsSettingsController {
   constructor(
     private readonly operationsSettingsService: OperationsSettingsService,

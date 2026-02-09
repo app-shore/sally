@@ -107,11 +107,11 @@ export async function updateUserPreferences(updates: Partial<UserPreferences>): 
 // ============================================================================
 
 export async function getOperationsSettings(): Promise<OperationsSettings> {
-  return apiClient<OperationsSettings>('/settings/route-planning');
+  return apiClient<OperationsSettings>('/settings/operations');
 }
 
 export async function updateOperationsSettings(updates: Partial<OperationsSettings>): Promise<OperationsSettings> {
-  return apiClient<OperationsSettings>('/settings/route-planning', {
+  return apiClient<OperationsSettings>('/settings/operations', {
     method: 'PUT',
     body: JSON.stringify(updates),
   });
@@ -200,7 +200,7 @@ export async function updateAlertConfig(updates: Partial<AlertConfiguration>): P
 
 export async function resetToDefaults(scope: 'user' | 'operations' | 'driver'): Promise<PreferencesResetResponse> {
   if (scope === 'operations') {
-    return apiClient<PreferencesResetResponse>('/settings/route-planning/reset', {
+    return apiClient<PreferencesResetResponse>('/settings/operations/reset', {
       method: 'POST',
     });
   }

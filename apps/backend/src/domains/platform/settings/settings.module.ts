@@ -39,4 +39,4 @@ import { AlertConfigService } from './alert-config.service';
     AlertConfigService,
   ],
 })
-export class PreferencesModule {}
+export class SettingsModule {}

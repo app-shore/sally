@@ -31,7 +31,7 @@ const settingsSections: SettingsNavSection[] = [
   {
     label: 'Organization',
     items: [
-      { label: 'Route Planning', href: '/settings/route-planning', icon: Route },
+      { label: 'Operations', href: '/settings/operations', icon: Route },
       { label: 'Alerts', href: '/settings/alerts', icon: AlertTriangle },
     ],
     roles: ['DISPATCHER', 'ADMIN', 'OWNER'],
