@@ -163,7 +163,7 @@ export default function AlertsSettingsPage() {
           <h2 className="text-xl font-semibold text-foreground">Alerts</h2>
           <p className="text-sm text-muted-foreground">Configure when and how your organization&apos;s alerts are triggered. Individual users can customize their own notification preferences separately.</p>
         </div>
-        <Badge variant={canEdit ? 'default' : 'secondary'}>
+        <Badge variant={canEdit ? 'default' : 'muted'}>
           {canEdit ? 'Admin / Owner' : 'Read Only'}
         </Badge>
       </div>

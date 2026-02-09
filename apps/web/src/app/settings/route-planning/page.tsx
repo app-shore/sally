@@ -77,7 +77,7 @@ export default function RoutePlanningSettingsPage() {
           <h2 className="text-xl font-semibold text-foreground">Route Planning</h2>
           <p className="text-sm text-muted-foreground">Company-wide defaults for how Sally plans routes. These apply to all dispatchers unless overridden per-route.</p>
         </div>
-        <Badge variant={canEdit ? 'default' : 'secondary'}>
+        <Badge variant={canEdit ? 'default' : 'muted'}>
           {canEdit ? 'Admin / Owner' : 'Read Only'}
         </Badge>
       </div>
