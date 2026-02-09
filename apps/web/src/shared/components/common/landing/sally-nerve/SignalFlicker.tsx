@@ -36,11 +36,11 @@ export function SignalFlicker() {
       {signals.map((signal, i) => (
         <motion.span
           key={i}
-          className="absolute font-mono text-xs md:text-sm text-foreground select-none whitespace-nowrap"
+          className="absolute font-mono text-xs md:text-sm text-muted-foreground select-none whitespace-nowrap"
           style={{ left: `${signal.x}%`, top: `${signal.y}%` }}
           initial={{ opacity: 0 }}
           animate={{
-            opacity: [0, 0.8, 0.8, 0.8, 0],
+            opacity: [0, 0.6, 0.6, 0.6, 0],
           }}
           transition={{
             duration: signal.duration,

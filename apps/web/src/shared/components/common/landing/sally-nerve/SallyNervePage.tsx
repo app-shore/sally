@@ -65,17 +65,7 @@ export function SallyNerveLanding() {
             animate={{ opacity: 1 }}
             transition={{ duration: 1.5, delay: 2.5 }}
           >
-            Your fleet is already speaking. No one&apos;s listening.
-          </motion.p>
-
-          {/* The answer — delayed beat */}
-          <motion.p
-            className="mt-4 text-sm md:text-base tracking-[0.3em] uppercase text-foreground font-medium"
-            initial={{ opacity: 0, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, filter: 'blur(0px)' }}
-            transition={{ duration: 1.2, delay: 4.5 }}
-          >
-            SALLY listens.
+            Your fleet is already speaking. SALLY listens.
           </motion.p>
 
           {/* Scroll prompt */}
@@ -83,7 +73,7 @@ export function SallyNerveLanding() {
             className="absolute bottom-16 left-1/2 -translate-x-1/2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.4 }}
-            transition={{ delay: 6, duration: 1 }}
+            transition={{ delay: 4.5, duration: 1 }}
           >
             <motion.div
               animate={{ y: [0, 8, 0] }}
