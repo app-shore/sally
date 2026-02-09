@@ -39,6 +39,13 @@ const configSchema = z.object({
   minRestHours: z.number().default(10.0),
   sleeper_berth_split_long: z.number().default(8.0),
   sleeper_berth_split_short: z.number().default(2.0),
+  maxCycleHours: z.number().default(70.0),
+  cycleDays: z.number().default(8),
+  restartHours: z.number().default(34.0),
+  osrmUrl: z.string().default('http://localhost:5000'),
+  hereApiKey: z.string().optional(),
+  routingProvider: z.enum(['osrm', 'here']).default('osrm'),
+  openWeatherApiKey: z.string().optional(),
 });
 
 export type Configuration = z.infer<typeof configSchema>;
@@ -87,6 +94,13 @@ export default (): Configuration => {
     sleeper_berth_split_short: process.env.SLEEPER_BERTH_SPLIT_SHORT
       ? Number(process.env.SLEEPER_BERTH_SPLIT_SHORT)
       : undefined,
+    maxCycleHours: process.env.MAX_CYCLE_HOURS ? Number(process.env.MAX_CYCLE_HOURS) : undefined,
+    cycleDays: process.env.CYCLE_DAYS ? Number(process.env.CYCLE_DAYS) : undefined,
+    restartHours: process.env.RESTART_HOURS ? Number(process.env.RESTART_HOURS) : undefined,
+    osrmUrl: process.env.OSRM_URL,
+    hereApiKey: process.env.HERE_API_KEY,
+    routingProvider: process.env.ROUTING_PROVIDER,
+    openWeatherApiKey: process.env.OPENWEATHER_API_KEY,
   };
 
   // Remove undefined values so zod defaults kick in

@@ -330,6 +330,15 @@ model Driver {
   // ELD HOS Metadata (JSONB - vendor agnostic)
   eldMetadata           Json?         @map("eld_metadata")
 
+  // Structured HOS fields (engine reads directly)
+  currentHoursDriven      Float     @default(0) @map("current_hours_driven")
+  currentOnDutyTime       Float     @default(0) @map("current_on_duty_time")
+  currentHoursSinceBreak  Float     @default(0) @map("current_hours_since_break")
+  cycleHoursUsed          Float     @default(0) @map("cycle_hours_used")
+  cycleDaysData           Json?     @map("cycle_days_data")
+  lastRestartAt           DateTime? @map("last_restart_at") @db.Timestamptz
+  homeTerminalTimezone    String    @default("America/New_York") @map("home_terminal_timezone") @db.VarChar(50)
+
   createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -376,6 +385,9 @@ model Vehicle {
   // ELD Telematics Metadata (JSONB - vendor agnostic)
   eldTelematicsMetadata Json?        @map("eld_telematics_metadata")
 
+  hasSleeperBerth         Boolean   @default(true) @map("has_sleeper_berth")
+  grossWeightLbs          Float?    @map("gross_weight_lbs")
+
   tenant                Tenant       @relation(fields: [tenantId], references: [id])
   tenantId              Int          @map("tenant_id")
 
@@ -406,6 +418,23 @@ model RoutePlan {
   feasibilityIssues     Json?            @map("feasibility_issues")
   complianceReport      Json?            @map("compliance_report")
   activatedAt           DateTime?        @map("activated_at") @db.Timestamptz
+
+  // Timing
+  departureTime           DateTime?  @map("departure_time") @db.Timestamptz
+  estimatedArrival        DateTime?  @map("estimated_arrival") @db.Timestamptz
+  completedAt             DateTime?  @map("completed_at") @db.Timestamptz
+  cancelledAt             DateTime?  @map("cancelled_at") @db.Timestamptz
+
+  // Enhanced summary
+  totalTripTimeHours      Float      @default(0) @map("total_trip_time_hours")
+  totalDrivingDays        Int        @default(1) @map("total_driving_days")
+
+  // Dispatcher input
+  dispatcherParams        Json?      @map("dispatcher_params")
+
+  // Daily breakdown
+  dailyBreakdown          Json?      @map("daily_breakdown")
+
   createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -416,6 +445,7 @@ model RoutePlan {
   vehicle               Vehicle          @relation(fields: [vehicleId], references: [id])
   segments              RouteSegment[]
   updates               RoutePlanUpdate[]
+  loads                 RoutePlanLoad[]
 
   @@index([driverId])
   @@index([isActive])
@@ -444,6 +474,44 @@ model RouteSegment {
   hosStateAfter         Json?        @map("hos_state_after")
   estimatedArrival      DateTime?    @map("estimated_arrival") @db.Timestamptz
   estimatedDeparture    DateTime?    @map("estimated_departure") @db.Timestamptz
+
+  // Geo coordinates
+  fromLat                 Float?     @map("from_lat")
+  fromLon                 Float?     @map("from_lon")
+  toLat                   Float?     @map("to_lat")
+  toLon                   Float?     @map("to_lon")
+
+  // Timezone
+  timezone                String?    @db.VarChar(50)
+
+  // Dock segment details
+  actionType              String?    @map("action_type") @db.VarChar(20)
+  appointmentWindow       Json?      @map("appointment_window")
+
+  // Fuel segment details
+  fuelPricePerGallon      Float?     @map("fuel_price_per_gallon")
+  detourMiles             Float?     @map("detour_miles")
+
+  // Rest segment details
+  isDocktimeConverted     Boolean    @default(false) @map("is_docktime_converted")
+
+  // Weather
+  weatherAlerts           Json?      @map("weather_alerts")
+
+  // Map display
+  routeGeometry           String?    @map("route_geometry") @db.Text
+
+  // Actual tracking
+  actualArrival           DateTime?  @map("actual_arrival") @db.Timestamptz
+  actualDeparture         DateTime?  @map("actual_departure") @db.Timestamptz
+
+  // Fuel state tracking
+  fuelStateAfter          Json?      @map("fuel_state_after")
+
+  // Stop reference
+  stopId                  Int?       @map("stop_id")
+  stop                    Stop?      @relation(fields: [stopId], references: [id])
+
   status                String       @default("planned") @db.VarChar(20)
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
 
@@ -485,9 +553,26 @@ model Stop {
   lon                   Float?
   locationType          String       @default("warehouse") @map("location_type") @db.VarChar(30)
   isActive              Boolean      @default(true) @map("is_active")
+
+  zipCode                 String?    @map("zip_code") @db.VarChar(10)
+  timezone                String?    @db.VarChar(50)
+
+  // Fuel station fields
+  fuelPricePerGallon      Float?     @map("fuel_price_per_gallon")
+  fuelPriceUpdatedAt      DateTime?  @map("fuel_price_updated_at") @db.Timestamptz
+  fuelBrand               String?    @map("fuel_brand") @db.VarChar(50)
+
+  // Truck stop fields
+  amenities               Json?
+  parkingSpaces           Int?       @map("parking_spaces")
+
+  // Multi-tenancy (optional)
+  tenantId                Int?       @map("tenant_id")
+
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
 
   loadStops             LoadStop[]
+  routeSegments         RouteSegment[]
 
   @@map("stops")
 }
@@ -510,7 +595,10 @@ model Load {
   externalSource        String?      @map("external_source") @db.VarChar(50)
   lastSyncedAt          DateTime?    @map("last_synced_at") @db.Timestamptz
 
+  tenantId                Int?       @map("tenant_id")
+
   stops                 LoadStop[]
+  routePlanLoads        RoutePlanLoad[]
 
   @@unique([externalLoadId])
   @@map("loads")
@@ -535,6 +623,21 @@ model LoadStop {
   @@map("load_stops")
 }
 
+
+model RoutePlanLoad {
+  id          Int       @id @default(autoincrement())
+  planId      Int       @map("plan_id")
+  loadId      Int       @map("load_id")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  plan        RoutePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  load        Load      @relation(fields: [loadId], references: [id])
+
+  @@unique([planId, loadId])
+  @@index([planId])
+  @@index([loadId])
+  @@map("route_plan_loads")
+}
 
 model Event {
   id                    Int          @id @default(autoincrement())
