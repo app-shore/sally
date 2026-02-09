@@ -9,15 +9,25 @@ export class AlertConfigService {
   getDefaults() {
     return {
       alertTypes: {
-        HOS_VIOLATION: { enabled: true, mandatory: true },
-        HOS_APPROACHING_LIMIT: { enabled: true, mandatory: false, thresholdMinutes: 60 },
-        BREAK_REQUIRED: { enabled: true, mandatory: false, thresholdMinutes: 420 },
+        // HOS Compliance — warning & critical thresholds (% of limit)
+        HOS_DRIVE_WARNING: { enabled: true, mandatory: true, thresholdPercent: 75 },
+        HOS_DRIVE_CRITICAL: { enabled: true, mandatory: true, thresholdPercent: 90 },
+        HOS_ON_DUTY_WARNING: { enabled: true, mandatory: true, thresholdPercent: 75 },
+        HOS_ON_DUTY_CRITICAL: { enabled: true, mandatory: true, thresholdPercent: 90 },
+        HOS_BREAK_WARNING: { enabled: true, mandatory: false, thresholdPercent: 75 },
+        HOS_BREAK_CRITICAL: { enabled: true, mandatory: false, thresholdPercent: 90 },
+        HOS_APPROACHING_LIMIT: { enabled: true, mandatory: false, thresholdPercent: 85 },
         CYCLE_APPROACHING_LIMIT: { enabled: true, mandatory: false, thresholdMinutes: 300 },
-        MISSED_APPOINTMENT: { enabled: true, mandatory: true },
-        APPOINTMENT_AT_RISK: { enabled: true, mandatory: false, thresholdMinutes: 30 },
-        DOCK_TIME_EXCEEDED: { enabled: true, mandatory: false, thresholdMinutes: 60 },
-        ROUTE_DELAY: { enabled: false, mandatory: false, thresholdMinutes: 30 },
+
+        // Route & Schedule
+        ROUTE_DELAY: { enabled: true, mandatory: false, thresholdMinutes: 30 },
         DRIVER_NOT_MOVING: { enabled: true, mandatory: false, thresholdMinutes: 120 },
+        APPOINTMENT_AT_RISK: { enabled: true, mandatory: false, thresholdMinutes: 30 },
+        MISSED_APPOINTMENT: { enabled: true, mandatory: true },
+        DOCK_TIME_EXCEEDED: { enabled: true, mandatory: false, thresholdMinutes: 60 },
+
+        // Cost & Resources
+        COST_OVERRUN: { enabled: true, mandatory: false, thresholdPercent: 10 },
         FUEL_LOW: { enabled: true, mandatory: false, thresholdPercent: 20 },
       },
       escalationPolicy: {
@@ -36,17 +46,6 @@ export class AlertConfigService {
         medium: { inApp: true, email: false, push: false, sms: false },
         low: { inApp: true, email: false, push: false, sms: false },
       },
-      complianceThresholds: {
-        driveHoursWarningPct: 75,
-        driveHoursCriticalPct: 90,
-        onDutyWarningPct: 75,
-        onDutyCriticalPct: 90,
-        sinceBreakWarningPct: 75,
-        sinceBreakCriticalPct: 90,
-        delayThresholdMinutes: 30,
-        hosApproachingPct: 85,
-        costOverrunPct: 10,
-      },
     };
   }
 
@@ -62,7 +61,6 @@ export class AlertConfigService {
       escalationPolicy: config.escalationPolicy,
       groupingConfig: config.groupingConfig,
       defaultChannels: config.defaultChannels,
-      complianceThresholds: config.complianceThresholds || this.getDefaults().complianceThresholds,
     };
   }
 
@@ -77,14 +75,12 @@ export class AlertConfigService {
         escalationPolicy: dto.escalationPolicy || defaults.escalationPolicy,
         groupingConfig: dto.groupingConfig || defaults.groupingConfig,
         defaultChannels: dto.defaultChannels || defaults.defaultChannels,
-        complianceThresholds: dto.complianceThresholds || defaults.complianceThresholds,
       },
       update: {
         ...(dto.alertTypes && { alertTypes: dto.alertTypes }),
         ...(dto.escalationPolicy && { escalationPolicy: dto.escalationPolicy }),
         ...(dto.groupingConfig && { groupingConfig: dto.groupingConfig }),
         ...(dto.defaultChannels && { defaultChannels: dto.defaultChannels }),
-        ...(dto.complianceThresholds && { complianceThresholds: dto.complianceThresholds }),
       },
     });
   }

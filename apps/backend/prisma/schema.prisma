@@ -756,7 +756,6 @@ model AlertConfiguration {
   escalationPolicy Json     @map("escalation_policy")
   groupingConfig  Json      @map("grouping_config")
   defaultChannels Json      @map("default_channels")
-  complianceThresholds Json @default("{}") @map("compliance_thresholds")
 
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz

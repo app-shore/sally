@@ -8,39 +8,158 @@ import { Button } from '@/shared/components/ui/button';
 import { Switch } from '@/shared/components/ui/switch';
 import { Badge } from '@/shared/components/ui/badge';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
+import { Separator } from '@/shared/components/ui/separator';
 import { useAuthStore } from '@/features/auth';
 import { getAlertConfig, updateAlertConfig } from '@/features/platform/settings';
-import type { AlertConfiguration, ComplianceThresholds } from '@/features/platform/settings';
+import type { AlertConfiguration } from '@/features/platform/settings';
 import { Loader2, Save, Lock } from 'lucide-react';
 
-const ALERT_TYPE_LABELS: Record<string, string> = {
-  HOS_VIOLATION: 'HOS Violation',
-  HOS_APPROACHING_LIMIT: 'HOS Approaching Limit',
-  BREAK_REQUIRED: 'Break Required',
-  CYCLE_APPROACHING_LIMIT: 'Cycle Approaching Limit',
-  MISSED_APPOINTMENT: 'Missed Appointment',
-  APPOINTMENT_AT_RISK: 'Appointment at Risk',
-  DOCK_TIME_EXCEEDED: 'Dock Time Exceeded',
-  ROUTE_DELAY: 'Route Delay',
-  DRIVER_NOT_MOVING: 'Driver Not Moving',
-  FUEL_LOW: 'Fuel Low',
+// ============================================================================
+// Alert type metadata — labels, descriptions, threshold units, grouping
+// ============================================================================
+
+interface AlertTypeMeta {
+  label: string;
+  description: string;
+  thresholdUnit?: '%' | 'min';
+  thresholdLabel?: string;
+}
+
+const ALERT_TYPE_SECTIONS: { heading: string; description: string; types: string[] }[] = [
+  {
+    heading: 'HOS Compliance',
+    description: 'Warning and critical thresholds for Hours of Service limits.',
+    types: [
+      'HOS_DRIVE_WARNING',
+      'HOS_DRIVE_CRITICAL',
+      'HOS_ON_DUTY_WARNING',
+      'HOS_ON_DUTY_CRITICAL',
+      'HOS_BREAK_WARNING',
+      'HOS_BREAK_CRITICAL',
+      'HOS_APPROACHING_LIMIT',
+      'CYCLE_APPROACHING_LIMIT',
+    ],
+  },
+  {
+    heading: 'Route & Schedule',
+    description: 'Alerts for delays, missed appointments, and driver inactivity.',
+    types: [
+      'ROUTE_DELAY',
+      'DRIVER_NOT_MOVING',
+      'APPOINTMENT_AT_RISK',
+      'MISSED_APPOINTMENT',
+      'DOCK_TIME_EXCEEDED',
+    ],
+  },
+  {
+    heading: 'Cost & Resources',
+    description: 'Alerts for cost overruns and low fuel.',
+    types: [
+      'COST_OVERRUN',
+      'FUEL_LOW',
+    ],
+  },
+];
+
+const ALERT_TYPE_META: Record<string, AlertTypeMeta> = {
+  // HOS Compliance
+  HOS_DRIVE_WARNING: {
+    label: 'Drive Hours — Warning',
+    description: 'Warning when a driver has used this % of their 11-hour drive limit. Example: 75% = alert at 8h 15m.',
+    thresholdUnit: '%',
+    thresholdLabel: 'Threshold (%)',
+  },
+  HOS_DRIVE_CRITICAL: {
+    label: 'Drive Hours — Critical',
+    description: 'Critical alert at this % of the 11-hour drive limit. Example: 90% = alert at 9h 54m.',
+    thresholdUnit: '%',
+    thresholdLabel: 'Threshold (%)',
+  },
+  HOS_ON_DUTY_WARNING: {
+    label: 'On-Duty — Warning',
+    description: 'Warning when approaching the 14-hour on-duty window. Example: 75% = alert at 10h 30m.',
+    thresholdUnit: '%',
+    thresholdLabel: 'Threshold (%)',
+  },
+  HOS_ON_DUTY_CRITICAL: {
+    label: 'On-Duty — Critical',
+    description: 'Critical alert for the 14-hour on-duty window. Example: 90% = alert at 12h 36m.',
+    thresholdUnit: '%',
+    thresholdLabel: 'Threshold (%)',
+  },
+  HOS_BREAK_WARNING: {
+    label: 'Break Required — Warning',
+    description: 'Warning when approaching the 8-hour limit since last 30-minute break. Example: 75% = alert at 6h.',
+    thresholdUnit: '%',
+    thresholdLabel: 'Threshold (%)',
+  },
+  HOS_BREAK_CRITICAL: {
+    label: 'Break Required — Critical',
+    description: 'Critical alert for the 8-hour break limit. Example: 90% = alert at 7h 12m.',
+    thresholdUnit: '%',
+    thresholdLabel: 'Threshold (%)',
+  },
+  HOS_APPROACHING_LIMIT: {
+    label: 'HOS Approaching Limit',
+    description: 'General alert when a driver is nearing any HOS limit. Works with live ELD data.',
+    thresholdUnit: '%',
+    thresholdLabel: 'Threshold (%)',
+  },
+  CYCLE_APPROACHING_LIMIT: {
+    label: 'Cycle Approaching Limit',
+    description: 'Alert when remaining minutes in the 60/70-hour cycle window drop below this threshold.',
+    thresholdUnit: 'min',
+    thresholdLabel: 'Minutes remaining',
+  },
+
+  // Route & Schedule
+  ROUTE_DELAY: {
+    label: 'Route Delay',
+    description: 'Alert when a driver falls behind their scheduled arrival by this many minutes.',
+    thresholdUnit: 'min',
+    thresholdLabel: 'Delay (minutes)',
+  },
+  DRIVER_NOT_MOVING: {
+    label: 'Driver Not Moving',
+    description: 'Alert when a driver has been stationary for this many minutes during an active route.',
+    thresholdUnit: 'min',
+    thresholdLabel: 'Stationary (minutes)',
+  },
+  APPOINTMENT_AT_RISK: {
+    label: 'Appointment at Risk',
+    description: 'Alert when the ETA puts a pickup or delivery at risk of being missed by this many minutes.',
+    thresholdUnit: 'min',
+    thresholdLabel: 'Minutes before miss',
+  },
+  MISSED_APPOINTMENT: {
+    label: 'Missed Appointment',
+    description: 'Fires when a driver misses their scheduled pickup or delivery window. Cannot be disabled.',
+  },
+  DOCK_TIME_EXCEEDED: {
+    label: 'Dock Time Exceeded',
+    description: 'Alert when time spent at a dock exceeds the planned dwell time by this many minutes.',
+    thresholdUnit: 'min',
+    thresholdLabel: 'Minutes over estimate',
+  },
+
+  // Cost & Resources
+  COST_OVERRUN: {
+    label: 'Cost Overrun',
+    description: 'Alert when actual route cost exceeds the planned cost by this percentage.',
+    thresholdUnit: '%',
+    thresholdLabel: 'Overrun (%)',
+  },
+  FUEL_LOW: {
+    label: 'Fuel Low',
+    description: 'Alert when estimated fuel tank level drops below this percentage of capacity.',
+    thresholdUnit: '%',
+    thresholdLabel: 'Tank level (%)',
+  },
 };
 
 const CHANNEL_LABELS = ['In-App', 'Email', 'Push', 'SMS'];
 const CHANNEL_KEYS = ['inApp', 'email', 'push', 'sms'] as const;
 const PRIORITY_LEVELS = ['critical', 'high', 'medium', 'low'];
-
-const DEFAULT_COMPLIANCE_THRESHOLDS: ComplianceThresholds = {
-  driveHoursWarningPct: 75,
-  driveHoursCriticalPct: 90,
-  onDutyWarningPct: 75,
-  onDutyCriticalPct: 90,
-  sinceBreakWarningPct: 75,
-  sinceBreakCriticalPct: 90,
-  delayThresholdMinutes: 30,
-  hosApproachingPct: 85,
-  costOverrunPct: 10,
-};
 
 export default function AlertsSettingsPage() {
   const { user } = useAuthStore();
@@ -74,8 +193,10 @@ export default function AlertsSettingsPage() {
     });
   };
 
-  const handleAlertThresholdChange = (typeKey: string, field: 'thresholdMinutes' | 'thresholdPercent', value: number) => {
+  const handleThresholdChange = (typeKey: string, value: number) => {
     if (!alertConfig) return;
+    const meta = ALERT_TYPE_META[typeKey];
+    const field = meta?.thresholdUnit === '%' ? 'thresholdPercent' : 'thresholdMinutes';
     setAlertConfig({
       ...alertConfig,
       alertTypes: {
@@ -96,17 +217,6 @@ export default function AlertsSettingsPage() {
     });
   };
 
-  const handleComplianceChange = (field: keyof ComplianceThresholds, value: number) => {
-    if (!alertConfig) return;
-    setAlertConfig({
-      ...alertConfig,
-      complianceThresholds: {
-        ...(alertConfig.complianceThresholds || DEFAULT_COMPLIANCE_THRESHOLDS),
-        [field]: value,
-      },
-    });
-  };
-
   const handleSave = async () => {
     if (!alertConfig) return;
     setSaving(true);
@@ -121,8 +231,6 @@ export default function AlertsSettingsPage() {
       setSaving(false);
     }
   };
-
-  const thresholds = alertConfig?.complianceThresholds || DEFAULT_COMPLIANCE_THRESHOLDS;
 
   if (loading) {
     return (
@@ -174,135 +282,71 @@ export default function AlertsSettingsPage() {
         </Alert>
       )}
 
-      {/* Trigger Thresholds — compliance thresholds moved from operations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Trigger Thresholds</CardTitle>
-          <CardDescription>Define when Sally fires warning and critical alerts based on HOS compliance, delays, and costs.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* HOS Compliance */}
-          <div>
-            <p className="text-sm font-medium text-foreground mb-3">HOS Compliance</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Drive Hours Warning (%)</Label>
-                <p className="text-xs text-muted-foreground">Fire a warning when a driver has used this % of their 11-hour drive limit.</p>
-                <Input type="number" min="0" max="100" value={thresholds.driveHoursWarningPct} onChange={(e) => handleComplianceChange('driveHoursWarningPct', parseInt(e.target.value) || 0)} disabled={!canEdit} />
-              </div>
-              <div className="space-y-2">
-                <Label>Drive Hours Critical (%)</Label>
-                <p className="text-xs text-muted-foreground">Fire a critical alert at this %. Should be higher than warning to avoid overlap.</p>
-                <Input type="number" min="0" max="100" value={thresholds.driveHoursCriticalPct} onChange={(e) => handleComplianceChange('driveHoursCriticalPct', parseInt(e.target.value) || 0)} disabled={!canEdit} />
-              </div>
-              <div className="space-y-2">
-                <Label>On-Duty Warning (%)</Label>
-                <p className="text-xs text-muted-foreground">Warning threshold for the 14-hour on-duty window.</p>
-                <Input type="number" min="0" max="100" value={thresholds.onDutyWarningPct} onChange={(e) => handleComplianceChange('onDutyWarningPct', parseInt(e.target.value) || 0)} disabled={!canEdit} />
-              </div>
-              <div className="space-y-2">
-                <Label>On-Duty Critical (%)</Label>
-                <p className="text-xs text-muted-foreground">Critical threshold for the 14-hour on-duty window.</p>
-                <Input type="number" min="0" max="100" value={thresholds.onDutyCriticalPct} onChange={(e) => handleComplianceChange('onDutyCriticalPct', parseInt(e.target.value) || 0)} disabled={!canEdit} />
-              </div>
-              <div className="space-y-2">
-                <Label>Break Warning (%)</Label>
-                <p className="text-xs text-muted-foreground">Warning when approaching the 8-hour limit since last 30-min break.</p>
-                <Input type="number" min="0" max="100" value={thresholds.sinceBreakWarningPct} onChange={(e) => handleComplianceChange('sinceBreakWarningPct', parseInt(e.target.value) || 0)} disabled={!canEdit} />
-              </div>
-              <div className="space-y-2">
-                <Label>Break Critical (%)</Label>
-                <p className="text-xs text-muted-foreground">Critical alert for the 8-hour break limit.</p>
-                <Input type="number" min="0" max="100" value={thresholds.sinceBreakCriticalPct} onChange={(e) => handleComplianceChange('sinceBreakCriticalPct', parseInt(e.target.value) || 0)} disabled={!canEdit} />
-              </div>
-            </div>
-          </div>
-
-          {/* Delays */}
-          <div>
-            <p className="text-sm font-medium text-foreground mb-3">Delays</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Delay Threshold (minutes)</Label>
-                <p className="text-xs text-muted-foreground">Fire a route delay alert when a driver falls this many minutes behind schedule.</p>
-                <Input type="number" min="0" value={thresholds.delayThresholdMinutes} onChange={(e) => handleComplianceChange('delayThresholdMinutes', parseInt(e.target.value) || 0)} disabled={!canEdit} />
-              </div>
-              <div className="space-y-2">
-                <Label>HOS Approaching (%)</Label>
-                <p className="text-xs text-muted-foreground">General HOS approaching threshold. Used when a driver is nearing any HOS limit.</p>
-                <Input type="number" min="0" max="100" value={thresholds.hosApproachingPct} onChange={(e) => handleComplianceChange('hosApproachingPct', parseInt(e.target.value) || 0)} disabled={!canEdit} />
-              </div>
-            </div>
-          </div>
-
-          {/* Cost */}
-          <div>
-            <p className="text-sm font-medium text-foreground mb-3">Cost</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Cost Overrun (%)</Label>
-                <p className="text-xs text-muted-foreground">Fire an alert when actual route cost exceeds the planned cost by this percentage.</p>
-                <Input type="number" min="0" max="100" value={thresholds.costOverrunPct} onChange={(e) => handleComplianceChange('costOverrunPct', parseInt(e.target.value) || 0)} disabled={!canEdit} />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Alert Types */}
+      {/* Alert Types — unified list with thresholds */}
       <Card>
         <CardHeader>
           <CardTitle>Alert Types</CardTitle>
-          <CardDescription>Enable or disable alert types and configure their thresholds.</CardDescription>
+          <CardDescription>Enable or disable alert types and set their trigger thresholds. Mandatory alerts cannot be disabled.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {Object.entries(alertConfig.alertTypes).map(([typeKey, config]) => (
-            <div key={typeKey} className="flex items-center justify-between gap-4 py-2 border-b border-border last:border-0">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm font-medium">
-                    {ALERT_TYPE_LABELS[typeKey] || typeKey}
-                  </Label>
-                  {config.mandatory && (
-                    <Badge variant="outline" className="text-xs gap-1">
-                      <Lock className="h-3 w-3" />
-                      Mandatory
-                    </Badge>
-                  )}
-                </div>
-                {config.thresholdMinutes !== undefined && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <Label className="text-xs text-muted-foreground whitespace-nowrap">Threshold (min):</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      className="h-8 w-24"
-                      disabled={!canEdit}
-                      value={config.thresholdMinutes}
-                      onChange={(e) => handleAlertThresholdChange(typeKey, 'thresholdMinutes', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                )}
-                {config.thresholdPercent !== undefined && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <Label className="text-xs text-muted-foreground whitespace-nowrap">Threshold (%):</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="100"
-                      className="h-8 w-24"
-                      disabled={!canEdit}
-                      value={config.thresholdPercent}
-                      onChange={(e) => handleAlertThresholdChange(typeKey, 'thresholdPercent', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                )}
+        <CardContent className="space-y-6">
+          {ALERT_TYPE_SECTIONS.map((section, sectionIdx) => (
+            <div key={section.heading}>
+              {sectionIdx > 0 && <Separator className="mb-6" />}
+              <div className="mb-4">
+                <p className="text-sm font-medium text-foreground">{section.heading}</p>
+                <p className="text-xs text-muted-foreground">{section.description}</p>
               </div>
-              <Switch
-                checked={config.enabled}
-                onCheckedChange={(checked) => handleAlertTypeToggle(typeKey, checked)}
-                disabled={!canEdit || config.mandatory}
-              />
+              <div className="space-y-4">
+                {section.types.map((typeKey) => {
+                  const config = alertConfig.alertTypes[typeKey];
+                  if (!config) return null;
+                  const meta = ALERT_TYPE_META[typeKey];
+                  if (!meta) return null;
+                  const thresholdValue = meta.thresholdUnit === '%' ? config.thresholdPercent : config.thresholdMinutes;
+
+                  return (
+                    <div key={typeKey} className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 py-3 border-b border-border last:border-0">
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-sm font-medium">{meta.label}</Label>
+                          {config.mandatory && (
+                            <Badge variant="outline" className="text-xs gap-1">
+                              <Lock className="h-3 w-3" />
+                              Required
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">{meta.description}</p>
+                      </div>
+
+                      {/* Threshold input */}
+                      {meta.thresholdUnit && thresholdValue !== undefined && (
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Input
+                            type="number"
+                            min={meta.thresholdUnit === '%' ? 1 : 1}
+                            max={meta.thresholdUnit === '%' ? 100 : undefined}
+                            className="h-8 w-24"
+                            disabled={!canEdit}
+                            value={thresholdValue}
+                            onChange={(e) => handleThresholdChange(typeKey, parseInt(e.target.value) || 0)}
+                          />
+                          <span className="text-xs text-muted-foreground w-6">{meta.thresholdUnit === '%' ? '%' : 'min'}</span>
+                        </div>
+                      )}
+
+                      {/* Toggle */}
+                      <Switch
+                        checked={config.enabled}
+                        onCheckedChange={(checked) => handleAlertTypeToggle(typeKey, checked)}
+                        disabled={!canEdit || config.mandatory}
+                        className="shrink-0"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ))}
         </CardContent>
@@ -312,7 +356,7 @@ export default function AlertsSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Default Channels</CardTitle>
-          <CardDescription>Configure which channels are used for each alert priority level.</CardDescription>
+          <CardDescription>Organization-wide defaults for how alerts are delivered. Individual users can override these in their notification preferences.</CardDescription>
         </CardHeader>
         <CardContent>
           {/* Header row */}
