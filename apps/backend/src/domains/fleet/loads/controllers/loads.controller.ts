@@ -10,6 +10,7 @@ import {
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { BaseTenantController } from '../../../../shared/base/base-tenant.controller';
+import { CurrentUser } from '../../../../auth/decorators/current-user.decorator';
 import { LoadsService } from '../services/loads.service';
 import { CreateLoadDto } from '../dto';
 
@@ -29,8 +30,12 @@ export class LoadsController extends BaseTenantController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new load with stops' })
-  async createLoad(@Body() createLoadDto: CreateLoadDto) {
-    return this.loadsService.create(createLoadDto);
+  async createLoad(
+    @CurrentUser() user: any,
+    @Body() createLoadDto: CreateLoadDto,
+  ) {
+    const tenantDbId = await this.getTenantDbId(user);
+    return this.loadsService.create({ ...createLoadDto, tenant_id: tenantDbId });
   }
 
   @Get()

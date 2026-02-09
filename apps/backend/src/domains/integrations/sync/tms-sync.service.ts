@@ -280,6 +280,7 @@ export class TmsSyncService {
           externalLoadId: tmsLoad.load_id,
           externalSource: vendor,
           lastSyncedAt: new Date(),
+          tenantId,
           isActive: true,
         },
       });

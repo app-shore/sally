@@ -86,6 +86,7 @@ model Tenant {
   invitations           UserInvitation[]
   notifications         Notification[]
   alertConfiguration    AlertConfiguration?
+  loads                 Load[]
   shiftNotes            ShiftNote[]
   conversations         Conversation[]
 
@@ -592,10 +593,13 @@ model Load {
 
   // External system linkage (for integration sync)
   externalLoadId        String?      @map("external_load_id") @db.VarChar(100)
-  externalSource        String?      @map("external_source") @db.VarChar(50)
+  externalSource        IntegrationVendor?  @map("external_source")
   lastSyncedAt          DateTime?    @map("last_synced_at") @db.Timestamptz
 
-  tenantId                Int?       @map("tenant_id")
+  tenantId                Int        @map("tenant_id")
+  tenant                  Tenant     @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
 
   stops                 LoadStop[]
   routePlanLoads        RoutePlanLoad[]
