@@ -136,17 +136,17 @@
     @apply -translate-y-1 shadow-card-hover;
   }
 
-  /* SALLY Chat styles */
-  .sally-chat-container {
+  /* Sally AI panel push-content */
+  .sally-main-content {
     transition: margin-right 0.3s ease-in-out;
   }
 
-  .sally-chat-container.docked {
-    margin-right: 480px;
+  .sally-main-content.sally-panel-open {
+    margin-right: 380px;
   }
 
   @media (max-width: 640px) {
-    .sally-chat-container.docked {
+    .sally-main-content.sally-panel-open {
       margin-right: 0;
     }
   }

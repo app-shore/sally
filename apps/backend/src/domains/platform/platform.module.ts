@@ -6,6 +6,7 @@ import { PreferencesModule } from './preferences/preferences.module';
 import { FeatureFlagsModule } from './feature-flags/feature-flags.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
+import { SallyAiModule } from './sally-ai/sally-ai.module';
 
 /**
  * PlatformModule aggregates all platform/infrastructure modules:
@@ -16,6 +17,7 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
  * - Feature Flags: Feature flag management
  * - Onboarding: User onboarding flows
  * - API Keys: API key management for external developers
+ * - Sally AI: AI assistant conversations and chat history
  */
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
     FeatureFlagsModule,
     OnboardingModule,
     ApiKeysModule,
+    SallyAiModule,
   ],
   exports: [
     TenantsModule,
@@ -35,6 +38,7 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
     FeatureFlagsModule,
     OnboardingModule,
     ApiKeysModule,
+    SallyAiModule,
   ],
 })
 export class PlatformModule {}

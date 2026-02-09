@@ -87,6 +87,7 @@ model Tenant {
   notifications         Notification[]
   alertConfiguration    AlertConfiguration?
   shiftNotes            ShiftNote[]
+  conversations         Conversation[]
 
   @@index([tenantId])
   @@index([subdomain])
@@ -145,6 +146,7 @@ model User {
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
   shiftNotes        ShiftNote[]
+  conversations     Conversation[]
 
   @@index([tenantId])
   @@index([email])
@@ -1054,4 +1056,52 @@ model PushSubscription {
   @@unique([userId, endpoint])
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+// ============================================================================
+// SALLY AI CONVERSATION MODELS
+// ============================================================================
+
+model Conversation {
+  id                Int                   @id @default(autoincrement())
+  conversationId    String                @unique @map("conversation_id") @db.VarChar(50)
+
+  tenant            Tenant                @relation(fields: [tenantId], references: [id])
+  tenantId          Int                   @map("tenant_id")
+
+  user              User                  @relation(fields: [userId], references: [id])
+  userId            Int                   @map("user_id")
+
+  userMode          String                @map("user_mode") @db.VarChar(20)
+  title             String?               @db.VarChar(255)
+  isActive          Boolean               @default(true) @map("is_active")
+
+  createdAt         DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+
+  messages          ConversationMessage[]
+
+  @@index([tenantId, userId, createdAt])
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id                Int                   @id @default(autoincrement())
+  messageId         String                @unique @map("message_id") @db.VarChar(50)
+
+  conversation      Conversation          @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId    Int                   @map("conversation_id")
+
+  role              String                @db.VarChar(20)
+  content           String                @db.Text
+  inputMode         String                @map("input_mode") @db.VarChar(10)
+  intent            String?               @db.VarChar(50)
+  card              Json?
+  action            Json?
+  speakText         String?               @map("speak_text") @db.Text
+
+  createdAt         DateTime              @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([conversationId, createdAt])
+  @@map("conversation_messages")
 }
