@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/shared/components/ui/card';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/components/ui/select';
 import { Button } from '@/shared/components/ui/button';
@@ -83,11 +83,14 @@ export default function DriverRouteDisplayPage() {
       <Card>
         <CardHeader>
           <CardTitle>Route Display</CardTitle>
+          <CardDescription>Control what information is shown on your route view.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Timeline View</Label>
-            <p className="text-xs text-muted-foreground">How your route timeline is displayed. &ldquo;Detailed&rdquo; shows every stop and segment, &ldquo;Summary&rdquo; shows only key stops.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Timeline View</Label>
+              <p className="text-xs text-muted-foreground">How your route timeline is displayed. &ldquo;Detailed&rdquo; shows every stop and segment, &ldquo;Summary&rdquo; shows only key stops.</p>
+            </div>
             <Select value={formData.timelineView || 'DETAILED'} onValueChange={(v) => handleChange('timelineView', v)}>
               <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
               <SelectContent>

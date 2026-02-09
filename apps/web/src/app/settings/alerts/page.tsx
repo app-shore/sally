@@ -403,9 +403,11 @@ export default function AlertsSettingsPage() {
           <CardDescription>Configure how related alerts are grouped to reduce noise.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Deduplication Window (minutes)</Label>
-            <p className="text-xs text-muted-foreground">Suppress duplicate alerts of the same type for the same driver within this window.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Deduplication Window (minutes)</Label>
+              <p className="text-xs text-muted-foreground">Suppress duplicate alerts of the same type for the same driver within this window.</p>
+            </div>
             <Input
               type="number"
               min="1"
@@ -474,7 +476,7 @@ export default function AlertsSettingsPage() {
             {saving ? (
               <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</>
             ) : (
-              <><Save className="h-4 w-4 mr-2" />Save Configuration</>
+              <><Save className="h-4 w-4 mr-2" />Save Changes</>
             )}
           </Button>
         </div>
