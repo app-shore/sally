@@ -112,7 +112,10 @@ export function AppSidebar({
               }
 
               const navItem = item as NavItem;
-              const isActive = pathname === navItem.href || pathname?.startsWith(navItem.href + '/');
+              const settingsPrefix = '/settings';
+              const isActive = navItem.href.startsWith(settingsPrefix)
+                ? pathname?.startsWith(settingsPrefix)
+                : pathname === navItem.href || pathname?.startsWith(navItem.href + '/');
               const Icon = navItem.icon;
               const isSetupHub = navItem.href === '/setup-hub';
               const showBadge = isSetupHub && (user?.role === 'OWNER' || user?.role === 'ADMIN');
