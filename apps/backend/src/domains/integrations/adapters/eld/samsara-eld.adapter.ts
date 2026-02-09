@@ -6,6 +6,28 @@ import {
 } from './eld-adapter.interface';
 import axios from 'axios';
 
+export interface HOSClockData {
+  driverId: string;
+  driverName: string;
+  currentDutyStatus: 'driving' | 'onDuty' | 'offDuty' | 'sleeperBerth';
+  driveTimeRemainingMs: number;
+  shiftTimeRemainingMs: number;
+  cycleTimeRemainingMs: number;
+  timeUntilBreakMs: number;
+  lastUpdated: string;
+}
+
+export interface VehicleLocationData {
+  vehicleId: string;
+  gps: {
+    latitude: number;
+    longitude: number;
+    speedMilesPerHour: number;
+    headingDegrees: number;
+    time: string;
+  };
+}
+
 /**
  * Samsara ELD Adapter
  *
@@ -109,6 +131,60 @@ export class SamsaraELDAdapter implements IELDAdapter {
     });
 
     return response.data.data;
+  }
+
+  /**
+   * Get HOS clock data for all drivers
+   */
+  async getHOSClocks(apiToken: string): Promise<HOSClockData[]> {
+    const response = await axios.get(`${this.baseUrl}/fleet/hos/clocks`, {
+      headers: { Authorization: `Bearer ${apiToken}` },
+    });
+
+    return (response.data.data || []).map((entry: any) => ({
+      driverId: entry.driver?.id ?? '',
+      driverName: entry.driver?.name ?? '',
+      currentDutyStatus: this.mapDutyStatus(entry.currentDutyStatus?.type),
+      driveTimeRemainingMs: entry.clocks?.drive?.remainingDurationMs ?? 0,
+      shiftTimeRemainingMs: entry.clocks?.shift?.remainingDurationMs ?? 0,
+      cycleTimeRemainingMs: entry.clocks?.cycle?.remainingDurationMs ?? 0,
+      timeUntilBreakMs: entry.clocks?.break?.remainingDurationMs ?? 0,
+      lastUpdated: new Date().toISOString(),
+    }));
+  }
+
+  /**
+   * Get GPS location data for all vehicles
+   */
+  async getVehicleLocations(apiToken: string): Promise<VehicleLocationData[]> {
+    const response = await axios.get(
+      `${this.baseUrl}/fleet/vehicles/stats?types=gps`,
+      { headers: { Authorization: `Bearer ${apiToken}` } },
+    );
+
+    return (response.data.data || []).map((entry: any) => ({
+      vehicleId: entry.id ?? '',
+      gps: {
+        latitude: entry.gps?.latitude ?? 0,
+        longitude: entry.gps?.longitude ?? 0,
+        speedMilesPerHour: entry.gps?.speedMilesPerHour ?? 0,
+        headingDegrees: entry.gps?.headingDegrees ?? 0,
+        time: entry.gps?.time ?? new Date().toISOString(),
+      },
+    }));
+  }
+
+  private mapDutyStatus(raw: string): HOSClockData['currentDutyStatus'] {
+    const map: Record<string, HOSClockData['currentDutyStatus']> = {
+      driving: 'driving',
+      onDuty: 'onDuty',
+      on_duty: 'onDuty',
+      offDuty: 'offDuty',
+      off_duty: 'offDuty',
+      sleeperBerth: 'sleeperBerth',
+      sleeper_berth: 'sleeperBerth',
+    };
+    return map[raw] ?? 'offDuty';
   }
 
   /**
