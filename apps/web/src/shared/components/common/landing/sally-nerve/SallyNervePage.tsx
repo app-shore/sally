@@ -327,7 +327,7 @@ export function SallyNerveLanding() {
                   whileInView={{ opacity: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.8 }}
-                  className="text-xs md:text-sm tracking-wide text-muted-foreground max-w-xs mx-auto md:mx-0"
+                  className={`text-xs md:text-sm tracking-wide text-muted-foreground max-w-xs mx-auto ${i === 1 ? 'md:ml-auto' : 'md:mx-0'}`}
                 >
                   {stat.label}
                 </motion.p>
