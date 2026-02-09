@@ -8,6 +8,25 @@
 
 **Tech Stack:** NestJS 11, Prisma 7.3, PostgreSQL, class-validator DTOs, nanoid IDs, Zustand 5, `apiClient` from `@/shared/lib/api`, Framer Motion (history UI animations)
 
+### Implementation Decision: Domain Naming (decided during execution)
+
+The plan originally used `conversations/` as the backend domain folder. During implementation, we renamed it to **`sally-ai/`** to:
+- Mirror the frontend feature folder (`features/platform/sally-ai/`)
+- Accommodate future AI features (RAG, streaming, Claude API integration, context injection) under one domain
+- Avoid needing to restructure later when the domain grows beyond just conversations
+
+**Backend structure:**
+```
+domains/platform/sally-ai/
+  ├── engine/              (classifier, generator, mock-data, types)
+  ├── dto/                 (create-conversation, send-message)
+  ├── sally-ai.module.ts   (SallyAiModule)
+  ├── sally-ai.controller.ts (SallyAiController, route prefix: /conversations)
+  └── sally-ai.service.ts  (SallyAiService)
+```
+
+The HTTP route prefix remains `/conversations` — only the code organization changed.
+
 ---
 
 ## Task 1: Prisma Schema — Conversation + Message Models
@@ -2089,7 +2108,7 @@ Expected: Build succeeds
 | Component | Change |
 |-----------|--------|
 | **Prisma schema** | New `Conversation` + `ConversationMessage` models |
-| **Backend** | New `conversations/` module with controller, service, DTOs, engine |
+| **Backend** | New `sally-ai/` domain with SallyAiController, SallyAiService, DTOs, engine |
 | **Frontend API** | New `api.ts` client for conversation endpoints |
 | **Store** | `sendMessage` calls API (dispatcher/driver), adds history state |
 | **SallyChat** | Empty state shows recent conversations, supports view-only mode |

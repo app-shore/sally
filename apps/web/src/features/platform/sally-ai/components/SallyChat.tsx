@@ -10,14 +10,43 @@ import { SallySuggestions } from './SallySuggestions';
 import { SallyInput } from './SallyInput';
 import { SallyOrb } from './SallyOrb';
 
+function formatRelativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 1) return 'just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  return `${diffDay}d ago`;
+}
+
 export function SallyChat() {
-  const { messages, orbState, userMode, sendMessage, clearSession, expandStrip } = useSallyStore();
+  const {
+    messages,
+    orbState,
+    userMode,
+    pastConversations,
+    isViewingHistory,
+    viewedMessages,
+    isLoadingHistory,
+    sendMessage,
+    clearSession,
+    expandStrip,
+    loadHistory,
+    viewConversation,
+    clearView,
+  } = useSallyStore();
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, viewedMessages]);
 
   // Re-show suggestions when conversation is cleared (new session)
   useEffect(() => {
@@ -26,7 +55,15 @@ export function SallyChat() {
     }
   }, [messages.length]);
 
+  // Load history on mount for non-prospect modes
+  useEffect(() => {
+    if (userMode !== 'prospect') {
+      loadHistory();
+    }
+  }, [userMode, loadHistory]);
+
   const hasOnlyGreeting = messages.length <= 1;
+  const displayMessages = isViewingHistory ? viewedMessages : messages;
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -43,8 +80,31 @@ export function SallyChat() {
           />
 
           <div className="relative p-4 space-y-4">
+            {/* View-only banner */}
+            {isViewingHistory && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between"
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearView}
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M19 12H5" />
+                    <path d="M12 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </Button>
+                <span className="text-[10px] text-muted-foreground">View-only</span>
+              </motion.div>
+            )}
+
             {/* Empty state: centered orb with "How can I help?" */}
-            {hasOnlyGreeting && (
+            {!isViewingHistory && hasOnlyGreeting && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -58,14 +118,76 @@ export function SallyChat() {
               </motion.div>
             )}
 
+            {/* Recent conversations (empty state, non-prospect) */}
+            {!isViewingHistory && hasOnlyGreeting && userMode !== 'prospect' && pastConversations.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+                className="space-y-2"
+              >
+                <div className="flex items-center gap-2 px-1">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Recent</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+
+                <div className="space-y-1">
+                  {pastConversations.slice(0, 5).map((conv, i) => (
+                    <motion.button
+                      key={conv.conversationId}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + i * 0.05 }}
+                      onClick={() => viewConversation(conv.conversationId)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-foreground truncate">
+                          {conv.title || 'Untitled conversation'}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {conv.messageCount} messages
+                        </p>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                        {formatRelativeTime(conv.lastMessageAt)}
+                      </span>
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Loading history spinner */}
+            {isLoadingHistory && (
+              <div className="flex justify-center py-4">
+                <div className="flex items-center gap-[3px] h-6">
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-[3px] bg-muted-foreground rounded-full"
+                      animate={{ height: ['6px', '14px', '6px'] }}
+                      transition={{
+                        duration: 0.6,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                        delay: i * 0.1,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Messages */}
-            {messages.map(message => (
+            {displayMessages.map(message => (
               <SallyMessage key={message.id} message={message} />
             ))}
 
             {/* Thinking: animated waveform */}
             <AnimatePresence>
-              {orbState === 'thinking' && (
+              {!isViewingHistory && orbState === 'thinking' && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -95,7 +217,7 @@ export function SallyChat() {
             </AnimatePresence>
 
             {/* Inline "start new" — appears after a few exchanges */}
-            {messages.length >= 4 && orbState !== 'thinking' && (
+            {!isViewingHistory && messages.length >= 4 && orbState !== 'thinking' && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -123,45 +245,49 @@ export function SallyChat() {
         </div>
       </ScrollArea>
 
-      {/* Suggestions */}
-      <AnimatePresence>
-        {showSuggestions && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden border-t border-border"
-          >
-            <SallySuggestions
-              mode={userMode}
-              onSelect={(text) => {
-                sendMessage(text, 'text');
-                setShowSuggestions(false);
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Suggestions — hidden when viewing history */}
+      {!isViewingHistory && (
+        <AnimatePresence>
+          {showSuggestions && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden border-t border-border"
+            >
+              <SallySuggestions
+                mode={userMode}
+                onSelect={(text) => {
+                  sendMessage(text, 'text');
+                  setShowSuggestions(false);
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
-      {/* Input area */}
-      <div className="border-t border-border">
-        <div className="flex items-center justify-end px-3 pt-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowSuggestions(prev => !prev)}
-            className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground gap-1"
-          >
-            {/* Sparkle icon */}
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <path d="M6 1L7 5L11 6L7 7L6 11L5 7L1 6L5 5L6 1Z" />
-            </svg>
-            {showSuggestions ? 'Hide quick actions' : 'Quick actions'}
-          </Button>
+      {/* Input area — hidden when viewing history */}
+      {!isViewingHistory && (
+        <div className="border-t border-border">
+          <div className="flex items-center justify-end px-3 pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSuggestions(prev => !prev)}
+              className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground gap-1"
+            >
+              {/* Sparkle icon */}
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M6 1L7 5L11 6L7 7L6 11L5 7L1 6L5 5L6 1Z" />
+              </svg>
+              {showSuggestions ? 'Hide quick actions' : 'Quick actions'}
+            </Button>
+          </div>
+          <SallyInput />
         </div>
-        <SallyInput />
-      </div>
+      )}
     </div>
   );
 }
