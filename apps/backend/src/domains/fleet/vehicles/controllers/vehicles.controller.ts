@@ -49,6 +49,10 @@ export class VehiclesController extends BaseTenantController {
       id: vehicle.id,
       vehicle_id: vehicle.vehicleId,
       unit_number: vehicle.unitNumber,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      vin: vehicle.vin,
       fuel_capacity_gallons: vehicle.fuelCapacityGallons,
       current_fuel_gallons: vehicle.currentFuelGallons,
       mpg: vehicle.mpg,
@@ -69,21 +73,25 @@ export class VehiclesController extends BaseTenantController {
   ) {
     const tenantDbId = await this.getTenantDbId(user);
 
-    const vehicle = await this.vehiclesService.create(
-      tenantDbId,
-      createVehicleDto.vehicle_id,
-      {
-        unit_number: createVehicleDto.unit_number,
-        fuel_capacity_gallons: createVehicleDto.fuel_capacity_gallons,
-        current_fuel_gallons: createVehicleDto.current_fuel_gallons,
-        mpg: createVehicleDto.mpg,
-      },
-    );
+    const vehicle = await this.vehiclesService.create(tenantDbId, {
+      unit_number: createVehicleDto.unit_number,
+      make: createVehicleDto.make,
+      model: createVehicleDto.model,
+      year: createVehicleDto.year,
+      vin: createVehicleDto.vin,
+      fuel_capacity_gallons: createVehicleDto.fuel_capacity_gallons,
+      current_fuel_gallons: createVehicleDto.current_fuel_gallons,
+      mpg: createVehicleDto.mpg,
+    });
 
     return {
       id: vehicle.id,
       vehicle_id: vehicle.vehicleId,
       unit_number: vehicle.unitNumber,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      vin: vehicle.vin,
       fuel_capacity_gallons: vehicle.fuelCapacityGallons,
       current_fuel_gallons: vehicle.currentFuelGallons,
       mpg: vehicle.mpg,
@@ -105,21 +113,25 @@ export class VehiclesController extends BaseTenantController {
   ) {
     const tenantDbId = await this.getTenantDbId(user);
 
-    const vehicle = await this.vehiclesService.update(
-      vehicleId,
-      tenantDbId,
-      {
-        unit_number: updateVehicleDto.unit_number,
-        fuel_capacity_gallons: updateVehicleDto.fuel_capacity_gallons,
-        current_fuel_gallons: updateVehicleDto.current_fuel_gallons,
-        mpg: updateVehicleDto.mpg,
-      },
-    );
+    const vehicle = await this.vehiclesService.update(vehicleId, tenantDbId, {
+      unit_number: updateVehicleDto.unit_number,
+      make: updateVehicleDto.make,
+      model: updateVehicleDto.model,
+      year: updateVehicleDto.year,
+      vin: updateVehicleDto.vin,
+      fuel_capacity_gallons: updateVehicleDto.fuel_capacity_gallons,
+      current_fuel_gallons: updateVehicleDto.current_fuel_gallons,
+      mpg: updateVehicleDto.mpg,
+    });
 
     return {
       id: vehicle.id,
       vehicle_id: vehicle.vehicleId,
       unit_number: vehicle.unitNumber,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      vin: vehicle.vin,
       fuel_capacity_gallons: vehicle.fuelCapacityGallons,
       current_fuel_gallons: vehicle.currentFuelGallons,
       mpg: vehicle.mpg,

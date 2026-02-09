@@ -61,6 +61,9 @@ export class DriversController extends BaseTenantController {
       id: driver.id,
       driver_id: driver.driverId,
       name: driver.name,
+      license_number: driver.licenseNumber,
+      phone: driver.phone,
+      email: driver.email,
       is_active: driver.isActive,
       external_driver_id: driver.externalDriverId,
       external_source: driver.externalSource,
@@ -79,16 +82,20 @@ export class DriversController extends BaseTenantController {
   ) {
     const tenantDbId = await this.getTenantDbId(user);
 
-    const driver = await this.driversService.create(
-      tenantDbId,
-      createDriverDto.driver_id,
-      createDriverDto.name,
-    );
+    const driver = await this.driversService.create(tenantDbId, {
+      name: createDriverDto.name,
+      license_number: createDriverDto.license_number,
+      phone: createDriverDto.phone,
+      email: createDriverDto.email,
+    });
 
     return {
       id: driver.id,
       driver_id: driver.driverId,
       name: driver.name,
+      license_number: driver.licenseNumber,
+      phone: driver.phone,
+      email: driver.email,
       is_active: driver.isActive,
       created_at: driver.createdAt,
       updated_at: driver.updatedAt,
@@ -108,16 +115,20 @@ export class DriversController extends BaseTenantController {
   ) {
     const tenantDbId = await this.getTenantDbId(user);
 
-    const driver = await this.driversService.update(
-      driverId,
-      tenantDbId,
-      updateDriverDto.name,
-    );
+    const driver = await this.driversService.update(driverId, tenantDbId, {
+      name: updateDriverDto.name,
+      license_number: updateDriverDto.license_number,
+      phone: updateDriverDto.phone,
+      email: updateDriverDto.email,
+    });
 
     return {
       id: driver.id,
       driver_id: driver.driverId,
       name: driver.name,
+      license_number: driver.licenseNumber,
+      phone: driver.phone,
+      email: driver.email,
       is_active: driver.isActive,
       updated_at: driver.updatedAt,
     };
@@ -163,6 +174,9 @@ export class DriversController extends BaseTenantController {
       id: driver.id,
       driver_id: driver.driverId,
       name: driver.name,
+      license_number: driver.licenseNumber,
+      phone: driver.phone,
+      email: driver.email,
       is_active: driver.isActive,
       created_at: driver.createdAt,
       updated_at: driver.updatedAt,

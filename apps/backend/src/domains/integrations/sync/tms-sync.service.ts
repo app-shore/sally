@@ -281,6 +281,7 @@ export class TmsSyncService {
           externalSource: vendor,
           lastSyncedAt: new Date(),
           isActive: true,
+          tenantId,
         },
       });
 
