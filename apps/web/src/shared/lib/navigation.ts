@@ -1,4 +1,4 @@
-import { BarChart3, Building2, FileText, Flag, Home, LucideIcon, Map, MessageSquare, Package, Plus, Rocket, Settings, Truck, Users, Wallet } from 'lucide-react';
+import { Activity, BarChart3, Building2, FileText, Flag, Home, LucideIcon, Map, MessageSquare, Package, Plus, Rocket, Settings, Truck, Users, Wallet } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -30,6 +30,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Truck },
+    { label: 'Monitoring', href: '/dispatcher/monitoring', icon: Activity },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
     { type: 'separator', label: 'Financials' } as NavSeparator,
     { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
@@ -56,6 +57,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
+    { label: 'Monitoring', href: '/dispatcher/monitoring', icon: Activity },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
     { type: 'separator', label: 'Financials' } as NavSeparator,
     { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
@@ -74,6 +76,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
+    { label: 'Monitoring', href: '/dispatcher/monitoring', icon: Activity },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
     { type: 'separator', label: 'Financials' } as NavSeparator,
     { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },

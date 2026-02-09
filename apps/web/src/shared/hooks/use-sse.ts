@@ -80,6 +80,15 @@ export function useSSE(options: UseSSEOptions = {}) {
       // Connection alive
     });
 
+    eventSource.addEventListener('monitoring:cycle_complete', () => {
+      queryClient.invalidateQueries({ queryKey: ['monitoring'] });
+    });
+
+    eventSource.addEventListener('monitoring:trigger_fired', () => {
+      queryClient.invalidateQueries({ queryKey: ['monitoring'] });
+      queryClient.invalidateQueries({ queryKey: ['alerts'] });
+    });
+
     eventSource.onerror = () => {
       eventSource.close();
       // Reconnect after 5 seconds
