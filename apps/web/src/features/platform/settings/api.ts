@@ -163,24 +163,11 @@ export interface ChannelConfig {
   sms: boolean;
 }
 
-export interface ComplianceThresholds {
-  driveHoursWarningPct: number;
-  driveHoursCriticalPct: number;
-  onDutyWarningPct: number;
-  onDutyCriticalPct: number;
-  sinceBreakWarningPct: number;
-  sinceBreakCriticalPct: number;
-  delayThresholdMinutes: number;
-  hosApproachingPct: number;
-  costOverrunPct: number;
-}
-
 export interface AlertConfiguration {
   alertTypes: Record<string, AlertTypeConfig>;
   escalationPolicy: Record<string, EscalationPolicyConfig>;
   groupingConfig: GroupingConfig;
   defaultChannels: Record<string, ChannelConfig>;
-  complianceThresholds: ComplianceThresholds;
 }
 
 export async function getAlertConfig(): Promise<AlertConfiguration> {
