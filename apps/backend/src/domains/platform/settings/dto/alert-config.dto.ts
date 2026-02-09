@@ -16,4 +16,18 @@ export class UpdateAlertConfigDto {
   @IsOptional()
   @IsObject()
   defaultChannels?: Record<string, { inApp: boolean; email: boolean; push: boolean; sms: boolean }>;
+
+  @IsOptional()
+  @IsObject()
+  complianceThresholds?: {
+    driveHoursWarningPct: number;
+    driveHoursCriticalPct: number;
+    onDutyWarningPct: number;
+    onDutyCriticalPct: number;
+    sinceBreakWarningPct: number;
+    sinceBreakCriticalPct: number;
+    delayThresholdMinutes: number;
+    hosApproachingPct: number;
+    costOverrunPct: number;
+  };
 }

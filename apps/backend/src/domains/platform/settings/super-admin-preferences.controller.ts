@@ -5,7 +5,7 @@ import { Roles } from '../../../auth/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
 
-@Controller('preferences/admin')
+@Controller('settings/admin')
 export class SuperAdminPreferencesController {
   constructor(
     private readonly superAdminPreferencesService: SuperAdminPreferencesService,

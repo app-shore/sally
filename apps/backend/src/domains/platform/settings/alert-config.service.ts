@@ -36,6 +36,17 @@ export class AlertConfigService {
         medium: { inApp: true, email: false, push: false, sms: false },
         low: { inApp: true, email: false, push: false, sms: false },
       },
+      complianceThresholds: {
+        driveHoursWarningPct: 75,
+        driveHoursCriticalPct: 90,
+        onDutyWarningPct: 75,
+        onDutyCriticalPct: 90,
+        sinceBreakWarningPct: 75,
+        sinceBreakCriticalPct: 90,
+        delayThresholdMinutes: 30,
+        hosApproachingPct: 85,
+        costOverrunPct: 10,
+      },
     };
   }
 
@@ -51,6 +62,7 @@ export class AlertConfigService {
       escalationPolicy: config.escalationPolicy,
       groupingConfig: config.groupingConfig,
       defaultChannels: config.defaultChannels,
+      complianceThresholds: config.complianceThresholds || this.getDefaults().complianceThresholds,
     };
   }
 
@@ -65,12 +77,14 @@ export class AlertConfigService {
         escalationPolicy: dto.escalationPolicy || defaults.escalationPolicy,
         groupingConfig: dto.groupingConfig || defaults.groupingConfig,
         defaultChannels: dto.defaultChannels || defaults.defaultChannels,
+        complianceThresholds: dto.complianceThresholds || defaults.complianceThresholds,
       },
       update: {
         ...(dto.alertTypes && { alertTypes: dto.alertTypes }),
         ...(dto.escalationPolicy && { escalationPolicy: dto.escalationPolicy }),
         ...(dto.groupingConfig && { groupingConfig: dto.groupingConfig }),
         ...(dto.defaultChannels && { defaultChannels: dto.defaultChannels }),
+        ...(dto.complianceThresholds && { complianceThresholds: dto.complianceThresholds }),
       },
     });
   }

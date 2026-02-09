@@ -46,12 +46,6 @@ export interface OperationsSettings {
   defaultDriveHours: number;
   defaultOnDutyHours: number;
   defaultSinceBreakHours: number;
-  driveHoursWarningPct: number;
-  driveHoursCriticalPct: number;
-  onDutyWarningPct: number;
-  onDutyCriticalPct: number;
-  sinceBreakWarningPct: number;
-  sinceBreakCriticalPct: number;
   defaultOptimizationMode: string;
   costPerMile: number;
   laborCostPerHour: number;
@@ -65,9 +59,6 @@ export interface OperationsSettings {
   defaultLoadAssignment: string;
   defaultDriverSelection: string;
   defaultVehicleSelection: string;
-  delayThresholdMinutes: number;
-  hosApproachingPct: number;
-  costOverrunPct: number;
   reportTimezone: string;
   includeMapInReports: boolean;
   reportEmailRecipients: string[];
@@ -101,11 +92,11 @@ export interface DriverPreferences {
 // ============================================================================
 
 export async function getUserPreferences(): Promise<UserPreferences> {
-  return apiClient<UserPreferences>('/preferences/user');
+  return apiClient<UserPreferences>('/settings/general');
 }
 
 export async function updateUserPreferences(updates: Partial<UserPreferences>): Promise<UserPreferences> {
-  return apiClient<UserPreferences>('/preferences/user', {
+  return apiClient<UserPreferences>('/settings/general', {
     method: 'PUT',
     body: JSON.stringify(updates),
   });
@@ -116,11 +107,11 @@ export async function updateUserPreferences(updates: Partial<UserPreferences>): 
 // ============================================================================
 
 export async function getOperationsSettings(): Promise<OperationsSettings> {
-  return apiClient<OperationsSettings>('/preferences/operations');
+  return apiClient<OperationsSettings>('/settings/operations');
 }
 
 export async function updateOperationsSettings(updates: Partial<OperationsSettings>): Promise<OperationsSettings> {
-  return apiClient<OperationsSettings>('/preferences/operations', {
+  return apiClient<OperationsSettings>('/settings/operations', {
     method: 'PUT',
     body: JSON.stringify(updates),
   });
@@ -131,11 +122,11 @@ export async function updateOperationsSettings(updates: Partial<OperationsSettin
 // ============================================================================
 
 export async function getDriverPreferences(): Promise<DriverPreferences> {
-  return apiClient<DriverPreferences>('/preferences/driver');
+  return apiClient<DriverPreferences>('/settings/driver');
 }
 
 export async function updateDriverPreferences(updates: Partial<DriverPreferences>): Promise<DriverPreferences> {
-  return apiClient<DriverPreferences>('/preferences/driver', {
+  return apiClient<DriverPreferences>('/settings/driver', {
     method: 'PUT',
     body: JSON.stringify(updates),
   });
@@ -172,11 +163,24 @@ export interface ChannelConfig {
   sms: boolean;
 }
 
+export interface ComplianceThresholds {
+  driveHoursWarningPct: number;
+  driveHoursCriticalPct: number;
+  onDutyWarningPct: number;
+  onDutyCriticalPct: number;
+  sinceBreakWarningPct: number;
+  sinceBreakCriticalPct: number;
+  delayThresholdMinutes: number;
+  hosApproachingPct: number;
+  costOverrunPct: number;
+}
+
 export interface AlertConfiguration {
   alertTypes: Record<string, AlertTypeConfig>;
   escalationPolicy: Record<string, EscalationPolicyConfig>;
   groupingConfig: GroupingConfig;
   defaultChannels: Record<string, ChannelConfig>;
+  complianceThresholds: ComplianceThresholds;
 }
 
 export async function getAlertConfig(): Promise<AlertConfiguration> {
@@ -196,11 +200,11 @@ export async function updateAlertConfig(updates: Partial<AlertConfiguration>): P
 
 export async function resetToDefaults(scope: 'user' | 'operations' | 'driver'): Promise<PreferencesResetResponse> {
   if (scope === 'operations') {
-    return apiClient<PreferencesResetResponse>('/preferences/operations/reset', {
+    return apiClient<PreferencesResetResponse>('/settings/operations/reset', {
       method: 'POST',
     });
   }
-  return apiClient<PreferencesResetResponse>('/preferences/reset', {
+  return apiClient<PreferencesResetResponse>('/settings/reset', {
     method: 'POST',
     body: JSON.stringify({ scope }),
   });
