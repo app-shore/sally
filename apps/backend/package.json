@@ -28,7 +28,10 @@
     "db:reset": "prisma migrate reset --force",
     "db:push": "prisma db push",
     "db:cleanup": "npx ts-node --transpile-only scripts/cleanup-for-testing.ts",
-    "bootstrap:super-admin": "ts-node scripts/create-super-admin.ts",
+    "setup:base": "ts-node prisma/seeds/index.ts --profile base",
+    "setup:demo": "ts-node prisma/seeds/index.ts --profile demo",
+    "setup:reset": "prisma migrate reset --force && ts-node prisma/seeds/index.ts --profile base",
+    "setup:status": "ts-node prisma/seeds/index.ts --status",
     "firebase:create-users": "ts-node scripts/create-firebase-users.ts",
     "firebase:link-uids": "ts-node scripts/link-firebase-uids.ts"
   },

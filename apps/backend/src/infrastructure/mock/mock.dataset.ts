@@ -1,28 +1,61 @@
-import type { ActiveRouteDto, DriverHOSChipDto } from './command-center.types';
+/**
+ * Mock Dataset — Single Source of Truth
+ *
+ * All mock entity data lives here. Every service that needs mock data
+ * imports from this file instead of maintaining its own inline data.
+ *
+ * Used by:
+ * - Command center service (runtime mock routes, KPIs, HOS)
+ * - Seed scripts (sample alerts, notifications)
+ *
+ * NOT used by:
+ * - TMS adapters (they simulate external API responses in their own format)
+ */
+
+import type {
+  ActiveRouteDto,
+  DriverHOSChipDto,
+} from '../../domains/operations/command-center/command-center.types';
 
 // ---------------------------------------------------------------------------
-// Constants — realistic seed data
+// Mock Drivers (10)
 // ---------------------------------------------------------------------------
 
-const DRIVERS = [
-  { id: 'DRV-001', name: 'Mike Johnson' },
-  { id: 'DRV-002', name: 'Sarah Chen' },
-  { id: 'DRV-003', name: 'James Williams' },
-  { id: 'DRV-004', name: 'Maria Garcia' },
-  { id: 'DRV-005', name: 'Robert Davis' },
-  { id: 'DRV-006', name: 'Emily Wilson' },
-  { id: 'DRV-007', name: 'David Martinez' },
-  { id: 'DRV-008', name: 'Lisa Anderson' },
-  { id: 'DRV-009', name: 'Thomas Brown' },
-  { id: 'DRV-010', name: 'Jennifer Taylor' },
+export const MOCK_DRIVERS = [
+  { id: 'DRV-001', firstName: 'Mike', lastName: 'Johnson', phone: '555-0101', email: 'mike.johnson@carrier.com', licenseNumber: 'TX-CDL-20198', licenseState: 'TX' },
+  { id: 'DRV-002', firstName: 'Sarah', lastName: 'Chen', phone: '555-0102', email: 'sarah.chen@carrier.com', licenseNumber: 'IL-CDL-31045', licenseState: 'IL' },
+  { id: 'DRV-003', firstName: 'James', lastName: 'Williams', phone: '555-0103', email: 'james.williams@carrier.com', licenseNumber: 'GA-CDL-42587', licenseState: 'GA' },
+  { id: 'DRV-004', firstName: 'Maria', lastName: 'Garcia', phone: '555-0104', email: 'maria.garcia@carrier.com', licenseNumber: 'CA-CDL-53219', licenseState: 'CA' },
+  { id: 'DRV-005', firstName: 'Robert', lastName: 'Davis', phone: '555-0105', email: 'robert.davis@carrier.com', licenseNumber: 'FL-CDL-64873', licenseState: 'FL' },
+  { id: 'DRV-006', firstName: 'Emily', lastName: 'Wilson', phone: '555-0106', email: 'emily.wilson@carrier.com', licenseNumber: 'OH-CDL-75634', licenseState: 'OH' },
+  { id: 'DRV-007', firstName: 'David', lastName: 'Martinez', phone: '555-0107', email: 'david.martinez@carrier.com', licenseNumber: 'TN-CDL-86492', licenseState: 'TN' },
+  { id: 'DRV-008', firstName: 'Lisa', lastName: 'Anderson', phone: '555-0108', email: 'lisa.anderson@carrier.com', licenseNumber: 'PA-CDL-97358', licenseState: 'PA' },
+  { id: 'DRV-009', firstName: 'Thomas', lastName: 'Brown', phone: '555-0109', email: 'thomas.brown@carrier.com', licenseNumber: 'NC-CDL-08216', licenseState: 'NC' },
+  { id: 'DRV-010', firstName: 'Jennifer', lastName: 'Taylor', phone: '555-0110', email: 'jennifer.taylor@carrier.com', licenseNumber: 'MO-CDL-19074', licenseState: 'MO' },
 ];
 
-const VEHICLES = [
-  'TRK-001', 'TRK-002', 'TRK-003', 'TRK-004', 'TRK-005',
-  'TRK-006', 'TRK-007', 'TRK-008', 'TRK-009', 'TRK-010',
+// ---------------------------------------------------------------------------
+// Mock Vehicles (10)
+// ---------------------------------------------------------------------------
+
+export const MOCK_VEHICLES = [
+  { id: 'VH-TRK-001', unitNumber: 'TRK-001' },
+  { id: 'VH-TRK-002', unitNumber: 'TRK-002' },
+  { id: 'VH-TRK-003', unitNumber: 'TRK-003' },
+  { id: 'VH-TRK-004', unitNumber: 'TRK-004' },
+  { id: 'VH-TRK-005', unitNumber: 'TRK-005' },
+  { id: 'VH-TRK-006', unitNumber: 'TRK-006' },
+  { id: 'VH-TRK-007', unitNumber: 'TRK-007' },
+  { id: 'VH-TRK-008', unitNumber: 'TRK-008' },
+  { id: 'VH-TRK-009', unitNumber: 'TRK-009' },
+  { id: 'VH-TRK-010', unitNumber: 'TRK-010' },
 ];
 
-const STOPS = [
+// ---------------------------------------------------------------------------
+// Mock Stops (15) — for command center runtime display
+// ---------------------------------------------------------------------------
+
+export const MOCK_STOPS = [
   { name: 'Dallas Distribution Center', location: 'Dallas, TX' },
   { name: 'Houston Warehouse', location: 'Houston, TX' },
   { name: 'Atlanta Hub', location: 'Atlanta, GA' },
@@ -41,6 +74,15 @@ const STOPS = [
 ];
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Helper to get full name from a mock driver */
+export function driverName(driver: (typeof MOCK_DRIVERS)[number]): string {
+  return `${driver.firstName} ${driver.lastName}`;
+}
+
+// ---------------------------------------------------------------------------
 // Deterministic pseudo-random based on tenant + current 30-second window
 // ---------------------------------------------------------------------------
 
@@ -53,29 +95,27 @@ function seededRandom(seed: number): () => number {
 }
 
 function getSeed(tenantId: number): number {
-  // Changes every 30 seconds so data refreshes but is stable within a window
   const timeSlot = Math.floor(Date.now() / 30000);
   return tenantId * 100000 + timeSlot;
 }
 
 // ---------------------------------------------------------------------------
-// Generators
+// Runtime Generators (for command center)
 // ---------------------------------------------------------------------------
 
 export function generateMockActiveRoutes(tenantId: number): ActiveRouteDto[] {
   const rand = seededRandom(getSeed(tenantId));
-  const routeCount = 8 + Math.floor(rand() * 4); // 8-11 routes
+  const routeCount = 8 + Math.floor(rand() * 4);
   const routes: ActiveRouteDto[] = [];
 
   for (let i = 0; i < routeCount; i++) {
-    const driver = DRIVERS[i % DRIVERS.length];
-    const vehicle = VEHICLES[i % VEHICLES.length];
-    const totalStops = 4 + Math.floor(rand() * 7); // 4-10 stops
+    const driver = MOCK_DRIVERS[i % MOCK_DRIVERS.length];
+    const vehicle = MOCK_VEHICLES[i % MOCK_VEHICLES.length];
+    const totalStops = 4 + Math.floor(rand() * 7);
     const completedStops = Math.floor(rand() * totalStops);
-    const totalDistance = 200 + Math.floor(rand() * 800); // 200-1000 miles
+    const totalDistance = 200 + Math.floor(rand() * 800);
     const distanceCompleted = Math.floor((completedStops / totalStops) * totalDistance);
 
-    // Determine status distribution: ~50% in_transit, ~20% at_dock, ~15% resting, ~15% completed
     const statusRoll = rand();
     let status: ActiveRouteDto['status'];
     if (statusRoll < 0.50) status = 'in_transit';
@@ -83,27 +123,23 @@ export function generateMockActiveRoutes(tenantId: number): ActiveRouteDto[] {
     else if (statusRoll < 0.85) status = 'resting';
     else status = 'completed';
 
-    // HOS values
-    const driveHours = status === 'completed' ? 0 : 0.5 + rand() * 10; // 0.5-10.5h
+    const driveHours = status === 'completed' ? 0 : 0.5 + rand() * 10;
     const dutyHours = driveHours + 1 + rand() * 3;
     const cycleHours = dutyHours + 10 + rand() * 30;
     const breakHours = rand() * 8;
 
-    // Driver HOS status matches route status
     let hosStatus: ActiveRouteDto['hos']['status'];
     if (status === 'in_transit') hosStatus = 'driving';
     else if (status === 'at_dock') hosStatus = 'on_duty';
     else if (status === 'resting') hosStatus = rand() > 0.5 ? 'sleeper' : 'off_duty';
     else hosStatus = 'off_duty';
 
-    // ETA calculations
     const now = new Date();
     const hoursToNext = 1 + rand() * 6;
     const hoursToFinal = hoursToNext + 2 + rand() * 10;
     const nextEta = new Date(now.getTime() + hoursToNext * 3600000);
     const finalEta = new Date(now.getTime() + hoursToFinal * 3600000);
 
-    // ETA status: ~60% on_time, ~25% at_risk, ~15% late
     const etaRoll = rand();
     let etaStatus: ActiveRouteDto['eta_status'];
     if (status === 'completed') etaStatus = 'on_time';
@@ -111,29 +147,26 @@ export function generateMockActiveRoutes(tenantId: number): ActiveRouteDto[] {
     else if (etaRoll < 0.85) etaStatus = 'at_risk';
     else etaStatus = 'late';
 
-    // Appointment window (some stops have them)
     const hasAppointment = rand() > 0.3;
     const appointmentStart = new Date(nextEta.getTime() - 30 * 60000);
     const appointmentEnd = new Date(nextEta.getTime() + 60 * 60000);
 
-    // Alert count: most routes have 0, a few have 1-2
     const alertRoll = rand();
     let alertCount = 0;
     if (alertRoll > 0.7) alertCount = 1;
     if (alertRoll > 0.9) alertCount = 2;
 
-    // Pick stops for next and final destination
-    const nextStopIdx = Math.floor(rand() * STOPS.length);
-    let finalStopIdx = Math.floor(rand() * STOPS.length);
-    if (finalStopIdx === nextStopIdx) finalStopIdx = (finalStopIdx + 1) % STOPS.length;
+    const nextStopIdx = Math.floor(rand() * MOCK_STOPS.length);
+    let finalStopIdx = Math.floor(rand() * MOCK_STOPS.length);
+    if (finalStopIdx === nextStopIdx) finalStopIdx = (finalStopIdx + 1) % MOCK_STOPS.length;
 
     const startedAt = new Date(now.getTime() - (2 + rand() * 12) * 3600000);
 
     routes.push({
       route_id: `RT-${tenantId}-${String(i + 1).padStart(3, '0')}`,
       plan_id: `PLN-${tenantId}-${String(i + 1).padStart(3, '0')}`,
-      driver: { driver_id: driver.id, name: driver.name },
-      vehicle: { vehicle_id: `VH-${vehicle}`, identifier: vehicle },
+      driver: { driver_id: driver.id, name: driverName(driver) },
+      vehicle: { vehicle_id: vehicle.id, identifier: vehicle.unitNumber },
       status,
       progress: {
         completed_stops: completedStops,
@@ -142,8 +175,8 @@ export function generateMockActiveRoutes(tenantId: number): ActiveRouteDto[] {
         total_distance_miles: totalDistance,
       },
       next_stop: status === 'completed' ? null : {
-        name: STOPS[nextStopIdx].name,
-        location: STOPS[nextStopIdx].location,
+        name: MOCK_STOPS[nextStopIdx].name,
+        location: MOCK_STOPS[nextStopIdx].location,
         eta: nextEta.toISOString(),
         ...(hasAppointment ? {
           appointment_window: {
@@ -153,8 +186,8 @@ export function generateMockActiveRoutes(tenantId: number): ActiveRouteDto[] {
         } : {}),
       },
       final_destination: {
-        name: STOPS[finalStopIdx].name,
-        location: STOPS[finalStopIdx].location,
+        name: MOCK_STOPS[finalStopIdx].name,
+        location: MOCK_STOPS[finalStopIdx].location,
         eta: finalEta.toISOString(),
       },
       eta_status: etaStatus,
@@ -194,7 +227,6 @@ export function generateMockKPIs(
 }
 
 export function generateMockDriverHOS(routes: ActiveRouteDto[]): DriverHOSChipDto[] {
-  // Extract driver HOS data from active routes
   const activeRoutes = routes.filter((r) => r.status !== 'completed');
 
   return activeRoutes.map((route) => {
@@ -217,7 +249,7 @@ export function generateMockDriverHOS(routes: ActiveRouteDto[]): DriverHOSChipDt
 export function generateMockQuickActionCounts(tenantId: number): { unassigned_loads: number; available_drivers: number } {
   const rand = seededRandom(getSeed(tenantId) + 999);
   return {
-    unassigned_loads: Math.floor(rand() * 6), // 0-5
-    available_drivers: 2 + Math.floor(rand() * 6), // 2-7
+    unassigned_loads: Math.floor(rand() * 6),
+    available_drivers: 2 + Math.floor(rand() * 6),
   };
 }

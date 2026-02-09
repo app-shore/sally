@@ -8,7 +8,7 @@ import {
   generateMockKPIs,
   generateMockDriverHOS,
   generateMockQuickActionCounts,
-} from './command-center.mock';
+} from '../../../infrastructure/mock/mock.dataset';
 
 @Injectable()
 export class CommandCenterService {
