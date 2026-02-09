@@ -23,7 +23,6 @@ export class LoadsService {
     commodity_type: string;
     special_requirements?: string;
     customer_name: string;
-    tenant_id: number;
     stops: Array<{
       stop_id: string;
       sequence_order: number;
@@ -50,7 +49,6 @@ export class LoadsService {
         customerName: data.customer_name,
         tenantId: data.tenant_id,
         isActive: true,
-        tenantId: data.tenant_id,
       },
     });
 

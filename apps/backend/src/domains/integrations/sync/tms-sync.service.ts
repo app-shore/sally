@@ -282,7 +282,6 @@ export class TmsSyncService {
           lastSyncedAt: new Date(),
           tenantId,
           isActive: true,
-          tenantId,
         },
       });
 
