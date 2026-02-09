@@ -90,6 +90,29 @@ export async function seedFeatureFlags() {
       enabled: false,
       category: 'admin',
     },
+
+    // Financials (Phase 1)
+    {
+      key: 'invoicing_enabled',
+      name: 'Invoicing',
+      description: 'Create, send, and track invoices for completed loads with automatic rate calculation',
+      enabled: false,
+      category: 'dispatcher',
+    },
+    {
+      key: 'driver_settlements_enabled',
+      name: 'Driver Settlements',
+      description: 'Calculate and manage driver pay with per-mile, percentage, and flat rate support',
+      enabled: false,
+      category: 'dispatcher',
+    },
+    {
+      key: 'quickbooks_integration_enabled',
+      name: 'QuickBooks Integration',
+      description: 'Sync invoices and settlements to QuickBooks for seamless accounting',
+      enabled: false,
+      category: 'admin',
+    },
   ];
 
   for (const flag of flags) {

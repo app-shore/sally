@@ -134,4 +134,43 @@ export const comingSoonContent: Record<string, Omit<ComingSoonBannerProps, 'cate
       'Activity logs and audit trails for all changes',
     ],
   },
+
+  invoicing_enabled: {
+    title: 'Load Invoicing',
+    description:
+      'Create, send, and track invoices for completed loads. Automatically calculate rates from load data and get paid faster with professional invoice templates.',
+    features: [
+      'One-click invoice generation from completed loads with automatic rate calculation',
+      'Professional invoice templates with your company branding and terms',
+      'Invoice status tracking: draft, sent, paid, overdue with aging reports',
+      'Bulk invoicing for multiple loads to the same customer',
+      'QuickBooks sync to eliminate double-entry and keep your books current',
+    ],
+  },
+
+  driver_settlements_enabled: {
+    title: 'Driver Settlements',
+    description:
+      'Calculate and manage driver pay with support for per-mile, percentage, and flat rate structures. Generate settlement statements and sync to accounting.',
+    features: [
+      'Flexible pay structures: per-mile, percentage of load, flat rate, or hybrid',
+      'Automatic settlement calculation from completed routes and loads',
+      'Deduction management: advances, fuel cards, insurance, equipment leases',
+      'Settlement statement generation with detailed breakdown for drivers',
+      'QuickBooks sync for seamless payroll and expense tracking',
+    ],
+  },
+
+  quickbooks_integration_enabled: {
+    title: 'QuickBooks Integration',
+    description:
+      'Connect SALLY to QuickBooks Online for seamless two-way sync of invoices, settlements, and financial data. Eliminate double-entry and keep your books accurate.',
+    features: [
+      'One-click QuickBooks Online connection with OAuth authentication',
+      'Automatic invoice sync: SALLY invoices appear in QuickBooks as they are created',
+      'Settlement sync: driver pay and deductions flow directly to QuickBooks payroll',
+      'Customer and vendor mapping between SALLY and QuickBooks',
+      'Reconciliation dashboard showing sync status and any discrepancies',
+    ],
+  },
 };

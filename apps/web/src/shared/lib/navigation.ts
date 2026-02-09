@@ -1,4 +1,4 @@
-import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2, Rocket, Flag } from 'lucide-react';
+import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2, Rocket, Flag, FileText, Wallet } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -31,6 +31,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Truck },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
+    { type: 'separator', label: 'Financials' } as NavSeparator,
+    { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
+    { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
@@ -56,6 +59,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
+    { type: 'separator', label: 'Financials' } as NavSeparator,
+    { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
+    { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
@@ -73,6 +79,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
+    { type: 'separator', label: 'Financials' } as NavSeparator,
+    { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
+    { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Operations', href: '/settings/operations', icon: Route },
     { label: 'Integrations', href: '/settings/integrations', icon: Plug },
