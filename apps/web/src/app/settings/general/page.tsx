@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/shared/components/ui/card';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/components/ui/select';
 import { Input } from '@/shared/components/ui/input';
@@ -103,57 +103,64 @@ export default function GeneralSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Units & Formats</CardTitle>
+          <CardDescription>Choose measurement units and display formats used throughout Sally.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Distance Unit</Label>
               <p className="text-xs text-muted-foreground">How distances are shown on routes and trip summaries.</p>
-              <Select value={formData.distanceUnit || 'MILES'} onValueChange={(v) => handleChange('distanceUnit', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MILES">Miles</SelectItem>
-                  <SelectItem value="KILOMETERS">Kilometers</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
+            <Select value={formData.distanceUnit || 'MILES'} onValueChange={(v) => handleChange('distanceUnit', v)}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MILES">Miles</SelectItem>
+                <SelectItem value="KILOMETERS">Kilometers</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Time Format</Label>
               <p className="text-xs text-muted-foreground">Applies to ETAs, schedules, and alert timestamps.</p>
-              <Select value={formData.timeFormat || '12H'} onValueChange={(v) => handleChange('timeFormat', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="12H">12-hour</SelectItem>
-                  <SelectItem value="24H">24-hour</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
+            <Select value={formData.timeFormat || '12H'} onValueChange={(v) => handleChange('timeFormat', v)}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="12H">12-hour</SelectItem>
+                <SelectItem value="24H">24-hour</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Temperature Unit</Label>
               <p className="text-xs text-muted-foreground">Used in weather alerts and route condition reports.</p>
-              <Select value={formData.temperatureUnit || 'F'} onValueChange={(v) => handleChange('temperatureUnit', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="F">Fahrenheit</SelectItem>
-                  <SelectItem value="C">Celsius</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
+            <Select value={formData.temperatureUnit || 'F'} onValueChange={(v) => handleChange('temperatureUnit', v)}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="F">Fahrenheit</SelectItem>
+                <SelectItem value="C">Celsius</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Currency</Label>
               <p className="text-xs text-muted-foreground">Fuel costs, route costs, and financial reports.</p>
-              <Select value={formData.currency || 'USD'} onValueChange={(v) => handleChange('currency', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">USD ($)</SelectItem>
-                  <SelectItem value="CAD">CAD ($)</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
+            <Select value={formData.currency || 'USD'} onValueChange={(v) => handleChange('currency', v)}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USD">USD ($)</SelectItem>
+                <SelectItem value="CAD">CAD ($)</SelectItem>
+                <SelectItem value="EUR">EUR</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -162,38 +169,41 @@ export default function GeneralSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Dashboard</CardTitle>
+          <CardDescription>Customize the default dashboard view and refresh behavior.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Auto Refresh Interval</Label>
               <p className="text-xs text-muted-foreground">How often the dashboard pulls fresh data. Set to &ldquo;Manual&rdquo; to refresh only when you click.</p>
-              <Select value={String(formData.autoRefreshInterval ?? 30)} onValueChange={(v) => handleChange('autoRefreshInterval', parseInt(v))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Manual</SelectItem>
-                  <SelectItem value="5">5 seconds</SelectItem>
-                  <SelectItem value="10">10 seconds</SelectItem>
-                  <SelectItem value="30">30 seconds</SelectItem>
-                  <SelectItem value="60">60 seconds</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
+            <Select value={String(formData.autoRefreshInterval ?? 30)} onValueChange={(v) => handleChange('autoRefreshInterval', parseInt(v))}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">Manual</SelectItem>
+                <SelectItem value="5">5 seconds</SelectItem>
+                <SelectItem value="10">10 seconds</SelectItem>
+                <SelectItem value="30">30 seconds</SelectItem>
+                <SelectItem value="60">60 seconds</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Default View</Label>
               <p className="text-xs text-muted-foreground">The view shown when you first open the dashboard.</p>
-              <Select value={formData.defaultView || 'OVERVIEW'} onValueChange={(v) => handleChange('defaultView', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="OVERVIEW">Overview</SelectItem>
-                  <SelectItem value="TIMELINE">Timeline</SelectItem>
-                  <SelectItem value="MAP">Map</SelectItem>
-                  <SelectItem value="COMPLIANCE">Compliance</SelectItem>
-                  <SelectItem value="COSTS">Costs</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
+            <Select value={formData.defaultView || 'OVERVIEW'} onValueChange={(v) => handleChange('defaultView', v)}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="OVERVIEW">Overview</SelectItem>
+                <SelectItem value="TIMELINE">Timeline</SelectItem>
+                <SelectItem value="MAP">Map</SelectItem>
+                <SelectItem value="COMPLIANCE">Compliance</SelectItem>
+                <SelectItem value="COSTS">Costs</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center justify-between">
@@ -218,11 +228,14 @@ export default function GeneralSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Accessibility</CardTitle>
+          <CardDescription>Adjust display settings for readability and assistive technology support.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Font Size</Label>
-            <p className="text-xs text-muted-foreground">Adjusts text size across the entire app.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Font Size</Label>
+              <p className="text-xs text-muted-foreground">Adjusts text size across the entire app.</p>
+            </div>
             <Select value={formData.fontSize || 'MEDIUM'} onValueChange={(v) => handleChange('fontSize', v)}>
               <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -259,19 +272,23 @@ export default function GeneralSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Break Preferences</CardTitle>
+              <CardDescription>Customize how Sally schedules and reminds you about breaks.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
                   <Label>Preferred Break Duration (minutes)</Label>
                   <p className="text-xs text-muted-foreground">Your preferred break length when Sally inserts breaks into your route.</p>
-                  <Input type="number" min="10" max="60" value={driverFormData.preferredBreakDuration || 30} onChange={(e) => handleDriverChange('preferredBreakDuration', parseInt(e.target.value))} />
                 </div>
-                <div className="space-y-2">
+                <Input type="number" min="10" max="60" className="w-full md:w-48" value={driverFormData.preferredBreakDuration || 30} onChange={(e) => handleDriverChange('preferredBreakDuration', parseInt(e.target.value))} />
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
                   <Label>Break Reminder Advance (minutes)</Label>
                   <p className="text-xs text-muted-foreground">How many minutes before your break is due to send you a reminder.</p>
-                  <Input type="number" min="10" max="60" value={driverFormData.breakReminderAdvance || 30} onChange={(e) => handleDriverChange('breakReminderAdvance', parseInt(e.target.value))} />
                 </div>
+                <Input type="number" min="10" max="60" className="w-full md:w-48" value={driverFormData.breakReminderAdvance || 30} onChange={(e) => handleDriverChange('breakReminderAdvance', parseInt(e.target.value))} />
               </div>
             </CardContent>
           </Card>
@@ -280,6 +297,7 @@ export default function GeneralSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Mobile</CardTitle>
+              <CardDescription>Configure display and data usage for the mobile driver view.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -289,6 +307,7 @@ export default function GeneralSettingsPage() {
                 </div>
                 <Switch checked={driverFormData.largeTextMode || false} onCheckedChange={(c) => handleDriverChange('largeTextMode', c)} />
               </div>
+
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Offline Mode</Label>
@@ -296,11 +315,14 @@ export default function GeneralSettingsPage() {
                 </div>
                 <Switch checked={driverFormData.offlineMode || false} onCheckedChange={(c) => handleDriverChange('offlineMode', c)} />
               </div>
-              <div className="space-y-2">
-                <Label>Data Usage</Label>
-                <p className="text-xs text-muted-foreground">Controls how much data Sally uses. &ldquo;Low&rdquo; minimizes map tile downloads and disables real-time updates.</p>
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <Label>Data Usage</Label>
+                  <p className="text-xs text-muted-foreground">Controls how much data Sally uses. &ldquo;Low&rdquo; minimizes map tile downloads and disables real-time updates.</p>
+                </div>
                 <Select value={driverFormData.dataUsageMode || 'NORMAL'} onValueChange={(v) => handleDriverChange('dataUsageMode', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="LOW">Low (save data)</SelectItem>
                     <SelectItem value="NORMAL">Normal</SelectItem>
@@ -315,18 +337,24 @@ export default function GeneralSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Communication</CardTitle>
+              <CardDescription>Set your contact preferences and emergency information.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Emergency Contact</Label>
-                <p className="text-xs text-muted-foreground">Phone number to contact in case of emergency. Shared with dispatchers.</p>
-                <Input type="tel" placeholder="+1234567890" value={driverFormData.emergencyContact || ''} onChange={(e) => handleDriverChange('emergencyContact', e.target.value)} />
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <Label>Emergency Contact</Label>
+                  <p className="text-xs text-muted-foreground">Phone number to contact in case of emergency. Shared with dispatchers.</p>
+                </div>
+                <Input type="tel" placeholder="+1234567890" className="w-full md:w-48" value={driverFormData.emergencyContact || ''} onChange={(e) => handleDriverChange('emergencyContact', e.target.value)} />
               </div>
-              <div className="space-y-2">
-                <Label>Preferred Contact Method</Label>
-                <p className="text-xs text-muted-foreground">How dispatchers should reach you.</p>
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <Label>Preferred Contact Method</Label>
+                  <p className="text-xs text-muted-foreground">How dispatchers should reach you.</p>
+                </div>
                 <Select value={driverFormData.preferredContactMethod || 'IN_APP'} onValueChange={(v) => handleDriverChange('preferredContactMethod', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="IN_APP">In-App</SelectItem>
                     <SelectItem value="SMS">SMS</SelectItem>

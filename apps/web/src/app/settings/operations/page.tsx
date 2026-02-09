@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/shared/components/ui/card';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/components/ui/select';
 import { Input } from '@/shared/components/ui/input';
@@ -92,24 +92,31 @@ export default function OperationsSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>HOS Defaults</CardTitle>
+          <CardDescription>Starting hours assumed when a driver begins a new route. Adjust if drivers typically start mid-shift.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Default Drive Hours</Label>
               <p className="text-xs text-muted-foreground">Hours already driven today when the driver starts a new route. Usually 0 unless mid-shift.</p>
-              <Input type="number" step="0.5" min="0" max="11" value={formData.defaultDriveHours ?? 0} onChange={(e) => handleChange('defaultDriveHours', parseFloat(e.target.value))} disabled={!canEdit} />
             </div>
-            <div className="space-y-2">
+            <Input type="number" step="0.5" min="0" max="11" className="w-full md:w-48" value={formData.defaultDriveHours ?? 0} onChange={(e) => handleChange('defaultDriveHours', parseFloat(e.target.value))} disabled={!canEdit} />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Default On-Duty Hours</Label>
               <p className="text-xs text-muted-foreground">On-duty hours already used today. Includes driving, loading, and paperwork.</p>
-              <Input type="number" step="0.5" min="0" max="14" value={formData.defaultOnDutyHours ?? 0} onChange={(e) => handleChange('defaultOnDutyHours', parseFloat(e.target.value))} disabled={!canEdit} />
             </div>
-            <div className="space-y-2">
+            <Input type="number" step="0.5" min="0" max="14" className="w-full md:w-48" value={formData.defaultOnDutyHours ?? 0} onChange={(e) => handleChange('defaultOnDutyHours', parseFloat(e.target.value))} disabled={!canEdit} />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Default Since Last Break</Label>
               <p className="text-xs text-muted-foreground">Hours since the driver&apos;s last 30-minute break. Used for break scheduling.</p>
-              <Input type="number" step="0.5" min="0" max="8" value={formData.defaultSinceBreakHours ?? 0} onChange={(e) => handleChange('defaultSinceBreakHours', parseFloat(e.target.value))} disabled={!canEdit} />
             </div>
+            <Input type="number" step="0.5" min="0" max="8" className="w-full md:w-48" value={formData.defaultSinceBreakHours ?? 0} onChange={(e) => handleChange('defaultSinceBreakHours', parseFloat(e.target.value))} disabled={!canEdit} />
           </div>
         </CardContent>
       </Card>
@@ -118,31 +125,38 @@ export default function OperationsSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Optimization</CardTitle>
+          <CardDescription>Control how Sally balances time and cost when planning routes.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Default Optimization Mode</Label>
               <p className="text-xs text-muted-foreground">Controls the trade-off between time and cost. &ldquo;Balance&rdquo; weights both equally.</p>
-              <Select value={formData.defaultOptimizationMode || 'BALANCE'} onValueChange={(v) => handleChange('defaultOptimizationMode', v)} disabled={!canEdit}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MINIMIZE_TIME">Minimize Time</SelectItem>
-                  <SelectItem value="MINIMIZE_COST">Minimize Cost</SelectItem>
-                  <SelectItem value="BALANCE">Balance</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
-            <div className="space-y-2">
+            <Select value={formData.defaultOptimizationMode || 'BALANCE'} onValueChange={(v) => handleChange('defaultOptimizationMode', v)} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MINIMIZE_TIME">Minimize Time</SelectItem>
+                <SelectItem value="MINIMIZE_COST">Minimize Cost</SelectItem>
+                <SelectItem value="BALANCE">Balance</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Cost Per Mile ($)</Label>
               <p className="text-xs text-muted-foreground">All-in cost including fuel, maintenance, and tires. Used for cost-optimized routes.</p>
-              <Input type="number" step="0.05" min="0" value={formData.costPerMile ?? 1.85} onChange={(e) => handleChange('costPerMile', parseFloat(e.target.value))} disabled={!canEdit} />
             </div>
-            <div className="space-y-2">
+            <Input type="number" step="0.05" min="0" className="w-full md:w-48" value={formData.costPerMile ?? 1.85} onChange={(e) => handleChange('costPerMile', parseFloat(e.target.value))} disabled={!canEdit} />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Labor Cost Per Hour ($)</Label>
               <p className="text-xs text-muted-foreground">Hourly driver cost including wages and benefits. Used for time vs cost trade-offs.</p>
-              <Input type="number" step="0.50" min="0" value={formData.laborCostPerHour ?? 25.0} onChange={(e) => handleChange('laborCostPerHour', parseFloat(e.target.value))} disabled={!canEdit} />
             </div>
+            <Input type="number" step="0.50" min="0" className="w-full md:w-48" value={formData.laborCostPerHour ?? 25.0} onChange={(e) => handleChange('laborCostPerHour', parseFloat(e.target.value))} disabled={!canEdit} />
           </div>
         </CardContent>
       </Card>
@@ -151,41 +165,45 @@ export default function OperationsSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Rest Stops</CardTitle>
+          <CardDescription>Configure how Sally inserts mandatory rest breaks into routes for HOS compliance.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Prefer Full Rest</Label>
-                <p className="text-xs text-muted-foreground">When a rest stop is needed, prefer 10-hour full rest over 7-hour partial rest.</p>
-              </div>
-              <Switch checked={formData.preferFullRest ?? true} onCheckedChange={(c) => handleChange('preferFullRest', c)} disabled={!canEdit} />
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Prefer Full Rest</Label>
+              <p className="text-xs text-muted-foreground">When a rest stop is needed, prefer 10-hour full rest over 7-hour partial rest.</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Allow Dock Rest</Label>
-                <p className="text-xs text-muted-foreground">Allow drivers to take their rest period at the destination dock if timing works.</p>
-              </div>
-              <Switch checked={formData.allowDockRest ?? true} onCheckedChange={(c) => handleChange('allowDockRest', c)} disabled={!canEdit} />
-            </div>
+            <Switch checked={formData.preferFullRest ?? true} onCheckedChange={(c) => handleChange('preferFullRest', c)} disabled={!canEdit} />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Allow Dock Rest</Label>
+              <p className="text-xs text-muted-foreground">Allow drivers to take their rest period at the destination dock if timing works.</p>
+            </div>
+            <Switch checked={formData.allowDockRest ?? true} onCheckedChange={(c) => handleChange('allowDockRest', c)} disabled={!canEdit} />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Rest Stop Buffer (minutes)</Label>
               <p className="text-xs text-muted-foreground">Extra time added before and after a rest stop for parking and settling in.</p>
-              <Input type="number" min="0" max="120" value={formData.restStopBuffer ?? 30} onChange={(e) => handleChange('restStopBuffer', parseInt(e.target.value))} disabled={!canEdit} />
             </div>
-            <div className="space-y-2">
-              <Label>Minimum Rest Duration (hours)</Label>
+            <Input type="number" min="0" max="120" className="w-full md:w-48" value={formData.restStopBuffer ?? 30} onChange={(e) => handleChange('restStopBuffer', parseInt(e.target.value))} disabled={!canEdit} />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Minimum Rest Duration</Label>
               <p className="text-xs text-muted-foreground">Shortest rest Sally will schedule. 7 = partial rest, 10 = full rest.</p>
-              <Select value={String(formData.minRestDuration ?? 7)} onValueChange={(v) => handleChange('minRestDuration', parseInt(v))} disabled={!canEdit}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7">7 hours (partial)</SelectItem>
-                  <SelectItem value="10">10 hours (full)</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
+            <Select value={String(formData.minRestDuration ?? 7)} onValueChange={(v) => handleChange('minRestDuration', parseInt(v))} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">7 hours (partial)</SelectItem>
+                <SelectItem value="10">10 hours (full)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -194,24 +212,31 @@ export default function OperationsSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Fuel Stops</CardTitle>
+          <CardDescription>Set thresholds for when Sally suggests fuel detours along a route.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Fuel Price Threshold ($/gal)</Label>
               <p className="text-xs text-muted-foreground">Only suggest a detour for fuel if savings exceed this amount per gallon.</p>
-              <Input type="number" step="0.01" min="0" value={formData.fuelPriceThreshold ?? 0.15} onChange={(e) => handleChange('fuelPriceThreshold', parseFloat(e.target.value))} disabled={!canEdit} />
             </div>
-            <div className="space-y-2">
+            <Input type="number" step="0.01" min="0" className="w-full md:w-48" value={formData.fuelPriceThreshold ?? 0.15} onChange={(e) => handleChange('fuelPriceThreshold', parseFloat(e.target.value))} disabled={!canEdit} />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Max Fuel Detour (miles)</Label>
               <p className="text-xs text-muted-foreground">Furthest Sally will detour from the route to reach a cheaper fuel stop.</p>
-              <Input type="number" min="0" max="50" value={formData.maxFuelDetour ?? 10} onChange={(e) => handleChange('maxFuelDetour', parseInt(e.target.value))} disabled={!canEdit} />
             </div>
-            <div className="space-y-2">
+            <Input type="number" min="0" max="50" className="w-full md:w-48" value={formData.maxFuelDetour ?? 10} onChange={(e) => handleChange('maxFuelDetour', parseInt(e.target.value))} disabled={!canEdit} />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Min Fuel Savings ($)</Label>
               <p className="text-xs text-muted-foreground">Minimum dollar savings to justify a fuel detour. Prevents tiny savings for big detours.</p>
-              <Input type="number" step="0.50" min="0" value={formData.minFuelSavings ?? 10.0} onChange={(e) => handleChange('minFuelSavings', parseFloat(e.target.value))} disabled={!canEdit} />
             </div>
+            <Input type="number" step="0.50" min="0" className="w-full md:w-48" value={formData.minFuelSavings ?? 10.0} onChange={(e) => handleChange('minFuelSavings', parseFloat(e.target.value))} disabled={!canEdit} />
           </div>
         </CardContent>
       </Card>
@@ -220,43 +245,50 @@ export default function OperationsSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Assignment Defaults</CardTitle>
+          <CardDescription>Default behavior for assigning loads, drivers, and vehicles to new routes.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Load Assignment</Label>
               <p className="text-xs text-muted-foreground">How loads are assigned to routes. &ldquo;Manual&rdquo; = dispatcher picks. &ldquo;Auto&rdquo; = Sally assigns.</p>
-              <Select value={formData.defaultLoadAssignment || 'MANUAL'} onValueChange={(v) => handleChange('defaultLoadAssignment', v)} disabled={!canEdit}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MANUAL">Manual</SelectItem>
-                  <SelectItem value="AUTO_ASSIGN">Auto Assign</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
-            <div className="space-y-2">
+            <Select value={formData.defaultLoadAssignment || 'MANUAL'} onValueChange={(v) => handleChange('defaultLoadAssignment', v)} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MANUAL">Manual</SelectItem>
+                <SelectItem value="AUTO_ASSIGN">Auto Assign</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Driver Selection</Label>
               <p className="text-xs text-muted-foreground">How drivers are selected for routes. &ldquo;Auto Suggest&rdquo; recommends the best match.</p>
-              <Select value={formData.defaultDriverSelection || 'AUTO_SUGGEST'} onValueChange={(v) => handleChange('defaultDriverSelection', v)} disabled={!canEdit}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MANUAL">Manual</SelectItem>
-                  <SelectItem value="AUTO_SUGGEST">Auto Suggest</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
-            <div className="space-y-2">
+            <Select value={formData.defaultDriverSelection || 'AUTO_SUGGEST'} onValueChange={(v) => handleChange('defaultDriverSelection', v)} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MANUAL">Manual</SelectItem>
+                <SelectItem value="AUTO_SUGGEST">Auto Suggest</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Vehicle Selection</Label>
               <p className="text-xs text-muted-foreground">How vehicles are assigned. &ldquo;Driver Default&rdquo; uses the driver&apos;s usual truck.</p>
-              <Select value={formData.defaultVehicleSelection || 'AUTO_ASSIGN'} onValueChange={(v) => handleChange('defaultVehicleSelection', v)} disabled={!canEdit}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MANUAL">Manual</SelectItem>
-                  <SelectItem value="AUTO_ASSIGN">Auto Assign</SelectItem>
-                  <SelectItem value="DRIVER_DEFAULT">Driver Default</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
+            <Select value={formData.defaultVehicleSelection || 'AUTO_ASSIGN'} onValueChange={(v) => handleChange('defaultVehicleSelection', v)} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MANUAL">Manual</SelectItem>
+                <SelectItem value="AUTO_ASSIGN">Auto Assign</SelectItem>
+                <SelectItem value="DRIVER_DEFAULT">Driver Default</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -265,30 +297,32 @@ export default function OperationsSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Reporting</CardTitle>
+          <CardDescription>Configure timezone, format, and content for generated reports.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <Label>Report Timezone</Label>
               <p className="text-xs text-muted-foreground">Timezone used for all timestamps in generated reports.</p>
-              <Select value={formData.reportTimezone || 'America/New_York'} onValueChange={(v) => handleChange('reportTimezone', v)} disabled={!canEdit}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="America/New_York">Eastern (ET)</SelectItem>
-                  <SelectItem value="America/Chicago">Central (CT)</SelectItem>
-                  <SelectItem value="America/Denver">Mountain (MT)</SelectItem>
-                  <SelectItem value="America/Los_Angeles">Pacific (PT)</SelectItem>
-                  <SelectItem value="UTC">UTC</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Include Map in Reports</Label>
-                <p className="text-xs text-muted-foreground">Embed a static map image in PDF and email reports.</p>
-              </div>
-              <Switch checked={formData.includeMapInReports ?? true} onCheckedChange={(c) => handleChange('includeMapInReports', c)} disabled={!canEdit} />
+            <Select value={formData.reportTimezone || 'America/New_York'} onValueChange={(v) => handleChange('reportTimezone', v)} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="America/New_York">Eastern (ET)</SelectItem>
+                <SelectItem value="America/Chicago">Central (CT)</SelectItem>
+                <SelectItem value="America/Denver">Mountain (MT)</SelectItem>
+                <SelectItem value="America/Los_Angeles">Pacific (PT)</SelectItem>
+                <SelectItem value="UTC">UTC</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Include Map in Reports</Label>
+              <p className="text-xs text-muted-foreground">Embed a static map image in PDF and email reports.</p>
             </div>
+            <Switch checked={formData.includeMapInReports ?? true} onCheckedChange={(c) => handleChange('includeMapInReports', c)} disabled={!canEdit} />
           </div>
         </CardContent>
       </Card>

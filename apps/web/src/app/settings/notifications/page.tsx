@@ -153,9 +153,11 @@ export default function NotificationsSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Minimum Alert Priority */}
-          <div className="space-y-2">
-            <Label>Minimum Alert Priority</Label>
-            <p className="text-xs text-muted-foreground">Alerts below this level are hidden from your dashboard.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Minimum Alert Priority</Label>
+              <p className="text-xs text-muted-foreground">Alerts below this level are hidden from your dashboard.</p>
+            </div>
             <Select
               value={formData.minAlertPriority || 'LOW'}
               onValueChange={(value) => handleChange('minAlertPriority', value)}
@@ -264,6 +266,7 @@ export default function NotificationsSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Browser</CardTitle>
+          <CardDescription>Control browser-level notification behavior.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -309,26 +312,32 @@ export default function NotificationsSettingsPage() {
           </div>
 
           {formData.quietHoursEnabled && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Start Time</Label>
-                <p className="text-xs text-muted-foreground">When quiet hours begin each day.</p>
+            <>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <Label>Start Time</Label>
+                  <p className="text-xs text-muted-foreground">When quiet hours begin each day.</p>
+                </div>
                 <Input
                   type="time"
+                  className="w-full md:w-48"
                   value={formData.quietHoursStart || '22:00'}
                   onChange={(e) => handleChange('quietHoursStart', e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>End Time</Label>
-                <p className="text-xs text-muted-foreground">When quiet hours end each day.</p>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <Label>End Time</Label>
+                  <p className="text-xs text-muted-foreground">When quiet hours end each day.</p>
+                </div>
                 <Input
                   type="time"
+                  className="w-full md:w-48"
                   value={formData.quietHoursEnd || '06:00'}
                   onChange={(e) => handleChange('quietHoursEnd', e.target.value)}
                 />
               </div>
-            </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -337,11 +346,14 @@ export default function NotificationsSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Snooze & Digest</CardTitle>
+          <CardDescription>Configure alert snooze behavior and email digest frequency.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Default Snooze Duration</Label>
-            <p className="text-xs text-muted-foreground">How long an alert is snoozed when you click &ldquo;Snooze&rdquo; without choosing a duration.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Default Snooze Duration</Label>
+              <p className="text-xs text-muted-foreground">How long an alert is snoozed when you click &ldquo;Snooze&rdquo; without choosing a duration.</p>
+            </div>
             <Select
               value={String(formData.defaultSnoozeDuration ?? 15)}
               onValueChange={(value) => handleChange('defaultSnoozeDuration', parseInt(value))}
@@ -359,9 +371,11 @@ export default function NotificationsSettingsPage() {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Email Digest Frequency</Label>
-            <p className="text-xs text-muted-foreground">Receive a summary email of all alerts you missed. &ldquo;None&rdquo; disables the digest.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Email Digest Frequency</Label>
+              <p className="text-xs text-muted-foreground">Receive a summary email of all alerts you missed. &ldquo;None&rdquo; disables the digest.</p>
+            </div>
             <Select
               value={formData.emailDigestFrequency || 'DAILY'}
               onValueChange={(value) => handleChange('emailDigestFrequency', value)}
