@@ -10,7 +10,7 @@ import {
   getDriverPreferences,
   updateDriverPreferences,
   resetToDefaults as resetToDefaultsAPI,
-} from '@/features/platform/preferences';
+} from '@/features/platform/settings';
 
 interface PreferencesState {
   // Preferences data

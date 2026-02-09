@@ -10,7 +10,7 @@ export {
   useDriverPreferences,
   useUpdateDriverPreferences,
   useResetPreferences,
-} from './hooks/use-preferences';
+} from './hooks/use-settings';
 
 // Store
 export { usePreferencesStore } from './store';
