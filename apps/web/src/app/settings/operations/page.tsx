@@ -7,46 +7,19 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { Switch } from '@/shared/components/ui/switch';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs';
 import { Badge } from '@/shared/components/ui/badge';
-import { useAuthStore } from '@/features/auth';
-import { usePreferencesStore } from '@/features/platform/preferences';
-import { OperationsSettings, AlertConfiguration, getAlertConfig, updateAlertConfig } from '@/features/platform/preferences';
-import { Loader2, Save, RotateCcw, Route, Bell, Lock } from 'lucide-react';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
-import { useRouter } from 'next/navigation';
-
-const ALERT_TYPE_LABELS: Record<string, string> = {
-  HOS_VIOLATION: 'HOS Violation',
-  HOS_APPROACHING_LIMIT: 'HOS Approaching Limit',
-  BREAK_REQUIRED: 'Break Required',
-  CYCLE_APPROACHING_LIMIT: 'Cycle Approaching Limit',
-  MISSED_APPOINTMENT: 'Missed Appointment',
-  APPOINTMENT_AT_RISK: 'Appointment at Risk',
-  DOCK_TIME_EXCEEDED: 'Dock Time Exceeded',
-  ROUTE_DELAY: 'Route Delay',
-  DRIVER_NOT_MOVING: 'Driver Not Moving',
-  FUEL_LOW: 'Fuel Low',
-};
-
-const CHANNEL_LABELS = ['In-App', 'Email', 'Push', 'SMS'];
-const CHANNEL_KEYS = ['inApp', 'email', 'push', 'sms'] as const;
-const PRIORITY_LEVELS = ['critical', 'high', 'medium', 'low'];
+import { useAuthStore } from '@/features/auth';
+import { usePreferencesStore } from '@/features/platform/settings';
+import type { OperationsSettings } from '@/features/platform/settings';
+import { Loader2, Save, RotateCcw } from 'lucide-react';
 
 export default function OperationsSettingsPage() {
-  const router = useRouter();
   const { user } = useAuthStore();
-  const { operationsSettings, updateOperationsSettings, resetToDefaults, loadAllPreferences, isSaving, isLoading, error } = usePreferencesStore();
+  const { operationsSettings, updateOperationsSettings, resetToDefaults, loadAllPreferences, isSaving, isLoading } = usePreferencesStore();
   const [formData, setFormData] = useState<Partial<OperationsSettings>>(operationsSettings || {});
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Alert config state
-  const [alertConfig, setAlertConfig] = useState<AlertConfiguration | null>(null);
-  const [alertConfigLoading, setAlertConfigLoading] = useState(false);
-  const [alertConfigSaving, setAlertConfigSaving] = useState(false);
-  const [alertSaveSuccess, setAlertSaveSuccess] = useState(false);
-
-  const canView = user?.role === 'DISPATCHER' || user?.role === 'ADMIN' || user?.role === 'OWNER';
   const canEdit = user?.role === 'ADMIN' || user?.role === 'OWNER';
 
   useEffect(() => {
@@ -55,28 +28,8 @@ export default function OperationsSettingsPage() {
     }
   }, [user, loadAllPreferences]);
 
-  // Load alert config
   useEffect(() => {
-    if (user && canView) {
-      setAlertConfigLoading(true);
-      getAlertConfig()
-        .then(setAlertConfig)
-        .catch((err) => console.error('Failed to load alert config:', err))
-        .finally(() => setAlertConfigLoading(false));
-    }
-  }, [user, canView]);
-
-  // Redirect non-dispatchers
-  useEffect(() => {
-    if (user && !canView) {
-      router.push('/settings/preferences');
-    }
-  }, [user, canView, router]);
-
-  useEffect(() => {
-    if (operationsSettings) {
-      setFormData(operationsSettings);
-    }
+    if (operationsSettings) setFormData(operationsSettings);
   }, [operationsSettings]);
 
   const handleChange = (field: string, value: any) => {
@@ -89,636 +42,307 @@ export default function OperationsSettingsPage() {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
-      console.error('Failed to save preferences:', error);
+      console.error('Failed to save operations settings:', error);
     }
   };
 
   const handleReset = async () => {
-    if (confirm('Reset all route planning preferences to defaults?')) {
+    if (confirm('Reset operations settings to defaults?')) {
       try {
         await resetToDefaults('operations');
-        const resetPrefs = usePreferencesStore.getState().operationsSettings;
-        if (resetPrefs) {
-          setFormData(resetPrefs);
-        }
+        const resetSettings = usePreferencesStore.getState().operationsSettings;
+        if (resetSettings) setFormData(resetSettings);
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       } catch (error) {
-        console.error('Failed to reset preferences:', error);
+        console.error('Failed to reset operations settings:', error);
       }
     }
   };
 
-  // Alert config handlers
-  const handleAlertTypeToggle = (typeKey: string, enabled: boolean) => {
-    if (!alertConfig) return;
-    const currentType = alertConfig.alertTypes[typeKey];
-    if (currentType?.mandatory) return; // Cannot disable mandatory alerts
-    setAlertConfig({
-      ...alertConfig,
-      alertTypes: {
-        ...alertConfig.alertTypes,
-        [typeKey]: { ...currentType, enabled },
-      },
-    });
-  };
-
-  const handleAlertThresholdChange = (typeKey: string, field: 'thresholdMinutes' | 'thresholdPercent', value: number) => {
-    if (!alertConfig) return;
-    setAlertConfig({
-      ...alertConfig,
-      alertTypes: {
-        ...alertConfig.alertTypes,
-        [typeKey]: { ...alertConfig.alertTypes[typeKey], [field]: value },
-      },
-    });
-  };
-
-  const handleChannelToggle = (priority: string, channel: typeof CHANNEL_KEYS[number], enabled: boolean) => {
-    if (!alertConfig) return;
-    setAlertConfig({
-      ...alertConfig,
-      defaultChannels: {
-        ...alertConfig.defaultChannels,
-        [priority]: { ...alertConfig.defaultChannels[priority], [channel]: enabled },
-      },
-    });
-  };
-
-  const handleSaveAlertConfig = async () => {
-    if (!alertConfig) return;
-    setAlertConfigSaving(true);
-    try {
-      const updated = await updateAlertConfig(alertConfig);
-      setAlertConfig(updated);
-      setAlertSaveSuccess(true);
-      setTimeout(() => setAlertSaveSuccess(false), 3000);
-    } catch (err) {
-      console.error('Failed to save alert config:', err);
-    } finally {
-      setAlertConfigSaving(false);
-    }
-  };
-
-  if (!user) {
+  if (isLoading || !operationsSettings) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!canView) {
-    return null;
-  }
-
-  if (!operationsSettings && !isLoading && error) {
-    return (
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-5xl">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
-            <p className="text-sm text-destructive">Failed to load operations settings: {error}</p>
-            <Button variant="outline" onClick={() => user && loadAllPreferences(user.role)}>
-              Try Again
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!operationsSettings) {
-    return (
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-5xl">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <p className="text-sm text-muted-foreground">Loading operations settings...</p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Fleet Operations Configuration</h1>
-        <p className="text-muted-foreground mt-1">
-          Configure how SALLY manages fleet operations for your organization.
-        </p>
-        {!canEdit && (
-          <p className="text-sm text-muted-foreground mt-2">
-            You have read-only access. Contact an admin or owner to make changes.
-          </p>
-        )}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">Operations</h2>
+          <p className="text-sm text-muted-foreground">Company-wide defaults for how Sally plans routes. These apply to all dispatchers unless overridden per-route.</p>
+        </div>
+        <Badge variant={canEdit ? 'default' : 'muted'}>
+          {canEdit ? 'Admin / Owner' : 'Read Only'}
+        </Badge>
       </div>
 
-      <Tabs defaultValue="route-planning">
-        <TabsList>
-          <TabsTrigger value="route-planning" className="gap-2">
-            <Route className="h-4 w-4" />
-            Route Planning
-          </TabsTrigger>
-          <TabsTrigger value="alerts" className="gap-2">
-            <Bell className="h-4 w-4" />
-            Alerts & Notifications
-          </TabsTrigger>
-        </TabsList>
+      {saveSuccess && (
+        <Alert>
+          <AlertDescription>Operations settings saved successfully!</AlertDescription>
+        </Alert>
+      )}
 
-        {/* ============================================================ */}
-        {/* ROUTE PLANNING TAB */}
-        {/* ============================================================ */}
-        <TabsContent value="route-planning" className="space-y-6 mt-6">
-          {saveSuccess && (
-            <Alert>
-              <AlertDescription>Operations settings saved successfully!</AlertDescription>
-            </Alert>
-          )}
-
-          {/* HOS Defaults */}
-          <Card>
-            <CardHeader>
-              <CardTitle>HOS Default Values</CardTitle>
-              <CardDescription>
-                Default hours of service values for new route planning
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Default Drive Hours (0-11)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="11"
-                    step="0.5"
-                    disabled={!canEdit}
-                    value={formData.defaultDriveHours || 0}
-                    onChange={(e) => handleChange('defaultDriveHours', parseFloat(e.target.value))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Default On-Duty Hours (0-14)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="14"
-                    step="0.5"
-                    disabled={!canEdit}
-                    value={formData.defaultOnDutyHours || 0}
-                    onChange={(e) => handleChange('defaultOnDutyHours', parseFloat(e.target.value))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Default Since-Break Hours (0-8)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="8"
-                    step="0.5"
-                    disabled={!canEdit}
-                    value={formData.defaultSinceBreakHours || 0}
-                    onChange={(e) => handleChange('defaultSinceBreakHours', parseFloat(e.target.value))}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* HOS Compliance Thresholds */}
-          <Card>
-            <CardHeader>
-              <CardTitle>HOS Compliance Thresholds</CardTitle>
-              <CardDescription>
-                Warning and critical alert thresholds (percentage of limit)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Drive Hours Warning %</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    disabled={!canEdit}
-                    value={formData.driveHoursWarningPct || 75}
-                    onChange={(e) => handleChange('driveHoursWarningPct', parseInt(e.target.value))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Drive Hours Critical %</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    disabled={!canEdit}
-                    value={formData.driveHoursCriticalPct || 90}
-                    onChange={(e) => handleChange('driveHoursCriticalPct', parseInt(e.target.value))}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Optimization Defaults */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Route Optimization Defaults</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Default Optimization Mode</Label>
-                <Select
-                  value={formData.defaultOptimizationMode || 'BALANCE'}
-                  onValueChange={(value) => handleChange('defaultOptimizationMode', value)}
-                  disabled={!canEdit}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MINIMIZE_TIME">Minimize Time</SelectItem>
-                    <SelectItem value="MINIMIZE_COST">Minimize Cost</SelectItem>
-                    <SelectItem value="BALANCE">Balance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Cost Per Mile ($)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    disabled={!canEdit}
-                    value={formData.costPerMile || 1.85}
-                    onChange={(e) => handleChange('costPerMile', parseFloat(e.target.value))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Labor Cost Per Hour ($)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    disabled={!canEdit}
-                    value={formData.laborCostPerHour || 25}
-                    onChange={(e) => handleChange('laborCostPerHour', parseFloat(e.target.value))}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Rest Insertion Preferences */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Rest Insertion Preferences</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Prefer Full Rest (10h)</Label>
-                  <p className="text-sm text-muted-foreground">Prefer 10-hour rest over 7-hour partial rest</p>
-                </div>
-                <Switch
-                  checked={formData.preferFullRest !== false}
-                  onCheckedChange={(checked) => handleChange('preferFullRest', checked)}
-                  disabled={!canEdit}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Allow Dock Rest</Label>
-                  <p className="text-sm text-muted-foreground">Use dock time for rest when possible</p>
-                </div>
-                <Switch
-                  checked={formData.allowDockRest !== false}
-                  onCheckedChange={(checked) => handleChange('allowDockRest', checked)}
-                  disabled={!canEdit}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Rest Stop Buffer (minutes)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="120"
-                  disabled={!canEdit}
-                  value={formData.restStopBuffer || 30}
-                  onChange={(e) => handleChange('restStopBuffer', parseInt(e.target.value))}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Fuel Preferences */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Fuel Stop Preferences</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Fuel Price Threshold ($/gal)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    disabled={!canEdit}
-                    value={formData.fuelPriceThreshold || 0.15}
-                    onChange={(e) => handleChange('fuelPriceThreshold', parseFloat(e.target.value))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Max Fuel Detour (miles)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="50"
-                    disabled={!canEdit}
-                    value={formData.maxFuelDetour || 10}
-                    onChange={(e) => handleChange('maxFuelDetour', parseInt(e.target.value))}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          {canEdit && (
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={handleReset} disabled={isSaving}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Reset to Defaults
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Configuration
-                </>
-              )}
-            </Button>
+      {/* HOS Defaults */}
+      <Card>
+        <CardHeader>
+          <CardTitle>HOS Defaults</CardTitle>
+          <CardDescription>Starting hours assumed when a driver begins a new route. Adjust if drivers typically start mid-shift.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Default Drive Hours</Label>
+              <p className="text-xs text-muted-foreground">Hours already driven today when the driver starts a new route. Usually 0 unless mid-shift.</p>
+            </div>
+            <Input type="number" step="0.5" min="0" max="11" className="w-full md:w-48" value={formData.defaultDriveHours ?? 0} onChange={(e) => handleChange('defaultDriveHours', parseFloat(e.target.value))} disabled={!canEdit} />
           </div>
-          )}
-        </TabsContent>
 
-        {/* ============================================================ */}
-        {/* ALERTS & NOTIFICATIONS TAB */}
-        {/* ============================================================ */}
-        <TabsContent value="alerts" className="space-y-6 mt-6">
-          {alertSaveSuccess && (
-            <Alert>
-              <AlertDescription>Alert configuration saved successfully!</AlertDescription>
-            </Alert>
-          )}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Default On-Duty Hours</Label>
+              <p className="text-xs text-muted-foreground">On-duty hours already used today. Includes driving, loading, and paperwork.</p>
+            </div>
+            <Input type="number" step="0.5" min="0" max="14" className="w-full md:w-48" value={formData.defaultOnDutyHours ?? 0} onChange={(e) => handleChange('defaultOnDutyHours', parseFloat(e.target.value))} disabled={!canEdit} />
+          </div>
 
-          {alertConfigLoading ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
-                <Loader2 className="h-8 w-8 animate-spin" />
-                <p className="text-sm text-muted-foreground">Loading alert configuration...</p>
-              </CardContent>
-            </Card>
-          ) : !alertConfig ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
-                <p className="text-sm text-muted-foreground">Failed to load alert configuration.</p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setAlertConfigLoading(true);
-                    getAlertConfig()
-                      .then(setAlertConfig)
-                      .catch(() => {})
-                      .finally(() => setAlertConfigLoading(false));
-                  }}
-                >
-                  Try Again
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {/* Alert Types */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Alert Types</CardTitle>
-                  <CardDescription>
-                    Enable or disable alert types and configure their thresholds
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {Object.entries(alertConfig.alertTypes).map(([typeKey, config]) => (
-                    <div key={typeKey} className="flex items-center justify-between gap-4 py-2 border-b border-border last:border-0">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <Label className="text-sm font-medium">
-                            {ALERT_TYPE_LABELS[typeKey] || typeKey}
-                          </Label>
-                          {config.mandatory && (
-                            <Badge variant="outline" className="text-xs gap-1">
-                              <Lock className="h-3 w-3" />
-                              Mandatory
-                            </Badge>
-                          )}
-                        </div>
-                        {/* Threshold input */}
-                        {config.thresholdMinutes !== undefined && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <Label className="text-xs text-muted-foreground whitespace-nowrap">Threshold (min):</Label>
-                            <Input
-                              type="number"
-                              min="1"
-                              className="h-8 w-24"
-                              disabled={!canEdit}
-                              value={config.thresholdMinutes}
-                              onChange={(e) => handleAlertThresholdChange(typeKey, 'thresholdMinutes', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                        )}
-                        {config.thresholdPercent !== undefined && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <Label className="text-xs text-muted-foreground whitespace-nowrap">Threshold (%):</Label>
-                            <Input
-                              type="number"
-                              min="1"
-                              max="100"
-                              className="h-8 w-24"
-                              disabled={!canEdit}
-                              value={config.thresholdPercent}
-                              onChange={(e) => handleAlertThresholdChange(typeKey, 'thresholdPercent', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <Switch
-                        checked={config.enabled}
-                        onCheckedChange={(checked) => handleAlertTypeToggle(typeKey, checked)}
-                        disabled={!canEdit || config.mandatory}
-                      />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Default Since Last Break</Label>
+              <p className="text-xs text-muted-foreground">Hours since the driver&apos;s last 30-minute break. Used for break scheduling.</p>
+            </div>
+            <Input type="number" step="0.5" min="0" max="8" className="w-full md:w-48" value={formData.defaultSinceBreakHours ?? 0} onChange={(e) => handleChange('defaultSinceBreakHours', parseFloat(e.target.value))} disabled={!canEdit} />
+          </div>
+        </CardContent>
+      </Card>
 
-              {/* Default Notification Channels */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Default Notification Channels</CardTitle>
-                  <CardDescription>
-                    Configure which channels are used for each alert priority level
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Header row */}
-                  <div className="grid grid-cols-5 gap-4 mb-3 pb-2 border-b border-border">
-                    <div className="text-sm font-medium text-muted-foreground">Priority</div>
-                    {CHANNEL_LABELS.map((label) => (
-                      <div key={label} className="text-sm font-medium text-muted-foreground text-center">
-                        {label}
-                      </div>
-                    ))}
-                  </div>
-                  {/* Rows per priority */}
-                  {PRIORITY_LEVELS.map((priority) => {
-                    const channels = alertConfig.defaultChannels[priority];
-                    if (!channels) return null;
-                    // Critical priority always requires in-app
-                    const isCritical = priority === 'critical';
-                    return (
-                      <div key={priority} className="grid grid-cols-5 gap-4 py-3 border-b border-border last:border-0 items-center">
-                        <div className="text-sm font-medium capitalize text-foreground">{priority}</div>
-                        {CHANNEL_KEYS.map((channelKey) => {
-                          const isMandatoryChannel = isCritical && channelKey === 'inApp';
-                          return (
-                            <div key={channelKey} className="flex justify-center items-center gap-1">
-                              <Switch
-                                checked={isMandatoryChannel ? true : channels[channelKey]}
-                                onCheckedChange={(checked) => handleChannelToggle(priority, channelKey, checked)}
-                                disabled={!canEdit || isMandatoryChannel}
-                              />
-                              {isMandatoryChannel && (
-                                <span title="Required for compliance"><Lock className="h-3 w-3 text-muted-foreground" /></span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
+      {/* Optimization */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Optimization</CardTitle>
+          <CardDescription>Control how Sally balances time and cost when planning routes.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Default Optimization Mode</Label>
+              <p className="text-xs text-muted-foreground">Controls the trade-off between time and cost. &ldquo;Balance&rdquo; weights both equally.</p>
+            </div>
+            <Select value={formData.defaultOptimizationMode || 'BALANCE'} onValueChange={(v) => handleChange('defaultOptimizationMode', v)} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MINIMIZE_TIME">Minimize Time</SelectItem>
+                <SelectItem value="MINIMIZE_COST">Minimize Cost</SelectItem>
+                <SelectItem value="BALANCE">Balance</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-              {/* Grouping Config */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Alert Grouping</CardTitle>
-                  <CardDescription>
-                    Configure how related alerts are grouped together
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Deduplication Window (minutes)</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="120"
-                      disabled={!canEdit}
-                      value={alertConfig.groupingConfig.dedupWindowMinutes}
-                      onChange={(e) => setAlertConfig({
-                        ...alertConfig,
-                        groupingConfig: { ...alertConfig.groupingConfig, dedupWindowMinutes: parseInt(e.target.value) || 15 },
-                      })}
-                    />
-                  </div>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Cost Per Mile ($)</Label>
+              <p className="text-xs text-muted-foreground">All-in cost including fuel, maintenance, and tires. Used for cost-optimized routes.</p>
+            </div>
+            <Input type="number" step="0.05" min="0" className="w-full md:w-48" value={formData.costPerMile ?? 1.85} onChange={(e) => handleChange('costPerMile', parseFloat(e.target.value))} disabled={!canEdit} />
+          </div>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Group Same Type Per Driver</Label>
-                      <p className="text-sm text-muted-foreground">Combine repeated alerts of the same type for a driver</p>
-                    </div>
-                    <Switch
-                      checked={alertConfig.groupingConfig.groupSameTypePerDriver}
-                      onCheckedChange={(checked) => setAlertConfig({
-                        ...alertConfig,
-                        groupingConfig: { ...alertConfig.groupingConfig, groupSameTypePerDriver: checked },
-                      })}
-                      disabled={!canEdit}
-                    />
-                  </div>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Labor Cost Per Hour ($)</Label>
+              <p className="text-xs text-muted-foreground">Hourly driver cost including wages and benefits. Used for time vs cost trade-offs.</p>
+            </div>
+            <Input type="number" step="0.50" min="0" className="w-full md:w-48" value={formData.laborCostPerHour ?? 25.0} onChange={(e) => handleChange('laborCostPerHour', parseFloat(e.target.value))} disabled={!canEdit} />
+          </div>
+        </CardContent>
+      </Card>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Smart Group Across Drivers</Label>
-                      <p className="text-sm text-muted-foreground">Group similar alerts from different drivers in the same area</p>
-                    </div>
-                    <Switch
-                      checked={alertConfig.groupingConfig.smartGroupAcrossDrivers}
-                      onCheckedChange={(checked) => setAlertConfig({
-                        ...alertConfig,
-                        groupingConfig: { ...alertConfig.groupingConfig, smartGroupAcrossDrivers: checked },
-                      })}
-                      disabled={!canEdit}
-                    />
-                  </div>
+      {/* Rest Stops */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Rest Stops</CardTitle>
+          <CardDescription>Configure how Sally inserts mandatory rest breaks into routes for HOS compliance.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Prefer Full Rest</Label>
+              <p className="text-xs text-muted-foreground">When a rest stop is needed, prefer 10-hour full rest over 7-hour partial rest.</p>
+            </div>
+            <Switch checked={formData.preferFullRest ?? true} onCheckedChange={(c) => handleChange('preferFullRest', c)} disabled={!canEdit} />
+          </div>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Link Cascading Alerts</Label>
-                      <p className="text-sm text-muted-foreground">Link related alerts (e.g., HOS approaching → HOS violation)</p>
-                    </div>
-                    <Switch
-                      checked={alertConfig.groupingConfig.linkCascading}
-                      onCheckedChange={(checked) => setAlertConfig({
-                        ...alertConfig,
-                        groupingConfig: { ...alertConfig.groupingConfig, linkCascading: checked },
-                      })}
-                      disabled={!canEdit}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Allow Dock Rest</Label>
+              <p className="text-xs text-muted-foreground">Allow drivers to take their rest period at the destination dock if timing works.</p>
+            </div>
+            <Switch checked={formData.allowDockRest ?? true} onCheckedChange={(c) => handleChange('allowDockRest', c)} disabled={!canEdit} />
+          </div>
 
-              {/* Save Button for Alerts */}
-              {canEdit && (
-                <div className="flex justify-end">
-                  <Button onClick={handleSaveAlertConfig} disabled={alertConfigSaving}>
-                    {alertConfigSaving ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Alert Configuration
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Rest Stop Buffer (minutes)</Label>
+              <p className="text-xs text-muted-foreground">Extra time added before and after a rest stop for parking and settling in.</p>
+            </div>
+            <Input type="number" min="0" max="120" className="w-full md:w-48" value={formData.restStopBuffer ?? 30} onChange={(e) => handleChange('restStopBuffer', parseInt(e.target.value))} disabled={!canEdit} />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Minimum Rest Duration</Label>
+              <p className="text-xs text-muted-foreground">Shortest rest Sally will schedule. 7 = partial rest, 10 = full rest.</p>
+            </div>
+            <Select value={String(formData.minRestDuration ?? 7)} onValueChange={(v) => handleChange('minRestDuration', parseInt(v))} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">7 hours (partial)</SelectItem>
+                <SelectItem value="10">10 hours (full)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Fuel Stops */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Fuel Stops</CardTitle>
+          <CardDescription>Set thresholds for when Sally suggests fuel detours along a route.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Fuel Price Threshold ($/gal)</Label>
+              <p className="text-xs text-muted-foreground">Only suggest a detour for fuel if savings exceed this amount per gallon.</p>
+            </div>
+            <Input type="number" step="0.01" min="0" className="w-full md:w-48" value={formData.fuelPriceThreshold ?? 0.15} onChange={(e) => handleChange('fuelPriceThreshold', parseFloat(e.target.value))} disabled={!canEdit} />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Max Fuel Detour (miles)</Label>
+              <p className="text-xs text-muted-foreground">Furthest Sally will detour from the route to reach a cheaper fuel stop.</p>
+            </div>
+            <Input type="number" min="0" max="50" className="w-full md:w-48" value={formData.maxFuelDetour ?? 10} onChange={(e) => handleChange('maxFuelDetour', parseInt(e.target.value))} disabled={!canEdit} />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Min Fuel Savings ($)</Label>
+              <p className="text-xs text-muted-foreground">Minimum dollar savings to justify a fuel detour. Prevents tiny savings for big detours.</p>
+            </div>
+            <Input type="number" step="0.50" min="0" className="w-full md:w-48" value={formData.minFuelSavings ?? 10.0} onChange={(e) => handleChange('minFuelSavings', parseFloat(e.target.value))} disabled={!canEdit} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Assignment Defaults */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Assignment Defaults</CardTitle>
+          <CardDescription>Default behavior for assigning loads, drivers, and vehicles to new routes.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Load Assignment</Label>
+              <p className="text-xs text-muted-foreground">How loads are assigned to routes. &ldquo;Manual&rdquo; = dispatcher picks. &ldquo;Auto&rdquo; = Sally assigns.</p>
+            </div>
+            <Select value={formData.defaultLoadAssignment || 'MANUAL'} onValueChange={(v) => handleChange('defaultLoadAssignment', v)} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MANUAL">Manual</SelectItem>
+                <SelectItem value="AUTO_ASSIGN">Auto Assign</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Driver Selection</Label>
+              <p className="text-xs text-muted-foreground">How drivers are selected for routes. &ldquo;Auto Suggest&rdquo; recommends the best match.</p>
+            </div>
+            <Select value={formData.defaultDriverSelection || 'AUTO_SUGGEST'} onValueChange={(v) => handleChange('defaultDriverSelection', v)} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MANUAL">Manual</SelectItem>
+                <SelectItem value="AUTO_SUGGEST">Auto Suggest</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Vehicle Selection</Label>
+              <p className="text-xs text-muted-foreground">How vehicles are assigned. &ldquo;Driver Default&rdquo; uses the driver&apos;s usual truck.</p>
+            </div>
+            <Select value={formData.defaultVehicleSelection || 'AUTO_ASSIGN'} onValueChange={(v) => handleChange('defaultVehicleSelection', v)} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MANUAL">Manual</SelectItem>
+                <SelectItem value="AUTO_ASSIGN">Auto Assign</SelectItem>
+                <SelectItem value="DRIVER_DEFAULT">Driver Default</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reporting */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Reporting</CardTitle>
+          <CardDescription>Configure timezone, format, and content for generated reports.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Label>Report Timezone</Label>
+              <p className="text-xs text-muted-foreground">Timezone used for all timestamps in generated reports.</p>
+            </div>
+            <Select value={formData.reportTimezone || 'America/New_York'} onValueChange={(v) => handleChange('reportTimezone', v)} disabled={!canEdit}>
+              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="America/New_York">Eastern (ET)</SelectItem>
+                <SelectItem value="America/Chicago">Central (CT)</SelectItem>
+                <SelectItem value="America/Denver">Mountain (MT)</SelectItem>
+                <SelectItem value="America/Los_Angeles">Pacific (PT)</SelectItem>
+                <SelectItem value="UTC">UTC</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Include Map in Reports</Label>
+              <p className="text-xs text-muted-foreground">Embed a static map image in PDF and email reports.</p>
+            </div>
+            <Switch checked={formData.includeMapInReports ?? true} onCheckedChange={(c) => handleChange('includeMapInReports', c)} disabled={!canEdit} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Action Buttons */}
+      {canEdit && (
+        <div className="flex justify-between">
+          <Button variant="outline" onClick={handleReset} disabled={isSaving}>
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Reset to Defaults
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</>
+            ) : (
+              <><Save className="h-4 w-4 mr-2" />Save Changes</>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

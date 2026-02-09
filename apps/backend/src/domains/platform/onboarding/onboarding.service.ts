@@ -88,7 +88,7 @@ export class OnboardingService {
       },
       {
         id: 'preferences_configured',
-        title: 'Configure route planning preferences',
+        title: 'Configure operations settings',
         complete: preferencesModified.modified,
         metadata: preferencesModified,
       },

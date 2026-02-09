@@ -65,7 +65,7 @@ export function UserProfileMenu() {
           if (user?.role === 'SUPER_ADMIN') {
             router.push('/admin/settings');
           } else {
-            router.push('/settings/preferences');
+            router.push('/settings/general');
           }
         }}>
           <Settings className="mr-2 h-4 w-4" />

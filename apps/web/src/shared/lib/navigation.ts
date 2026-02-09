@@ -1,4 +1,4 @@
-import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2, Rocket, Flag, FileText, Wallet } from 'lucide-react';
+import { BarChart3, Building2, FileText, Flag, Home, LucideIcon, Map, MessageSquare, Package, Plus, Rocket, Settings, Truck, Users, Wallet } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -35,9 +35,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
     { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Operations', href: '/settings/operations', icon: Route },
-    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
-    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
+    { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
 
   driver: [
@@ -45,7 +43,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Today\'s Route', href: '/driver/current-route', icon: Map },
     { label: 'Dispatch Messages', href: '/driver/messages', icon: MessageSquare },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
+    { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
 
   admin: [
@@ -63,9 +61,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
     { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Operations', href: '/settings/operations', icon: Route },
-    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
-    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
+    { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
 
   owner: [
@@ -83,9 +79,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
     { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Operations', href: '/settings/operations', icon: Route },
-    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
-    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
+    { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
 
   super_admin: [

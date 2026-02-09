@@ -33,7 +33,7 @@ export default function SuperAdminSettingsPage() {
   // Fetch preferences
   const { data: preferences, isLoading } = useQuery({
     queryKey: ['preferences', 'admin'],
-    queryFn: () => apiClient<SuperAdminPreferences>('/preferences/admin'),
+    queryFn: () => apiClient<SuperAdminPreferences>('/settings/admin'),
     enabled: !!user,
   });
 
@@ -49,7 +49,7 @@ export default function SuperAdminSettingsPage() {
   // Update preferences mutation
   const updateMutation = useMutation({
     mutationFn: (data: Partial<SuperAdminPreferences>) =>
-      apiClient<SuperAdminPreferences>('/preferences/admin', {
+      apiClient<SuperAdminPreferences>('/settings/admin', {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
