@@ -43,6 +43,7 @@ export function SallyChat() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showRecents, setShowRecents] = useState(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -118,7 +119,7 @@ export function SallyChat() {
               </motion.div>
             )}
 
-            {/* Recent conversations (empty state, non-prospect) */}
+            {/* Recent conversations toggle (empty state, non-prospect) */}
             {!isViewingHistory && hasOnlyGreeting && userMode !== 'prospect' && pastConversations.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -126,40 +127,69 @@ export function SallyChat() {
                 transition={{ delay: 0.3, duration: 0.4 }}
                 className="space-y-2"
               >
-                <div className="flex items-center gap-2 px-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowRecents(prev => !prev)}
+                  className="w-full flex items-center gap-2 h-7 px-1 text-muted-foreground hover:text-foreground"
+                >
                   <div className="h-px flex-1 bg-border" />
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Recent</span>
-                  <div className="h-px flex-1 bg-border" />
-                </div>
-
-                <div className="space-y-1">
-                  {pastConversations.slice(0, 5).map((conv, i) => (
-                    <motion.div
-                      key={conv.conversationId}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 + i * 0.05 }}
+                  <span className="text-[10px] uppercase tracking-wider shrink-0 flex items-center gap-1">
+                    Recent ({pastConversations.length})
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      className={`transition-transform duration-200 ${showRecents ? 'rotate-180' : ''}`}
                     >
-                      <Button
-                        variant="ghost"
-                        onClick={() => viewConversation(conv.conversationId)}
-                        className="w-full flex items-center justify-between px-3 py-2 h-auto rounded-lg text-left"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-foreground truncate">
-                            {conv.title || 'Untitled conversation'}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {conv.messageCount} messages
-                          </p>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-                          {formatRelativeTime(conv.lastMessageAt)}
-                        </span>
-                      </Button>
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </span>
+                  <div className="h-px flex-1 bg-border" />
+                </Button>
+
+                <AnimatePresence>
+                  {showRecents && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden space-y-1"
+                    >
+                      {pastConversations.slice(0, 5).map((conv, i) => (
+                        <motion.div
+                          key={conv.conversationId}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                        >
+                          <Button
+                            variant="ghost"
+                            onClick={() => viewConversation(conv.conversationId)}
+                            className="w-full flex items-center justify-between px-3 py-2 h-auto rounded-lg text-left"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-foreground truncate">
+                                {conv.title || 'Untitled conversation'}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {conv.messageCount} messages
+                              </p>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                              {formatRelativeTime(conv.lastMessageAt)}
+                            </span>
+                          </Button>
+                        </motion.div>
+                      ))}
                     </motion.div>
-                  ))}
-                </div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
 
