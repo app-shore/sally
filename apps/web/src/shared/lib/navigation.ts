@@ -1,4 +1,4 @@
-import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Plug, Users, BarChart3, Route, Building2, Rocket, Flag } from 'lucide-react';
+import { Home, Plus, Truck, Settings, Map, MessageSquare, LucideIcon, Package, Users, BarChart3, Building2, Rocket, Flag } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -32,9 +32,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Truck },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Operations', href: '/settings/operations', icon: Route },
-    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
-    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
+    { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
 
   driver: [
@@ -42,7 +40,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Today\'s Route', href: '/driver/current-route', icon: Map },
     { label: 'Dispatch Messages', href: '/driver/messages', icon: MessageSquare },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
+    { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
 
   admin: [
@@ -57,9 +55,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Operations', href: '/settings/operations', icon: Route },
-    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
-    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
+    { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
 
   owner: [
@@ -74,9 +70,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
     { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
-    { label: 'Operations', href: '/settings/operations', icon: Route },
-    { label: 'Integrations', href: '/settings/integrations', icon: Plug },
-    { label: 'Preferences', href: '/settings/preferences', icon: Settings },
+    { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
 
   super_admin: [
