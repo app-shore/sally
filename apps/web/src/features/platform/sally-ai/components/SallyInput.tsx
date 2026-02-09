@@ -12,6 +12,7 @@ export function SallyInput() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const {
     orbState,
+    isExpanded,
     isVoiceEnabled,
     interimTranscript,
     sendMessage,
@@ -24,6 +25,23 @@ export function SallyInput() {
 
   const isThinking = orbState === 'thinking';
   const showMic = isVoiceEnabled && sttSupported;
+
+  // Auto-focus when panel opens
+  useEffect(() => {
+    if (isExpanded) {
+      // Small delay to let the panel animation start
+      const timer = setTimeout(() => inputRef.current?.focus(), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isExpanded]);
+
+  // Auto-grow textarea to fit content
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [input]);
 
   // Handle final transcript
   useEffect(() => {
@@ -52,6 +70,9 @@ export function SallyInput() {
     if (!text || isThinking) return;
     sendMessage(text, 'text');
     setInput('');
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
     inputRef.current?.focus();
   }, [input, isThinking, sendMessage]);
 
@@ -66,78 +87,92 @@ export function SallyInput() {
   }, [isListening, startSTT, stopSTT, setMicActive]);
 
   return (
-    <div className="bg-background p-3 space-y-2">
-      {/* Interim transcript preview */}
-      <AnimatePresence>
-        {interimTranscript && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="text-xs text-muted-foreground italic px-1"
-          >
-            {interimTranscript}...
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="p-3">
+      {/* Frosted command bar */}
+      <div className="rounded-2xl bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
+        {/* Interim transcript inside the bar */}
+        <AnimatePresence>
+          {interimTranscript && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="px-4 pt-2 text-xs text-muted-foreground italic truncate"
+            >
+              {interimTranscript}...
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      <div className="flex items-end gap-2">
-        {/* Mic button */}
-        {showMic && (
-          <Button
-            type="button"
-            variant={isListening ? 'default' : 'outline'}
-            size="icon"
-            onClick={handleMicToggle}
-            disabled={isThinking}
-            className="shrink-0 h-9 w-9"
-            aria-label={isListening ? 'Stop listening' : 'Start voice input'}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="flex items-end gap-1 px-2 py-1.5">
+          {/* Mic button */}
+          {showMic && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleMicToggle}
+              disabled={isThinking}
+              className="shrink-0 h-9 w-9 rounded-full mb-0.5"
+              aria-label={isListening ? 'Stop listening' : 'Start voice input'}
+            >
               {isListening ? (
-                <rect x="6" y="6" width="12" height="12" rx="2" />
+                /* Animated waveform bars when listening */
+                <span className="flex items-center gap-[2px]">
+                  {[0, 0.1, 0.2].map((delay, i) => (
+                    <motion.span
+                      key={i}
+                      className="w-[3px] bg-foreground rounded-full"
+                      animate={{ height: ['8px', '16px', '8px'] }}
+                      transition={{ duration: 0.5, repeat: Infinity, ease: 'easeInOut', delay }}
+                    />
+                  ))}
+                </span>
               ) : (
-                <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
                   <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
                   <line x1="12" y1="19" x2="12" y2="23" />
-                </>
+                </svg>
               )}
-            </svg>
-          </Button>
-        )}
+            </Button>
+          )}
 
-        {/* Text input */}
-        <Textarea
-          ref={inputRef}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder={isListening ? 'Listening...' : 'Ask Sally anything...'}
-          className="min-h-[36px] max-h-[120px] resize-none text-sm"
-          disabled={isThinking || isListening}
-          rows={1}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-        />
+          {/* Text input — auto-grows up to 120px */}
+          <Textarea
+            ref={inputRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder={isListening ? 'Listening...' : 'Ask Sally anything...'}
+            className="min-h-[36px] max-h-[120px] resize-none text-sm bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 overflow-y-auto"
+            disabled={isThinking || isListening}
+            rows={1}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+          />
 
-        {/* Send button */}
-        <Button
-          type="button"
-          size="icon"
-          onClick={handleSend}
-          disabled={!input.trim() || isThinking}
-          className="shrink-0 h-9 w-9"
-          aria-label="Send message"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="22" y1="2" x2="11" y2="13" />
-            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-          </svg>
-        </Button>
+          {/* Send button — rotates on hover */}
+          <motion.div className="mb-0.5" whileHover={{ rotate: 45 }} transition={{ duration: 0.2 }}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleSend}
+              disabled={!input.trim() || isThinking}
+              className="shrink-0 h-9 w-9 rounded-full"
+              aria-label="Send message"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </Button>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

@@ -106,7 +106,7 @@ export function SallyStrip() {
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="fixed right-0 top-0 h-full z-50 w-full sm:w-[380px] bg-background border-l border-border flex flex-col"
           >
-            {/* Header */}
+            {/* Header: left = identity + new chat, right = utility + dismiss */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
               <div className="flex items-center gap-3">
                 <SallyOrb state={orbState} size="sm" />
@@ -114,6 +114,7 @@ export function SallyStrip() {
                   <p className="text-sm font-semibold text-foreground">SALLY</p>
                   <p className="text-[10px] text-muted-foreground capitalize">{userMode} mode</p>
                 </div>
+
               </div>
               <div className="flex items-center gap-1">
                 {/* TTS toggle */}
