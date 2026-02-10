@@ -38,7 +38,6 @@
   "devDependencies": {
     "turbo": "^2.3.3"
   },
-  "packageManager": "npm@10.2.4",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
