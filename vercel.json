@@ -1,4 +1,4 @@
 {
   "installCommand": "cd ../.. && npx pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm run sync-openapi && next build"
+  "buildCommand": "next build"
 }
