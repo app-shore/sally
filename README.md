@@ -4,6 +4,7 @@ SALLY is an intelligent fleet operations platform that optimizes route planning,
 
 ## What SALLY Does
 
+- **SALLY AI** - Conversational AI assistant for fleet operations — ask questions, get insights, and manage routes through natural language
 - **Route Planning** - Optimized stop sequencing with TSP/VRP algorithms
 - **HOS Compliance** - Automatic rest stop insertion where regulations require
 - **Fuel Optimization** - Smart fuel stop placement based on range and pricing
