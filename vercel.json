@@ -1,3 +1,4 @@
 {
+  "installCommand": "cd ../.. && npm install",
   "buildCommand": "npm run sync-openapi && next build"
 }
