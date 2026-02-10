@@ -1,0 +1,143 @@
+---
+title: Roadmap
+description: What's built, what's in progress, and what's planned for SALLY.
+---
+
+# Roadmap
+
+## Implementation Status
+
+| Feature | Backend | Frontend | Status |
+|---|---|---|---|
+| Route Planning | 100% | 100% | Production ready |
+| HOS Compliance | 100% | 95% | Production ready |
+| Authentication | 100% | 100% | Production ready |
+| Multi-Tenancy | 100% | 100% | Production ready |
+| Integrations | 20% | 50% | Mock only |
+| Alerts | 40% | 20% | API only, no generation |
+| Monitoring | 0% | N/A | Planned |
+| Fleet Management | 50% | 30% | Basic CRUD only |
+| Driver Portal | 50% | 40% | Dashboard exists |
+
+---
+
+## Phase 1: Single-Driver Route Planning (MVP)
+
+**Status:** In progress
+
+**What's built:**
+- Route planning engine (TSP + HOS simulation)
+- Rest stop insertion (full rest, partial rest, breaks)
+- Fuel stop insertion (price-optimized)
+- Dynamic updates (4 trigger types)
+- Web dashboard (plan routes, monitor routes)
+- Authentication with multi-tenancy
+- Mock external API integrations (Samsara HOS, fuel prices, weather)
+- Static distance/time data
+
+**What's remaining:**
+- Connect alert generation to monitoring
+- Complete external integration adapters
+- Driver portal refinements
+- Fleet management CRUD completion
+
+**Goal:** Prove value with 5 pilot drivers.
+
+**Success metrics:**
+- 5 pilot carriers (5–20 trucks each)
+- 100 routes planned
+- Zero HOS violations on planned routes
+- 90% driver acceptance rate on optional rest recommendations
+- Less than 5 seconds route optimization time (10 stops)
+
+---
+
+## Phase 2: Fleet-Wide Optimization
+
+**Timeline:** 3 months after MVP
+
+**Planned features:**
+- Multi-driver assignment (VRP solver with OR-Tools)
+- Load matching (which driver gets which load)
+- Driver preferences (home time, preferred regions)
+- Team driving support
+- Real ELD/TMS/Fuel/Weather integrations
+- Continuous monitoring service (14 trigger types)
+- Alert generation engine
+- Live tracking with maps
+
+**Goal:** Scale to 50+ trucks per carrier.
+
+**Success metrics:**
+- 10 paying customers (50–100 trucks each)
+- 1,000 routes planned per week
+- $100K ARR
+- 80% renewal rate
+- Less than 10 seconds route optimization (fleet-wide, 50 drivers, 200 loads)
+
+---
+
+## Phase 3: Live Data Integration
+
+**Timeline:** 3 months after Phase 2
+
+**Planned features:**
+- ELD API integration (auto-populate HOS) — Samsara, KeepTruckin, Omnitracs
+- TMS API integration (auto-pull stops) — McLeod, TMW
+- Telematics integration (live truck location)
+- Google Maps Directions + Traffic API
+- Weather API (adjust speeds for conditions)
+- Fuel price API (GasBuddy, live prices)
+
+**Goal:** Fully automated route planning with zero manual data entry.
+
+**Success metrics:**
+- 50 customers
+- 3 ELD integrations
+- 2 TMS integrations
+- $500K ARR
+- 90% driver satisfaction ("makes job easier")
+
+---
+
+## Phase 4: Predictive Intelligence
+
+**Timeline:** 6 months after Phase 3
+
+**Planned features:**
+- ML-based ETA prediction (learn from historical data)
+- Driver preference learning (personalize rest/fuel recommendations)
+- Lane-specific patterns (optimize by familiar routes)
+- Demand forecasting (predict dock times)
+
+**Goal:** Self-optimizing system that improves with usage.
+
+---
+
+## Phase 5: Advanced Features
+
+**Timeline:** Ongoing
+
+**Planned features:**
+- Load consolidation (combine partial loads)
+- Toll optimization (avoid/minimize tolls)
+- Fuel hedging (predict prices, route accordingly)
+- Driver fatigue scoring (beyond HOS)
+- Appointment negotiation (suggest better time windows)
+- AI assistant (voice + text) for dispatchers and drivers
+
+---
+
+## TMS Strategy
+
+SALLY supports two data paths for every entity (drivers, vehicles, loads):
+
+1. **TMS Integration** (auto-sync) — For carriers with TMS APIs (Rose Rocket, Alvys, McLeod)
+2. **Manual Entry** — For carriers with no TMS, or TMS without APIs
+
+Both paths feed into the same route planning and monitoring intelligence.
+
+**TMS roadmap:**
+- **Phase 0:** Manual entry for drivers, vehicles, loads + load lifecycle
+- **Phase 1:** Add invoicing + driver settlements + QuickBooks → SALLY becomes a TMS
+- **Phase 2:** IFTA, factoring, load boards, EDI, document management → Full TMS parity

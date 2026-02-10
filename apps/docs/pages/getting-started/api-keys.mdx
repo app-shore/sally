@@ -1,119 +1,237 @@
 ---
-title: API Keys Setup
-description: Generate and manage your API keys
+title: API Keys
+description: Create and manage API keys for server-to-server authentication with the SALLY API
 ---
 
-# API Keys Setup
+# API Keys
 
-Learn how to generate, use, and manage your SALLY API keys.
+API keys provide a simple, long-lived authentication method for server-to-server integrations. Use them when your backend services need to communicate with the SALLY API without user-interactive login flows.
 
-## Generating an API Key
+## When to Use API Keys
 
-1. **Sign in** to your SALLY dashboard at [sally.appshore.in](https://sally.appshore.in)
+| Scenario | Use API Keys | Use JWT (Login) |
+|---|---|---|
+| Backend service calling SALLY API | Yes | No |
+| Cron job syncing fleet data | Yes | No |
+| CI/CD pipeline running tests | Yes | No |
+| User-facing web dashboard | No | Yes |
+| Mobile driver app | No | Yes |
 
-2. **Navigate** to Dashboard → API Keys
+API keys are scoped to your tenant and carry the permissions of the user who created them. They do not expire automatically but can be revoked at any time.
 
-3. **Click** "Generate API Key" button
+## Creating an API Key
 
-4. **Name your key** (e.g., "Production Server", "Testing Environment")
+### Via the Dashboard
 
-5. **Copy the key** - You'll only see it once!
+1. Sign in to your SALLY dashboard at [sally.appshore.in](https://sally.appshore.in)
+2. Navigate to **Settings > API Keys**
+3. Click **Create API Key**
+4. Enter a descriptive name (e.g., "TMS Integration - Production", "Monitoring Service")
+5. Select the desired permission scope
+6. Click **Generate**
+7. Copy the key immediately -- it is only displayed once
 
-<div className="rounded-lg border border-yellow-500 dark:border-yellow-400 p-4 my-6">
-  <div className="flex gap-3">
-    <div className="text-yellow-500 dark:text-yellow-400">⚠️</div>
-    <div>
-      <strong>Security Warning:</strong> API keys are shown only once during creation.
-      Store them securely in a password manager or environment variables.
-    </div>
-  </div>
-</div>
+### Via the API
+
+You can also create API keys programmatically. Authenticate with a JWT token first, then call the API keys endpoint:
+
+```bash
+curl -X POST https://sally-api.apps.appshore.in/api/v1/api-keys \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Fleet Sync Service",
+    "description": "Used by the nightly fleet data synchronization job"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "id": "ak_7f3a9b2c-1d4e-4f5a-8b6c-9d0e1f2a3b4c",
+  "name": "Fleet Sync Service",
+  "description": "Used by the nightly fleet data synchronization job",
+  "key": "sk_staging_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+  "prefix": "sk_staging_a1b2...o5p6",
+  "createdAt": "2026-02-10T14:30:00Z",
+  "lastUsedAt": null,
+  "isActive": true
+}
+```
+
+Save the `key` value securely. You will not be able to retrieve it again.
+
+## Using API Keys
+
+Pass your API key in the `X-API-Key` header on every request:
+
+### curl
+
+```bash
+curl https://sally-api.apps.appshore.in/api/v1/drivers \
+  -H "X-API-Key: sk_staging_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+```
+
+### JavaScript (fetch)
+
+```javascript
+const SALLY_API_KEY = process.env.SALLY_API_KEY;
+const BASE_URL = "https://sally-api.apps.appshore.in/api/v1";
+
+const response = await fetch(`${BASE_URL}/drivers`, {
+  headers: {
+    "X-API-Key": SALLY_API_KEY,
+  },
+});
+
+const drivers = await response.json();
+```
+
+### Python (requests)
+
+```python
+import os
+import requests
+
+API_KEY = os.environ["SALLY_API_KEY"]
+BASE_URL = "https://sally-api.apps.appshore.in/api/v1"
+
+response = requests.get(
+    f"{BASE_URL}/drivers",
+    headers={"X-API-Key": API_KEY},
+)
+
+drivers = response.json()
+```
+
+You can also use the `Authorization: Bearer` header with an API key as an alternative:
+
+```bash
+curl https://sally-api.apps.appshore.in/api/v1/drivers \
+  -H "Authorization: Bearer sk_staging_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+```
+
+Both methods are equivalent. The `X-API-Key` header is recommended for server-to-server calls to clearly distinguish API key auth from JWT auth.
+
+## Managing API Keys
+
+### Listing Keys
+
+Retrieve all API keys for your account:
+
+```bash
+curl https://sally-api.apps.appshore.in/api/v1/api-keys \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": "ak_7f3a9b2c-1d4e-4f5a-8b6c-9d0e1f2a3b4c",
+      "name": "Fleet Sync Service",
+      "prefix": "sk_staging_a1b2...o5p6",
+      "createdAt": "2026-02-10T14:30:00Z",
+      "lastUsedAt": "2026-02-10T18:45:00Z",
+      "requestCount": 1247,
+      "isActive": true
+    },
+    {
+      "id": "ak_2e4f6a8b-0c1d-2e3f-4a5b-6c7d8e9f0a1b",
+      "name": "CI/CD Pipeline",
+      "prefix": "sk_staging_x9y8...c3d4",
+      "createdAt": "2026-01-15T10:00:00Z",
+      "lastUsedAt": "2026-02-09T22:30:00Z",
+      "requestCount": 8934,
+      "isActive": true
+    }
+  ]
+}
+```
+
+The full key value is never returned after creation. Only the prefix (first and last 4 characters) is shown.
+
+### Revoking a Key
+
+Revoke a key immediately when it is compromised or no longer needed:
+
+```bash
+curl -X DELETE https://sally-api.apps.appshore.in/api/v1/api-keys/ak_7f3a9b2c-1d4e-4f5a-8b6c-9d0e1f2a3b4c \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "id": "ak_7f3a9b2c-1d4e-4f5a-8b6c-9d0e1f2a3b4c",
+  "name": "Fleet Sync Service",
+  "isActive": false,
+  "revokedAt": "2026-02-10T19:00:00Z"
+}
+```
+
+Revoked keys stop working immediately. Any in-flight requests using a revoked key will receive a `401 Unauthorized` response. Revocation cannot be undone -- generate a new key instead.
 
 ## Key Types
 
 ### Staging Keys
 
-- Prefix: `sk_staging_`
-- Environment: Staging API
-- Data: Mock/test data
-- Rate Limit: 1,000 requests/hour
-- Use for: Development and testing
+- **Prefix:** `sk_staging_`
+- **Environment:** Staging API (`sally-api.apps.appshore.in`)
+- **Rate limit:** 1,000 requests/hour
+- **Use for:** Development, testing, CI/CD pipelines
 
-### Production Keys (Coming Soon)
+### Production Keys
 
-- Prefix: `sk_live_`
-- Environment: Production API
-- Data: Real integration data
-- Rate Limit: TBD
-- Use for: Live applications
+- **Prefix:** `sk_live_`
+- **Environment:** Production API
+- **Rate limit:** 10,000 requests/hour
+- **Use for:** Live applications and integrations
 
-## Managing Keys
+## Security Best Practices
 
-### View All Keys
+### Store Keys in Environment Variables
 
-The API Keys dashboard shows:
-- Key name
-- Key prefix (last 4 characters shown)
-- Creation date
-- Last used timestamp
-- Request count
-- Active status
-
-### Revoke a Key
-
-To revoke a key:
-1. Find the key in your dashboard
-2. Click "Revoke"
-3. Confirm the action
-
-Revoked keys:
-- Stop working immediately
-- Cannot be reactivated
-- Generate a new key instead
-
-### Rotate Keys
-
-Recommended key rotation schedule:
-- **Development**: Every 90 days
-- **Production**: Every 30 days
-- **After compromise**: Immediately
-
-To rotate:
-1. Generate a new key
-2. Update your application
-3. Test the new key
-4. Revoke the old key
-
-## Storage Best Practices
-
-### Environment Variables
-
-Store keys in `.env` files (never commit to git):
+Never hardcode API keys in your source code:
 
 ```bash
-# .env
-SALLY_API_KEY=sk_staging_abc123...
+# .env (add to .gitignore)
+SALLY_API_KEY=sk_staging_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
 ```
-
-Add to `.gitignore`:
-```
-.env
-.env.local
-```
-
-### Application Configuration
 
 ```javascript
-// config.js
-export const config = {
-  sallyApiKey: process.env.SALLY_API_KEY,
-  sallyApiUrl: 'https://sally-api.apps.appshore.in/api/v1'
-};
+// Good -- read from environment
+const apiKey = process.env.SALLY_API_KEY;
+
+// Bad -- hardcoded in source
+const apiKey = "sk_staging_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6";
 ```
 
-### CI/CD Secrets
+### Add .env to .gitignore
 
-Use your platform's secret management:
+Ensure environment files are never committed:
+
+```
+# .gitignore
+.env
+.env.local
+.env.production
+```
+
+### Use Secret Managers in Production
+
+For production deployments, use your platform's secret management:
+
+**AWS Secrets Manager:**
+```bash
+aws secretsmanager create-secret \
+  --name sally/api-key \
+  --secret-string "sk_live_your_production_key"
+```
 
 **GitHub Actions:**
 ```yaml
@@ -123,57 +241,89 @@ env:
 
 **Vercel:**
 ```bash
-vercel env add SALLY_API_KEY
+vercel env add SALLY_API_KEY production
 ```
 
-## Usage Monitoring
+### Rotate Keys Regularly
 
-Track your API usage in the dashboard:
+Follow this rotation schedule:
 
-- **Request count** - Total requests made with this key
-- **Last used** - Timestamp of most recent request
-- **Rate limit status** - Remaining requests in current hour
+| Environment | Rotation Frequency |
+|---|---|
+| Development | Every 90 days |
+| Staging | Every 60 days |
+| Production | Every 30 days |
+| After compromise | Immediately |
 
-Set up alerts for:
-- Approaching rate limits
-- Unusual activity patterns
-- First use of a new key (verify it's you)
+**Rotation procedure:**
 
-## Security Checklist
+1. Generate a new key
+2. Update all services to use the new key
+3. Verify the new key works in all environments
+4. Revoke the old key
 
-- [ ] Keys stored in environment variables
-- [ ] `.env` files in `.gitignore`
-- [ ] Staging keys for development only
-- [ ] Production keys for production only
-- [ ] Keys rotated regularly
-- [ ] Revoked keys when team members leave
-- [ ] Usage monitored for anomalies
+### Principle of Least Privilege
+
+Create separate keys for each service or integration. If one key is compromised, you only need to rotate that specific key, not all of them.
+
+### Monitor Key Usage
+
+Review the API Keys dashboard regularly for:
+
+- Unexpected spikes in request count
+- Keys used from unfamiliar IP addresses
+- Keys that have not been used recently (candidates for revocation)
+- Requests near the rate limit threshold
 
 ## Troubleshooting
 
-### "Invalid or expired API key"
+### "Invalid or expired API key" (401)
 
 **Possible causes:**
 - Key was revoked
-- Key expired
-- Typo in key
-- Wrong environment (staging key on production endpoint)
+- Key has a typo (check for extra whitespace)
+- Using a staging key against a production endpoint (or vice versa)
+- Key was never activated
 
-**Solution:** Generate a new key
+**Solution:** Verify the key prefix matches your environment, or generate a new key.
 
-### "Rate limit exceeded"
+### "Rate limit exceeded" (429)
 
 **Possible causes:**
-- Too many requests in current hour
-- Missing rate limit headers in retry logic
+- Exceeding the requests-per-hour limit for your key type
+- Missing retry logic with backoff
 
-**Solution:**
-- Wait for rate limit reset
-- Implement exponential backoff
-- Upgrade to higher tier (production)
+**Solution:** Implement exponential backoff and check the `X-RateLimit-Reset` header:
+
+```javascript
+async function callWithRetry(url, options, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const response = await fetch(url, options);
+
+    if (response.status === 429) {
+      const resetTime = response.headers.get("X-RateLimit-Reset");
+      const waitMs = (parseInt(resetTime) * 1000) - Date.now();
+      await new Promise((resolve) => setTimeout(resolve, Math.max(waitMs, 1000)));
+      continue;
+    }
+
+    return response;
+  }
+
+  throw new Error("Max retries exceeded");
+}
+```
+
+### "Forbidden" (403)
+
+**Possible causes:**
+- Key does not have sufficient permissions for the requested resource
+- Tenant is suspended or inactive
+
+**Solution:** Check the key's permission scope in the dashboard, or contact your account administrator.
 
 ## Next Steps
 
-- [Quickstart Guide](/getting-started/quickstart) - Make your first API call
-- [Route Planning Guide](/guides/route-planning/creating-routes) - Build your first integration
-- [API Reference](/api-reference) - Explore all endpoints
+- [Authentication](/getting-started/authentication) -- Learn about JWT authentication for user-facing apps
+- [Your First Route](/getting-started/first-route) -- Plan a route end-to-end
+- [Drivers API](/api-guides/fleet-management/drivers) -- Manage your driver fleet

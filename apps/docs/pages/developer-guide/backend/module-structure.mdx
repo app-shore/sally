@@ -1,0 +1,296 @@
+---
+title: Backend Module Structure
+description: How the NestJS backend is organized into domains, modules, guards, and decorators.
+---
+
+# Backend Module Structure
+
+The SALLY backend is a NestJS 11 application organized using domain-driven design. This page explains how modules are structured, how the guard pipeline works, and how to use the custom decorators.
+
+## Domain Overview
+
+All business logic lives under `apps/backend/src/domains/`, organized into five domains:
+
+| Domain | Directory | What It Contains |
+|--------|-----------|-----------------|
+| Fleet | `domains/fleet/` | Drivers, Vehicles, Loads |
+| Operations | `domains/operations/` | Alerts, Command Center, Notifications |
+| Routing | `domains/routing/` | Route planning, HOS compliance, fuel/weather providers |
+| Integrations | `domains/integrations/` | External system adapters (ELD, fuel APIs), sync logic |
+| Platform | `domains/platform/` | Tenants, Users, Settings, API Keys, Feature Flags, AI |
+
+Each domain has a top-level module (e.g., `fleet.module.ts`) that imports its submodules.
+
+## Anatomy of a Module
+
+Every feature follows the same structure. Here is the `drivers` module as an example:
+
+```
+domains/fleet/drivers/
+├── drivers.module.ts              # Module declaration
+├── controllers/
+│   └── drivers.controller.ts      # HTTP endpoints
+├── services/
+│   ├── drivers.service.ts         # Core business logic
+│   └── drivers-activation.service.ts  # Activation workflow
+├── dto/
+│   ├── create-driver.dto.ts       # Create request validation
+│   ├── update-driver.dto.ts       # Update request validation
+│   └── index.ts                   # Barrel export
+└── __tests__/                     # Unit tests
+```
+
+### Module File
+
+The module file declares the controller, services, imports, and exports:
+
+```typescript filename="drivers.module.ts"
+import { Module } from '@nestjs/common';
+import { DriversController } from './controllers/drivers.controller';
+import { DriversService } from './services/drivers.service';
+import { DriversActivationService } from './services/drivers-activation.service';
+import { PrismaModule } from '../../../infrastructure/database/prisma.module';
+import { IntegrationsModule } from '../../integrations/integrations.module';
+
+@Module({
+  imports: [PrismaModule, IntegrationsModule],
+  controllers: [DriversController],
+  providers: [DriversService, DriversActivationService],
+  exports: [DriversService, DriversActivationService],
+})
+export class DriversModule {}
+```
+
+Key points:
+- Import `PrismaModule` to get access to `PrismaService` for database queries
+- Import other domain modules when you need their services
+- Export services that other modules depend on
+
+### Controller File
+
+Controllers handle HTTP requests, apply decorators for authorization and documentation, and delegate to services:
+
+```typescript filename="drivers.controller.ts"
+@ApiTags('Drivers')
+@ApiBearerAuth()
+@Controller('drivers')
+export class DriversController extends BaseTenantController {
+  constructor(
+    prisma: PrismaService,
+    private readonly driversService: DriversService,
+  ) {
+    super(prisma);
+  }
+
+  @Get()
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'List all active drivers' })
+  async listDrivers(@CurrentUser() user: any) {
+    const tenantDbId = await this.getTenantDbId(user);
+    return this.driversService.findAll(tenantDbId);
+  }
+}
+```
+
+Controllers extend `BaseTenantController`, which provides the `getTenantDbId()` and `getTenant()` helper methods for resolving the current tenant from the authenticated user.
+
+### Service File
+
+Services contain business logic and interact with the database via Prisma:
+
+```typescript filename="drivers.service.ts"
+@Injectable()
+export class DriversService {
+  private readonly logger = new Logger(DriversService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findAll(tenantId: number): Promise<Driver[]> {
+    return this.prisma.driver.findMany({
+      where: { tenantId, isActive: true },
+      orderBy: { driverId: 'asc' },
+    });
+  }
+
+  async findOne(driverId: string, tenantId: number): Promise<Driver> {
+    const driver = await this.prisma.driver.findUnique({
+      where: {
+        driverId_tenantId: { driverId, tenantId },
+      },
+    });
+    if (!driver) {
+      throw new NotFoundException(`Driver not found: ${driverId}`);
+    }
+    return driver;
+  }
+}
+```
+
+### DTO File
+
+DTOs (Data Transfer Objects) define the shape and validation rules for request bodies using `class-validator`:
+
+```typescript filename="create-driver.dto.ts"
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsOptional, IsEmail } from 'class-validator';
+
+export class CreateDriverDto {
+  @ApiProperty({ example: 'John Doe', description: 'Driver full name' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @ApiProperty({ example: 'DL12345678', required: false })
+  @IsString()
+  @IsOptional()
+  license_number?: string;
+
+  @ApiProperty({ example: '555-123-4567', required: false })
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @ApiProperty({ example: 'john@example.com', required: false })
+  @IsEmail()
+  @IsOptional()
+  email?: string;
+}
+```
+
+The global `ValidationPipe` (configured in `main.ts`) automatically validates incoming requests against these DTOs. Invalid requests are rejected with a 400 response before your controller code runs.
+
+## Guard Pipeline
+
+Three guards are applied globally to every request, in this order:
+
+```
+Request → JwtAuthGuard → TenantGuard → RolesGuard → Controller
+```
+
+### 1. JwtAuthGuard
+
+Validates the JWT bearer token in the `Authorization` header. If the route is decorated with `@Public()`, this guard is skipped.
+
+```typescript filename="jwt-auth.guard.ts"
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  canActivate(context: ExecutionContext) {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) return true;
+    return super.canActivate(context);
+  }
+}
+```
+
+### 2. TenantGuard
+
+Extracts the tenant context from the authenticated user and attaches it to the request. Ensures the user belongs to a valid, active tenant.
+
+### 3. RolesGuard
+
+Checks that the authenticated user has one of the roles specified by the `@Roles()` decorator. If no `@Roles()` decorator is present, the guard passes.
+
+## Custom Decorators
+
+### @Public()
+
+Marks a route as publicly accessible, bypassing JWT authentication:
+
+```typescript
+@Public()
+@Get('health')
+healthCheck() {
+  return { status: 'healthy' };
+}
+```
+
+### @CurrentUser()
+
+Extracts the authenticated user from the request object:
+
+```typescript
+@Get('profile')
+getProfile(@CurrentUser() user: any) {
+  return user;
+}
+```
+
+### @Roles()
+
+Restricts access to users with specific roles. Accepts one or more `UserRole` enum values:
+
+```typescript
+@Roles(UserRole.ADMIN, UserRole.OWNER)
+@Post()
+createDriver(@Body() dto: CreateDriverDto) { ... }
+```
+
+Available roles: `DISPATCHER`, `DRIVER`, `ADMIN`, `OWNER`, `SUPER_ADMIN`.
+
+### @CurrentTenant()
+
+Extracts the tenant ID directly from the request:
+
+```typescript
+@Get('settings')
+getSettings(@CurrentTenant() tenantId: string) { ... }
+```
+
+## Infrastructure Modules
+
+In addition to domain modules, the backend has infrastructure modules that provide cross-cutting capabilities:
+
+| Module | Directory | Purpose |
+|--------|-----------|---------|
+| PrismaModule | `infrastructure/database/` | Database connection and Prisma client |
+| CacheModule | `infrastructure/cache/` | Redis caching |
+| NotificationModule | `infrastructure/notification/` | Email notifications via Resend |
+| PushModule | `infrastructure/push/` | Web push notifications |
+| SmsModule | `infrastructure/sms/` | SMS notifications via Twilio |
+| SseModule | `infrastructure/sse/` | Server-Sent Events for real-time updates |
+| WebSocketModule | `infrastructure/websocket/` | WebSocket gateway (Socket.io) |
+| RetryModule | `infrastructure/retry/` | Retry logic for transient failures |
+
+## How Modules Wire Together
+
+The root `AppModule` imports all domain modules and infrastructure modules:
+
+```typescript filename="app.module.ts"
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.local' }),
+    ScheduleModule.forRoot(),
+    PrismaModule,
+    AuthModule,
+    CacheModule,
+    NotificationModule,
+    SseModule,
+    PushModule,
+    SmsModule,
+    WebSocketModule,
+
+    // Domain Modules
+    FleetModule,
+    PlatformModule,
+    IntegrationsModule,
+    OperationsModule,
+    RoutingModule,
+  ],
+  providers: [
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: TenantGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
+})
+export class AppModule {}
+```
+
+The guards are registered globally using `APP_GUARD`, so they apply to every route without needing `@UseGuards()` on each controller.
+
+## Global Prefix
+
+All routes are prefixed with `/api/v1/` (configured in `main.ts`). So a controller decorated with `@Controller('drivers')` produces routes like `/api/v1/drivers`.

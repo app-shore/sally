@@ -4,28 +4,52 @@ export default {
     "type": "page",
     "display": "hidden"
   },
-  "getting-started": {
-    "title": "📘 Getting Started",
+  "product": {
+    "title": "Product",
     "type": "page"
   },
-  "guides": {
-    "title": "📖 Guides",
+  "getting-started": {
+    "title": "Getting Started",
+    "type": "page"
+  },
+  "api-guides": {
+    "title": "API Guides",
     "type": "page"
   },
   "api-reference": {
-    "title": "📡 API Reference",
+    "title": "API Reference",
     "type": "page"
   },
   "api-playground": {
-    "title": "🎮 API Playground",
+    "title": "API Playground",
     "type": "page"
   },
+  "-- Developers": {
+    "type": "separator",
+    "title": "Developers"
+  },
+  "architecture": {
+    "title": "Architecture",
+    "type": "page"
+  },
+  "developer-guide": {
+    "title": "Developer Guide",
+    "type": "page"
+  },
+  "contributing": {
+    "title": "Contributing",
+    "type": "page"
+  },
+  "-- Resources": {
+    "type": "separator",
+    "title": "Resources"
+  },
   "blog": {
-    "title": "📝 Blog",
+    "title": "Blog",
     "type": "page"
   },
   "resources": {
-    "title": "🔧 Resources",
+    "title": "Resources",
     "type": "page"
   }
 }

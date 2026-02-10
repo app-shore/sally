@@ -1,0 +1,232 @@
+---
+title: Code Standards
+description: Coding conventions and style guide for the SALLY project
+---
+
+# Code Standards
+
+SALLY is a TypeScript-only project. These conventions keep the codebase consistent across the NestJS backend, Next.js frontend, and shared packages.
+
+## General Rules
+
+- **TypeScript everywhere** -- No `.js` files. Every source file uses `.ts` or `.tsx`.
+- **No `console.log` in production code** -- Use the project logger (Pino) on the backend. Remove any `console.log` calls before submitting a PR.
+- **Prefer named exports** -- Use `export function` or `export const` instead of `export default` (page components in the App Router are the one exception).
+- **Keep functions small and focused** -- If a function exceeds 40-50 lines, consider splitting it.
+- **Import order** -- Organize imports in this sequence:
+  1. External packages (`@nestjs/common`, `react`, `next/link`)
+  2. Internal packages and aliases (`@sally/shared`, `@/lib/utils`)
+  3. Relative imports (`./dto`, `../components`)
+
+---
+
+## Backend Conventions (NestJS)
+
+### File Naming
+
+Use **kebab-case** for all files:
+
+```
+drivers.controller.ts
+drivers.service.ts
+drivers.module.ts
+create-driver.dto.ts
+driver.entity.ts
+```
+
+### Class Naming
+
+Use **PascalCase** for classes:
+
+```typescript
+export class DriversController {}
+export class DriversService {}
+export class CreateDriverDto {}
+```
+
+### Module Pattern
+
+Every domain feature follows the NestJS module pattern with three core files:
+
+```
+src/modules/drivers/
+  drivers.module.ts      // Module definition
+  drivers.controller.ts  // HTTP route handlers
+  drivers.service.ts     // Business logic
+  dto/
+    create-driver.dto.ts
+    update-driver.dto.ts
+```
+
+### DTO Validation
+
+Use `class-validator` decorators for all request DTOs:
+
+```typescript
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+
+export class CreateDriverDto {
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @IsOptional()
+  @IsString()
+  licenseNumber?: string;
+}
+```
+
+### Swagger Documentation
+
+Decorate every controller and endpoint with Swagger metadata:
+
+```typescript
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+
+@ApiTags('Drivers')
+@Controller('api/v1/drivers')
+export class DriversController {
+  @Get()
+  @ApiOperation({ summary: 'List all drivers' })
+  @ApiResponse({ status: 200, description: 'Drivers retrieved successfully' })
+  findAll() {
+    return this.driversService.findAll();
+  }
+}
+```
+
+### API Routes
+
+All routes live under the `/api/v1/` prefix. Use plural nouns for resource names:
+
+```
+GET    /api/v1/drivers
+POST   /api/v1/drivers
+GET    /api/v1/drivers/:id
+PATCH  /api/v1/drivers/:id
+DELETE /api/v1/drivers/:id
+```
+
+### Database Access
+
+Use **Prisma** for all database operations. Avoid raw SQL unless there is a specific performance reason that Prisma cannot address:
+
+```typescript
+// Correct
+const driver = await this.prisma.driver.findUnique({
+  where: { id },
+  include: { vehicles: true },
+});
+
+// Avoid unless necessary
+const result = await this.prisma.$queryRaw`SELECT ...`;
+```
+
+---
+
+## Frontend Conventions (Next.js)
+
+### File Naming
+
+- **Component files**: `kebab-case.tsx` or `PascalCase.tsx` (both accepted, be consistent within a directory)
+- **Hook files**: `use-feature-name.ts` (e.g., `use-drivers.ts`, `use-alerts.ts`)
+- **Page files**: `page.tsx` inside the App Router directory structure
+- **Utility files**: `kebab-case.ts`
+
+### Component Structure
+
+```typescript
+// Named export (preferred)
+export function DriverCard({ driver }: DriverCardProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{driver.name}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">{driver.status}</p>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Shadcn/ui Components (Mandatory)
+
+You must use Shadcn/ui components for all interactive elements. Never use plain HTML elements where a Shadcn component exists:
+
+| Instead of | Use |
+|---|---|
+| `<button>` | `<Button>` from `@/components/ui/button` |
+| `<input>` | `<Input>` from `@/components/ui/input` |
+| `<select>` | `<Select>` from `@/components/ui/select` |
+| `<textarea>` | `<Textarea>` from `@/components/ui/textarea` |
+| `<label>` | `<Label>` from `@/components/ui/label` |
+| `<table>` | `<Table>` from `@/components/ui/table` |
+| Custom modal | `<Dialog>` from `@/components/ui/dialog` |
+| Custom tooltip | `<Tooltip>` from `@/components/ui/tooltip` |
+
+If a component you need is not yet installed, add it:
+
+```bash
+npx shadcn@latest add [component-name]
+```
+
+### Dark Theme Support (Mandatory)
+
+Every UI component must work in both light and dark themes. Use semantic color tokens instead of hardcoded colors:
+
+| Category | Do not use | Use instead |
+|---|---|---|
+| Backgrounds | `bg-white`, `bg-gray-50` | `bg-background`, `bg-card` |
+| Text | `text-gray-900`, `text-gray-600` | `text-foreground`, `text-muted-foreground` |
+| Borders | `border-gray-200` | `border-border` |
+| Hover states | `hover:bg-gray-100` | `hover:bg-gray-100 dark:hover:bg-gray-800` |
+
+When you must use a specific shade, always include the dark variant:
+
+```tsx
+// Correct
+<div className="bg-gray-50 dark:bg-gray-900">
+
+// Incorrect -- missing dark variant
+<div className="bg-gray-50">
+```
+
+### Responsive Design (Mandatory)
+
+All components must be mobile-first and responsive. Test at these breakpoints:
+
+- **375px** -- Mobile
+- **768px** -- Tablet
+- **1440px** -- Desktop
+
+Use progressive sizing and spacing:
+
+```tsx
+<div className="px-4 md:px-6 lg:px-8">
+  <h1 className="text-lg md:text-xl lg:text-2xl">Title</h1>
+</div>
+```
+
+### Color Palette
+
+The only permitted colors in the UI are **black**, **white**, and **gray** shades. The exceptions are status indicators (red, yellow, green, blue) which must include dark theme variants.
+
+---
+
+## Linting and Formatting
+
+The project uses ESLint and Prettier. Before committing, make sure your code passes both:
+
+```bash
+# Run from the monorepo root
+pnpm lint
+pnpm format
+```
+
+Your PR will fail CI checks if linting or formatting errors are present.

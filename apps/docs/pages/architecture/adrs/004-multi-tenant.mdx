@@ -1,0 +1,68 @@
+---
+title: "ADR-004: Multi-tenant Row Isolation"
+description: Single database with row-level tenant isolation via tenantId foreign key on all major tables.
+---
+
+# ADR-004: Multi-tenant Row Isolation
+
+**Status:** Accepted
+**Date:** February 2026
+**Decision makers:** SALLY Engineering Team
+
+---
+
+## Context
+
+SALLY is a SaaS platform serving multiple trucking carriers. Each carrier's data (drivers, vehicles, loads, routes, alerts) must be completely isolated from other carriers. The team evaluated three multi-tenancy strategies:
+
+1. **Database per tenant** -- Each tenant gets a separate PostgreSQL database. Maximum isolation but high operational overhead (connection management, migrations across N databases, backup coordination).
+2. **Schema per tenant** -- Each tenant gets a separate PostgreSQL schema within a single database. Good isolation with moderate operational overhead.
+3. **Row-level isolation** -- All tenants share one database and one schema. Every major table includes a `tenantId` column, and all queries are filtered by tenant. Simplest to operate but isolation is enforced at the application level.
+
+At the current stage (early development, fewer than 50 expected tenants at launch), the operational simplicity of row-level isolation outweighs the stronger guarantees of separate databases or schemas. The team can migrate to schema-per-tenant later if a customer requires it for compliance or performance reasons.
+
+## Decision
+
+Use **single-database, row-level tenant isolation**. Every major table includes a `tenantId` column as a non-nullable foreign key to the `Tenant` table. Tenant isolation is enforced at two levels:
+
+**Application level -- TenantGuard:**
+A NestJS guard (`TenantGuard`) runs on every authenticated request. It extracts `tenantId` from the JWT and attaches it to the request context. All service methods receive the tenant context and include `WHERE tenantId = ?` in their queries.
+
+**ORM level -- Prisma middleware:**
+A Prisma middleware automatically injects `tenantId` filters into queries as a safety net. Even if a developer forgets to pass the tenant context, the middleware prevents cross-tenant data access.
+
+**Database level -- Indexes:**
+Composite indexes include `tenantId` as the first column to ensure tenant-scoped queries use index scans rather than sequential scans.
+
+Example table structure:
+
+```sql
+CREATE TABLE "RoutePlan" (
+  "id"        TEXT PRIMARY KEY,
+  "tenantId"  TEXT NOT NULL REFERENCES "Tenant"("id"),
+  "driverId"  TEXT NOT NULL,
+  "status"    TEXT NOT NULL,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+  ...
+);
+
+CREATE INDEX "idx_route_plan_tenant" ON "RoutePlan"("tenantId", "status", "createdAt");
+```
+
+## Consequences
+
+**What became easier:**
+
+- Deployment is simple. One database instance, one connection pool, one migration pipeline. No need to manage per-tenant infrastructure.
+- Database migrations run once and apply to all tenants. There is no risk of migration drift between tenant databases.
+- Cross-tenant queries (for SUPER_ADMIN analytics or platform-wide monitoring) are straightforward -- just remove the tenant filter.
+- Prisma schema management is simpler with a single schema definition.
+- Cost scales linearly with data volume, not with tenant count. Adding a new tenant requires only an insert into the `Tenant` table.
+
+**What became harder:**
+
+- Every query must include a tenant filter. A missing filter is a data leak. The TenantGuard and Prisma middleware mitigate this, but developers must remain aware of the constraint.
+- A single tenant with very high data volume can affect query performance for other tenants because they share the same tables and indexes. Composite indexes starting with `tenantId` help, but do not fully eliminate the risk.
+- Compliance-sensitive customers (e.g., large enterprise carriers) may require stronger isolation guarantees than row-level filtering provides. This would require migrating that tenant to a separate schema or database.
+- Bulk operations (deleting a tenant's data, exporting a tenant's data) require scanning large tables with tenant filters rather than dropping a database or schema.
+- Database backups contain all tenants' data, which complicates scenarios where a single tenant requests data restoration.

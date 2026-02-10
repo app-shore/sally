@@ -29,42 +29,42 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
-    build:
-      context: .
-      dockerfile: ./apps/backend/Dockerfile
-    container_name: sally-backend
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://sally_user:sally_password@postgres:5432/sally
-      REDIS_URL: redis://redis:6379/0
-      CORS_ORIGINS: http://localhost:3000,http://frontend:3000
-    ports:
-      - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+  # backend:
+  #   build:
+  #     context: .
+  #     dockerfile: ./apps/backend/Dockerfile
+  #   container_name: sally-backend
+  #   environment:
+  #     NODE_ENV: production
+  #     DATABASE_URL: postgresql://sally_user:sally_password@postgres:5432/sally
+  #     REDIS_URL: redis://redis:6379/0
+  #     CORS_ORIGINS: http://localhost:3000,http://frontend:3000
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
 
-  frontend:
-    build:
-      context: .
-      dockerfile: ./apps/web/Dockerfile
-      target: development
-    container_name: sally-frontend
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
-      NODE_ENV: development
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./apps/web:/workspace/apps/web
-      - /workspace/node_modules
-      - /workspace/apps/web/.next
-    depends_on:
-      - backend
-    command: npm run dev
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: ./apps/web/Dockerfile
+  #     target: development
+  #   container_name: sally-frontend
+  #   environment:
+  #     NEXT_PUBLIC_API_URL: http://localhost:8000
+  #     NODE_ENV: development
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./apps/web:/workspace/apps/web
+  #     - /workspace/node_modules
+  #     - /workspace/apps/web/.next
+  #   depends_on:
+  #     - backend
+  #   command: npm run dev
 
 volumes:
   postgres_data:

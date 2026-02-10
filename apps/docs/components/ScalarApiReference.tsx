@@ -5,7 +5,7 @@ import '@scalar/api-reference-react/style.css'
 import { useEffect, useState } from 'react'
 
 export function ScalarApiReference() {
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState(true)
 
   useEffect(() => {
     const htmlElement = document.documentElement
@@ -20,14 +20,28 @@ export function ScalarApiReference() {
   }, [])
 
   return (
-    <div className="not-prose -mx-6 my-8">
+    <div
+      className="not-prose"
+      style={{
+        marginLeft: 'calc(-50vw + 50%)',
+        marginRight: 'calc(-50vw + 50%)',
+        width: '100vw',
+        position: 'relative',
+        left: '50%',
+        right: '50%',
+        marginTop: '0',
+        marginBottom: '0'
+      }}
+    >
       <ApiReferenceReact
         configuration={{
           spec: {
             url: '/openapi.json'
           },
           theme: isDark ? 'saturn' : 'default',
-          darkMode: true,
+          darkMode: isDark,
+          forceDarkModeState: isDark ? 'dark' : 'light',
+          hideDarkModeToggle: true,
           layout: 'modern',
           defaultHttpClient: {
             targetKey: 'node',
@@ -41,7 +55,11 @@ export function ScalarApiReference() {
           },
           hideDownloadButton: false,
           showSidebar: true,
-          searchHotKey: 'k'
+          searchHotKey: 'k',
+          customCss: `
+            .scalar-app { min-height: calc(100vh - 64px); }
+            .scalar-api-reference { max-width: 100% !important; }
+          `
         }}
       />
     </div>

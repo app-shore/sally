@@ -1,0 +1,58 @@
+---
+title: "ADR-003: Firebase Auth + JWT"
+description: Firebase for identity management, custom JWT for API authorization with role and tenant claims.
+---
+
+# ADR-003: Firebase Auth + JWT
+
+**Status:** Accepted
+**Date:** February 2026
+**Decision makers:** SALLY Engineering Team
+
+---
+
+## Context
+
+SALLY needs authentication that supports multiple sign-in methods (email/password now, Google SSO and enterprise SSO in the future) without building identity infrastructure from scratch. The team evaluated three approaches:
+
+1. **Build from scratch** -- Implement password hashing (bcrypt/argon2), email verification, password reset, OAuth 2.0 flows, and session management in the NestJS backend.
+2. **Auth0 / Clerk** -- Third-party identity-as-a-service platforms with extensive features, SDKs, and hosted login pages.
+3. **Firebase Authentication** -- Google's identity service with client-side SDKs, multiple auth providers, and a server-side Admin SDK for token verification.
+
+Building from scratch would consume significant development time on a solved problem and introduce security risk from custom implementations of password storage and token management. Auth0 and Clerk are full-featured but add recurring cost per monthly active user and lock the application into their session management patterns.
+
+The team also needed to include custom claims (user role, tenant ID) in the API authorization token, which none of these identity providers natively support in the way SALLY requires.
+
+## Decision
+
+Use **Firebase Authentication for identity** and **custom JWTs for API authorization**. The authentication flow works in two steps:
+
+1. **Frontend signs in via Firebase** -- The Next.js app uses the Firebase client SDK to authenticate the user (email/password or Google). Firebase issues a Firebase ID token.
+2. **Backend exchanges Firebase token for SALLY JWT** -- The frontend sends the Firebase ID token to the backend's `/auth/exchange` endpoint. The backend verifies the token using the Firebase Admin SDK, looks up the user's role and tenant in the database, and issues a SALLY JWT containing:
+   - `sub` -- User ID
+   - `email` -- User email
+   - `role` -- SALLY role (SUPER_ADMIN, ADMIN, OWNER, DISPATCHER, DRIVER)
+   - `tenantId` -- The user's tenant
+   - `exp` -- Expiration timestamp
+
+The SALLY JWT is stored in an HTTP-only, secure cookie and included in all subsequent API requests. The backend's `JwtAuthGuard` validates this token on every request.
+
+For server-to-server communication, API keys (prefixed `sk_staging_` or `sk_prod_`) bypass the Firebase flow entirely and authenticate directly against the backend.
+
+## Consequences
+
+**What became easier:**
+
+- No need to implement password hashing, email verification, password reset flows, or OAuth 2.0 provider integrations. Firebase handles all identity concerns.
+- Adding a new sign-in method (Google, Microsoft, SAML SSO) requires only Firebase console configuration and a frontend button. No backend changes.
+- The custom JWT contains exactly the claims SALLY needs (role, tenantId), making authorization checks fast and stateless. The `TenantGuard` reads `tenantId` directly from the token without a database lookup.
+- API keys provide a clean path for server-to-server integrations without requiring partners to implement the Firebase token exchange flow.
+- Firebase's free tier covers the expected user volume for the initial launch.
+
+**What became harder:**
+
+- SALLY depends on Firebase as an external service. If Firebase Authentication has an outage, users cannot sign in (though existing JWTs continue to work until expiration).
+- The two-step token exchange adds a round trip on initial sign-in. The frontend must call Firebase, then call the backend to exchange the token, before the user is fully authenticated.
+- User management is split between Firebase (identity, password) and SALLY's database (role, tenant, preferences). These must stay in sync, which requires handling edge cases like Firebase user deletion.
+- Testing requires either a Firebase emulator or mocking the Firebase Admin SDK in tests.
+- Future migration away from Firebase would require reimplementing the identity layer, though the SALLY JWT layer would remain unchanged.

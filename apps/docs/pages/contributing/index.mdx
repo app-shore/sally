@@ -1,0 +1,54 @@
+---
+title: Contributing Overview
+description: How to contribute to the SALLY fleet operations platform
+---
+
+# Contributing to SALLY
+
+Thank you for your interest in contributing to SALLY. Whether you are fixing a bug, adding a feature, improving documentation, or writing tests, your work helps build a better fleet operations platform for the entire trucking industry.
+
+This guide walks you through what you need to know before opening your first pull request.
+
+## Before You Start
+
+Make sure you have completed the following:
+
+1. **Set up your development environment** -- Follow the [Environment Setup](/developer-guide/environment-setup) guide to get the monorepo running locally.
+2. **Understand the project structure** -- Review [Project Structure](/developer-guide/project-structure) so you know where code lives and how the packages relate to each other.
+3. **Read the architecture overview** -- Skim the [Architecture](/architecture) section to understand the three-layer system (route planning, monitoring, dynamic updates).
+
+## What We Welcome
+
+We accept contributions in the following areas:
+
+- **Bug fixes** -- Reproduce the issue, write a failing test, then fix it.
+- **New features** -- Coordinate with the team first by opening an issue or discussion before starting large features.
+- **Documentation** -- Improvements to these docs, inline code comments, or README files in app directories.
+- **Tests** -- Unit tests, integration tests, and end-to-end tests are always welcome.
+- **Refactoring** -- Improvements to code clarity, performance, or maintainability.
+
+## Contribution Checklist
+
+Every contribution should follow these steps:
+
+1. **Set up your environment** -- Clone the repo, install dependencies, start services. See [Environment Setup](/developer-guide/environment-setup).
+2. **Create a feature branch** -- Branch from `main` using the naming conventions in [Git Workflow](/contributing/git-workflow).
+3. **Make your changes** -- Follow the conventions in [Code Standards](/contributing/code-standards).
+4. **Write or update tests** -- Cover your changes with appropriate tests. Do not reduce existing coverage.
+5. **Verify UI compliance** (for frontend changes):
+   - Dark theme works correctly -- no hardcoded light-only colors.
+   - Responsive layout works at 375px, 768px, and 1440px.
+   - All interactive elements use Shadcn/ui components (never plain HTML `<button>`, `<input>`, `<select>`).
+6. **Submit a pull request** -- Follow the [Pull Request Guide](/contributing/pull-requests) for the expected format and review process.
+
+## Contributing Guides
+
+| Guide | What It Covers |
+|---|---|
+| [Code Standards](/contributing/code-standards) | TypeScript conventions, naming patterns, frontend and backend rules |
+| [Git Workflow](/contributing/git-workflow) | Branching strategy, commit message format, merge process |
+| [Pull Requests](/contributing/pull-requests) | PR template, review expectations, checklist |
+
+## Questions?
+
+If you are unsure about anything, open a GitHub issue with the `question` label. We would rather answer a question upfront than have you spend time heading in the wrong direction.

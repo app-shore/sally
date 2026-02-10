@@ -1,0 +1,132 @@
+---
+title: Product Overview
+description: What SALLY is, the problem it solves, and how it works.
+---
+
+# Product Overview
+
+**SALLY** is an intelligent dispatch and driver coordination platform for US trucking fleets. It generates optimized end-to-end route plans, continuously monitors real-world conditions, and simplifies communication between dispatchers and drivers through automated alerts and dynamic route updates.
+
+---
+
+## The Problem
+
+Dispatchers and drivers work in silos. Current tools don't bridge the gap:
+
+**Dispatchers** manually calculate HOS (error-prone), react to problems after they happen, and make constant phone calls for status updates. They can't prevent violations proactively.
+
+**Drivers** get a list of stops but no actual route plan. They manually plan routes in their heads, run out of hours mid-route, miss appointments, and waste fuel at suboptimal stops.
+
+**Current tools fall short:**
+
+| Tool Category | What It Does | What It Doesn't Do |
+|---|---|---|
+| TMS (McLeod, TMW) | Assigns loads, tracks status | Plan routes, optimize stops |
+| ELD (Samsara, Motive) | Logs hours, enforces compliance | Suggest when/where to rest |
+| Maps (Google, PC\*Miler) | Shortest route for cars/trucks | Understand HOS, insert rest stops, handle dynamic updates |
+
+The result: dispatchers and drivers work in silos, leading to inefficiency, HOS violations, missed appointments, and wasted fuel.
+
+---
+
+## The Solution
+
+SALLY is a compliance-first fleet operations platform with a **conversational AI interface** at its core. Instead of clicking through menus and forms, dispatchers and drivers talk to SALLY naturally.
+
+### SALLY AI -- Your Conversational Co-Pilot
+
+SALLY AI is the primary interface for the platform. Dispatchers and drivers interact through natural language conversation:
+
+- **"Plan a route from LA to Chicago for Driver Martinez with 3 stops"** -- SALLY plans the route, optimizes stops, inserts rest and fuel, and presents the result
+- **"Driver Johnson is stuck at the dock for 2 extra hours"** -- SALLY re-evaluates the route, checks HOS impact, and suggests adjustments
+- **"Show me which drivers are at risk of HOS violations"** -- SALLY queries the monitoring layer and surfaces alerts
+- **"What's the cheapest fuel stop near I-40 exit 150?"** -- SALLY checks fuel prices and recommends options
+
+The conversational UI is already built and live. SALLY AI is the initial feature and core experience -- every other capability flows through it.
+
+### Under the Hood
+
+The AI interface is powered by a full fleet operations engine:
+
+1. **Optimizes stop sequence** using TSP/VRP algorithms
+2. **Inserts rest stops** where HOS regulations require
+3. **Inserts fuel stops** based on range and price
+4. **Validates HOS compliance** for the entire route before the driver starts
+5. **Monitors and updates dynamically** when conditions change
+6. **Alerts dispatchers proactively** when intervention is needed
+
+> SALLY converses. Dispatchers ask, drivers update, and the platform handles the rest.
+
+---
+
+## How It Works
+
+```
+Input: Driver (HOS state) + Truck (fuel, capacity) + Stops (time windows)
+                                    ↓
+                    TSP Stop Sequence Optimization
+                                    ↓
+                  HOS Simulation (segment-by-segment)
+                                    ↓
+            ┌───────────────────────┼───────────────────────┐
+            ↓                       ↓                       ↓
+     Rest Stop Insertion     Fuel Stop Insertion      Break Insertion
+     (when hours low)        (when tank low)          (after 8h driving)
+            └───────────────────────┼───────────────────────┘
+                                    ↓
+                      Feasibility Validation
+                 (HOS compliant? Appointments met?)
+                                    ↓
+              Output: Optimized, HOS-compliant Route Plan
+```
+
+### Example
+
+Given a driver with 6 hours available and 3 stops (A, B, C):
+
+| Segment | Type | Duration |
+|---|---|---|
+| Origin to Stop A | Drive | 2h |
+| Stop A dock | Dock | 2h |
+| Stop A to Truck Stop X | Drive | 1h |
+| **Truck Stop X** | **Rest (inserted)** | **10h** |
+| Truck Stop X to Stop B | Drive | 3h |
+| Stop B dock | Dock | 1h |
+| Stop B to Stop C | Drive | 2h |
+| Stop C to Destination | Drive | 1h |
+
+**Total:** 300 miles, 22h (including rest), HOS compliant.
+
+---
+
+## Who It's For
+
+**Primary users:**
+- **Dispatchers / Ops Managers** — Plan routes, monitor progress, receive alerts, manage interventions
+- **Drivers** — Follow route plans, view rest/fuel recommendations, receive real-time updates
+
+**Target market:**
+- Small-to-mid carriers (20–100 trucks)
+- Currently using basic TMS + ELD
+- Pain: Manual route planning, no HOS-aware dispatch, constant dispatcher-driver communication
+
+---
+
+## Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | NestJS 11, TypeScript, PostgreSQL 16, Redis 7 |
+| Frontend | Next.js 15 (App Router), TypeScript, Tailwind + Shadcn/ui |
+| AI | SALLY Conversational AI (natural language interface) |
+| Infrastructure | Docker + Docker Compose |
+| Monorepo | Turborepo + npm workspaces |
+
+---
+
+## Next Steps
+
+- [Vision & Mission](/product/vision) — Where SALLY is going
+- [Core Features](/product/features) — What SALLY does in detail
+- [Roadmap](/product/roadmap) — What's built and what's next
+- [Getting Started](/getting-started) — Start using the API

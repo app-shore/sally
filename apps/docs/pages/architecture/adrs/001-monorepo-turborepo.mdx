@@ -1,0 +1,61 @@
+---
+title: "ADR-001: Monorepo with Turborepo"
+description: Single repository with Turborepo and npm workspaces for shared types and coordinated builds.
+---
+
+# ADR-001: Monorepo with Turborepo
+
+**Status:** Accepted
+**Date:** February 2026
+**Decision makers:** SALLY Engineering Team
+
+---
+
+## Context
+
+SALLY consists of multiple applications -- a NestJS backend, a Next.js frontend, and a Nextra documentation site -- that share TypeScript types, configuration, and build tooling. During early development, the team evaluated two approaches:
+
+1. **Multi-repo** -- Each application in its own repository with shared types published as an npm package.
+2. **Monorepo** -- All applications in a single repository with shared code accessed directly through workspace references.
+
+The multi-repo approach would require publishing and versioning a shared types package, coordinating releases across repositories, and maintaining separate CI pipelines. For a small team iterating quickly, this overhead would slow development without providing meaningful isolation benefits.
+
+The team also needed a build system that could run tasks in parallel, cache build outputs, and understand the dependency graph between packages.
+
+## Decision
+
+Use a **Turborepo monorepo with npm workspaces**. The repository is structured as:
+
+```
+apps/
+  backend/     # NestJS API server
+  web/         # Next.js frontend
+  docs/        # Nextra documentation site
+packages/
+  shared-types/ # TypeScript types shared between apps
+```
+
+Turborepo manages the build pipeline. npm workspaces handle dependency resolution, allowing any app to import from `@sally/shared-types` without publishing to a registry.
+
+Key configuration choices:
+
+- **Turborepo** for task orchestration (build, lint, test, typecheck) with remote caching.
+- **npm workspaces** (not Yarn or pnpm) for package management, keeping the toolchain simple.
+- **Shared types package** for DTOs, enums, and interfaces used by both frontend and backend.
+
+## Consequences
+
+**What became easier:**
+
+- Type changes propagate instantly across all apps with no publish step. When the backend adds a field to a route plan DTO, the frontend sees the updated type immediately.
+- A single CI pipeline builds, tests, and deploys all apps. There is one place to look for build status.
+- Shared tooling (ESLint, Prettier, TypeScript config) is configured once at the root and inherited by all packages.
+- Turborepo's build cache significantly reduces CI time for incremental changes. If the backend has not changed, its build step is skipped entirely.
+- New developers clone one repository and run one command to get the full development environment.
+
+**What became harder:**
+
+- Initial setup is more involved than a single Next.js or NestJS project. The workspace configuration, Turborepo pipeline, and shared package structure require upfront investment.
+- Git history contains changes from all apps, making per-app history noisier. Developers need to use path filters when reviewing changes.
+- Repository size grows faster than a single-app repository. This has not been an issue at the current scale.
+- Developers unfamiliar with monorepo tooling need to learn Turborepo concepts (pipeline dependencies, caching, filtering).

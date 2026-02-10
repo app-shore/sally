@@ -8,7 +8,7 @@ const config = {
   project: {
     link: 'https://github.com/ajaynarang/sally'
   },
-  docsRepositoryBase: 'https://github.com/ajaynarang/sally/tree/main/apps/.docs',
+  docsRepositoryBase: 'https://github.com/ajaynarang/sally/tree/main/apps/docs',
 
   // Black, white, and gray color scheme
   primaryHue: 0,

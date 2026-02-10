@@ -1,0 +1,64 @@
+---
+title: Developer Guide
+description: Everything you need to start building on the SALLY fleet operations platform.
+---
+
+# Developer Guide
+
+Welcome to the SALLY developer guide. This section covers everything you need to go from cloning the repository to shipping features on the SALLY fleet operations platform.
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+| Tool | Minimum Version | Check Command |
+|------|----------------|---------------|
+| Node.js | 20.0.0 | `node -v` |
+| npm | 10.0.0 | `npm -v` |
+| Docker Desktop | Latest | `docker --version` |
+| Git | Latest | `git --version` |
+
+**Optional (for full authentication):**
+- A Firebase project with Authentication enabled
+- Google Maps API key (for distance calculations)
+
+## Reading Order
+
+Work through these guides in order. You should be set up and running in about 15 minutes, and understand the codebase within an hour.
+
+### 1. [Environment Setup](/developer-guide/environment-setup)
+Clone the repo, install dependencies, start infrastructure, and verify everything works. This is where you start.
+
+### 2. [Project Structure](/developer-guide/project-structure)
+Understand the monorepo layout -- where code lives, how apps relate to each other, and where to put new code.
+
+### 3. Architecture (Backend + Frontend)
+Understand the design patterns before writing code:
+- [Backend Module Structure](/developer-guide/backend/module-structure) -- NestJS domains, guards, decorators
+- [Database and Prisma](/developer-guide/backend/database-prisma) -- Schema, migrations, seeding
+- [App Router Guide](/developer-guide/frontend/app-router) -- Next.js 15 routing and layouts
+- [Feature Modules](/developer-guide/frontend/feature-modules) -- Frontend domain organization
+
+### 4. Development Guides
+Pick the guides relevant to your focus area:
+
+**Backend:**
+- [Adding an Endpoint](/developer-guide/backend/adding-endpoint) -- Step-by-step tutorial
+- [Testing](/developer-guide/backend/testing) -- Jest, Supertest, E2E tests
+
+**Frontend:**
+- [UI Standards](/developer-guide/frontend/ui-standards) -- Dark theme, Shadcn/ui, responsive design (mandatory reading)
+- [State Management](/developer-guide/frontend/state-management) -- Zustand + React Query patterns
+
+### 5. [Common Tasks](/developer-guide/common-tasks)
+Quick recipes for everyday operations: adding endpoints, pages, database tables, running migrations, and more.
+
+## Quick Links
+
+| Resource | URL |
+|----------|-----|
+| Frontend | [http://localhost:3000](http://localhost:3000) |
+| Backend API | [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health) |
+| Swagger Docs | [http://localhost:8000/api](http://localhost:8000/api) |
+| Prisma Studio | Run `npm run backend:prisma:studio` |
+| Docs Site | [http://localhost:3001](http://localhost:3001) |

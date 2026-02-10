@@ -1,0 +1,108 @@
+---
+title: Vision & Mission
+description: SALLY's vision, mission, target market, and competitive positioning.
+---
+
+# Vision & Mission
+
+## Vision
+
+Route planning isn't just about shortest distance — it's about HOS compliance, rest timing, fuel costs, and adapting to reality.
+
+Current routing tools assume infinite drive hours, static conditions, and no rest or fuel requirements. **SALLY is built for the reality of trucking, not the fantasy of infinite drive time.**
+
+## Mission
+
+Eliminate the coordination gap between dispatchers and drivers by providing intelligent, HOS-compliant route planning that continuously adapts to real-world conditions.
+
+## Core Insight
+
+Every TMS lets you dispatch loads. Only SALLY plans the route for you.
+
+- Routes are **HOS-aware** — the driver has X hours left, plan around it
+- Rest stops are **inserted automatically** — where, when, how long
+- Fuel stops are **optimized** — cheapest on route
+- Plans **update dynamically** — dock took 4h instead of 2h? Re-plan the remaining route
+
+---
+
+## Target Market
+
+### Primary: Small-to-Mid Carriers (20–100 Trucks)
+
+These carriers are the sweet spot:
+- Large enough to need real fleet coordination
+- Small enough that dispatchers manually plan routes today
+- Currently using basic TMS (Truckbase, Rose Rocket) + ELD (Samsara, Motive)
+- Pain points: Manual route planning, no HOS-aware dispatch, constant dispatcher-driver phone calls
+
+### Why This Segment?
+
+No TMS for small carriers combines dispatch operations with intelligent, HOS-aware route planning. The only competitor doing something similar (Trimble) targets enterprise carriers at $1,000+/month. SALLY fills this gap.
+
+---
+
+## Competitive Positioning
+
+SALLY sits at the intersection of TMS (load management), ELD (HOS tracking), and routing (directions) — solving what none of them solve individually.
+
+| Capability | Truckbase | Rose Rocket | Trimble | **SALLY** |
+|---|---|---|---|---|
+| Load/dispatch management | Yes | Yes | Yes | **Yes** |
+| ELD integration | Yes (30+) | Yes | Yes | **Yes (Samsara)** |
+| Public API | No | Yes | Yes | **Yes** |
+| **HOS-compliant route planning** | No | No | Yes (enterprise) | **Yes** |
+| **Automatic rest stop insertion** | No | No | Partial | **Yes** |
+| **Fuel stop optimization** | No | No | No | **Yes** |
+| **Continuous monitoring (24/7)** | No | No | Partial | **Yes** |
+| **Proactive dispatcher alerts** | No | No | Partial | **Yes** |
+| **Dynamic route re-planning** | No | No | Partial | **Yes** |
+| Target fleet size | 10–50 | 10–500 | 50–5000 | **20–100** |
+
+### vs TMS (McLeod, TMW)
+- **TMS:** Dispatches loads, tracks shipment status
+- **SALLY:** Plans routes with HOS compliance, inserts rest/fuel stops, monitors dynamically
+
+### vs ELD (Samsara, KeepTruckin)
+- **ELD:** Logs driver hours, enforces compliance reactively
+- **SALLY:** Suggests when/where to rest proactively, builds compliance into the route plan
+
+### vs Maps (Google, PC\*Miler)
+- **Maps:** Shortest route, assumes infinite drive time
+- **SALLY:** HOS-aware routing, inserts rest/fuel stops, handles dynamic updates
+
+**Category-creating, not feature-competing.**
+
+---
+
+## Value Proposition
+
+### For Dispatchers
+- Automated route planning with HOS validation
+- Proactive alerts when intervention is needed
+- Real-time monitoring of all active routes
+
+### For Drivers
+- Clear turn-by-turn guidance with rest/fuel stops inserted
+- Automatic plan updates as conditions change
+- No more manual HOS calculations
+
+### ROI
+
+| Metric | Value |
+|---|---|
+| 1 HOS violation avoided | $1,000–$16,000 fine saved |
+| 1 missed appointment avoided | $500 accessorial charge saved |
+| 10% fuel savings (optimized stops) | ~$200/month/truck |
+| 5% more miles driven (better rest timing) | ~$400/month/truck |
+
+---
+
+## Compliance Strategy
+
+- **Conservative defaults** — Always err on the side of safety
+- **Advisory-first** — Driver has final say (except mandatory rest)
+- **Full audit trail** — Every decision logged with reasoning
+- **Rule-based** — Transparent logic, no black-box ML (ML comes in Phase 4)
+
+> Make auditors bored.

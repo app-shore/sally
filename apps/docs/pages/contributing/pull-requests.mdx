@@ -1,0 +1,107 @@
+---
+title: Pull Request Guide
+description: How to submit and review pull requests for the SALLY project
+---
+
+# Pull Request Guide
+
+Every change to SALLY goes through a pull request. This page covers how to write a good PR, what reviewers look for, and how the merge process works.
+
+## Creating a Pull Request
+
+### Title
+
+Use the same format as commit messages:
+
+```
+type: short description
+```
+
+Examples:
+
+```
+feat: add driver deactivation endpoint
+fix: resolve HOS calculation overflow
+docs: add contributing guide
+```
+
+### Description
+
+Use the following template for your PR description. Fill in every section that applies.
+
+````markdown
+## What
+Brief description of what changed and why.
+
+## How
+Technical approach taken.
+
+## Testing
+How you tested these changes.
+
+## Screenshots (for UI changes)
+Show both light and dark theme. Show mobile and desktop.
+
+## Checklist
+- [ ] Code follows project conventions
+- [ ] Tests added/updated
+- [ ] Dark theme verified (for UI changes)
+- [ ] Responsive design verified (for UI changes)
+- [ ] Shadcn components used (no plain HTML for interactive elements)
+- [ ] API docs updated (for backend changes)
+- [ ] No console.log statements
+````
+
+### Tips for a Good PR
+
+- **Keep PRs focused.** One PR should address one concern. If you find yourself fixing an unrelated bug while working on a feature, open a separate PR for the bug fix.
+- **Write the "What" section for someone who has no context.** Assume the reviewer has not read the issue or Slack thread. Link to the relevant issue if one exists.
+- **Include before/after screenshots** for any visual change. Reviewers should not have to check out your branch just to see what changed.
+- **Call out risks or trade-offs** in the description. If you chose approach A over approach B, briefly explain why.
+
+---
+
+## Review Process
+
+### Requirements
+
+- **At least one approval** is required before merging.
+- All CI checks must pass (lint, type check, tests).
+
+### What Reviewers Check
+
+Reviewers evaluate PRs against these criteria:
+
+| Area | What to look for |
+|---|---|
+| **Correctness** | Does the code do what the PR says it does? Are edge cases handled? |
+| **Conventions** | Does it follow [Code Standards](/contributing/code-standards)? Naming, file structure, import order? |
+| **Dark theme** | No hardcoded light-only colors? Semantic tokens used? (UI changes) |
+| **Responsive design** | Works at 375px, 768px, and 1440px? (UI changes) |
+| **Shadcn components** | No plain HTML `<button>`, `<input>`, `<select>`? (UI changes) |
+| **Test coverage** | Are new code paths covered? Do existing tests still pass? |
+| **Performance** | Any unnecessary re-renders, N+1 queries, or missing indexes? |
+| **Security** | No secrets in code, proper auth checks, input validation? |
+
+### Responding to Feedback
+
+- Address every comment. If you disagree, explain your reasoning rather than ignoring the comment.
+- Push new commits to your branch -- do not force-push unless the reviewer requests a rebase.
+- Mark conversations as resolved once you have addressed them.
+- Re-request review after addressing all feedback.
+
+---
+
+## Merging
+
+- Use **squash merge** to keep `main` history clean.
+- Make sure the squash commit message follows the `type: description` format.
+- After merging, delete your feature branch. GitHub can be configured to do this automatically.
+
+---
+
+## After Merge
+
+- Verify that CI/CD completes successfully on `main`.
+- If your change affects the API, confirm that the docs site and API Playground reflect the update.
+- If your change affects deployment configuration, verify the staging environment is healthy.

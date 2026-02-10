@@ -1,0 +1,36 @@
+---
+title: Architecture Decision Records
+description: Documented decisions about SALLY's architecture, technology choices, and design patterns.
+---
+
+# Architecture Decision Records
+
+Architecture Decision Records (ADRs) capture the key technical decisions made during the design and development of SALLY. Each record documents the context that motivated a decision, the decision itself, and the consequences -- what became easier and what became harder as a result.
+
+ADRs serve as a historical record for the engineering team. When someone asks "why did we choose X over Y?", the answer is in the ADR.
+
+---
+
+## Index
+
+| ADR | Title | Status | Date | Summary |
+|---|---|---|---|---|
+| [001](/architecture/adrs/001-monorepo-turborepo) | Monorepo with Turborepo | Accepted | February 2026 | Single repository with Turborepo and npm workspaces for shared types and coordinated builds |
+| [002](/architecture/adrs/002-nestjs) | NestJS over Express | Accepted | February 2026 | Structured backend framework with modules, dependency injection, and guards |
+| [003](/architecture/adrs/003-firebase-auth) | Firebase Auth + JWT | Accepted | February 2026 | Firebase for identity management, custom JWT for API authorization with role and tenant claims |
+| [004](/architecture/adrs/004-multi-tenant) | Multi-tenant Row Isolation | Accepted | February 2026 | Single database with row-level tenant isolation via tenantId foreign key |
+| [005](/architecture/adrs/005-domain-driven) | Domain-Driven Modules | Accepted | February 2026 | Backend organized into domain modules (Fleet, Operations, Routing, Integrations, Platform) |
+| [006](/architecture/adrs/006-shadcn-dark-theme) | Shadcn + Dark Theme First | Accepted | February 2026 | Copy-paste component library with mandatory dark theme and grayscale-only palette |
+
+---
+
+## ADR Format
+
+Each ADR follows a consistent structure:
+
+- **Status** -- Whether the decision is Proposed, Accepted, Deprecated, or Superseded.
+- **Context** -- The problem or situation that motivated the decision.
+- **Decision** -- What was decided and why.
+- **Consequences** -- The trade-offs: what became easier and what became harder.
+
+New ADRs are numbered sequentially. Once accepted, an ADR is not modified unless it is superseded by a later decision, in which case the original ADR is updated with a link to its replacement.

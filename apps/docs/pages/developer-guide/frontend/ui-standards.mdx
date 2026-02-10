@@ -1,0 +1,333 @@
+---
+title: UI Standards
+description: Mandatory standards for all SALLY frontend code -- dark theme, Shadcn/ui components, and responsive design.
+---
+
+# UI Standards
+
+This page documents the three non-negotiable standards for all SALLY frontend code. Every component, page, and feature must follow these rules. Pull requests that violate them will be rejected.
+
+## 1. Dark Theme Support (Non-Negotiable)
+
+SALLY supports light and dark themes using `next-themes`. All UI must look correct in both themes.
+
+### Use Semantic Color Tokens
+
+Instead of hardcoding colors, use the semantic tokens defined in the Tailwind theme:
+
+| Token | Purpose |
+|-------|---------|
+| `bg-background` | Main page background |
+| `bg-card` | Card and panel backgrounds |
+| `bg-accent` | Subtle accent background |
+| `bg-muted` | Muted/secondary background |
+| `text-foreground` | Primary text |
+| `text-muted-foreground` | Secondary/helper text |
+| `text-accent-foreground` | Accent text |
+| `border-border` | Standard borders |
+| `border-input` | Input field borders |
+| `bg-primary text-primary-foreground` | Primary buttons |
+| `bg-secondary text-secondary-foreground` | Secondary buttons |
+
+### Color Rules
+
+**Backgrounds:**
+
+```tsx
+// WRONG -- no dark theme support
+<div className="bg-white">
+<div className="bg-gray-50">
+
+// CORRECT -- uses semantic token
+<div className="bg-background">
+<div className="bg-card">
+
+// CORRECT -- explicit dark variant
+<div className="bg-gray-50 dark:bg-gray-900">
+```
+
+**Text:**
+
+```tsx
+// WRONG -- no dark theme support
+<p className="text-gray-900">
+<p className="text-gray-600">
+<span className="text-gray-500">
+
+// CORRECT -- semantic tokens
+<p className="text-foreground">
+<p className="text-muted-foreground">
+```
+
+**Borders:**
+
+```tsx
+// WRONG
+<div className="border border-gray-200">
+
+// CORRECT
+<div className="border border-border">
+```
+
+**Interactive States:**
+
+```tsx
+// WRONG -- hover only works in light theme
+<button className="hover:bg-gray-100">
+
+// CORRECT -- hover works in both themes
+<button className="hover:bg-gray-100 dark:hover:bg-gray-800">
+```
+
+**Inverted Elements (black backgrounds that should flip in dark mode):**
+
+```tsx
+<div className="bg-black dark:bg-white text-white dark:text-black">
+```
+
+**Progress Bars:**
+
+```tsx
+{/* Track */}
+<div className="bg-gray-200 dark:bg-gray-800">
+  {/* Fill */}
+  <div className="bg-foreground" />
+</div>
+```
+
+### Color Palette Restriction
+
+Only use these colors in UI:
+- **Black**, **White**, and **Gray** shades (the entire gray scale)
+- Status indicators (red, yellow, green, blue) with corresponding dark variants
+
+No other colors. No brand colors, no purple, no teal. Status colors must include dark variants:
+
+```tsx
+// Status indicator with dark support
+<Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+  Active
+</Badge>
+```
+
+## 2. Shadcn/ui Components (Non-Negotiable)
+
+Always use Shadcn/ui components instead of plain HTML elements. SALLY has 28 Shadcn/ui components installed.
+
+### Component Mapping
+
+| Instead of... | Use... | Import from |
+|--------------|--------|-------------|
+| `<button>` | `<Button>` | `@/shared/components/ui/button` |
+| `<input>` | `<Input>` | `@/shared/components/ui/input` |
+| `<textarea>` | `<Textarea>` | `@/shared/components/ui/textarea` |
+| `<select>` | `<Select>` | `@/shared/components/ui/select` |
+| `<label>` | `<Label>` | `@/shared/components/ui/label` |
+| `<table>` | `<Table>` | `@/shared/components/ui/table` |
+| Custom modal | `<Dialog>` | `@/shared/components/ui/dialog` |
+| Custom tabs | `<Tabs>` | `@/shared/components/ui/tabs` |
+| Custom tooltip | `<Tooltip>` | `@/shared/components/ui/tooltip` |
+| Custom popover | `<Popover>` | `@/shared/components/ui/popover` |
+| Custom dropdown | `<DropdownMenu>` | `@/shared/components/ui/dropdown-menu` |
+| `<span>` badge | `<Badge>` | `@/shared/components/ui/badge` |
+| Custom alert | `<Alert>` | `@/shared/components/ui/alert` |
+| Custom card div | `<Card>` | `@/shared/components/ui/card` |
+
+### Installed Components
+
+These 28 Shadcn/ui components are available in `src/shared/components/ui/`:
+
+accordion, alert, alert-dialog, avatar, badge, button, card, collapsible, command, dialog, dropdown-menu, input, label, popover, progress, scroll-area, select, separator, sheet, skeleton, slider, switch, table, tabs, textarea, toast, toaster, tooltip
+
+### Examples
+
+**Wrong -- plain HTML button:**
+
+```tsx
+<button className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800">
+  Plan Route
+</button>
+```
+
+**Correct -- Shadcn Button:**
+
+```tsx
+import { Button } from '@/shared/components/ui/button';
+
+<Button>Plan Route</Button>
+```
+
+**Wrong -- manual card styling:**
+
+```tsx
+<div className="border border-gray-200 rounded-lg p-4">
+  <h3 className="font-semibold mb-2">Route Details</h3>
+  <p>Content here</p>
+</div>
+```
+
+**Correct -- Shadcn Card:**
+
+```tsx
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+
+<Card>
+  <CardHeader>
+    <CardTitle>Route Details</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <p>Content here</p>
+  </CardContent>
+</Card>
+```
+
+**Wrong -- plain HTML select:**
+
+```tsx
+<select className="border rounded p-2">
+  <option>Option 1</option>
+  <option>Option 2</option>
+</select>
+```
+
+**Correct -- Shadcn Select:**
+
+```tsx
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/components/ui/select';
+
+<Select>
+  <SelectTrigger>
+    <SelectValue placeholder="Choose..." />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="1">Option 1</SelectItem>
+    <SelectItem value="2">Option 2</SelectItem>
+  </SelectContent>
+</Select>
+```
+
+### Installing New Components
+
+If you need a component that is not yet installed:
+
+```bash
+cd apps/web
+npx shadcn@latest add [component-name]
+```
+
+For example:
+
+```bash
+npx shadcn@latest add calendar
+npx shadcn@latest add checkbox
+npx shadcn@latest add radio-group
+```
+
+Available components include: calendar, checkbox, radio-group, form, context-menu, menubar, navigation-menu, hover-card, aspect-ratio, toggle, toggle-group, and more. See the [Shadcn/ui documentation](https://ui.shadcn.com/docs/components) for the full list.
+
+## 3. Responsive Design (Non-Negotiable)
+
+All UI must work across all screen sizes using a mobile-first approach.
+
+### Breakpoints
+
+| Prefix | Min Width | Target |
+|--------|-----------|--------|
+| (none) | 0px | Mobile (default) |
+| `sm` | 640px | Small devices |
+| `md` | 768px | Tablets, sidebar visibility toggle |
+| `lg` | 1024px | Laptops |
+| `xl` | 1280px | Desktops |
+
+### Mobile-First Approach
+
+Start with the mobile layout, then add larger breakpoint variants:
+
+```tsx
+// Start mobile, progressively enhance
+<div className="px-4 md:px-6 lg:px-8">
+  <h1 className="text-lg md:text-xl lg:text-2xl">
+    Fleet Overview
+  </h1>
+</div>
+```
+
+### Common Responsive Patterns
+
+**Grid layouts:**
+
+```tsx
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {/* Cards */}
+</div>
+```
+
+**Sidebar visibility:**
+
+```tsx
+{/* Hidden on mobile, visible on desktop */}
+<aside className="hidden md:block w-64">
+  <Navigation />
+</aside>
+
+{/* Mobile menu overlay */}
+<Sheet>
+  <SheetTrigger className="md:hidden">
+    <MenuIcon />
+  </SheetTrigger>
+  <SheetContent>
+    <Navigation />
+  </SheetContent>
+</Sheet>
+```
+
+**Typography scaling:**
+
+```tsx
+<h1 className="text-sm md:text-base lg:text-lg">Title</h1>
+<p className="text-xs md:text-sm">Description</p>
+```
+
+**Spacing:**
+
+```tsx
+<section className="px-4 md:px-6 lg:px-8 py-4 md:py-6">
+```
+
+### Touch Targets
+
+On mobile, all interactive elements must have a minimum touch target of 44x44 pixels:
+
+```tsx
+<Button size="lg" className="min-h-[44px] min-w-[44px]">
+  Tap Me
+</Button>
+```
+
+### Testing Requirements
+
+Test all new UI at these widths:
+
+| Width | Device Category |
+|-------|----------------|
+| 375px | Mobile (iPhone SE) |
+| 768px | Tablet (iPad) |
+| 1440px | Desktop |
+
+Test in both light and dark themes at each width.
+
+## Pre-Commit Checklist
+
+Before committing any UI code, verify every item:
+
+- [ ] All interactive elements use Shadcn components (Button, Input, Select, etc.)
+- [ ] No plain HTML elements (`<button>`, `<input>`, `<select>`, `<table>`) for UI
+- [ ] No hardcoded `bg-white`, `text-gray-900`, `border-gray-200` without dark variants
+- [ ] All semantic color tokens used (`bg-background`, `text-foreground`, etc.)
+- [ ] Dark mode variants added where needed (`dark:bg-gray-900`, `dark:text-gray-300`)
+- [ ] Responsive classes present for all breakpoints
+- [ ] Tested in both light and dark themes
+- [ ] Tested on mobile (375px), tablet (768px), and desktop (1440px)
+- [ ] Only black, white, and gray colors used (except status indicators)
+- [ ] Hover and focus states work in both themes
+- [ ] Touch targets are at least 44x44px on mobile

@@ -1,0 +1,331 @@
+---
+title: Common Tasks
+description: Quick step-by-step recipes for everyday development tasks in the SALLY codebase.
+---
+
+# Common Tasks
+
+Quick recipes for the tasks you will do most often. Each one is a brief, self-contained procedure.
+
+## Add a New API Endpoint
+
+1. Open the appropriate domain controller in `apps/backend/src/domains/<domain>/`.
+2. Add a new method with route decorator (`@Get()`, `@Post()`, etc.).
+3. Add `@Roles()` to restrict access.
+4. Add `@ApiOperation()` and `@ApiResponse()` for Swagger docs.
+5. Create a service method in the corresponding service file.
+6. Create a DTO in the `dto/` directory if the endpoint accepts a request body.
+7. Export the DTO from `dto/index.ts`.
+
+```typescript
+// In the controller
+@Get(':id/summary')
+@Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
+@ApiOperation({ summary: 'Get resource summary' })
+async getSummary(@Param('id') id: string, @CurrentUser() user: any) {
+  const tenantDbId = await this.getTenantDbId(user);
+  return this.service.getSummary(id, tenantDbId);
+}
+```
+
+Full tutorial: [Adding an Endpoint](/developer-guide/backend/adding-endpoint)
+
+---
+
+## Add a New Page
+
+1. Create a directory under `apps/web/src/app/` matching the desired URL path.
+2. Create a `page.tsx` file inside it.
+3. Import and render a feature component.
+
+```typescript filename="apps/web/src/app/dispatcher/reports/page.tsx"
+import { ReportsDashboard } from '@/features/operations/reports/components/ReportsDashboard';
+
+export default function ReportsPage() {
+  return <ReportsDashboard />;
+}
+```
+
+The route is automatically registered. No router configuration needed.
+
+Full guide: [App Router Guide](/developer-guide/frontend/app-router)
+
+---
+
+## Add a New Database Table
+
+1. Open `apps/backend/prisma/schema.prisma`.
+2. Add the new model:
+
+```prisma
+model MaintenanceLog {
+  id          Int      @id @default(autoincrement())
+  logId       String   @unique @map("log_id") @db.VarChar(50)
+  description String
+  performedAt DateTime @map("performed_at") @db.Timestamptz
+
+  tenantId    Int      @map("tenant_id")
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([tenantId])
+  @@map("maintenance_logs")
+}
+```
+
+3. Add the relation to the `Tenant` model (if tenant-scoped).
+4. Run the migration:
+
+```bash
+cd apps/backend
+npm run prisma:migrate
+```
+
+5. Regenerate the Prisma client:
+
+```bash
+npm run prisma:generate
+```
+
+Full guide: [Database & Prisma](/developer-guide/backend/database-prisma)
+
+---
+
+## Install a New Shadcn Component
+
+```bash
+cd apps/web
+npx shadcn@latest add [component-name]
+```
+
+For example:
+
+```bash
+npx shadcn@latest add calendar
+npx shadcn@latest add checkbox
+npx shadcn@latest add radio-group
+```
+
+The component is installed to `src/shared/components/ui/`. Import it in your code:
+
+```typescript
+import { Calendar } from '@/shared/components/ui/calendar';
+```
+
+Full reference: [UI Standards](/developer-guide/frontend/ui-standards)
+
+---
+
+## Add a New Feature Module
+
+1. Create the directory structure:
+
+```bash
+mkdir -p apps/web/src/features/<domain>/<feature>/{components,hooks,__tests__}
+```
+
+2. Create `api.ts` with fetch functions.
+3. Create `types.ts` with TypeScript interfaces.
+4. Create hooks in `hooks/` using React Query.
+5. Create components in `components/`.
+6. Create `index.ts` barrel export.
+
+```typescript filename="index.ts"
+export * from './types';
+export { useMyFeature } from './hooks/use-my-feature';
+```
+
+Full guide: [Feature Modules](/developer-guide/frontend/feature-modules)
+
+---
+
+## Run Database Migrations
+
+**Create a new migration** (after editing `schema.prisma`):
+
+```bash
+cd apps/backend
+npm run prisma:migrate
+```
+
+**Deploy existing migrations** (production):
+
+```bash
+cd apps/backend
+npm run prisma:migrate:deploy
+```
+
+**Check migration status:**
+
+```bash
+cd apps/backend
+npm run prisma:migrate:status
+```
+
+---
+
+## Seed the Database
+
+**Base data** (essential records):
+
+```bash
+cd apps/backend
+npm run setup:base
+```
+
+**Demo data** (sample records for development):
+
+```bash
+cd apps/backend
+npm run setup:demo
+```
+
+**Reset and reseed** (drops all data):
+
+```bash
+cd apps/backend
+npm run setup:reset
+```
+
+**Check seed status:**
+
+```bash
+cd apps/backend
+npm run setup:status
+```
+
+---
+
+## Run Tests
+
+**Backend unit tests:**
+
+```bash
+cd apps/backend
+npm run test              # Run once
+npm run test:watch        # Watch mode
+npm run test:cov          # With coverage report
+```
+
+**Backend E2E tests:**
+
+```bash
+cd apps/backend
+npm run test:e2e
+```
+
+**Frontend tests:**
+
+```bash
+cd apps/web
+npm run test              # Run once
+npm run test:watch        # Watch mode
+```
+
+**All tests via Turborepo:**
+
+```bash
+npm run test              # From project root
+```
+
+---
+
+## Access Prisma Studio
+
+Prisma Studio is a visual database browser. Run it from the project root:
+
+```bash
+npm run backend:prisma:studio
+```
+
+Or from the backend directory:
+
+```bash
+cd apps/backend
+npm run prisma:studio
+```
+
+This opens a web interface (typically at http://localhost:5555) where you can browse tables, view and edit records, and explore relationships.
+
+---
+
+## Check API Docs (Swagger)
+
+1. Make sure the backend is running (`npm run backend:dev` or `npm run dev`).
+2. Open [http://localhost:8000/api](http://localhost:8000/api) in your browser.
+3. Click "Authorize" to enter a JWT token for authenticated endpoints.
+4. Browse endpoints grouped by tags (Drivers, Vehicles, Route Planning, etc.).
+
+The OpenAPI spec is also available as JSON at [http://localhost:8000/api/openapi.json](http://localhost:8000/api/openapi.json).
+
+---
+
+## Start and Stop Infrastructure
+
+**Start PostgreSQL and Redis:**
+
+```bash
+npm run docker:up
+```
+
+**Stop containers:**
+
+```bash
+npm run docker:down
+```
+
+**View container logs:**
+
+```bash
+npm run docker:logs
+```
+
+**Restart containers:**
+
+```bash
+npm run docker:restart
+```
+
+---
+
+## Generate the Prisma Client
+
+Run this after any schema change or fresh install:
+
+```bash
+npm run backend:prisma:generate
+```
+
+Or from the backend directory:
+
+```bash
+cd apps/backend
+npm run prisma:generate
+```
+
+---
+
+## Quick Reference Table
+
+| Task | Command | Run From |
+|------|---------|----------|
+| Start all apps | `npm run dev` | Root |
+| Start backend only | `npm run backend:dev` | Root |
+| Start frontend only | `npm run frontend:dev` | Root |
+| Start docs only | `npm run docs:dev` | Root |
+| Start Docker (DB + Redis) | `npm run docker:up` | Root |
+| Stop Docker | `npm run docker:down` | Root |
+| Install dependencies | `npm install` | Root |
+| Run migrations | `npm run prisma:migrate` | `apps/backend/` |
+| Generate Prisma client | `npm run backend:prisma:generate` | Root |
+| Open Prisma Studio | `npm run backend:prisma:studio` | Root |
+| Seed base data | `npm run setup:base` | `apps/backend/` |
+| Seed demo data | `npm run setup:demo` | `apps/backend/` |
+| Reset database | `npm run setup:reset` | `apps/backend/` |
+| Run backend tests | `npm run test` | `apps/backend/` |
+| Run frontend tests | `npm run test` | `apps/web/` |
+| Build all | `npm run build` | Root |
+| Add Shadcn component | `npx shadcn@latest add [name]` | `apps/web/` |
+| View Swagger docs | Open http://localhost:8000/api | Browser |

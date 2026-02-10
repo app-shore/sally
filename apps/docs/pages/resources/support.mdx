@@ -1,302 +1,93 @@
+---
+title: Support
+description: How to get help, report bugs, and request features for the SALLY platform.
+---
+
 # Support
 
-We're here to help you succeed with your SALLY integration. This page outlines how to get assistance, troubleshoot issues, and make the most of our developer resources.
+This page explains how to get help with SALLY, report issues, and request new features.
 
 ---
 
-## How to Get Help
+## Self-Service Resources
 
-### 1. Self-Service Resources
+Start with the documentation. Most questions about setup, authentication, route planning, and integrations are covered in these guides:
 
-Start with our comprehensive documentation, which covers most common integration scenarios:
-
-**Documentation**
-- [Getting Started Guide](/getting-started) - Step-by-step setup instructions
-- [API Reference](/api-reference) - Complete endpoint documentation
-- [FAQ](/resources/faq) - Common questions and answers
-
-**Guides**
-- Authentication setup and troubleshooting
-- Route planning best practices
-- HOS compliance validation
-- Alert management and monitoring
-- Error handling and retry strategies
-
-### 2. GitHub Issues
-
-For bugs, feature requests, and technical questions:
-
-**Repository:** `github.com/sally-fleet/sally-platform` (placeholder)
-
-**When to Use:**
-- Report a bug or unexpected behavior
-- Request a new feature or enhancement
-- Ask technical questions about implementation
-- Share feedback on the platform
-
-**Issue Guidelines:**
-- Search existing issues before creating a new one
-- Use the provided issue templates
-- Include relevant code samples and error messages
-- Specify your environment (staging vs production)
-
-### 3. Email Support
-
-For sensitive issues or account-specific questions:
-
-**Support Email:** support@sally.fleet (placeholder)
-
-**When to Use:**
-- Account and billing questions
-- Security concerns or vulnerability reports
-- API key issues or access problems
-- Partnership or enterprise inquiries
-
-**Expected Response Times:**
-- Critical issues (production down): 1-2 hours
-- High priority (staging issues): 4-8 hours
-- Normal priority: 1-2 business days
-- Low priority (feature requests): 3-5 business days
+- [Getting Started](/getting-started) -- Setup instructions and your first route
+- [API Reference](/api-reference) -- Endpoint documentation and response formats
+- [API Guides](/api-guides) -- Step-by-step walkthroughs for common tasks
+- [FAQ](/resources/faq) -- Answers to common questions
+- [Glossary](/resources/glossary) -- Trucking and SALLY terminology
+- [API Playground](/api-playground) -- Test endpoints interactively with live requests
 
 ---
 
-## Response Time Expectations
+## Reporting Bugs
 
-### Staging Environment
-- **Initial Response:** Within 1-2 business days
-- **Resolution:** Varies by complexity
-- **Availability:** Monday-Friday, 9am-5pm PT
+Use GitHub Issues for bug reports.
 
-We prioritize production issues over staging issues to ensure minimal disruption to live operations.
+When filing a bug, include:
 
-### Production Environment
-- **Critical Issues:** 1-2 hour initial response
-- **High Priority:** 4-8 hour initial response
-- **Availability:** 24/7 monitoring for critical issues
+1. **Environment** -- Staging or production, API version, browser and OS if frontend-related.
+2. **Steps to reproduce** -- The exact sequence of actions that triggers the issue.
+3. **Request details** -- HTTP method, endpoint, request body (sanitize sensitive data), and headers (exclude API keys).
+4. **Response details** -- HTTP status code, response body, and error message.
+5. **Expected vs. actual behavior** -- What you expected and what happened instead.
+6. **Frequency** -- Whether the issue is consistent, intermittent, or a one-time occurrence.
 
----
-
-## Best Practices for Reporting Issues
-
-### Include Essential Information
-
-When reporting a bug or issue, please provide:
-
-1. **Environment**
-   - Staging or Production
-   - API version (e.g., v1)
-   - Your organization ID (if applicable)
-
-2. **Request Details**
-   - HTTP method and endpoint
-   - Request headers (exclude API keys)
-   - Request body (sanitize sensitive data)
-   - Request timestamp
-
-3. **Response Details**
-   - HTTP status code
-   - Response body
-   - Error message or code
-   - Response timestamp
-
-4. **Expected vs Actual Behavior**
-   - What you expected to happen
-   - What actually happened
-   - Steps to reproduce the issue
-
-5. **Additional Context**
-   - Frequency of the issue (one-time, intermittent, consistent)
-   - Impact on your operations
-   - Any workarounds you've tried
-
-### Example Issue Report
-
-```markdown
-**Environment:** Production
-**API Version:** v1
-**Timestamp:** 2026-02-05T14:30:00Z
-
-**Issue:** Route planning request returns 500 error
-
-**Request:**
-POST /api/v1/routes/plan
-Headers: Content-Type: application/json
-Body: {
-  "stops": [...],
-  "driver": {...},
-  "vehicle": {...}
-}
-
-**Response:**
-Status: 500 Internal Server Error
-Body: {
-  "error": "Internal server error",
-  "request_id": "req_abc123"
-}
-
-**Expected:** Successfully planned route with optimized stop sequence
-
-**Actual:** 500 error with generic error message
-
-**Frequency:** Intermittent (3 out of 10 requests fail)
-
-**Impact:** Unable to plan routes for 30% of our fleet
-
-**Steps to Reproduce:**
-1. Submit route planning request with 15+ stops
-2. Include driver with 8+ hours remaining
-3. Error occurs approximately 30% of the time
-```
+Clear, reproducible reports are resolved significantly faster.
 
 ---
 
-## Common Issues and Solutions
+## Requesting Features
 
-### Authentication Issues
+Feature requests are also tracked through GitHub Issues. When submitting a request, describe:
 
-**Problem:** 401 Unauthorized responses
+- The use case or problem you are trying to solve.
+- How the feature would fit into your workflow.
+- Any constraints or requirements (regulatory, performance, compatibility).
 
-**Solutions:**
-- Verify API key is correctly formatted in Authorization header
-- Check that API key hasn't been revoked or expired
-- Ensure you're using the correct environment (staging vs production)
-- Confirm API key has necessary permissions
-
-See [Authentication Guide](/api-reference/authentication) for detailed setup.
-
-### Rate Limiting
-
-**Problem:** 429 Too Many Requests responses
-
-**Solutions:**
-- Implement exponential backoff retry logic
-- Review your request volume and rate limits
-- Consider request batching where applicable
-- Contact support to discuss higher limits if needed
-
-### Validation Errors
-
-**Problem:** 400 Bad Request with validation errors
-
-**Solutions:**
-- Review the error message for specific field issues
-- Consult API reference for required fields and formats
-- Validate your request body against the schema
-- Check data types and value ranges
-
-### HOS Compliance Issues
-
-**Problem:** Routes planned without proper rest stops
-
-**Solutions:**
-- Verify driver HOS data is accurate and up-to-date
-- Check that vehicle range and fuel capacity are correct
-- Review route parameters (max_drive_time, max_on_duty_time)
-- Ensure stop service times are realistic
-
-See [HOS Validation Guide](/getting-started/hos-validation) for details.
+The team evaluates feature requests based on business value, technical feasibility, number of requesting customers, and alignment with the product roadmap.
 
 ---
 
 ## Security and Vulnerability Reports
 
-If you discover a security vulnerability, please report it responsibly:
+If you discover a security vulnerability, report it privately. Do not post security issues publicly on GitHub or social media.
 
-**Email:** security@sally.fleet (placeholder)
+**Contact:** security@sally.fleet
 
-**Do Not:**
-- Post security issues publicly on GitHub
-- Share vulnerabilities on social media
-- Exploit the vulnerability beyond validation
+Include detailed steps to reproduce the vulnerability. Allow the team time to investigate and patch before any public disclosure.
 
-**Do:**
-- Provide detailed steps to reproduce
-- Allow us time to investigate and patch
-- Work with us on responsible disclosure timing
-
-We take security seriously and will respond to verified reports within 24 hours.
+Security reports receive a response within 24 hours.
 
 ---
 
-## Feature Requests and Feedback
+## Contact
 
-We welcome your ideas for improving SALLY:
+| Channel | Use For |
+|---|---|
+| GitHub Issues | Bug reports, feature requests, technical questions |
+| support@sally.fleet | Account issues, billing questions, access problems |
+| security@sally.fleet | Security vulnerabilities and responsible disclosure |
 
-**Where to Share:**
-- GitHub Issues with "feature request" label
-- Email to support@sally.fleet
-- Quarterly developer surveys (coming soon)
+### Response Times
 
-**What We Consider:**
-- Use case and business value
-- Number of customers requesting the feature
-- Technical feasibility and effort
-- Alignment with product roadmap
-- Security and compliance implications
-
----
-
-## Status Page
-
-Monitor SALLY's system status and uptime:
-
-**Status Page:** status.sally.fleet (placeholder)
-
-**What You'll Find:**
-- Real-time system status
-- Scheduled maintenance windows
-- Incident history and postmortems
-- API performance metrics
-- Subscribe to status updates via email or webhook
+| Priority | Initial Response |
+|---|---|
+| Critical (production down) | 1-2 hours |
+| High (staging issues, blocking bugs) | 4-8 hours |
+| Normal (non-blocking bugs, questions) | 1-2 business days |
+| Low (feature requests, suggestions) | 3-5 business days |
 
 ---
 
-## Office Hours (Coming Soon)
+## Before You Contact Us
 
-Join our live developer office hours for Q&A, technical discussions, and direct access to the engineering team.
+1. Check the [FAQ](/resources/faq) for common questions.
+2. Search the documentation for relevant guides.
+3. Search GitHub Issues for similar reports.
+4. Gather error messages, status codes, and request IDs.
+5. Try reproducing the issue in the staging environment if possible.
 
-**Schedule:** Every Tuesday, 10am-11am PT
-
-**Topics:**
-- Integration best practices
-- New feature demos
-- Troubleshooting common issues
-- Architecture deep dives
-
-Stay tuned for registration details.
-
----
-
-## Helpful Tips
-
-### Before Contacting Support
-
-1. Check the [FAQ](/resources/faq) for common questions
-2. Review relevant documentation sections
-3. Search GitHub issues for similar problems
-4. Try the issue in staging environment if possible
-5. Gather all relevant error messages and request IDs
-
-### When You Contact Us
-
-- Be specific and detailed
-- Include code samples (sanitized)
-- Mention what you've already tried
-- Indicate urgency and business impact
-- Follow up with additional information promptly
-
-### Help Us Help You
-
-The more information you provide upfront, the faster we can diagnose and resolve your issue. Clear, detailed reports with reproducible steps are invaluable.
-
----
-
-## Need More Help?
-
-Can't find what you're looking for? Reach out via:
-
-- **GitHub Issues:** Technical questions and bug reports
-- **Email Support:** support@sally.fleet
-- **Security Reports:** security@sally.fleet
-
-We're committed to your success with SALLY and will do our best to resolve any issues quickly.
+The more context you provide upfront, the faster the team can help.
