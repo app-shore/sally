@@ -65,7 +65,7 @@ export class EmailService {
     const fromEmail =
       options.from ||
       this.configService.get<string>('EMAIL_FROM') ||
-      'noreply@sally.com';
+      'noreply@sally.appshore.in';
 
     try {
       switch (this.emailProvider) {
@@ -359,7 +359,7 @@ SALLY - Smart Routes. Confident Dispatchers. Happy Drivers.
             </div>
             <div class="footer">
               <p>&copy; 2026 SALLY. All rights reserved.</p>
-              <p>Need help? Contact us at support@sally.com</p>
+              <p>Need help? Contact us at support@sally.appshore.in</p>
             </div>
           </div>
         </body>
@@ -443,13 +443,13 @@ SALLY - Smart Routes. Confident Dispatchers. Happy Drivers.
               </div>
               <p>If you believe this is an error or would like to discuss this further, please don't hesitate to contact our support team.</p>
               <div style="text-align: center;">
-                <a href="mailto:support@sally.com" class="button">Contact Support</a>
+                <a href="mailto:support@sally.appshore.in" class="button">Contact Support</a>
               </div>
               <p>We appreciate your understanding.</p>
             </div>
             <div class="footer">
               <p>&copy; 2026 SALLY. All rights reserved.</p>
-              <p>Questions? Email us at support@sally.com</p>
+              <p>Questions? Email us at support@sally.appshore.in</p>
             </div>
           </div>
         </body>
@@ -465,7 +465,7 @@ After reviewing your registration for ${companyName}, we're unable to approve yo
 
 Reason: ${rejectionReason}
 
-If you believe this is an error or would like to discuss this further, please don't hesitate to contact our support team at support@sally.com.
+If you believe this is an error or would like to discuss this further, please don't hesitate to contact our support team at support@sally.appshore.in.
 
 We appreciate your understanding.
 

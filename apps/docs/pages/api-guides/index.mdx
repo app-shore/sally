@@ -12,17 +12,17 @@ These guides help you integrate SALLY's API into your fleet management systems. 
 | Environment | Base URL |
 |---|---|
 | Development | `http://localhost:8000/api/v1/` |
-| Staging | `https://staging.sally.com/api/v1/` |
-| Production | `https://your-instance.sally.com/api/v1/` |
+| Staging | `https://staging.sally.appshore.in/api/v1/` |
+| Production | `https://your-instance.sally.appshore.in/api/v1/` |
 
-All endpoints documented in these guides are relative to the base URL. For example, `POST /routes/plan` means `POST https://your-instance.sally.com/api/v1/routes/plan`.
+All endpoints documented in these guides are relative to the base URL. For example, `POST /routes/plan` means `POST https://your-instance.sally.appshore.in/api/v1/routes/plan`.
 
 ## Authentication
 
 Every request must include a Bearer token in the `Authorization` header:
 
 ```bash
-curl -X GET https://your-instance.sally.com/api/v1/drivers \
+curl -X GET https://your-instance.sally.appshore.in/api/v1/drivers \
   -H "Authorization: Bearer YOUR_API_TOKEN"
 ```
 

@@ -74,7 +74,7 @@ export const seed = {
     initFirebase();
 
     const superAdminFirebaseUid = await createFirebaseUser(
-      'admin@sally.com',
+      'admin@sally.appshore.in',
       SUPER_ADMIN_PASSWORD,
       'SALLY Admin',
     );
@@ -82,7 +82,7 @@ export const seed = {
     const superAdmin = await prisma.user.create({
       data: {
         userId: 'user_sally_superadmin_001',
-        email: 'admin@sally.com',
+        email: 'admin@sally.appshore.in',
         firstName: 'SALLY',
         lastName: 'Admin',
         role: 'SUPER_ADMIN',
