@@ -143,7 +143,7 @@ apps/web/
 │       ├── types/             # Shared TypeScript types
 │       └── utils/             # Utility functions
 ├── public/                    # Static assets
-└── next.config.js             # Next.js configuration
+└── next.config.ts             # Next.js configuration
 ```
 
 ## apps/docs/ -- Documentation Site
@@ -201,8 +201,8 @@ Use this table when you need to locate or add code:
 |---------|-----------|---------|
 | Backend modules | PascalCase | `DriversModule` |
 | Backend files | kebab-case | `drivers.controller.ts` |
-| Frontend components | kebab-case | `DriverList.tsx` or `driver-list.tsx` few files are PascalCase but  will be updated in future so strictly follow kabab-case  |
-| Frontend hooks | camelCase with `use` prefix | `use-drivers.ts`, files needs to be in kabab-case only |
+| Frontend components | kebab-case | `driver-list.tsx` |
+| Frontend hooks | kebab-case with `use` prefix | `use-drivers.ts` |
 | Database tables | snake_case (via Prisma `@@map`) | `route_plans` |
 | API routes | kebab-case | `/api/v1/fleet/drivers` |
 | Environment variables | SCREAMING_SNAKE_CASE | `DATABASE_URL` |

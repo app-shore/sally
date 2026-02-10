@@ -5,126 +5,241 @@ description: What's built, what's in progress, and what's planned for SALLY.
 
 # Roadmap
 
-## Implementation Status
-
-| Feature | Backend | Frontend | Status |
-|---|---|---|---|
-| Route Planning | 100% | 100% | Production ready |
-| HOS Compliance | 100% | 95% | Production ready |
-| Authentication | 100% | 100% | Production ready |
-| Multi-Tenancy | 100% | 100% | Production ready |
-| Integrations | 20% | 50% | Mock only |
-| Alerts | 40% | 20% | API only, no generation |
-| Monitoring | 0% | N/A | Planned |
-| Fleet Management | 50% | 30% | Basic CRUD only |
-| Driver Portal | 50% | 40% | Dashboard exists |
+SALLY is currently in **POC/Alpha** stage. The foundation is built and functional. This roadmap reflects the actual state of implementation as of February 2026.
 
 ---
 
-## Phase 1: Single-Driver Route Planning (MVP)
+## Status Overview
+
+| Capability | Status | Details |
+|---|---|---|
+| Route Planning Engine | **Complete** | TSP solver, HOS simulation, rest/fuel stop insertion, feasibility validation, 6 endpoints |
+| Sally AI | **Complete** | Conversational assistant with voice + text, intent detection, conversation history, card responses |
+| Fleet Management | **Complete** | Drivers (11 endpoints), Vehicles (4 endpoints), Loads (5 endpoints) |
+| Authentication & Multi-tenancy | **Complete** | Firebase + JWT, tenant registration/approval, 5 roles, user invitations |
+| Alerts & Monitoring Infrastructure | **Complete** | 20 alert types, 6 categories, full lifecycle, dedup, grouping, escalation, auto-resolution, 14+ endpoints |
+| Notifications | **Complete** | 4 channels (email, SMS, push, in-app SSE), priority-based channel resolution |
+| Command Center | **Complete** | Dispatcher dashboard overview, shift notes |
+| Settings & Preferences | **Complete** | User, driver, fleet ops, alert config, super admin preferences |
+| Integration Framework | **Complete** | Adapter pattern for ELD/TMS/Fuel/Weather, vendor registry, config management, 9 endpoints |
+| API Keys & Feature Flags | **Complete** | Full CRUD management |
+| Developer Portal | **Complete** | Nextra-based docs site with 90+ pages |
+| Dark Theme & Responsive Design | **Complete** | next-themes + semantic tokens, mobile-first with Shadcn/ui |
+| Dynamic Route Updates | **In Progress** | Framework exists, monitoring loop needs verification |
+| Real External Integrations | **In Progress** | Adapter pattern built, actual vendor connections are mock/stub |
+| Continuous Monitoring Loop | **In Progress** | Alert infrastructure complete, 24/7 monitoring loop needs verification |
+| Route Map Visualization | **In Progress** | Basic pages exist, full map integration incomplete |
+| Real-time WebSocket Updates | **In Progress** | Socket.io configured, not fully active yet |
+| Production Deployment (AWS) | Planned | -- |
+| Advanced Analytics | Planned | -- |
+| Predictive ML Optimization | Planned | -- |
+| Mobile Native App | Planned | -- |
+
+---
+
+## Phase 1: Foundation (Complete)
+
+**Status:** Complete
+
+Phase 1 established the full platform foundation -- route planning, fleet management, authentication, alerts, notifications, Sally AI, and the developer portal.
+
+### What's built
+
+**Route Planning Engine**
+- TSP solver (greedy nearest-neighbor + 2-opt) for stop sequence optimization
+- Segment-by-segment HOS simulation (11h drive, 14h duty, 8h break, 70h cycle)
+- Automatic rest stop insertion (full rest, partial rest, breaks)
+- Fuel stop insertion (price-optimized, threshold-based)
+- Feasibility validation (zero HOS violations on generated routes)
+- 6 API endpoints: plan, update, status, monitoring, HOS validate, REST recommend
+
+**Sally AI -- Conversational Interface**
+- Natural language assistant for dispatchers and drivers
+- Voice and text input modes
+- Intent detection and routing to backend operations
+- Conversation history with multi-turn context
+- Card-based responses for structured data (routes, alerts, fleet status)
+- Sally AI is the primary user experience -- all capabilities are accessible through conversation
+
+**Fleet Management**
+- Drivers: 11 endpoints with full lifecycle management (create, update, status, HOS tracking)
+- Vehicles: 4 endpoints (CRUD with fuel, capacity, maintenance tracking)
+- Loads: 5 endpoints (create, assign, status transitions, lifecycle management)
+
+**Authentication & Multi-tenancy**
+- Firebase Authentication with JWT tokens
+- Tenant registration and approval workflow
+- 5 roles: SUPER_ADMIN, OWNER, ADMIN, DISPATCHER, DRIVER
+- User invitation system with role-based access control
+
+**Alerts & Monitoring Infrastructure**
+- 20 alert types across 6 categories (HOS, Route, Driver, Vehicle, External, System)
+- Full alert lifecycle: Active -> Acknowledged -> Resolved
+- Alert deduplication (same condition does not generate duplicates)
+- Alert grouping (related alerts under a parent)
+- Escalation rules (unacknowledged alerts increase in priority)
+- Auto-resolution (alerts resolve when conditions clear)
+- Alert analytics and reporting
+- 14+ API endpoints for alert management
+
+**Notifications**
+- 4 delivery channels: Email (Resend), SMS (Twilio), Push (Web Push), In-app (SSE)
+- Channel resolution based on alert priority and user preferences
+- Configurable notification preferences per user
+
+**Command Center**
+- Dispatcher dashboard overview with fleet status
+- Shift notes for dispatch handoffs
+
+**Settings & Preferences**
+- User preferences (theme, notifications, display)
+- Driver preferences (rest, fuel, route)
+- Fleet operations settings
+- Alert configuration
+- Super admin preferences
+
+**Integration Framework**
+- Adapter pattern supporting ELD, TMS, Fuel, and Weather vendor types
+- Vendor registry with configuration management
+- Sync history tracking
+- Test connection capability
+- 9 API endpoints for integration management
+
+**Developer Infrastructure**
+- API key management (full CRUD)
+- Feature flag system (full CRUD)
+- Developer portal with 90+ documentation pages
+- Dark theme support via next-themes with semantic color tokens
+- Mobile-first responsive design with Shadcn/ui components
+
+---
+
+## Phase 2: Intelligence (In Progress)
 
 **Status:** In progress
 
-**What's built:**
-- Route planning engine (TSP + HOS simulation)
-- Rest stop insertion (full rest, partial rest, breaks)
-- Fuel stop insertion (price-optimized)
-- Dynamic updates (4 trigger types)
-- Web dashboard (plan routes, monitor routes)
-- Authentication with multi-tenancy
-- Mock external API integrations (Samsara HOS, fuel prices, weather)
-- Static distance/time data
+Phase 2 focuses on activating the real-time intelligence layer -- connecting the monitoring loop, enabling live external data, and completing the map-based route visualization.
 
-**What's remaining:**
-- Connect alert generation to monitoring
-- Complete external integration adapters
-- Driver portal refinements
-- Fleet management CRUD completion
+### What's in progress
 
-**Goal:** Prove value with 5 pilot drivers.
+**Continuous Monitoring Service**
+- Alert infrastructure is complete (20 types, lifecycle, escalation)
+- The 24/7 monitoring loop (polling every 60 seconds per active route) needs verification and hardening
+- Goal: Fully autonomous monitoring that detects and responds to 20 alert types without manual intervention
 
-**Success metrics:**
-- 5 pilot carriers (5–20 trucks each)
-- 100 routes planned
-- Zero HOS violations on planned routes
-- 90% driver acceptance rate on optional rest recommendations
-- Less than 5 seconds route optimization time (10 stops)
+**Dynamic Route Updates**
+- Update framework and API exist (`POST /api/v1/routes/update`)
+- Trigger detection and re-plan vs. ETA-update decision logic built
+- End-to-end monitoring-to-update pipeline needs verification
+- Goal: Automatic route re-optimization when conditions change
+
+**Real External API Integrations**
+- Adapter pattern and vendor registry are built
+- Mock implementations exist for ELD (Samsara), fuel prices, weather, and TMS
+- Actual vendor API connections need to be implemented
+- Target integrations: Samsara ELD, Motive ELD, GasBuddy fuel prices, Weather API, TMS connectors
+
+**Route Map Visualization**
+- Basic route pages exist in the frontend
+- Full interactive map integration (route lines, stop markers, real-time position) is incomplete
+- Goal: Live map view for both dispatcher dashboard and driver view
+
+**Real-time WebSocket Updates**
+- Socket.io is configured in the stack
+- Real-time event delivery to frontend is not fully active
+- Goal: Instant push updates for route changes, alerts, and driver status
+
+### Success criteria for Phase 2
+
+- Monitoring loop runs reliably for 48+ hours without intervention
+- At least 1 real ELD integration (Samsara or Motive) returning live HOS data
+- At least 1 real fuel price API returning live prices
+- Route visualization shows interactive map with segments and stops
+- Real-time updates push to dispatcher dashboard without page refresh
 
 ---
 
-## Phase 2: Fleet-Wide Optimization
+## Phase 3: Scale (Planned)
 
-**Timeline:** 3 months after MVP
+**Status:** Planned
 
-**Planned features:**
-- Multi-driver assignment (VRP solver with OR-Tools)
-- Load matching (which driver gets which load)
-- Driver preferences (home time, preferred regions)
+Phase 3 takes SALLY from POC to production -- hardened infrastructure, real carrier deployments, and operational analytics.
+
+### Planned features
+
+**Production Deployment**
+- AWS infrastructure (ECS/EKS, RDS, ElastiCache, CloudFront)
+- CI/CD pipeline with staging and production environments
+- Automated database backups and disaster recovery
+- Horizontal scaling for monitoring and route planning services
+- Performance optimization for fleet-wide operations
+
+**Advanced Analytics Dashboards**
+- Fleet performance metrics (on-time delivery, HOS utilization, fuel efficiency)
+- Dispatcher productivity analytics
+- Driver scorecards and trends
+- Route optimization analytics (planned vs. actual, savings calculations)
+- Alert response time tracking
+
+**Multi-driver Fleet Optimization**
+- VRP solver for multi-driver assignment (OR-Tools)
+- Load-to-driver matching optimization
 - Team driving support
-- Real ELD/TMS/Fuel/Weather integrations
-- Continuous monitoring service (14 trigger types)
-- Alert generation engine
-- Live tracking with maps
+- Driver preference matching (home time, preferred lanes, regions)
 
-**Goal:** Scale to 50+ trucks per carrier.
+**Load Marketplace Integration**
+- Load board connections (DAT, Truckstop)
+- Rate analysis and lane pricing
+- Automated load matching based on fleet position and capacity
 
-**Success metrics:**
-- 10 paying customers (50–100 trucks each)
-- 1,000 routes planned per week
-- $100K ARR
-- 80% renewal rate
-- Less than 10 seconds route optimization (fleet-wide, 50 drivers, 200 loads)
+### Success criteria for Phase 3
 
----
-
-## Phase 3: Live Data Integration
-
-**Timeline:** 3 months after Phase 2
-
-**Planned features:**
-- ELD API integration (auto-populate HOS) — Samsara, KeepTruckin, Omnitracs
-- TMS API integration (auto-pull stops) — McLeod, TMW
-- Telematics integration (live truck location)
-- Google Maps Directions + Traffic API
-- Weather API (adjust speeds for conditions)
-- Fuel price API (GasBuddy, live prices)
-
-**Goal:** Fully automated route planning with zero manual data entry.
-
-**Success metrics:**
-- 50 customers
-- 3 ELD integrations
-- 2 TMS integrations
-- $500K ARR
-- 90% driver satisfaction ("makes job easier")
+- Production deployment supporting 10+ carrier accounts
+- 1,000+ routes planned per week
+- Fleet analytics dashboard live with 5+ report types
+- Multi-driver route optimization for fleets of 50+ trucks
 
 ---
 
-## Phase 4: Predictive Intelligence
+## Phase 4: Advanced (Future)
 
-**Timeline:** 6 months after Phase 3
+**Status:** Future
 
-**Planned features:**
-- ML-based ETA prediction (learn from historical data)
-- Driver preference learning (personalize rest/fuel recommendations)
-- Lane-specific patterns (optimize by familiar routes)
-- Demand forecasting (predict dock times)
+Phase 4 introduces machine learning, predictive capabilities, and a mobile-native experience.
 
-**Goal:** Self-optimizing system that improves with usage.
+### Planned features
 
----
+**Predictive Route Optimization**
+- ML-based ETA prediction trained on historical route data
+- Dock time prediction (learn from actual vs. estimated patterns)
+- Lane-specific speed models (adjust for time-of-day, weather, season)
+- Demand forecasting for proactive fleet positioning
 
-## Phase 5: Advanced Features
+**Advanced Sally AI**
+- Proactive suggestions ("Driver Martinez should rest at the next stop based on traffic patterns")
+- Anomaly detection ("Driver Johnson's fuel consumption is 15% above normal for this lane")
+- Natural language fleet reporting ("How did the fleet perform last week?")
+- Multi-modal interaction (voice commands in driver cab)
 
-**Timeline:** Ongoing
+**Mobile Native App**
+- iOS and Android native applications for drivers
+- Offline route support with sync-on-reconnect
+- Turn-by-turn navigation integration
+- Push notifications for route changes and alerts
+- Quick actions (arrived, departed, need rest, need fuel)
 
-**Planned features:**
-- Load consolidation (combine partial loads)
-- Toll optimization (avoid/minimize tolls)
+**Driver Performance Scoring**
+- Safety scoring based on driving patterns
+- Fuel efficiency ratings
+- On-time performance tracking
+- HOS utilization optimization
+
+**Advanced Fleet Features**
+- Toll optimization (avoid/minimize toll costs)
 - Fuel hedging (predict prices, route accordingly)
-- Driver fatigue scoring (beyond HOS)
-- Appointment negotiation (suggest better time windows)
-- AI assistant (voice + text) for dispatchers and drivers
+- Load consolidation (combine partial loads on shared lanes)
+- Appointment negotiation (suggest better time windows to shippers)
+- Driver fatigue scoring beyond HOS compliance
 
 ---
 
@@ -132,12 +247,21 @@ description: What's built, what's in progress, and what's planned for SALLY.
 
 SALLY supports two data paths for every entity (drivers, vehicles, loads):
 
-1. **TMS Integration** (auto-sync) — For carriers with TMS APIs (Rose Rocket, Alvys, McLeod)
-2. **Manual Entry** — For carriers with no TMS, or TMS without APIs
+1. **TMS Integration** (auto-sync) -- For carriers with TMS APIs (Rose Rocket, Alvys, McLeod)
+2. **Manual Entry** -- For carriers with no TMS, or TMS without APIs
 
 Both paths feed into the same route planning and monitoring intelligence.
 
 **TMS roadmap:**
-- **Phase 0:** Manual entry for drivers, vehicles, loads + load lifecycle
-- **Phase 1:** Add invoicing + driver settlements + QuickBooks → SALLY becomes a TMS
-- **Phase 2:** IFTA, factoring, load boards, EDI, document management → Full TMS parity
+- **Current:** Manual entry for drivers, vehicles, loads + load lifecycle (complete)
+- **Next:** TMS adapter integrations via the integration framework (adapter pattern built, connections planned)
+- **Future:** Invoicing, driver settlements, QuickBooks integration, IFTA, load boards, EDI
+
+---
+
+## Next Steps
+
+- [Product Overview](/product) -- What SALLY is and how it works
+- [Vision & Mission](/product/vision) -- Where SALLY is going
+- [Core Features](/product/features) -- What SALLY does in detail
+- [Getting Started](/getting-started) -- Start using the API

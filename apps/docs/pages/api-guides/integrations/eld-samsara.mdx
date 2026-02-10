@@ -231,7 +231,7 @@ Unmatched Samsara drivers appear in the integration dashboard for manual review.
 Adjust the sync interval at any time:
 
 ```bash
-curl -X PUT https://sally-api.apps.appshore.in/api/v1/integrations/int_s1a2m3s4 \
+curl -X PATCH https://sally-api.apps.appshore.in/api/v1/integrations/int_s1a2m3s4 \
   -H "X-API-Key: $SALLY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

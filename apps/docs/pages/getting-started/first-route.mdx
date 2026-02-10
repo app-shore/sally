@@ -32,14 +32,13 @@ export SALLY_API_KEY="sk_staging_your_key_here"
 export SALLY_BASE="https://sally-api.apps.appshore.in/api/v1"
 ```
 
-Alternatively, obtain a JWT token by logging in:
+Alternatively, obtain a JWT token using the mock login endpoint (for POC/development):
 
 ```bash
 curl -X POST $SALLY_BASE/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "dispatcher@acmefreight.com",
-    "password": "your_password"
+    "user_id": "user_swift_disp_001"
   }'
 ```
 
@@ -48,16 +47,16 @@ curl -X POST $SALLY_BASE/auth/login \
 ```json
 {
   "accessToken": "eyJhbGciOiJSUzI1NiIs...",
-  "refreshToken": "dGhpcyBpcyBhIHJlZnJl...",
-  "expiresIn": 3600,
   "user": {
-    "id": "usr_8a2b3c4d",
-    "email": "dispatcher@acmefreight.com",
+    "userId": "user_swift_disp_001",
+    "email": "dispatcher@swifthaul.com",
     "role": "DISPATCHER",
-    "tenantId": "tnt_acme001"
+    "tenantId": "tnt_swift001"
   }
 }
 ```
+
+The `refreshToken` is set as an HTTP-only cookie and is not included in the response body.
 
 For this tutorial, we will use the `X-API-Key` header. All subsequent requests include:
 

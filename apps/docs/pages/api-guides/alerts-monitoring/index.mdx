@@ -9,7 +9,7 @@ SALLY continuously monitors every active route in your fleet, checking for poten
 
 ## How Monitoring Works
 
-Once you [activate a route](/getting-started/first-route#step-7-activate-the-route), SALLY's monitoring service begins tracking it across 14 trigger types in 5 categories. The monitoring loop runs continuously:
+Once you [activate a route](/getting-started/first-route#step-7-activate-the-route), SALLY's monitoring service begins tracking it across 20 alert types in 6 categories. The monitoring loop runs continuously:
 
 1. **Check** -- Evaluate driver HOS, vehicle position, weather, and schedule against the active route plan
 2. **Detect** -- Identify situations that require dispatcher attention
@@ -19,7 +19,7 @@ Once you [activate a route](/getting-started/first-route#step-7-activate-the-rou
 
 ## Alert Categories
 
-SALLY organizes alerts into five categories:
+SALLY organizes alerts into six categories:
 
 | Category | Description | Example Triggers |
 |---|---|---|
@@ -28,6 +28,7 @@ SALLY organizes alerts into five categories:
 | `WEATHER` | Severe weather along the route | Winter storm warning, tornado watch, flooding |
 | `MECHANICAL` | Vehicle mechanical issues | Engine fault code, tire pressure warning, DEF level low |
 | `SCHEDULING` | Schedule and timing conflicts | Late to appointment, dock delay, delivery window missed |
+| `SYSTEM` | Platform and integration issues | Integration failure, system error |
 
 ## Alert Priority Levels
 

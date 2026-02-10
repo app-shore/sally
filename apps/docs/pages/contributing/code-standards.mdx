@@ -49,7 +49,7 @@ export class CreateDriverDto {}
 Every domain feature follows the NestJS module pattern with three core files:
 
 ```
-src/modules/drivers/
+src/domains/fleet/drivers/
   drivers.module.ts      // Module definition
   drivers.controller.ts  // HTTP route handlers
   drivers.service.ts     // Business logic
@@ -88,7 +88,7 @@ Decorate every controller and endpoint with Swagger metadata:
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Drivers')
-@Controller('api/v1/drivers')
+@Controller('drivers')
 export class DriversController {
   @Get()
   @ApiOperation({ summary: 'List all drivers' })
@@ -161,14 +161,14 @@ You must use Shadcn/ui components for all interactive elements. Never use plain 
 
 | Instead of | Use |
 |---|---|
-| `<button>` | `<Button>` from `@/components/ui/button` |
-| `<input>` | `<Input>` from `@/components/ui/input` |
-| `<select>` | `<Select>` from `@/components/ui/select` |
-| `<textarea>` | `<Textarea>` from `@/components/ui/textarea` |
-| `<label>` | `<Label>` from `@/components/ui/label` |
-| `<table>` | `<Table>` from `@/components/ui/table` |
-| Custom modal | `<Dialog>` from `@/components/ui/dialog` |
-| Custom tooltip | `<Tooltip>` from `@/components/ui/tooltip` |
+| `<button>` | `<Button>` from `@/shared/components/ui/button` |
+| `<input>` | `<Input>` from `@/shared/components/ui/input` |
+| `<select>` | `<Select>` from `@/shared/components/ui/select` |
+| `<textarea>` | `<Textarea>` from `@/shared/components/ui/textarea` |
+| `<label>` | `<Label>` from `@/shared/components/ui/label` |
+| `<table>` | `<Table>` from `@/shared/components/ui/table` |
+| Custom modal | `<Dialog>` from `@/shared/components/ui/dialog` |
+| Custom tooltip | `<Tooltip>` from `@/shared/components/ui/tooltip` |
 
 If a component you need is not yet installed, add it:
 

@@ -32,7 +32,7 @@ stateDiagram-v2
 Create your organization account:
 
 ```bash
-curl -X POST https://sally-api.apps.appshore.in/api/v1/auth/register \
+curl -X POST https://sally-api.apps.appshore.in/api/v1/tenants/register \
   -H "Content-Type: application/json" \
   -d '{
     "organization": {
@@ -56,7 +56,7 @@ curl -X POST https://sally-api.apps.appshore.in/api/v1/auth/register \
 
 ```javascript
 const response = await fetch(
-  "https://sally-api.apps.appshore.in/api/v1/auth/register",
+  "https://sally-api.apps.appshore.in/api/v1/tenants/register",
   {
     method: "POST",
     headers: { "Content-Type": "application/json" },

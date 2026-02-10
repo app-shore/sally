@@ -1,11 +1,11 @@
 ---
 title: Core Features
-description: Detailed breakdown of SALLY's core capabilities — route planning, HOS compliance, fuel optimization, monitoring, and alerts.
+description: Detailed breakdown of SALLY's core capabilities — route planning, HOS compliance, fuel optimization, monitoring, alerts, notifications, command center, and more.
 ---
 
 # Core Features
 
-SALLY's functionality is organized around a conversational AI interface backed by seven core capabilities that work together to provide end-to-end fleet operations intelligence.
+SALLY's functionality is organized around a conversational AI interface backed by fifteen core capabilities that work together to provide end-to-end fleet operations intelligence.
 
 ---
 
@@ -226,3 +226,213 @@ Proactively notifies dispatchers when intervention is needed, reducing reactive 
 - **Compliance Panel** — Live HOS clocks, break status, next rest location
 - **Update Feed** — Real-time log of route changes
 - **Actions** — "I'm here", "Dock taking longer", "I want to rest here", "Accept new route"
+
+---
+
+## 9. Notifications System
+
+SALLY delivers alerts and updates through four delivery channels, ensuring dispatchers and drivers receive critical information wherever they are.
+
+**Delivery channels:**
+
+| Channel | Provider | Use Case |
+|---|---|---|
+| Email | Resend | Shift summaries, daily reports, non-urgent alerts |
+| SMS | Twilio | Critical alerts, HOS violations, missed appointments |
+| Browser Push | Web Push (VAPID) | Real-time alerts when the app is in the background |
+| In-App | Server-Sent Events (SSE) | Live updates within the SALLY interface |
+
+**Channel resolution:**
+- Channels are selected based on **alert priority** combined with **user preferences**
+- Critical alerts go to all enabled channels simultaneously
+- Medium and low priority alerts respect the user's preferred channel configuration
+- **Quiet hours** support — suppress non-critical notifications during off-hours (configurable per user)
+
+**Notification types:** 18+ types covering HOS alerts, route updates, driver status changes, system events, invitation notifications, and administrative messages.
+
+**Key features:**
+- Per-user channel preferences (enable/disable each channel independently)
+- Priority-based routing (critical alerts bypass quiet hours)
+- Delivery status tracking (sent, delivered, failed)
+- Retry logic for failed deliveries
+
+---
+
+## 10. Command Center
+
+The Command Center is the dispatcher operations dashboard — the central hub for managing fleet operations in real time.
+
+**Key sections:**
+
+| Section | Purpose |
+|---|---|
+| Real-time Overview | Live fleet status with active routes, driver positions, and alert counts |
+| Active Route Monitoring | Route progress tracking with ETA updates and deviation detection |
+| Shift Notes | Structured handoff notes between dispatcher shifts |
+
+**Real-time overview:**
+- At-a-glance fleet health: routes on track, at risk, delayed
+- Active alert count by priority (critical, high, medium, low)
+- Driver status summary (driving, on break, at dock, off duty)
+
+**Shift notes:**
+- Dispatchers create handoff notes at shift end
+- Notes capture: active issues, pending actions, driver communications, route concerns
+- Incoming dispatcher sees prioritized summary of what needs attention
+- Full history preserved for audit trail
+
+**Active route monitoring:**
+- Live route progress with segment-level tracking
+- ETA confidence indicators
+- One-click access to re-plan or update routes
+
+---
+
+## 11. Settings & Preferences
+
+SALLY supports a three-level configuration hierarchy, allowing fleet-wide defaults with per-user and per-driver overrides.
+
+**Configuration levels:**
+
+| Level | Scope | Examples |
+|---|---|---|
+| Tenant | Fleet-wide operations settings | Default HOS rules, fuel thresholds, alert policies, operational defaults |
+| User | Display and notification preferences | Theme, timezone, notification channels, quiet hours, dashboard layout |
+| Driver | Route and contact preferences | Preferred rest stops, communication preferences, default truck type |
+
+**Tenant-level settings:**
+- Fleet operations defaults (HOS rule set, fuel reserve threshold, max route stops)
+- Alert configuration (which alert types are active, priority overrides, escalation timers)
+- Integration settings (API endpoints, sync frequency)
+
+**User-level preferences:**
+- Display settings (theme, timezone, date format)
+- Notification preferences (channels, quiet hours, frequency)
+- Dashboard customization (default views, pinned routes)
+
+**Driver-level preferences:**
+- Route preferences (preferred fuel brands, rest stop preferences)
+- Contact information (phone, email for notifications)
+- Default vehicle assignment
+
+**Inheritance:** Driver settings inherit from tenant defaults, with user-level and driver-level overrides applied in order.
+
+---
+
+## 12. API Key Management
+
+Server-to-server integrations authenticate via API keys, managed through the SALLY dashboard.
+
+**Capabilities:**
+
+| Action | Description |
+|---|---|
+| Create | Generate new API keys with optional expiration and scope |
+| List | View all active keys with usage statistics and last-used timestamps |
+| Revoke | Immediately invalidate a key (cannot be undone) |
+
+**Key features:**
+- **Rate limiting** — Per-key rate limits to prevent abuse and ensure fair usage
+- **Environment separation** — Distinct keys for staging and production environments
+- **Scope control** — Keys can be scoped to specific API endpoints or operations
+- **Audit logging** — All key creation, usage, and revocation events are logged
+
+**Use cases:**
+- TMS integration (push loads, receive route plans)
+- ELD/telematics data sync (Samsara, KeepTruckin)
+- Custom reporting and analytics pipelines
+- Third-party dispatch tools
+
+---
+
+## 13. Feature Flags
+
+SALLY uses system-wide feature flags for progressive rollout of new capabilities.
+
+**Flag categories:**
+
+| Category | Description | Examples |
+|---|---|---|
+| General | Platform-wide features | New route algorithm, updated HOS rules |
+| Dispatcher | Dispatcher-facing features | Command center widgets, bulk route actions |
+| Driver | Driver-facing features | New route view, voice commands |
+| Admin | Administrative features | Advanced analytics, custom integrations |
+
+**How it works:**
+- Feature flags are managed at the system level by administrators
+- Flags control visibility and availability of features across the platform
+- Progressive rollout: enable for internal users first, then expand to all tenants
+- Instant rollback: disable a flag to immediately remove a feature if issues arise
+
+**Benefits:**
+- Ship code continuously without exposing unfinished features
+- A/B test new capabilities with a subset of users
+- Quick kill switch for problematic features
+- Decouples deployment from release
+
+---
+
+## 14. User Invitations
+
+Tenant administrators invite new users via email, with role pre-assignment to streamline onboarding.
+
+**Invitation flow:**
+
+1. **Admin sends invite** — Specifies email address and assigns role (dispatcher, driver, admin)
+2. **Email delivered** — Recipient receives invitation email with a unique acceptance link
+3. **Token-based acceptance** — Clicking the link validates the token and creates the user account
+4. **Role applied** — The pre-assigned role is automatically applied upon acceptance
+
+**Management features:**
+
+| Action | Description |
+|---|---|
+| Send | Invite one or more users with role pre-assignment |
+| Track | View pending, accepted, and expired invitations |
+| Resend | Re-send invitation email for pending invites |
+| Cancel | Revoke a pending invitation before acceptance |
+
+**Key details:**
+- Invitation tokens expire after a configurable period (default: 7 days)
+- Expired invitations can be re-sent with a new token
+- Duplicate invitations to the same email are prevented
+- Invitation history preserved for audit purposes
+
+---
+
+## 15. Onboarding
+
+New tenants are guided through a step-by-step setup flow to configure their fleet operations on SALLY.
+
+**Onboarding steps:**
+
+| Step | What's Configured |
+|---|---|
+| Organization setup | Company name, fleet size, operating regions |
+| HOS rules | FMCSA rule set selection, exceptions (short-haul, etc.) |
+| Fleet defaults | Default fuel thresholds, preferred fuel brands, rest policies |
+| User invitations | Invite dispatchers, drivers, and administrators |
+| Integration setup | Connect TMS, ELD, and fuel card systems (optional) |
+| Verification | Review configuration and activate the tenant |
+
+**Key features:**
+- **Progress tracking** — Visual indicator of completed vs. remaining steps
+- **Skip and return** — Non-critical steps can be skipped and completed later
+- **Guided recommendations** — SALLY suggests sensible defaults based on fleet size and region
+- **Completion milestone** — Tenant is fully activated once required steps are complete
+
+---
+
+## Technology Stack
+
+SALLY is built on a modern, full-stack TypeScript architecture.
+
+| Layer | Technology |
+|---|---|
+| **Backend** | NestJS 11, TypeScript, Prisma 7, PostgreSQL 16, Redis 7 |
+| **Frontend** | Next.js 15, TypeScript, Tailwind CSS + Shadcn/ui, Zustand, React Query |
+| **Auth** | Firebase Authentication + JWT |
+| **Notifications** | Resend (email), Twilio (SMS), Web Push / VAPID (push notifications) |
+| **Real-time** | Server-Sent Events (SSE) + Socket.IO (WebSocket) |
+| **Monorepo** | Turborepo + pnpm |
+| **Infrastructure** | Docker + Docker Compose, Vercel (docs), AWS (Phase 2) |
