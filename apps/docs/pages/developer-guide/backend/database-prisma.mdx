@@ -46,7 +46,7 @@ From the `apps/backend` directory:
 
 ```bash
 cd apps/backend
-npm run prisma:migrate
+pnpm run prisma:migrate
 ```
 
 Prisma will prompt you to name the migration. Use a descriptive name like `add-maintenance-notes-to-vehicles`. This creates a new SQL migration file in `prisma/migrations/`.
@@ -54,13 +54,13 @@ Prisma will prompt you to name the migration. Use a descriptive name like `add-m
 ### 3. Regenerate the Prisma Client
 
 ```bash
-npm run prisma:generate
+pnpm run prisma:generate
 ```
 
 This regenerates the TypeScript types so your code picks up the schema changes. From the project root, you can also run:
 
 ```bash
-npm run backend:prisma:generate
+pnpm run backend:prisma:generate
 ```
 
 ## Alternative: Push Without Migration
@@ -69,7 +69,7 @@ For rapid prototyping, you can push schema changes directly without creating a m
 
 ```bash
 cd apps/backend
-npm run db:push
+pnpm run db:push
 ```
 
 This updates the database schema to match `schema.prisma` but does not create a migration file. Use this only during development -- always use `prisma:migrate` before committing.
@@ -84,7 +84,7 @@ Seeds essential data required for the application to function (default tenant, r
 
 ```bash
 cd apps/backend
-npm run setup:base
+pnpm run setup:base
 ```
 
 ### Demo Profile
@@ -93,14 +93,14 @@ Seeds sample data for development and demos (sample drivers, vehicles, routes, a
 
 ```bash
 cd apps/backend
-npm run setup:demo
+pnpm run setup:demo
 ```
 
 ### Check Seed Status
 
 ```bash
 cd apps/backend
-npm run setup:status
+pnpm run setup:status
 ```
 
 ## Prisma Studio
@@ -108,7 +108,7 @@ npm run setup:status
 Prisma Studio provides a visual browser for your database. Open it with:
 
 ```bash
-npm run backend:prisma:studio
+pnpm run backend:prisma:studio
 ```
 
 This opens a web interface where you can browse tables, view records, edit data, and explore relationships. Useful for debugging and verifying seed data.
@@ -119,7 +119,7 @@ To drop all data and re-run migrations with base seeding:
 
 ```bash
 cd apps/backend
-npm run setup:reset
+pnpm run setup:reset
 ```
 
 This runs `prisma migrate reset --force` (drops and recreates all tables) and then seeds with the base profile.
@@ -247,13 +247,13 @@ The schema defines several enums used across models:
 
 | Task | Command | Run From |
 |------|---------|----------|
-| Create migration | `npm run prisma:migrate` | `apps/backend/` |
-| Deploy migrations (production) | `npm run prisma:migrate:deploy` | `apps/backend/` |
-| Check migration status | `npm run prisma:migrate:status` | `apps/backend/` |
-| Push schema (no migration) | `npm run db:push` | `apps/backend/` |
-| Generate Prisma client | `npm run prisma:generate` | `apps/backend/` |
-| Open Prisma Studio | `npm run prisma:studio` | `apps/backend/` |
-| Seed base data | `npm run setup:base` | `apps/backend/` |
-| Seed demo data | `npm run setup:demo` | `apps/backend/` |
-| Reset database | `npm run setup:reset` | `apps/backend/` |
-| Seed status | `npm run setup:status` | `apps/backend/` |
+| Create migration | `pnpm run prisma:migrate` | `apps/backend/` |
+| Deploy migrations (production) | `pnpm run prisma:migrate:deploy` | `apps/backend/` |
+| Check migration status | `pnpm run prisma:migrate:status` | `apps/backend/` |
+| Push schema (no migration) | `pnpm run db:push` | `apps/backend/` |
+| Generate Prisma client | `pnpm run prisma:generate` | `apps/backend/` |
+| Open Prisma Studio | `pnpm run prisma:studio` | `apps/backend/` |
+| Seed base data | `pnpm run setup:base` | `apps/backend/` |
+| Seed demo data | `pnpm run setup:demo` | `apps/backend/` |
+| Reset database | `pnpm run setup:reset` | `apps/backend/` |
+| Seed status | `pnpm run setup:status` | `apps/backend/` |

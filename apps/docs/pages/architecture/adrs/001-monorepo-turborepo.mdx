@@ -1,6 +1,6 @@
 ---
 title: "ADR-001: Monorepo with Turborepo"
-description: Single repository with Turborepo and npm workspaces for shared types and coordinated builds.
+description: Single repository with Turborepo and pnpm workspaces for shared types and coordinated builds.
 ---
 
 # ADR-001: Monorepo with Turborepo
@@ -15,7 +15,7 @@ description: Single repository with Turborepo and npm workspaces for shared type
 
 SALLY consists of multiple applications -- a NestJS backend, a Next.js frontend, and a Nextra documentation site -- that share TypeScript types, configuration, and build tooling. During early development, the team evaluated two approaches:
 
-1. **Multi-repo** -- Each application in its own repository with shared types published as an npm package.
+1. **Multi-repo** -- Each application in its own repository with shared types published as a package to a registry.
 2. **Monorepo** -- All applications in a single repository with shared code accessed directly through workspace references.
 
 The multi-repo approach would require publishing and versioning a shared types package, coordinating releases across repositories, and maintaining separate CI pipelines. For a small team iterating quickly, this overhead would slow development without providing meaningful isolation benefits.
@@ -24,7 +24,7 @@ The team also needed a build system that could run tasks in parallel, cache buil
 
 ## Decision
 
-Use a **Turborepo monorepo with npm workspaces**. The repository is structured as:
+Use a **Turborepo monorepo with pnpm workspaces**. The repository is structured as:
 
 ```
 apps/
@@ -35,12 +35,12 @@ packages/
   shared-types/ # TypeScript types shared between apps
 ```
 
-Turborepo manages the build pipeline. npm workspaces handle dependency resolution, allowing any app to import from `@sally/shared-types` without publishing to a registry.
+Turborepo manages the build pipeline. pnpm workspaces handle dependency resolution, allowing any app to import from `@sally/shared-types` without publishing to a registry.
 
 Key configuration choices:
 
 - **Turborepo** for task orchestration (build, lint, test, typecheck) with remote caching.
-- **npm workspaces** (not Yarn or pnpm) for package management, keeping the toolchain simple.
+- **pnpm workspaces** for package management, providing strict dependency isolation and efficient disk usage.
 - **Shared types package** for DTOs, enums, and interfaces used by both frontend and backend.
 
 ## Consequences
@@ -59,3 +59,5 @@ Key configuration choices:
 - Git history contains changes from all apps, making per-app history noisier. Developers need to use path filters when reviewing changes.
 - Repository size grows faster than a single-app repository. This has not been an issue at the current scale.
 - Developers unfamiliar with monorepo tooling need to learn Turborepo concepts (pipeline dependencies, caching, filtering).
+
+> **Note:** Migrated from npm to pnpm in February 2026 for better monorepo dependency management.

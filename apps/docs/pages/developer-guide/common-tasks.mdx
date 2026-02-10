@@ -80,13 +80,13 @@ model MaintenanceLog {
 
 ```bash
 cd apps/backend
-npm run prisma:migrate
+pnpm run prisma:migrate
 ```
 
 5. Regenerate the Prisma client:
 
 ```bash
-npm run prisma:generate
+pnpm run prisma:generate
 ```
 
 Full guide: [Database & Prisma](/developer-guide/backend/database-prisma)
@@ -97,15 +97,15 @@ Full guide: [Database & Prisma](/developer-guide/backend/database-prisma)
 
 ```bash
 cd apps/web
-npx shadcn@latest add [component-name]
+pnpm dlx shadcn@latest add [component-name]
 ```
 
 For example:
 
 ```bash
-npx shadcn@latest add calendar
-npx shadcn@latest add checkbox
-npx shadcn@latest add radio-group
+pnpm dlx shadcn@latest add calendar
+pnpm dlx shadcn@latest add checkbox
+pnpm dlx shadcn@latest add radio-group
 ```
 
 The component is installed to `src/shared/components/ui/`. Import it in your code:
@@ -147,21 +147,21 @@ Full guide: [Feature Modules](/developer-guide/frontend/feature-modules)
 
 ```bash
 cd apps/backend
-npm run prisma:migrate
+pnpm run prisma:migrate
 ```
 
 **Deploy existing migrations** (production):
 
 ```bash
 cd apps/backend
-npm run prisma:migrate:deploy
+ppnpm run prisma:migrate:deploy
 ```
 
 **Check migration status:**
 
 ```bash
 cd apps/backend
-npm run prisma:migrate:status
+ppnpm run prisma:migrate:status
 ```
 
 ---
@@ -172,28 +172,28 @@ npm run prisma:migrate:status
 
 ```bash
 cd apps/backend
-npm run setup:base
+pnpm run setup:base
 ```
 
 **Demo data** (sample records for development):
 
 ```bash
 cd apps/backend
-npm run setup:demo
+pnpm run setup:demo
 ```
 
 **Reset and reseed** (drops all data):
 
 ```bash
 cd apps/backend
-npm run setup:reset
+pnpm run setup:reset
 ```
 
 **Check seed status:**
 
 ```bash
 cd apps/backend
-npm run setup:status
+pnpm run setup:status
 ```
 
 ---
@@ -204,30 +204,30 @@ npm run setup:status
 
 ```bash
 cd apps/backend
-npm run test              # Run once
-npm run test:watch        # Watch mode
-npm run test:cov          # With coverage report
+pnpm run test              # Run once
+pnpm run test:watch        # Watch mode
+pnpm run test:cov          # With coverage report
 ```
 
 **Backend E2E tests:**
 
 ```bash
 cd apps/backend
-npm run test:e2e
+pnpm run test:e2e
 ```
 
 **Frontend tests:**
 
 ```bash
 cd apps/web
-npm run test              # Run once
-npm run test:watch        # Watch mode
+pnpm run test              # Run once
+pnpm run test:watch        # Watch mode
 ```
 
 **All tests via Turborepo:**
 
 ```bash
-npm run test              # From project root
+pnpm run test              # From project root
 ```
 
 ---
@@ -237,14 +237,14 @@ npm run test              # From project root
 Prisma Studio is a visual database browser. Run it from the project root:
 
 ```bash
-npm run backend:prisma:studio
+pnpm run backend:prisma:studio
 ```
 
 Or from the backend directory:
 
 ```bash
 cd apps/backend
-npm run prisma:studio
+pnpm run prisma:studio
 ```
 
 This opens a web interface (typically at http://localhost:5555) where you can browse tables, view and edit records, and explore relationships.
@@ -253,7 +253,7 @@ This opens a web interface (typically at http://localhost:5555) where you can br
 
 ## Check API Docs (Swagger)
 
-1. Make sure the backend is running (`npm run backend:dev` or `npm run dev`).
+1. Make sure the backend is running (`pnpm run backend:dev` or `pnpm run dev`).
 2. Open [http://localhost:8000/api](http://localhost:8000/api) in your browser.
 3. Click "Authorize" to enter a JWT token for authenticated endpoints.
 4. Browse endpoints grouped by tags (Drivers, Vehicles, Route Planning, etc.).
@@ -267,25 +267,25 @@ The OpenAPI spec is also available as JSON at [http://localhost:8000/api/openapi
 **Start PostgreSQL and Redis:**
 
 ```bash
-npm run docker:up
+pnpm run docker:up
 ```
 
 **Stop containers:**
 
 ```bash
-npm run docker:down
+pnpm run docker:down
 ```
 
 **View container logs:**
 
 ```bash
-npm run docker:logs
+pnpm run docker:logs
 ```
 
 **Restart containers:**
 
 ```bash
-npm run docker:restart
+pnpm run docker:restart
 ```
 
 ---
@@ -295,14 +295,14 @@ npm run docker:restart
 Run this after any schema change or fresh install:
 
 ```bash
-npm run backend:prisma:generate
+pnpm run backend:prisma:generate
 ```
 
 Or from the backend directory:
 
 ```bash
 cd apps/backend
-npm run prisma:generate
+pnpm run prisma:generate
 ```
 
 ---
@@ -311,21 +311,21 @@ npm run prisma:generate
 
 | Task | Command | Run From |
 |------|---------|----------|
-| Start all apps | `npm run dev` | Root |
-| Start backend only | `npm run backend:dev` | Root |
-| Start frontend only | `npm run frontend:dev` | Root |
-| Start docs only | `npm run docs:dev` | Root |
-| Start Docker (DB + Redis) | `npm run docker:up` | Root |
-| Stop Docker | `npm run docker:down` | Root |
-| Install dependencies | `npm install` | Root |
-| Run migrations | `npm run prisma:migrate` | `apps/backend/` |
-| Generate Prisma client | `npm run backend:prisma:generate` | Root |
-| Open Prisma Studio | `npm run backend:prisma:studio` | Root |
-| Seed base data | `npm run setup:base` | `apps/backend/` |
-| Seed demo data | `npm run setup:demo` | `apps/backend/` |
-| Reset database | `npm run setup:reset` | `apps/backend/` |
-| Run backend tests | `npm run test` | `apps/backend/` |
-| Run frontend tests | `npm run test` | `apps/web/` |
-| Build all | `npm run build` | Root |
-| Add Shadcn component | `npx shadcn@latest add [name]` | `apps/web/` |
+| Start all apps | `pnpm run dev` | Root |
+| Start backend only | `pnpm run backend:dev` | Root |
+| Start frontend only | `pnpm run frontend:dev` | Root |
+| Start docs only | `pnpm run docs:dev` | Root |
+| Start Docker (DB + Redis) | `pnpm run docker:up` | Root |
+| Stop Docker | `pnpm run docker:down` | Root |
+| Install dependencies | `pnpm install` | Root |
+| Run migrations | `pnpm run prisma:migrate` | `apps/backend/` |
+| Generate Prisma client | `pnpm run backend:prisma:generate` | Root |
+| Open Prisma Studio | `pnpm run backend:prisma:studio` | Root |
+| Seed base data | `pnpm run setup:base` | `apps/backend/` |
+| Seed demo data | `pnpm run setup:demo` | `apps/backend/` |
+| Reset database | `pnpm run setup:reset` | `apps/backend/` |
+| Run backend tests | `pnpm run test` | `apps/backend/` |
+| Run frontend tests | `pnpm run test` | `apps/web/` |
+| Build all | `pnpm run build` | Root |
+| Add Shadcn component | `pnpm dlx shadcn@latest add [name]` | `apps/web/` |
 | View Swagger docs | Open http://localhost:8000/api | Browser |

@@ -15,7 +15,7 @@ description: Copy-paste component library with mandatory dark theme and grayscal
 
 SALLY's frontend needs a consistent, accessible UI component library. Dispatchers often work in low-light environments (early morning, late night shifts), making dark theme support a practical requirement rather than a cosmetic preference. The team evaluated three approaches:
 
-1. **Material UI (MUI)** -- Comprehensive component library with theming support. Installed as an npm package. Customization requires overriding the theme object and dealing with CSS-in-JS specificity issues.
+1. **Material UI (MUI)** -- Comprehensive component library with theming support. Installed as a package dependency. Customization requires overriding the theme object and dealing with CSS-in-JS specificity issues.
 2. **Radix UI + custom styling** -- Headless, accessible primitives with no built-in styling. Full control but requires building every component's visual layer from scratch.
 3. **Shadcn/ui** -- Pre-built, accessible components based on Radix UI primitives, styled with Tailwind CSS. Components are copied into the project (not installed as a package dependency), giving full ownership and customization control.
 
@@ -29,7 +29,7 @@ Use **Shadcn/ui components with a mandatory dark theme-first approach**. The spe
 
 **Component library:**
 - Shadcn/ui components are copied into `src/components/ui/` and become part of the codebase. They are not a package dependency.
-- New components are added with `npx shadcn@latest add [component-name]`.
+- New components are added with `pnpm dlx shadcn@latest add [component-name]`.
 - All UI elements must use Shadcn components instead of plain HTML. For example, `<Button>` instead of `<button>`, `<Card>` instead of `<div className="border rounded-lg">`.
 
 **Color palette:**

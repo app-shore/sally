@@ -689,10 +689,10 @@ SALLY uses Prisma Migrate for schema evolution. The `apps/backend/prisma/migrati
 **Migration workflow:**
 
 1. Modify `schema.prisma`
-2. Run `npx prisma migrate dev --name descriptive-name` to generate the migration SQL
+2. Run `pnpm exec prisma migrate dev --name descriptive-name` to generate the migration SQL
 3. Review the generated SQL in the migrations directory
 4. Commit both the schema change and the migration file
-5. In production, `npx prisma migrate deploy` applies pending migrations
+5. In production, `pnpm exec prisma migrate deploy` applies pending migrations
 
 **Conventions:**
 

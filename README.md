@@ -16,7 +16,7 @@ git clone <repository-url>
 cd sally
 
 # Quick start with Docker
-npm run docker:up
+pnpm run docker:up
 
 # Access the application
 # Frontend: http://localhost:3000
@@ -169,6 +169,7 @@ sally/
 
 - Python 3.11+
 - Node.js 20+
+- pnpm: `corepack enable` or `npm install -g pnpm`
 - PostgreSQL 16+
 - Redis 7+
 - UV package manager: `curl -LsSf https://astral.sh/uv/install.sh | sh`
@@ -178,22 +179,21 @@ sally/
 
 **With Docker (Recommended):**
 ```bash
-npm run docker:up          # Start all services
-npm run docker:logs        # View logs
-npm run docker:down        # Stop services
+pnpm run docker:up          # Start all services
+pnpm run docker:logs        # View logs
+pnpm run docker:down        # Stop services
 ```
 
 **With Turborepo:**
 ```bash
-npm install                # Install root dependencies
-npm install --workspaces   # Install all workspace dependencies
-npm run dev                # Run both backend and frontend
+pnpm install               # Install all dependencies (including workspaces)
+pnpm run dev               # Run both backend and frontend
 ```
 
 **Individual Services:**
 ```bash
-npm run backend:dev        # Backend only (port 8000)
-npm run frontend:dev       # Frontend only (port 3000)
+pnpm run backend:dev        # Backend only (port 8000)
+pnpm run frontend:dev       # Frontend only (port 3000)
 ```
 
 ### Testing
@@ -208,8 +208,8 @@ uv run pytest --cov=app    # With coverage
 **Frontend:**
 ```bash
 cd apps/web
-npm run test               # Run tests
-npm run test:e2e           # E2E tests
+pnpm run test               # Run tests
+pnpm run test:e2e           # E2E tests
 ```
 
 ---
@@ -346,4 +346,4 @@ For issues and questions:
 
 ---
 
-**Last Updated:** January 23, 2026
+**Last Updated:** February 10, 2026

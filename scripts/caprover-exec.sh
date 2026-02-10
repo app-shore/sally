@@ -13,9 +13,9 @@ if [ -z "$COMMAND" ]; then
   echo "Usage: ./scripts/caprover-exec.sh <app-name> '<command>' [machine-name]"
   echo ""
   echo "Examples:"
-  echo "  ./scripts/caprover-exec.sh sally-api 'npx prisma migrate deploy'"
-  echo "  ./scripts/caprover-exec.sh sally-api 'npx prisma migrate status'"
-  echo "  ./scripts/caprover-exec.sh sally-api 'npm run bootstrap:super-admin'"
+  echo "  ./scripts/caprover-exec.sh sally-api 'pnpm exec prisma migrate deploy'"
+  echo "  ./scripts/caprover-exec.sh sally-api 'pnpm exec prisma migrate status'"
+  echo "  ./scripts/caprover-exec.sh sally-api 'pnpm run bootstrap:super-admin'"
   echo "  ./scripts/caprover-exec.sh sally-api 'psql \$DATABASE_URL -c \"SELECT * FROM users\"'"
   exit 1
 fi

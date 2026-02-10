@@ -23,7 +23,7 @@ if [ ! -f "package.json" ]; then
 fi
 
 echo -e "${YELLOW}Step 1: Installing root dependencies (Turborepo)${NC}"
-npm install --legacy-peer-deps
+pnpm install
 echo -e "${GREEN}✓ Root dependencies installed${NC}"
 echo ""
 
@@ -39,11 +39,8 @@ echo -e "${GREEN}✓ Backend dependencies installed${NC}"
 cd ../..
 echo ""
 
-echo -e "${YELLOW}Step 3: Installing frontend dependencies${NC}"
-cd apps/web
-npm install --legacy-peer-deps
-echo -e "${GREEN}✓ Frontend dependencies installed${NC}"
-cd ../..
+echo -e "${YELLOW}Step 3: Frontend dependencies${NC}"
+echo -e "${GREEN}✓ Frontend dependencies installed (via pnpm workspace)${NC}"
 echo ""
 
 echo -e "${YELLOW}Step 4: Setting up environment files${NC}"

@@ -13,11 +13,11 @@ All test commands are run from the `apps/backend/` directory, or from the projec
 
 | Task | From `apps/backend/` | From project root |
 |------|---------------------|-------------------|
-| Run all unit tests | `npm run test` | `npm run backend:test` |
-| Run tests in watch mode | `npm run test:watch` | -- |
-| Run with coverage | `npm run test:cov` | -- |
-| Run E2E tests | `npm run test:e2e` | -- |
-| Debug tests | `npm run test:debug` | -- |
+| Run all unit tests | `pnpm run test` | `pnpm run backend:test` |
+| Run tests in watch mode | `pnpm run test:watch` | -- |
+| Run with coverage | `pnpm run test:cov` | -- |
+| Run E2E tests | `pnpm run test:e2e` | -- |
+| Debug tests | `pnpm run test:debug` | -- |
 
 ## Test File Organization
 
@@ -255,7 +255,7 @@ Generate a coverage report:
 
 ```bash
 cd apps/backend
-npm run test:cov
+pnpm run test:cov
 ```
 
 This creates a `coverage/` directory with an HTML report. Open `coverage/lcov-report/index.html` in a browser to see line-by-line coverage.

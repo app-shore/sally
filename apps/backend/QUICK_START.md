@@ -4,22 +4,22 @@
 
 ### 1. Start Docker
 ```bash
-npm run docker:up
+pnpm run docker:up
 ```
 
 ### 2. Generate Prisma Client
 ```bash
-npm run backend:prisma:generate
+pnpm run backend:prisma:generate
 ```
 
 ### 3. Push Schema (Create Tables)
 ```bash
-DATABASE_URL="postgresql://sally_user:sally_password@localhost:5432/sally" npm run backend:db:push
+DATABASE_URL="postgresql://sally_user:sally_password@localhost:5432/sally" pnpm run backend:db:push
 ```
 
 ### 4. Seed Database (Add Sample Data)
 ```bash
-DATABASE_URL="postgresql://sally_user:sally_password@localhost:5432/sally" npm run backend:seed
+DATABASE_URL="postgresql://sally_user:sally_password@localhost:5432/sally" pnpm run backend:seed
 ```
 
 ### 5. Restart Backend (if in Docker)
@@ -52,7 +52,7 @@ postgresql://sally_user:sally_password@localhost:5432/sally
 ## 📊 Prisma Studio (Database GUI)
 
 ```bash
-npm run backend:prisma:studio
+pnpm run backend:prisma:studio
 ```
 
 Opens at: `http://localhost:5555`
@@ -61,7 +61,7 @@ Opens at: `http://localhost:5555`
 
 ```bash
 cd apps/backend
-DATABASE_URL="postgresql://sally_user:sally_password@localhost:5432/sally" npm run db:reset
+DATABASE_URL="postgresql://sally_user:sally_password@localhost:5432/sally" pnpm run db:reset
 ```
 
 ⚠️ **Warning**: Deletes all data!

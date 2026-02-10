@@ -64,7 +64,7 @@ services:
   #     - /workspace/apps/web/.next
   #   depends_on:
   #     - backend
-  #   command: npm run dev
+  #   command: pnpm run dev
 
 volumes:
   postgres_data:

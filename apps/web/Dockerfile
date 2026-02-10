@@ -1,17 +1,18 @@
 # Development stage
 FROM node:20-alpine AS development
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /workspace
 
 # Copy root workspace configuration
-COPY package*.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY turbo.json* ./
 
 # Copy workspace apps/web
 COPY apps/web ./apps/web
 
 # Install all workspace dependencies from root
-RUN npm install
+RUN pnpm install --frozen-lockfile
 
 # Set working directory to web app
 WORKDIR /workspace/apps/web
@@ -20,26 +21,30 @@ WORKDIR /workspace/apps/web
 EXPOSE 3000
 
 # Run development server
-CMD ["npm", "run", "dev"]
+CMD ["pnpm", "run", "dev"]
 
 # Build stage
 FROM node:20-alpine AS builder
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /workspace
 
 # Copy root workspace configuration
-COPY package*.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY turbo.json* ./
 
-# Copy workspace apps/web
-COPY apps/web ./apps/web
+# Copy workspace apps/web package.json
+COPY apps/web/package.json ./apps/web/
 
 # Install all workspace dependencies from root
-RUN npm install
+RUN pnpm install --frozen-lockfile
+
+# Copy workspace apps/web source
+COPY apps/web ./apps/web
 
 # Set working directory to web app and build
 WORKDIR /workspace/apps/web
-RUN npm run build
+RUN pnpm run build
 
 # Production stage
 FROM node:20-alpine AS production

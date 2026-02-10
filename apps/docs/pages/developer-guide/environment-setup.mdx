@@ -13,7 +13,7 @@ Verify each tool is installed before continuing:
 
 ```bash
 node -v    # Must be 20.0.0 or higher
-npm -v     # Must be 10.0.0 or higher
+pnpm -v    # Must be 9.0.0 or higher
 docker --version   # Docker Desktop must be installed and running
 git --version
 ```
@@ -29,10 +29,10 @@ cd sally
 
 ## Step 2: Install Dependencies
 
-Run `npm install` from the project root. npm workspaces will handle all sub-packages automatically -- you do not need to install dependencies in individual apps.
+Run `pnpm install` from the project root. pnpm workspaces will handle all sub-packages automatically -- you do not need to install dependencies in individual apps.
 
 ```bash
-npm install
+pnpm install
 ```
 
 This installs dependencies for:
@@ -46,7 +46,7 @@ This installs dependencies for:
 SALLY uses PostgreSQL 16 and Redis 7 for local development, both running in Docker containers.
 
 ```bash
-npm run docker:up
+pnpm run docker:up
 ```
 
 This starts two containers:
@@ -102,8 +102,8 @@ Run migrations to create the database schema, then seed it with base data:
 
 ```bash
 cd apps/backend
-npm run prisma:migrate
-npm run setup:base
+pnpm run prisma:migrate
+pnpm run setup:base
 ```
 
 - `prisma:migrate` -- Creates all database tables from the Prisma schema
@@ -112,7 +112,7 @@ npm run setup:base
 If you also want demo data (sample drivers, vehicles, routes):
 
 ```bash
-npm run setup:demo
+pnpm run setup:demo
 ```
 
 Return to the project root:
@@ -126,7 +126,7 @@ cd ../..
 If the Prisma client has not been generated yet (you will see import errors otherwise):
 
 ```bash
-npm run backend:prisma:generate
+pnpm run backend:prisma:generate
 ```
 
 ## Step 7: Start Development
@@ -134,7 +134,7 @@ npm run backend:prisma:generate
 From the project root, start all apps simultaneously:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 This uses Turborepo to start:
@@ -145,9 +145,9 @@ This uses Turborepo to start:
 If you only need one app:
 
 ```bash
-npm run backend:dev     # Backend only
-npm run frontend:dev    # Frontend only
-npm run docs:dev        # Docs only
+pnpm run backend:dev     # Backend only
+pnpm run frontend:dev    # Frontend only
+pnpm run docs:dev        # Docs only
 ```
 
 ## Step 8: Verify
@@ -224,8 +224,8 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
 
 ```bash
 cd apps/backend
-npm run firebase:create-users
-npm run firebase:link-uids
+pnpm run firebase:create-users
+pnpm run firebase:link-uids
 ```
 
 If Firebase credentials are missing or invalid, the backend logs a warning (`Firebase credentials not configured. Using development mode.`) and continues running -- only the `POST /auth/firebase/exchange` endpoint will return an error.
@@ -254,20 +254,20 @@ If port 5432, 6379, 8000, or 3000 is already in use:
 lsof -i :8000
 
 # Stop existing Docker containers
-npm run docker:down
-npm run docker:up
+pnpm run docker:down
+pnpm run docker:up
 ```
 
 ### Docker is not running
 
-If `npm run docker:up` fails, make sure Docker Desktop is open and running.
+If `pnpm run docker:up` fails, make sure Docker Desktop is open and running.
 
 ### Prisma client not generated
 
 If you see import errors related to `@prisma/client`:
 
 ```bash
-npm run backend:prisma:generate
+pnpm run backend:prisma:generate
 ```
 
 ### node_modules issues
@@ -275,8 +275,8 @@ npm run backend:prisma:generate
 If dependencies seem broken or out of date:
 
 ```bash
-npm run clean      # Removes node_modules from all packages
-npm install        # Reinstall everything
+pnpm run clean      # Removes node_modules from all packages
+pnpm install        # Reinstall everything
 ```
 
 ### Database connection refused
@@ -294,24 +294,24 @@ If migrations fail on an existing database, you can reset everything:
 
 ```bash
 cd apps/backend
-npm run setup:reset   # WARNING: Drops all data
+pnpm run setup:reset   # WARNING: Drops all data
 ```
 
 ## Quick Reference
 
 | Task | Command |
 |------|---------|
-| Start all apps | `npm run dev` |
-| Start backend only | `npm run backend:dev` |
-| Start frontend only | `npm run frontend:dev` |
-| Start infrastructure | `npm run docker:up` |
-| Stop infrastructure | `npm run docker:down` |
-| View infrastructure logs | `npm run docker:logs` |
-| Run migrations | `cd apps/backend && npm run prisma:migrate` |
-| Seed base data | `cd apps/backend && npm run setup:base` |
-| Seed demo data | `cd apps/backend && npm run setup:demo` |
-| Reset database | `cd apps/backend && npm run setup:reset` |
-| Generate Prisma client | `npm run backend:prisma:generate` |
-| Open Prisma Studio | `npm run backend:prisma:studio` |
-| Run backend tests | `npm run backend:test` |
-| Build all apps | `npm run build` |
+| Start all apps | `pnpm run dev` |
+| Start backend only | `pnpm run backend:dev` |
+| Start frontend only | `pnpm run frontend:dev` |
+| Start infrastructure | `pnpm run docker:up` |
+| Stop infrastructure | `pnpm run docker:down` |
+| View infrastructure logs | `pnpm run docker:logs` |
+| Run migrations | `cd apps/backend && pnpm run prisma:migrate` |
+| Seed base data | `cd apps/backend && pnpm run setup:base` |
+| Seed demo data | `cd apps/backend && pnpm run setup:demo` |
+| Reset database | `cd apps/backend && pnpm run setup:reset` |
+| Generate Prisma client | `pnpm run backend:prisma:generate` |
+| Open Prisma Studio | `pnpm run backend:prisma:studio` |
+| Run backend tests | `pnpm run backend:test` |
+| Build all apps | `pnpm run build` |

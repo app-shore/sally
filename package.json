@@ -3,10 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "SALLY - Rest Optimization System for truck drivers",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -19,10 +16,10 @@
     "backend:dev": "turbo run dev --filter=@sally/backend",
     "backend:build": "turbo run build --filter=@sally/backend",
     "backend:test": "turbo run test --filter=@sally/backend",
-    "backend:db:push": "cd apps/backend && npm run db:push",
-    "backend:seed": "cd apps/backend && npm run db:seed",
-    "backend:prisma:generate": "cd apps/backend && npm run prisma:generate",
-    "backend:prisma:studio": "cd apps/backend && npm run prisma:studio",
+    "backend:db:push": "cd apps/backend && pnpm run db:push",
+    "backend:seed": "cd apps/backend && pnpm run db:seed",
+    "backend:prisma:generate": "cd apps/backend && pnpm run prisma:generate",
+    "backend:prisma:studio": "cd apps/backend && pnpm run prisma:studio",
     "frontend:dev": "turbo run dev --filter=@sally/web",
     "docs:dev": "turbo run dev --filter=@sally/docs",
     "docker:up": "docker-compose up -d",
@@ -39,7 +36,6 @@
     "turbo": "^2.3.3"
   },
   "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=10.0.0"
+    "node": ">=20.0.0"
   }
 }

@@ -15,7 +15,7 @@ sleep 3
 # Start frontend
 echo "Starting Next.js Frontend on port 3000..."
 cd /app/web
-npm start -- -p 3000 -H 0.0.0.0 &
+pnpm start -- -p 3000 -H 0.0.0.0 &
 FRONTEND_PID=$!
 
 echo "SALLY Started!"

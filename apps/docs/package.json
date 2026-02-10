@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "npm run sync-openapi && next build",
+    "build": "pnpm run sync-openapi && next build",
     "start": "next start -p 3001",
     "export": "next build",
     "sync-openapi": "node scripts/sync-openapi.js",

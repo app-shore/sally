@@ -15,11 +15,11 @@ echo ""
 caprover api \
   -p "/user/apps/appData/$APP_NAME" \
   -m POST \
-  -d '{"detachedCommand":"npx prisma migrate deploy"}'
+  -d '{"detachedCommand":"pnpm exec prisma migrate deploy"}'
 
 echo ""
 echo "✅ Migration command sent to CapRover!"
 echo ""
 echo "To check migration status, run:"
-echo "  ./scripts/caprover-exec.sh $APP_NAME 'npx prisma migrate status'"
+echo "  ./scripts/caprover-exec.sh $APP_NAME 'pnpm exec prisma migrate status'"
 echo ""
