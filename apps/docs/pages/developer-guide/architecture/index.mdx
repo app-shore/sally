@@ -42,7 +42,7 @@ SALLY runs as four containers orchestrated by Docker Compose, plus Firebase Auth
 
 **NestJS Backend (port 8000)** owns all business logic. It exposes a REST API organized into domain modules (Fleet, Operations, Routing, Integrations, Platform), serves real-time events over SSE and WebSocket, and runs background jobs for integration syncing. Every request passes through JWT authentication and tenant isolation guards before reaching a controller.
 
-**PostgreSQL 16 (port 5432)** is the primary data store, managing 25+ tables across seven functional groups. Prisma ORM handles schema migrations (19 to date) and provides type-safe query building. Every major table includes a `tenantId` foreign key for row-level multi-tenancy isolation.
+**PostgreSQL 16 (port 5432)** is the primary data store, managing 25+ tables across seven functional groups. Prisma ORM handles schema migrations (18 to date) and provides type-safe query building. Every major table includes a `tenantId` foreign key for row-level multi-tenancy isolation.
 
 **Redis 7 (port 6379)** serves two purposes: caching frequently accessed data (HOS states, alert counts, integration health) and acting as a pub/sub broker for pushing real-time events to SSE streams.
 
@@ -148,7 +148,7 @@ Every update is recorded as a `RoutePlanUpdate` with the trigger type, impact su
 
 ## Further Reading
 
-- [Backend Architecture](/architecture/backend) -- Domain-driven module design, auth flow, request lifecycle, multi-tenancy
-- [Frontend Architecture](/architecture/frontend) -- App Router structure, feature modules, state management, theming
-- [Database Schema](/architecture/database) -- Entity relationships, table groups, multi-tenancy pattern, HOS fields
-- [Data Flow](/architecture/data-flow) -- Request lifecycles, alert pipelines, integration sync, real-time events
+- [Backend Architecture](/developer-guide/architecture/backend) -- Domain-driven module design, auth flow, request lifecycle, multi-tenancy
+- [Frontend Architecture](/developer-guide/architecture/frontend) -- App Router structure, feature modules, state management, theming
+- [Database Schema](/developer-guide/architecture/database) -- Entity relationships, table groups, multi-tenancy pattern, HOS fields
+- [Data Flow](/developer-guide/architecture/data-flow) -- Request lifecycles, alert pipelines, integration sync, real-time events

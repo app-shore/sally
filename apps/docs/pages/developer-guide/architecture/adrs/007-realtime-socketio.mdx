@@ -1,0 +1,58 @@
+---
+title: "ADR-007: Real-time Communication with Socket.IO"
+description: Server-Sent Events for server push and Socket.IO WebSocket for bidirectional dispatcher-driver messaging.
+---
+
+# ADR-007: Real-time Communication with Socket.IO
+
+**Status:** Accepted
+**Date:** February 2026
+**Decision makers:** SALLY Engineering Team
+
+---
+
+## Context
+
+SALLY requires two distinct real-time communication patterns:
+
+1. **Server-to-client push** -- The backend needs to push alerts, route status updates, integration sync progress, and ETA changes to the dispatcher dashboard without the client polling.
+2. **Bidirectional messaging** -- Dispatchers and drivers need to exchange messages in real-time, with both sides sending and receiving.
+
+The team evaluated three approaches:
+
+- **Polling** -- Simple to implement but introduces latency (minimum of the poll interval) and unnecessary server load from empty responses.
+- **WebSocket only** -- A single protocol for both patterns. Simpler architecture but requires maintaining WebSocket connections for all users, even those who only need server push.
+- **SSE + WebSocket** -- SSE for server push (lightweight, auto-reconnect, works through proxies) and WebSocket for bidirectional messaging (only opened when needed).
+
+## Decision
+
+Use **Server-Sent Events (SSE) for server push** and **Socket.IO (WebSocket) for bidirectional messaging**.
+
+**SSE implementation:**
+- Clients connect to `GET /sse/events` with JWT cookie authentication
+- The SSE service maintains a map of connected clients per tenant
+- Backend services publish events to Redis pub/sub channels (`tenant:{tenantId}:alerts`, etc.)
+- The SSE service subscribes to these channels and fans out events to connected clients
+- Event types: `new_alert`, `alert_resolved`, `route_status`, `sync_progress`, `eta_update`
+
+**Socket.IO implementation:**
+- Used exclusively for the messaging gateway between dispatchers and drivers
+- Socket.IO chosen over raw WebSocket for its automatic reconnection, room-based broadcasting, and fallback to long-polling
+- The messaging gateway (`infrastructure/websocket/`) authenticates connections via JWT
+- Messages are emitted as `send_message` events and received as `new_message` events
+
+## Consequences
+
+**What became easier:**
+
+- SSE connections are lightweight and auto-reconnect on network interruptions. The dispatcher dashboard maintains a persistent event stream with minimal overhead.
+- Socket.IO's room abstraction simplifies tenant-scoped messaging -- each tenant is a room, and broadcasts are automatically scoped.
+- The SSE + WebSocket split means most users only need an SSE connection (low overhead). WebSocket connections are opened only when entering the messaging view.
+- Redis pub/sub decouples event producers from consumers. Any backend service can publish events without knowing which clients are connected.
+
+**What became harder:**
+
+- Two real-time protocols mean two sets of connection management, error handling, and monitoring.
+- Frontend code must handle both SSE (`EventSource` API) and WebSocket (`socket.io-client`) event streams.
+- Testing real-time flows requires more infrastructure setup (Redis for pub/sub, SSE/WebSocket connections in tests).
+- Socket.IO adds a dependency (~50KB client-side) that raw WebSocket would not require.

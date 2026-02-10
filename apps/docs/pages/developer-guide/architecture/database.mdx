@@ -5,7 +5,7 @@ description: Entity relationships, table groups, multi-tenancy patterns, and HOS
 
 # Database Schema
 
-SALLY uses PostgreSQL 16 as its primary data store, managed through Prisma ORM. The schema contains 25+ tables organized into seven functional groups, with row-level multi-tenancy isolation across all major entities. Prisma Migrate manages schema evolution with 19 migrations to date.
+SALLY uses PostgreSQL 16 as its primary data store, managed through Prisma ORM. The schema contains 25+ tables organized into seven functional groups, with row-level multi-tenancy isolation across all major entities. Prisma Migrate manages schema evolution with 18 migrations to date.
 
 ---
 
@@ -684,7 +684,7 @@ The schema uses targeted indexes for the most common query patterns:
 
 ## Migration Strategy
 
-SALLY uses Prisma Migrate for schema evolution. The `apps/backend/prisma/migrations/` directory contains 19 sequential migrations, each representing a schema change deployed to all environments.
+SALLY uses Prisma Migrate for schema evolution. The `apps/backend/prisma/migrations/` directory contains 18 sequential migrations, each representing a schema change deployed to all environments.
 
 **Migration workflow:**
 
@@ -704,6 +704,6 @@ SALLY uses Prisma Migrate for schema evolution. The `apps/backend/prisma/migrati
 
 ## Further Reading
 
-- [System Overview](/architecture) -- How the database fits into the overall platform
-- [Backend Architecture](/architecture/backend) -- The Prisma service layer that queries these tables
-- [Data Flow](/architecture/data-flow) -- How data moves through the system and into these tables
+- [System Overview](/developer-guide/architecture) -- How the database fits into the overall platform
+- [Backend Architecture](/developer-guide/architecture/backend) -- The Prisma service layer that queries these tables
+- [Data Flow](/developer-guide/architecture/data-flow) -- How data moves through the system and into these tables

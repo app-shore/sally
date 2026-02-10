@@ -24,10 +24,6 @@ export default {
     "title": "API Playground",
     "type": "page"
   },
-  "architecture": {
-    "title": "Architecture",
-    "type": "page"
-  },
   "developer-guide": {
     "title": "Developer Guide",
     "type": "page"
