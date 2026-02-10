@@ -23,9 +23,9 @@ export function ScalarApiReference() {
           spec: {
             url: '/openapi.json'
           },
-          theme: 'saturn',
-          darkMode: true,
-          forceDarkModeState: 'dark',
+          theme: 'default',
+          darkMode: false,
+          forceDarkModeState: 'light',
           hideDarkModeToggle: true,
           layout: 'modern',
           defaultHttpClient: {
@@ -44,7 +44,6 @@ export function ScalarApiReference() {
           customCss: `
             .scalar-app { min-height: calc(100vh - 64px); }
             .scalar-api-reference { max-width: 100% !important; }
-            .dark-mode { color-scheme: dark; }
           `
         }}
       />
