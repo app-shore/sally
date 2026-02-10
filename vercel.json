@@ -1,4 +1,3 @@
 {
-  "installCommand": "rm -f package-lock.json && npm install",
-  "buildCommand": "npm run build --workspace=@sally/docs"
+  "buildCommand": "cd apps/docs && npm run sync-openapi && npm i next@15.1.12 && next build"
 }
