@@ -2,23 +2,8 @@
 
 import { ApiReferenceReact } from '@scalar/api-reference-react'
 import '@scalar/api-reference-react/style.css'
-import { useEffect, useState } from 'react'
 
 export function ScalarApiReference() {
-  const [isDark, setIsDark] = useState(true)
-
-  useEffect(() => {
-    const htmlElement = document.documentElement
-    setIsDark(htmlElement.classList.contains('dark'))
-
-    const observer = new MutationObserver(() => {
-      setIsDark(htmlElement.classList.contains('dark'))
-    })
-
-    observer.observe(htmlElement, { attributes: true, attributeFilter: ['class'] })
-    return () => observer.disconnect()
-  }, [])
-
   return (
     <div
       className="not-prose"
@@ -38,9 +23,9 @@ export function ScalarApiReference() {
           spec: {
             url: '/openapi.json'
           },
-          theme: isDark ? 'saturn' : 'default',
-          darkMode: isDark,
-          forceDarkModeState: isDark ? 'dark' : 'light',
+          theme: 'saturn',
+          darkMode: true,
+          forceDarkModeState: 'dark',
           hideDarkModeToggle: true,
           layout: 'modern',
           defaultHttpClient: {
@@ -59,6 +44,7 @@ export function ScalarApiReference() {
           customCss: `
             .scalar-app { min-height: calc(100vh - 64px); }
             .scalar-api-reference { max-width: 100% !important; }
+            .dark-mode { color-scheme: dark; }
           `
         }}
       />

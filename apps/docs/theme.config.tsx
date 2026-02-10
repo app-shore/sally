@@ -14,10 +14,11 @@ const config = {
   primaryHue: 0,
   primarySaturation: 0,
 
-  // Dark mode configuration with next-themes
-  darkMode: true,
+  // Force dark mode only -- no light/dark toggle
+  darkMode: false,
   nextThemes: {
     defaultTheme: 'dark',
+    forcedTheme: 'dark',
     storageKey: 'sally-theme'
   },
 
