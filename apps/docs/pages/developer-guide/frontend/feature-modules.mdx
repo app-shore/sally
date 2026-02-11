@@ -1,0 +1,351 @@
+---
+title: Feature Modules
+description: How frontend features are organized into domain-driven modules with components, hooks, types, and API layers.
+---
+
+# Feature Modules
+
+SALLY's frontend organizes code into feature modules under `apps/web/src/features/`. Each feature is a self-contained unit with its own components, hooks, API calls, types, and tests. This page explains the structure, the six domains, and how features connect to pages.
+
+## Feature Module Structure
+
+Every feature module follows this pattern:
+
+```
+features/<domain>/<feature>/
+├── components/          # React components specific to this feature
+│   ├── DriverList.tsx
+│   └── DriverActivationDialog.tsx
+├── hooks/               # React Query hooks and custom hooks
+│   └── use-drivers.ts
+├── api.ts               # API client functions (fetch calls)
+├── types.ts             # TypeScript types for this feature
+├── store.ts             # Zustand store (if needed)
+├── index.ts             # Barrel export
+└── __tests__/           # Feature-specific tests
+```
+
+Not every feature has all these files. Smaller features may only have `api.ts`, `hooks/`, and `components/`.
+
+## The Six Domains
+
+Features are grouped into domains that mirror the backend:
+
+### auth
+
+Authentication, login, registration, and session management.
+
+```
+features/auth/
+├── components/
+│   ├── LoginScreen.tsx
+│   ├── login-form.tsx
+│   ├── registration-form.tsx
+│   └── accept-invitation-form.tsx
+├── hooks/
+│   └── use-auth.ts
+├── api.ts
+├── store.ts              # Zustand auth store (persisted)
+├── types.ts
+└── index.ts
+```
+
+### fleet
+
+Driver, vehicle, and load management.
+
+```
+features/fleet/
+├── drivers/
+│   ├── components/
+│   │   ├── driver-list.tsx
+│   │   └── driver-activation-dialog.tsx
+│   ├── hooks/
+│   │   └── use-drivers.ts
+│   ├── api.ts
+│   ├── types.ts
+│   └── index.ts
+├── vehicles/
+│   ├── components/
+│   ├── hooks/
+│   │   └── use-vehicles.ts
+│   ├── api.ts
+│   ├── types.ts
+│   └── index.ts
+└── loads/
+    ├── hooks/
+    │   └── use-loads.ts
+    ├── api.ts
+    ├── types.ts
+    └── index.ts
+```
+
+### operations
+
+Alerts, command center, monitoring, and notifications.
+
+```
+features/operations/
+├── alerts/
+│   ├── components/
+│   ├── hooks/
+│   │   ├── use-alerts.ts
+│   │   └── use-alert-analytics.ts
+│   ├── api.ts
+│   ├── api-analytics.ts
+│   ├── types.ts
+│   └── index.ts
+├── command-center/
+│   ├── hooks/
+│   │   ├── use-command-center.ts
+│   │   └── use-shift-notes.ts
+│   ├── api.ts
+│   ├── types.ts
+│   └── index.ts
+├── monitoring/
+│   ├── components/
+│   └── hooks/
+└── notifications/
+    ├── hooks/
+    │   └── use-notifications.ts
+    ├── api.ts
+    ├── types.ts
+    └── index.ts
+```
+
+### routing
+
+Route planning, HOS compliance, and optimization.
+
+```
+features/routing/
+├── hos-compliance/
+│   ├── hooks/
+│   │   └── use-hos-compliance.ts
+│   ├── api.ts
+│   ├── types.ts
+│   └── index.ts
+├── optimization/
+│   ├── hooks/
+│   │   ├── use-optimization.ts
+│   │   └── useEngineRun.ts
+│   ├── api.ts
+│   ├── store.ts
+│   ├── types.ts
+│   └── index.ts
+└── route-planning/
+```
+
+### platform
+
+Admin panel, user management, settings, feature flags, onboarding, AI chat.
+
+```
+features/platform/
+├── admin/                # Tenant management (super admin)
+├── users/                # User management (invite, list)
+├── settings/             # App settings
+├── onboarding/           # Onboarding wizard
+├── feature-flags/        # Feature flag management
+├── chat/                 # SALLY chat panel
+├── sally-ai/             # SALLY AI assistant (orb, chat, voice, cards)
+└── preferences/          # User preferences
+```
+
+### integrations
+
+External system integration configuration UI.
+
+```
+features/integrations/
+├── components/
+│   ├── ConfigureIntegrationForm.tsx
+│   ├── ConnectionsTab.tsx
+│   ├── IntegrationCard.tsx
+│   ├── IntegrationOnboarding.tsx
+│   └── IntegrationSyncHistory.tsx
+├── hooks/
+├── api.ts
+└── index.ts
+```
+
+## How Features Connect to Pages
+
+Pages are thin wrappers that import and render feature components:
+
+```typescript filename="src/app/dispatcher/fleet/page.tsx"
+import { DriverList } from '@/features/fleet/drivers/components/driver-list';
+
+export default function FleetPage() {
+  return <DriverList />;
+}
+```
+
+The page file handles routing. The feature component handles everything else -- data fetching, state, UI, and interactions.
+
+## API Layer
+
+Each feature has an `api.ts` file that defines functions for calling the backend:
+
+```typescript filename="features/fleet/drivers/api.ts"
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
+export const driversApi = {
+  list: async (): Promise<Driver[]> => {
+    const res = await fetch(`${API_BASE}/drivers`, { headers: getAuthHeaders() });
+    return res.json();
+  },
+
+  getById: async (driverId: string): Promise<Driver> => {
+    const res = await fetch(`${API_BASE}/drivers/${driverId}`, { headers: getAuthHeaders() });
+    return res.json();
+  },
+
+  create: async (data: CreateDriverRequest): Promise<Driver> => {
+    const res = await fetch(`${API_BASE}/drivers`, {
+      method: 'POST',
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+};
+```
+
+Hooks consume the API layer. Components consume hooks. This creates a clean dependency chain:
+
+```
+Page → Feature Component → Hook → API function → Backend
+```
+
+## Hook Patterns
+
+Hooks wrap the API layer with React Query for caching, loading states, and mutations:
+
+```typescript filename="features/fleet/drivers/hooks/use-drivers.ts"
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { driversApi } from '../api';
+
+const DRIVERS_QUERY_KEY = ['drivers'] as const;
+
+// Read hook -- fetches and caches data
+export function useDrivers() {
+  return useQuery({
+    queryKey: DRIVERS_QUERY_KEY,
+    queryFn: () => driversApi.list(),
+  });
+}
+
+// Single item hook -- fetches one record by ID
+export function useDriverById(driverId: string) {
+  return useQuery({
+    queryKey: [...DRIVERS_QUERY_KEY, driverId],
+    queryFn: () => driversApi.getById(driverId),
+    enabled: !!driverId,
+  });
+}
+
+// Mutation hook -- creates and invalidates cache
+export function useCreateDriver() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateDriverRequest) => driversApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DRIVERS_QUERY_KEY });
+    },
+  });
+}
+```
+
+Components use hooks for both data and actions:
+
+```typescript
+function DriverList() {
+  const { data: drivers, isLoading } = useDrivers();
+  const createDriver = useCreateDriver();
+
+  if (isLoading) return <Skeleton />;
+
+  return (
+    <div>
+      {drivers?.map((driver) => (
+        <DriverCard key={driver.id} driver={driver} />
+      ))}
+    </div>
+  );
+}
+```
+
+## Shared vs Feature Components
+
+Use this decision tree:
+
+| Question | Put It In |
+|----------|-----------|
+| Is it used by only one feature? | `features/<domain>/<feature>/components/` |
+| Is it used by multiple features? | `shared/components/common/` |
+| Is it a generic UI primitive (button, card, dialog)? | `shared/components/ui/` (Shadcn) |
+| Is it a layout component (sidebar, header)? | `shared/components/layout/` |
+
+The `shared/` directory contains:
+
+```
+shared/
+├── components/
+│   ├── ui/          # 28 Shadcn/ui components
+│   ├── layout/      # Sidebar, header, navigation
+│   └── common/      # Reusable components used across features
+├── hooks/           # Shared hooks (useToast, useSSE, usePushNotifications)
+├── lib/             # API client, Firebase, utilities
+├── config/          # App configuration
+├── types/           # Shared TypeScript types
+└── utils/           # Utility functions
+```
+
+## Adding a New Feature Module
+
+1. Create the directory under the appropriate domain:
+
+```bash
+mkdir -p src/features/operations/shift-reports/{components,hooks,__tests__}
+```
+
+2. Create the API layer:
+
+```typescript filename="features/operations/shift-reports/api.ts"
+export const shiftReportsApi = {
+  list: async () => { /* ... */ },
+  getById: async (id: string) => { /* ... */ },
+};
+```
+
+3. Create types:
+
+```typescript filename="features/operations/shift-reports/types.ts"
+export interface ShiftReport {
+  id: string;
+  shiftDate: string;
+  driverId: string;
+  summary: string;
+}
+```
+
+4. Create hooks:
+
+```typescript filename="features/operations/shift-reports/hooks/use-shift-reports.ts"
+export function useShiftReports() {
+  return useQuery({
+    queryKey: ['shift-reports'],
+    queryFn: () => shiftReportsApi.list(),
+  });
+}
+```
+
+5. Create the barrel export:
+
+```typescript filename="features/operations/shift-reports/index.ts"
+export * from './types';
+export { useShiftReports } from './hooks/use-shift-reports';
+```
+
+6. Build components and wire them to a page.

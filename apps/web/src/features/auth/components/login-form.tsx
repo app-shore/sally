@@ -16,6 +16,10 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+const emailOnlySchema = z.object({
+  email: z.string().email('Valid email is required'),
+});
+
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
@@ -33,24 +37,34 @@ export function LoginForm() {
     trigger,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    mode: 'onChange',
+    mode: 'onSubmit',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const emailValue = watch('email');
   const passwordValue = watch('password');
 
+  // Validate just the email field without triggering full schema
+  const validateEmail = () => {
+    const result = emailOnlySchema.safeParse({ email: emailValue });
+    return result.success;
+  };
+
   // Validate email on blur
-  const handleEmailBlur = async () => {
-    const isValid = await trigger('email');
-    setEmailValid(isValid && !!emailValue);
+  const handleEmailBlur = () => {
+    const isValid = validateEmail();
+    setEmailValid(isValid);
   };
 
   // Validate email on Enter key
-  const handleEmailKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const isValid = await trigger('email');
-      if (isValid && !!emailValue) {
+      const isValid = validateEmail();
+      if (isValid) {
         setEmailValid(true);
         // Focus password field after a short delay for animation
         setTimeout(() => {
@@ -147,19 +161,19 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-[500px] mx-auto relative isolate">
-      {/* SALLY Wordmark */}
+      {/* Page heading */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className="text-center mb-12"
       >
-        <h1 className="text-6xl md:text-7xl font-bold tracking-tighter mb-4 text-gradient font-space-grotesk">
-          SALLY
-        </h1>
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
           Sign In
-        </h2>
+        </h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          Smart Routes. Confident Dispatchers. Happy Drivers.
+        </p>
       </motion.div>
 
       {/* Form */}

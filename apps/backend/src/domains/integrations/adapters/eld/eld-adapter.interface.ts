@@ -27,6 +27,22 @@ export interface ELDDriverData {
 }
 
 /**
+ * Vehicle location/telematics data from ELD system
+ */
+export interface ELDVehicleLocationData {
+  vehicleId: string;
+  vin?: string;
+  latitude: number;
+  longitude: number;
+  speed: number;
+  heading: number;
+  odometer: number;
+  fuelLevel?: number;
+  engineRunning: boolean;
+  timestamp: string;
+}
+
+/**
  * Interface that all ELD adapters must implement
  */
 export interface IELDAdapter {
@@ -43,6 +59,13 @@ export interface IELDAdapter {
    * @returns Array of ELD driver data
    */
   getDrivers(apiToken: string): Promise<ELDDriverData[]>;
+
+  /**
+   * Fetch current vehicle locations/telematics from ELD system
+   * @param apiToken - API token for authentication
+   * @returns Array of ELD vehicle location data
+   */
+  getVehicleLocations(apiToken: string): Promise<ELDVehicleLocationData[]>;
 
   /**
    * Test if credentials are valid and connection works

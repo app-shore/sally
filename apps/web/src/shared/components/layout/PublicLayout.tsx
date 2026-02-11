@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, X, LogIn, LogOut } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, ArrowRight, UserPlus } from 'lucide-react';
 import { useAuthStore } from '@/features/auth';
 import { Button } from '@/shared/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
+import { getDefaultRouteForRole } from '@/shared/lib/navigation';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -68,17 +69,33 @@ export function PublicLayout({ children }: PublicLayoutProps) {
 
             {/* Login/Logout */}
             {!isAuthenticated ? (
-              <Link href="/login">
-                <Button size="sm">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Login
-                </Button>
-              </Link>
+              <>
+                <Link href="/register">
+                  <Button variant="outline" size="sm">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Register
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button size="sm">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Login
+                  </Button>
+                </Link>
+              </>
             ) : (
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="ml-2">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+              <>
+                <Link href={getDefaultRouteForRole(user?.role)}>
+                  <Button size="sm">
+                    Go to App
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={handleLogout} className="ml-2">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </>
             )}
           </div>
 
@@ -106,27 +123,54 @@ export function PublicLayout({ children }: PublicLayoutProps) {
 
               {/* Login/Logout on mobile */}
               {!isAuthenticated ? (
-                <Link href="/login" className="w-full">
-                  <Button
-                    size="sm"
-                    className="w-full"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Login
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/register" className="w-full">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Register
+                    </Button>
+                  </Link>
+                  <Link href="/login" className="w-full">
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Login
+                    </Button>
+                  </Link>
+                </>
               ) : (
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 w-full"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </button>
+                <>
+                  <Link href={getDefaultRouteForRole(user?.role)} className="w-full">
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Go to App
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
               )}
             </div>
           </div>

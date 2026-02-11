@@ -1,0 +1,64 @@
+---
+title: "ADR-008: Multi-channel Notification Delivery"
+description: Email via Resend, SMS via Twilio, browser push via Web Push API, and in-app notifications for alert delivery.
+---
+
+# ADR-008: Multi-channel Notification Delivery
+
+**Status:** Accepted
+**Date:** February 2026
+**Decision makers:** SALLY Engineering Team
+
+---
+
+## Context
+
+SALLY generates alerts that must reach dispatchers through the right channel at the right time. A critical HOS violation needs immediate attention (push notification, SMS), while a low-priority informational alert can wait for the next dashboard visit (in-app only).
+
+The team needed to:
+
+1. Support multiple delivery channels with different urgency levels.
+2. Allow per-tenant default channel configuration based on alert priority.
+3. Allow individual users to override channels based on their preferences.
+4. Support quiet hours to suppress non-critical notifications during off-hours.
+
+## Decision
+
+Implement **four notification channels**, each backed by a dedicated infrastructure module and external service:
+
+| Channel | Service | Module | Use Case |
+|---|---|---|---|
+| Email | Resend | `infrastructure/notification/` | Alert digests, invitation emails, tenant lifecycle notifications |
+| SMS | Twilio | `infrastructure/sms/` | Critical alerts to on-call dispatchers |
+| Browser Push | Web Push (VAPID) | `infrastructure/push/` | Real-time push notifications when browser is in background |
+| In-App | Direct database write | `infrastructure/sse/` | All alerts appear in the notification inbox; SSE pushes to open dashboards |
+
+**Channel resolution flow:**
+
+1. An alert is generated with a type and priority.
+2. The `ChannelResolutionService` loads the tenant's `AlertConfiguration` to determine default channels for this priority level.
+3. User-level overrides from `UserPreferences.alertChannels` are applied (e.g., "also send me SMS for critical alerts").
+4. Quiet hours check: if the user has quiet hours enabled and the current time falls within them, non-critical channels are suppressed.
+5. The resolved channel list is passed to `NotificationDeliveryService`, which dispatches in parallel to all channels.
+
+**Vendor choices:**
+
+- **Resend** for email -- Developer-friendly API, excellent deliverability, simple React-based email templates.
+- **Twilio** for SMS -- Industry standard, reliable delivery, international support for future expansion.
+- **Web Push (VAPID)** for browser push -- No third-party dependency for push delivery. Uses the standard Web Push API with VAPID keys for authentication.
+
+## Consequences
+
+**What became easier:**
+
+- Dispatchers receive alerts through the channel most appropriate for the urgency level. Critical alerts reach them even when away from the dashboard.
+- Per-user channel preferences mean each dispatcher controls their notification experience without affecting the tenant-wide defaults.
+- Quiet hours prevent alert fatigue during off-shift hours while still allowing critical alerts through.
+- Adding a new channel (e.g., Slack, Microsoft Teams) requires implementing a new delivery module without changing the channel resolution or alert generation logic.
+
+**What became harder:**
+
+- Three external service dependencies (Resend, Twilio, Web Push) add operational complexity. Each requires API keys, monitoring, and error handling.
+- Channel resolution logic has multiple layers (tenant defaults → user overrides → quiet hours → category filtering), making it harder to predict exactly which channels an alert will use.
+- Testing notification delivery end-to-end requires mocking multiple external services.
+- Cost management: SMS and email have per-message costs that scale with alert volume. The team must monitor for alert storms that could spike costs.

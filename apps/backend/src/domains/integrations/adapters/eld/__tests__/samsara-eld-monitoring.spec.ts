@@ -19,12 +19,20 @@ describe('SamsaraELDAdapter - Monitoring Methods', () => {
           data: [
             {
               driver: { id: 'drv-123', name: 'John Doe' },
-              currentDutyStatus: { type: 'driving' },
+              currentDutyStatus: { hosStatusType: 'driving' },
               clocks: {
-                drive: { remainingDurationMs: 3600000 },    // 1 hour
-                shift: { remainingDurationMs: 7200000 },    // 2 hours
-                cycle: { remainingDurationMs: 180000000 },  // 50 hours
-                break: { remainingDurationMs: 1800000 },    // 30 min
+                drive: { driveRemainingDurationMs: 3600000 },
+                shift: { shiftRemainingDurationMs: 7200000 },
+                cycle: {
+                  cycleRemainingDurationMs: 180000000,
+                  cycleStartedAtTime: '2026-02-09T00:00:00Z',
+                  cycleTomorrowDurationMs: 190000000,
+                },
+                break: { timeUntilBreakDurationMs: 1800000 },
+              },
+              violations: {
+                cycleViolationDurationMs: 0,
+                shiftDrivingViolationDurationMs: 0,
               },
             },
           ],
@@ -53,14 +61,16 @@ describe('SamsaraELDAdapter - Monitoring Methods', () => {
     });
 
     it('should throw on non-200 response', async () => {
-      mockedAxios.get.mockRejectedValue(new Error('Request failed with status code 401'));
+      mockedAxios.get.mockRejectedValue(
+        new Error('Request failed with status code 401'),
+      );
 
       await expect(adapter.getHOSClocks('bad-token')).rejects.toThrow();
     });
   });
 
-  describe('getVehicleLocations', () => {
-    it('should fetch and transform GPS location data', async () => {
+  describe('getVehicleGPSSnapshots', () => {
+    it('should fetch and transform GPS snapshot data via stats endpoint', async () => {
       const mockResponse = {
         data: {
           data: [
@@ -80,7 +90,7 @@ describe('SamsaraELDAdapter - Monitoring Methods', () => {
       };
       mockedAxios.get.mockResolvedValue(mockResponse);
 
-      const result = await adapter.getVehicleLocations('test-token');
+      const result = await adapter.getVehicleGPSSnapshots('test-token');
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
         'https://api.samsara.com/fleet/vehicles/stats?types=gps',

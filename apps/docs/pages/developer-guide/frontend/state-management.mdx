@@ -1,0 +1,324 @@
+---
+title: State Management
+description: How SALLY manages state with Zustand for client state and React Query for server state.
+---
+
+# State Management
+
+SALLY uses two state management tools, each for a different purpose:
+
+- **React Query** (`@tanstack/react-query`) -- for server state (data from the API)
+- **Zustand** -- for client state (UI state, auth session, local preferences)
+
+This page explains when to use each, the patterns in the codebase, and how they work together.
+
+## Decision Tree
+
+Use this to decide where state belongs:
+
+| State Type | Tool | Examples |
+|-----------|------|----------|
+| Data from the API | React Query | Driver list, alerts, routes, HOS data |
+| Data that needs caching/refetching | React Query | Any GET request |
+| Data mutations (create/update/delete) | React Query mutations | Creating a driver, resolving an alert |
+| Authentication session | Zustand (persisted) | User object, JWT tokens, login status |
+| UI toggles | Zustand or `useState` | Sidebar open/closed, modal visibility |
+| Form state | `useState` or React Hook Form | Input values, validation errors |
+| Complex cross-component client state | Zustand | Optimization engine state, chat messages |
+
+**Rule of thumb:** If the data comes from a server, use React Query. If the data originates on the client, use Zustand or local state.
+
+## React Query Patterns
+
+React Query handles fetching, caching, refetching, and mutation of server data. All data fetching hooks live in feature module `hooks/` directories.
+
+### Query Keys
+
+Every query needs a unique, stable key array. Follow this naming convention:
+
+```typescript
+// Top-level resource
+const DRIVERS_QUERY_KEY = ['drivers'] as const;
+
+// Single resource by ID
+const driverKey = [...DRIVERS_QUERY_KEY, driverId];
+
+// Nested resource
+const hosKey = [...DRIVERS_QUERY_KEY, driverId, 'hos'];
+```
+
+### Read Hooks (useQuery)
+
+Wrap `useQuery` in a custom hook that encapsulates the query key and fetch function:
+
+```typescript filename="features/fleet/drivers/hooks/use-drivers.ts"
+import { useQuery } from '@tanstack/react-query';
+import { driversApi } from '../api';
+
+const DRIVERS_QUERY_KEY = ['drivers'] as const;
+
+export function useDrivers() {
+  return useQuery({
+    queryKey: DRIVERS_QUERY_KEY,
+    queryFn: () => driversApi.list(),
+  });
+}
+
+export function useDriverById(driverId: string) {
+  return useQuery({
+    queryKey: [...DRIVERS_QUERY_KEY, driverId],
+    queryFn: () => driversApi.getById(driverId),
+    enabled: !!driverId,  // Only fetch when driverId is truthy
+  });
+}
+```
+
+**Key options:**
+- `enabled` -- prevent the query from running until a condition is met
+- `refetchInterval` -- poll at a fixed interval (used for live HOS data)
+- `staleTime` -- how long data stays "fresh" before refetching
+
+```typescript
+// Live HOS data -- refetch every 60 seconds
+export function useDriverHOS(driverId: string) {
+  return useQuery({
+    queryKey: [...DRIVERS_QUERY_KEY, driverId, 'hos'],
+    queryFn: () => driversApi.getHOS(driverId),
+    enabled: !!driverId,
+    refetchInterval: 60000,
+  });
+}
+```
+
+### Mutation Hooks (useMutation)
+
+Wrap `useMutation` for create, update, and delete operations. Always invalidate related queries on success:
+
+```typescript filename="features/fleet/drivers/hooks/use-drivers.ts"
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+export function useCreateDriver() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateDriverRequest) => driversApi.create(data),
+    onSuccess: () => {
+      // Refetch the driver list after creating a new driver
+      queryClient.invalidateQueries({ queryKey: DRIVERS_QUERY_KEY });
+    },
+  });
+}
+
+export function useUpdateDriver() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ driverId, data }: { driverId: string; data: UpdateDriverRequest }) =>
+      driversApi.update(driverId, data),
+    onSuccess: (_, variables) => {
+      // Invalidate both the list and the individual driver cache
+      queryClient.invalidateQueries({ queryKey: DRIVERS_QUERY_KEY });
+      queryClient.invalidateQueries({
+        queryKey: [...DRIVERS_QUERY_KEY, variables.driverId],
+      });
+    },
+  });
+}
+
+export function useDeleteDriver() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (driverId: string) => driversApi.delete(driverId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DRIVERS_QUERY_KEY });
+    },
+  });
+}
+```
+
+### Using Hooks in Components
+
+Components consume hooks and get automatic loading, error, and data states:
+
+```typescript
+function DriverList() {
+  const { data: drivers, isLoading, error } = useDrivers();
+  const createDriver = useCreateDriver();
+
+  if (isLoading) return <Skeleton className="h-48" />;
+  if (error) return <Alert variant="destructive">Failed to load drivers</Alert>;
+
+  const handleCreate = async (data: CreateDriverRequest) => {
+    await createDriver.mutateAsync(data);
+    // Cache is automatically invalidated -- list will refetch
+  };
+
+  return (
+    <div>
+      {drivers?.map((driver) => (
+        <DriverCard key={driver.id} driver={driver} />
+      ))}
+      <Button
+        onClick={() => handleCreate({ name: 'New Driver' })}
+        disabled={createDriver.isPending}
+      >
+        {createDriver.isPending ? 'Creating...' : 'Add Driver'}
+      </Button>
+    </div>
+  );
+}
+```
+
+## Zustand Patterns
+
+Zustand is used for client-side state that does not come from the server. SALLY uses Zustand stores for authentication, AI chat, optimization engine state, and settings.
+
+### Store Structure
+
+Zustand stores define state and actions together:
+
+```typescript filename="features/auth/store.ts"
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface AuthState {
+  // State
+  user: User | null;
+  accessToken: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+
+  // Actions
+  signIn: (email: string, password: string) => Promise<User | null>;
+  signOut: () => Promise<void>;
+  setUser: (user: User | null) => void;
+  clearAuth: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      // Initial state
+      user: null,
+      accessToken: null,
+      isAuthenticated: false,
+      isLoading: false,
+
+      // Actions
+      signIn: async (email, password) => {
+        set({ isLoading: true });
+        try {
+          // ... authentication logic
+          set({ user, accessToken, isAuthenticated: true, isLoading: false });
+          return user;
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      signOut: async () => {
+        // ... sign out logic
+        set({ user: null, accessToken: null, isAuthenticated: false });
+      },
+
+      setUser: (user) => set({ user, isAuthenticated: !!user }),
+      clearAuth: () => set({ user: null, accessToken: null, isAuthenticated: false }),
+    }),
+    {
+      name: 'auth-storage',          // localStorage key
+      partialize: (state) => ({      // Only persist these fields
+        user: state.user,
+        accessToken: state.accessToken,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    },
+  ),
+);
+```
+
+### Using Stores in Components
+
+Zustand hooks work like regular React hooks:
+
+```typescript
+function UserMenu() {
+  const { user, signOut } = useAuthStore();
+
+  if (!user) return null;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        {user.firstName} {user.lastName}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem onClick={signOut}>
+          Sign Out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+```
+
+### When to Use Persist Middleware
+
+Use `persist` for state that should survive page reloads:
+- Authentication tokens and user session
+- User preferences (theme, sidebar collapsed)
+
+Do not use `persist` for ephemeral state:
+- Modal open/closed
+- Form values in progress
+- Temporary UI state
+
+### Selecting State
+
+For performance, select only the state you need:
+
+```typescript
+// GOOD -- only re-renders when isAuthenticated changes
+const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+// AVOID -- re-renders on ANY state change
+const store = useAuthStore();
+```
+
+## Existing Stores
+
+| Store | Location | Purpose | Persisted |
+|-------|----------|---------|-----------|
+| `useAuthStore` | `features/auth/store.ts` | Authentication session, tokens, user | Yes |
+| Optimization store | `features/routing/optimization/store.ts` | Route optimization engine state | No |
+| Chat store | `features/platform/chat/store.ts` | SALLY chat panel state | No |
+| Sally AI store | `features/platform/sally-ai/store.ts` | AI assistant state | No |
+| Onboarding store | `features/platform/onboarding/store.ts` | Onboarding wizard state | No |
+| Settings store | `features/platform/settings/store.ts` | Settings panel state | No |
+
+## React Query + Zustand Together
+
+These tools complement each other. Here is how they typically interact:
+
+1. **Auth flow:** Zustand stores the JWT token. React Query uses that token in API calls.
+2. **Data fetching:** React Query fetches server data. Zustand never stores server data.
+3. **Optimistic UI:** React Query mutations handle optimistic updates. Zustand does not get involved.
+
+```typescript
+// API function reads the token from Zustand
+function getAuthHeaders() {
+  const token = useAuthStore.getState().accessToken;
+  return { Authorization: `Bearer ${token}` };
+}
+
+// React Query uses the API function
+export function useDrivers() {
+  return useQuery({
+    queryKey: ['drivers'],
+    queryFn: () => driversApi.list(),  // Internally calls getAuthHeaders()
+  });
+}
+```
+
+Notice that `useAuthStore.getState()` is used outside of React components (in API functions) -- this is the correct way to read Zustand state from non-React code.

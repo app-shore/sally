@@ -1,0 +1,52 @@
+---
+title: "ADR-002: NestJS over Express"
+description: Structured backend framework with modules, dependency injection, and guards for domain-driven design.
+---
+
+# ADR-002: NestJS over Express
+
+**Status:** Accepted
+**Date:** February 2026
+**Decision makers:** SALLY Engineering Team
+
+---
+
+## Context
+
+SALLY's backend needs to handle complex domain logic -- HOS simulation, route optimization, alert lifecycle management, multi-tenant data isolation, and integrations with external systems. The team evaluated backend frameworks for TypeScript:
+
+1. **Express** -- Minimal, unopinionated. Maximum flexibility but no built-in structure for modules, dependency injection, or request lifecycle management.
+2. **Fastify** -- Performance-focused, plugin-based. Better structure than Express but still requires manual organization for large applications.
+3. **NestJS** -- Opinionated, modular framework built on Express (or Fastify) with dependency injection, decorators, guards, interceptors, and a module system inspired by Angular.
+
+The key concern was long-term maintainability. SALLY's backend would grow to include 10+ domain modules with cross-cutting concerns (authentication, tenant isolation, logging, validation) applied consistently across all endpoints. With Express, the team would need to build this infrastructure from scratch and enforce conventions through code review alone.
+
+## Decision
+
+Use **NestJS 11 with TypeScript** as the backend framework. Organize the application into domain-driven modules, and use NestJS's built-in features for cross-cutting concerns.
+
+Key architectural patterns adopted with NestJS:
+
+- **Modules** map to business domains (Fleet, Operations, Routing, Integrations, Platform). Each module encapsulates its controllers, services, and DTOs.
+- **Guards** enforce authentication (`JwtAuthGuard`), tenant isolation (`TenantGuard`), and role-based access (`RolesGuard`) as decorators applied at the controller or method level.
+- **Interceptors** handle response transformation, logging, and performance monitoring.
+- **Pipes** validate incoming DTOs using `class-validator` decorators.
+- **Dependency injection** allows services to declare their dependencies explicitly, making the code testable and the dependency graph visible.
+- **Swagger integration** generates OpenAPI documentation directly from controller decorators and DTO classes.
+
+## Consequences
+
+**What became easier:**
+
+- Adding a new domain module follows a consistent pattern. Every module has the same structure (controller, service, DTOs, module file), so developers know exactly where to find and add code.
+- Cross-cutting concerns are applied declaratively. Adding `@UseGuards(JwtAuthGuard, TenantGuard)` to a controller ensures every endpoint in that controller is authenticated and tenant-scoped, with no risk of forgetting middleware.
+- The dependency injection container makes unit testing straightforward. Services can be tested in isolation by providing mock implementations of their dependencies.
+- Swagger documentation stays in sync with the actual API because it is generated from the same decorators that define the endpoints.
+- The module system enforces boundaries between domains. A service in the Fleet module cannot accidentally call a private method in the Operations module.
+
+**What became harder:**
+
+- NestJS has a steeper learning curve than Express for developers who have not used it before. The decorator-based approach, dependency injection, and module system require time to learn.
+- The framework adds boilerplate. A simple CRUD endpoint requires a module, controller, service, and DTO files. For very simple endpoints, this feels heavy.
+- NestJS abstracts the underlying HTTP framework (Express/Fastify), which can make debugging request-level issues less direct.
+- Some advanced use cases (custom transport layers, non-standard middleware patterns) require deeper knowledge of NestJS internals.

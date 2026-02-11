@@ -1,0 +1,284 @@
+---
+title: Testing
+description: How to write and run tests for the SALLY backend -- unit tests, E2E tests, and coverage.
+---
+
+# Testing
+
+The SALLY backend uses Jest as the test framework with Supertest for HTTP-level E2E testing. This page covers how to run tests, where test files go, and the patterns used for unit and integration tests.
+
+## Running Tests
+
+All test commands are run from the `apps/backend/` directory, or from the project root using the Turborepo filter:
+
+| Task | From `apps/backend/` | From project root |
+|------|---------------------|-------------------|
+| Run all unit tests | `pnpm run test` | `pnpm run backend:test` |
+| Run tests in watch mode | `pnpm run test:watch` | -- |
+| Run with coverage | `pnpm run test:cov` | -- |
+| Run E2E tests | `pnpm run test:e2e` | -- |
+| Debug tests | `pnpm run test:debug` | -- |
+
+## Test File Organization
+
+### Unit Tests
+
+Unit test files live alongside the code they test, using the `.spec.ts` suffix:
+
+```
+src/domains/fleet/drivers/
+├── services/
+│   ├── drivers.service.ts
+│   └── drivers-activation.service.spec.ts    # Unit test
+├── __tests__/                                 # Alternative location
+│   └── drivers.controller.spec.ts
+```
+
+Both conventions are used in the codebase -- either next to the source file or in a `__tests__/` directory within the module.
+
+### E2E Tests
+
+E2E tests live in the `test/` directory at the backend root and use the `.e2e-spec.ts` suffix:
+
+```
+apps/backend/
+└── test/
+    ├── jest-e2e.json          # E2E Jest configuration
+    └── app.e2e-spec.ts        # E2E test file
+```
+
+The E2E configuration is in `test/jest-e2e.json`:
+
+```json filename="test/jest-e2e.json"
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  }
+}
+```
+
+## Writing Unit Tests
+
+### Testing a Service
+
+The most common test pattern is testing a service with a mocked `PrismaService`:
+
+```typescript filename="drivers.service.spec.ts"
+import { Test, TestingModule } from '@nestjs/testing';
+import { DriversService } from './drivers.service';
+import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import { NotFoundException } from '@nestjs/common';
+
+describe('DriversService', () => {
+  let service: DriversService;
+  let prisma: jest.Mocked<PrismaService>;
+
+  beforeEach(async () => {
+    const mockPrisma = {
+      driver: {
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        DriversService,
+        { provide: PrismaService, useValue: mockPrisma },
+      ],
+    }).compile();
+
+    service = module.get<DriversService>(DriversService);
+    prisma = module.get(PrismaService);
+  });
+
+  describe('findAll', () => {
+    it('should return active drivers for a tenant', async () => {
+      const mockDrivers = [
+        { id: 1, driverId: 'DRV-001', name: 'John Doe', isActive: true, tenantId: 1 },
+      ];
+      prisma.driver.findMany.mockResolvedValue(mockDrivers);
+
+      const result = await service.findAll(1);
+
+      expect(result).toEqual(mockDrivers);
+      expect(prisma.driver.findMany).toHaveBeenCalledWith({
+        where: { tenantId: 1, isActive: true },
+        orderBy: { driverId: 'asc' },
+      });
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return a driver when found', async () => {
+      const mockDriver = { id: 1, driverId: 'DRV-001', name: 'John Doe', tenantId: 1 };
+      prisma.driver.findUnique.mockResolvedValue(mockDriver);
+
+      const result = await service.findOne('DRV-001', 1);
+
+      expect(result).toEqual(mockDriver);
+    });
+
+    it('should throw NotFoundException when driver does not exist', async () => {
+      prisma.driver.findUnique.mockResolvedValue(null);
+
+      await expect(service.findOne('INVALID', 1)).rejects.toThrow(NotFoundException);
+    });
+  });
+});
+```
+
+### Key Testing Patterns
+
+**Use `Test.createTestingModule()`** to create a NestJS testing module. This gives you dependency injection without starting the full application:
+
+```typescript
+const module: TestingModule = await Test.createTestingModule({
+  providers: [ServiceUnderTest, { provide: DependencyService, useValue: mockDep }],
+}).compile();
+```
+
+**Mock dependencies** by providing `useValue` with Jest mock functions:
+
+```typescript
+const mockService = {
+  findAll: jest.fn().mockResolvedValue([]),
+  findOne: jest.fn().mockResolvedValue(null),
+};
+```
+
+**Test error cases** alongside success cases:
+
+```typescript
+it('should throw ConflictException on duplicate', async () => {
+  prisma.driver.create.mockRejectedValue({ code: 'P2002' });
+  await expect(service.create(1, { name: 'Test' })).rejects.toThrow(ConflictException);
+});
+```
+
+### Testing a Controller
+
+When testing a controller, mock the service layer:
+
+```typescript filename="drivers.controller.spec.ts"
+import { Test, TestingModule } from '@nestjs/testing';
+import { DriversController } from './controllers/drivers.controller';
+import { DriversService } from './services/drivers.service';
+import { PrismaService } from '../../../infrastructure/database/prisma.service';
+
+describe('DriversController', () => {
+  let controller: DriversController;
+  let driversService: jest.Mocked<DriversService>;
+
+  beforeEach(async () => {
+    const mockDriversService = {
+      findAll: jest.fn(),
+      findOne: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      remove: jest.fn(),
+    };
+
+    const mockPrisma = {
+      tenant: { findFirst: jest.fn() },
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [DriversController],
+      providers: [
+        { provide: DriversService, useValue: mockDriversService },
+        { provide: PrismaService, useValue: mockPrisma },
+        // ... mock other dependencies
+      ],
+    }).compile();
+
+    controller = module.get<DriversController>(DriversController);
+    driversService = module.get(DriversService);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});
+```
+
+## Writing E2E Tests
+
+E2E tests start the full NestJS application and make real HTTP requests using Supertest:
+
+```typescript filename="test/app.e2e-spec.ts"
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
+
+describe('App (e2e)', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api/v1');
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('/api/v1/health (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/api/v1/health')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.status).toBe('healthy');
+      });
+  });
+});
+```
+
+E2E tests require a running database. Make sure Docker is up before running them.
+
+## Coverage
+
+Generate a coverage report:
+
+```bash
+cd apps/backend
+pnpm run test:cov
+```
+
+This creates a `coverage/` directory with an HTML report. Open `coverage/lcov-report/index.html` in a browser to see line-by-line coverage.
+
+The Jest configuration in `package.json` collects coverage from all `.ts` and `.js` files under `src/`:
+
+```json
+{
+  "collectCoverageFrom": ["**/*.(t|j)s"],
+  "coverageDirectory": "../coverage"
+}
+```
+
+## Best Practices
+
+1. **Test behavior, not implementation.** Assert on return values and thrown exceptions, not on internal method calls.
+
+2. **One assertion per test** when practical. This makes failures easier to diagnose.
+
+3. **Use descriptive test names.** Follow the pattern: "should [expected behavior] when [condition]".
+
+4. **Mock at the boundary.** Mock `PrismaService` in service tests, mock services in controller tests. Do not mock internal methods of the class under test.
+
+5. **Cover error paths.** Test what happens when the database returns null, when validation fails, or when a duplicate is created.
+
+6. **Keep E2E tests focused.** E2E tests are slow. Test the critical paths (authentication, CRUD operations) and leave edge cases to unit tests.

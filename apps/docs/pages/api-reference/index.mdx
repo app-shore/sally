@@ -26,8 +26,9 @@ Plan optimized, HOS-compliant routes with automatic rest and fuel stop insertion
 
 **Key endpoints:**
 - `POST /api/v1/routes/plan` - Plan a new route
-- `GET /api/v1/routes/{id}` - Get route details
-- `POST /api/v1/routes/{id}/update` - Update route with triggers
+- `GET /api/v1/routes/{planId}` - Get route details
+- `POST /api/v1/routes/{planId}/activate` - Activate route
+- `POST /api/v1/routes/{planId}/cancel` - Cancel route
 
 [Explore in playground →](/api-playground#tag/Routes)
 
@@ -42,13 +43,9 @@ Manage dispatcher alerts and notifications for proactive fleet management.
 [Explore in playground →](/api-playground#tag/Alerts)
 
 ### HOS Validation
-Validate Hours of Service compliance and ensure routes meet FMCSA regulations.
+The HOS compliance engine is an internal component of the route planner. It is not directly accessible as a standalone API. HOS validation runs automatically during route planning and continuous monitoring.
 
-**Key endpoints:**
-- `POST /api/v1/hos/validate` - Validate HOS compliance
-- `GET /api/v1/hos/limits` - Get current HOS limits
-
-[Explore in playground →](/api-playground#tag/HOS)
+See [Route Planning](/api-guides/route-planning) for how HOS compliance is enforced.
 
 ## Response Format
 

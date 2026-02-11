@@ -1,0 +1,154 @@
+---
+title: System Overview
+description: High-level architecture of the SALLY fleet operations platform — containers, layers, and technology choices.
+---
+
+# System Overview
+
+SALLY is a compliance-first route planning platform for US trucking fleets. It generates optimized multi-stop routes that satisfy Hours of Service (HOS) regulations, automatically inserts rest and fuel stops where needed, and continuously monitors active routes to alert dispatchers before problems occur.
+
+The system serves two primary user personas: **dispatchers** who plan routes and manage fleet operations from a web dashboard, and **drivers** who receive route guidance and communicate status from a mobile-optimized view.
+
+---
+
+## Context: Where SALLY Fits
+
+SALLY sits at the center of a trucking carrier's technology ecosystem, pulling data from external systems and delivering route intelligence to dispatchers and drivers.
+
+![C4 System Context Diagram](/architecture/C4_Context.svg)
+
+**Key integration points:**
+
+| External System | What SALLY Reads | Sync Pattern |
+|---|---|---|
+| TMS (McLeod, project44) | Loads, stops, appointment windows | Scheduled pull via adapter |
+| ELD (Samsara, Motive) | HOS clocks, duty status, location | Scheduled pull via adapter |
+| Fuel (GasBuddy) | Diesel prices by location | On-demand during route planning |
+| Weather (OpenWeather) | Forecasts and severe alerts along route | On-demand during route planning |
+| Routing (OSRM / HERE) | Drive distances and durations between stops | On-demand during route planning |
+| Firebase Auth | User identity tokens | Per-request token exchange |
+
+---
+
+## Containers: What Gets Deployed
+
+SALLY runs as four containers orchestrated by Docker Compose, plus Firebase Auth as a managed external service.
+
+![C4 Container Diagram](/architecture/C4_Container.svg)
+
+### Container Responsibilities
+
+**Next.js Frontend (port 3000)** handles all user-facing concerns. It uses the App Router with route groups to separate the dispatcher dashboard from the driver view. Zustand manages client-side state (auth, preferences, UI), while React Query handles all server-state synchronization. The frontend authenticates through Firebase, then exchanges the Firebase token with the backend for a JWT stored in an HTTP-only cookie.
+
+**NestJS Backend (port 8000)** owns all business logic. It exposes a REST API organized into domain modules (Fleet, Operations, Routing, Integrations, Platform), serves real-time events over SSE and WebSocket, and runs background jobs for integration syncing. Every request passes through JWT authentication and tenant isolation guards before reaching a controller.
+
+**PostgreSQL 16 (port 5432)** is the primary data store, managing 25+ tables across seven functional groups. Prisma ORM handles schema migrations (18 to date) and provides type-safe query building. Every major table includes a `tenantId` foreign key for row-level multi-tenancy isolation.
+
+**Redis 7 (port 6379)** serves two purposes: caching frequently accessed data (HOS states, alert counts, integration health) and acting as a pub/sub broker for pushing real-time events to SSE streams.
+
+---
+
+## Three-Layer Architecture
+
+The backend processes fleet operations through three cooperating layers. Each layer has a distinct responsibility and communicates with the others through well-defined service interfaces.
+
+### Backend Components
+
+![C4 Backend Component Diagram](/architecture/C4_Component_Backend.svg)
+
+### Frontend Components
+
+![C4 Frontend Component Diagram](/architecture/C4_Component_Frontend.svg)
+
+### Layer 1: Route Planning Engine
+
+The route planning engine takes a set of loads with pickup and delivery stops, a driver with current HOS state, and a vehicle with fuel capacity, then produces an optimized, HOS-compliant route plan.
+
+The planning pipeline runs in sequence:
+
+1. **Stop sequence optimization** -- Orders the stops to minimize total drive time (TSP solver).
+2. **HOS simulation** -- Walks each segment of the route, tracking the driver's 11-hour drive clock, 14-hour on-duty window, 8-hour break requirement, and 70-hour cycle. When the simulation detects that the driver cannot legally complete a segment, it calls the rest stop insertion logic.
+3. **Rest stop insertion** -- Determines the appropriate rest type (30-minute break, 10-hour full rest, or docktime conversion) and inserts a rest segment into the route.
+4. **Fuel stop insertion** -- Monitors the vehicle's fuel state across segments and inserts fuel stops when the tank would drop below a safe threshold, selecting the cheapest nearby station.
+5. **Feasibility validation** -- Confirms the complete route is HOS-compliant with zero violations, all appointments are reachable within their windows, and fuel levels remain safe throughout.
+
+### Layer 2: Continuous Monitoring
+
+The monitoring layer watches all active routes and generates alerts when conditions change. SALLY defines **20 alert types** across six categories:
+
+| Category | Alert Types | Priority Range |
+|---|---|---|
+| HOS Compliance | Violation, Approaching Limit, Break Required, Cycle Limit, Recap Available, Duty Status Change | Critical to Low |
+| Route Progress | Missed Appointment, At Risk, Dock Time Exceeded, Route Delay, Route Completed | Critical to Low |
+| Driver Behavior | Not Moving, Speeding, Unauthorized Stop | High to Medium |
+| Vehicle State | Fuel Low, Maintenance Due | High to Low |
+| External Conditions | Weather Alert, Road Closure | High to Medium |
+| System | Integration Failure, System Error | Critical to High |
+
+Alerts follow a lifecycle: **Active** (generated) -> **Acknowledged** (dispatcher sees it) -> **Resolved** (action taken or auto-resolved). The system supports alert grouping (related alerts under a parent), deduplication (same condition does not generate duplicate alerts), escalation (unacknowledged alerts increase in priority), and auto-resolution (alerts resolve automatically when conditions clear).
+
+### Layer 3: Dynamic Update Handler
+
+When the monitoring layer detects a trigger, the update handler decides what to do:
+
+- **Re-plan** -- The route is no longer feasible (e.g., HOS violation imminent, road closure). Layer 1 is invoked to generate a new route version.
+- **ETA update** -- The route is still feasible but timing has shifted (e.g., dock delay, weather slowdown). Only ETAs are recalculated.
+- **Notify only** -- Informational triggers (e.g., route completed, recap hours available) that require no route changes.
+
+Every update is recorded as a `RoutePlanUpdate` with the trigger type, impact summary, and before/after plan versions.
+
+---
+
+## Code-Level Diagrams
+
+### HOS Validation Engine
+
+![C4 HOS Engine Code Diagram](/architecture/C4_Code_HOS_Engine.svg)
+
+### Optimization Engine
+
+![C4 Optimization Engine Code Diagram](/architecture/C4_Code_Optimization_Engine.svg)
+
+### REST Optimization Sequence
+
+![REST Optimization Sequence Diagram](/architecture/Sequence_Rest_Optimization.svg)
+
+---
+
+## Deployment Architecture
+
+![Deployment Diagram](/architecture/Deployment_Diagram.svg)
+
+---
+
+## Data Flow
+
+![Data Flow Diagram](/architecture/Data_Flow_Diagram.svg)
+
+---
+
+## Technology Choices
+
+| Component | Technology | Rationale |
+|---|---|---|
+| Frontend framework | Next.js 15 (App Router) | Server components for initial load performance, App Router for nested layouts matching dispatcher/driver UX |
+| UI components | Shadcn/ui (28 components) + Tailwind CSS | Accessible, themeable primitives with dark mode via CSS variables |
+| Client state | Zustand | Lightweight, no boilerplate, works well with React Server Components |
+| Server state | React Query (TanStack Query) | Automatic caching, background refetch, optimistic updates for alert acknowledgment |
+| Backend framework | NestJS 11 | Module system maps naturally to domain-driven design, built-in guards for auth/tenancy |
+| ORM | Prisma 7 | Type-safe queries generated from schema, migration management, PostgreSQL-native features |
+| Database | PostgreSQL 16 | JSONB for flexible HOS data, robust indexing for multi-tenant queries, proven at scale |
+| Cache | Redis 7 | Sub-millisecond reads for HOS cache, pub/sub for SSE event fan-out |
+| Auth | Firebase Auth + JWT | Firebase handles identity (email/password, SSO), backend issues its own JWTs for API authorization |
+| Real-time | SSE + WebSocket | SSE for server-push alerts, WebSocket for bidirectional messaging (dispatcher-driver) |
+| Monorepo | Turborepo + pnpm workspaces | Shared types between frontend and backend, parallel build pipeline |
+| Infrastructure | Docker Compose | Single-command local development, consistent environment across team |
+
+---
+
+## Further Reading
+
+- [Backend Architecture](/developer-guide/architecture/backend) -- Domain-driven module design, auth flow, request lifecycle, multi-tenancy
+- [Frontend Architecture](/developer-guide/architecture/frontend) -- App Router structure, feature modules, state management, theming
+- [Database Schema](/developer-guide/architecture/database) -- Entity relationships, table groups, multi-tenancy pattern, HOS fields
+- [Data Flow](/developer-guide/architecture/data-flow) -- Request lifecycles, alert pipelines, integration sync, real-time events

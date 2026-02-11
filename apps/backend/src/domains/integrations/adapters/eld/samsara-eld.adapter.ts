@@ -3,9 +3,15 @@ import {
   IELDAdapter,
   ELDVehicleData,
   ELDDriverData,
+  ELDVehicleLocationData,
 } from './eld-adapter.interface';
 import axios from 'axios';
 
+/**
+ * HOS clock data from Samsara API
+ * Endpoint: GET /fleet/hos/clocks
+ * Docs: https://developers.samsara.com/reference/gethosclocks
+ */
 export interface HOSClockData {
   driverId: string;
   driverName: string;
@@ -17,6 +23,11 @@ export interface HOSClockData {
   lastUpdated: string;
 }
 
+/**
+ * Vehicle GPS location data from Samsara API
+ * Endpoint: GET /fleet/vehicles/locations
+ * Docs: https://developers.samsara.com/reference/getvehiclelocations
+ */
 export interface VehicleLocationData {
   vehicleId: string;
   gps: {
@@ -31,7 +42,7 @@ export interface VehicleLocationData {
 /**
  * Samsara ELD Adapter
  *
- * Fetches vehicle and driver data from Samsara ELD API
+ * Fetches vehicle, driver, HOS, and location data from Samsara ELD API
  * API Documentation: https://developers.samsara.com/
  */
 @Injectable()
@@ -134,7 +145,22 @@ export class SamsaraELDAdapter implements IELDAdapter {
   }
 
   /**
-   * Get HOS clock data for all drivers
+   * Get HOS clock data for all drivers from Samsara
+   *
+   * Real Samsara API response structure:
+   * {
+   *   data: [{
+   *     driver: { id, name },
+   *     currentDutyStatus: { hosStatusType: "driving" | "onDuty" | "offDuty" | "sleeperBerth" },
+   *     clocks: {
+   *       drive: { driveRemainingDurationMs },
+   *       shift: { shiftRemainingDurationMs },
+   *       cycle: { cycleRemainingDurationMs, cycleStartedAtTime, cycleTomorrowDurationMs },
+   *       break: { timeUntilBreakDurationMs }
+   *     },
+   *     violations: { cycleViolationDurationMs, shiftDrivingViolationDurationMs }
+   *   }]
+   * }
    */
   async getHOSClocks(apiToken: string): Promise<HOSClockData[]> {
     const response = await axios.get(`${this.baseUrl}/fleet/hos/clocks`, {
@@ -144,19 +170,103 @@ export class SamsaraELDAdapter implements IELDAdapter {
     return (response.data.data || []).map((entry: any) => ({
       driverId: entry.driver?.id ?? '',
       driverName: entry.driver?.name ?? '',
-      currentDutyStatus: this.mapDutyStatus(entry.currentDutyStatus?.type),
-      driveTimeRemainingMs: entry.clocks?.drive?.remainingDurationMs ?? 0,
-      shiftTimeRemainingMs: entry.clocks?.shift?.remainingDurationMs ?? 0,
-      cycleTimeRemainingMs: entry.clocks?.cycle?.remainingDurationMs ?? 0,
-      timeUntilBreakMs: entry.clocks?.break?.remainingDurationMs ?? 0,
+      currentDutyStatus: this.mapDutyStatus(
+        entry.currentDutyStatus?.hosStatusType,
+      ),
+      driveTimeRemainingMs: entry.clocks?.drive?.driveRemainingDurationMs ?? 0,
+      shiftTimeRemainingMs: entry.clocks?.shift?.shiftRemainingDurationMs ?? 0,
+      cycleTimeRemainingMs: entry.clocks?.cycle?.cycleRemainingDurationMs ?? 0,
+      timeUntilBreakMs: entry.clocks?.break?.timeUntilBreakDurationMs ?? 0,
       lastUpdated: new Date().toISOString(),
     }));
   }
 
   /**
-   * Get GPS location data for all vehicles
+   * Get GPS location data for all vehicles from Samsara
+   *
+   * Uses the locations snapshot endpoint which returns the most recent
+   * location for each vehicle.
+   *
+   * Real Samsara API response structure:
+   * {
+   *   data: [{
+   *     id: "vehicleId",
+   *     name: "Truck-01",
+   *     location: {
+   *       latitude, longitude, headingDegrees, speedMilesPerHour, time
+   *     }
+   *   }]
+   * }
    */
-  async getVehicleLocations(apiToken: string): Promise<VehicleLocationData[]> {
+  async getVehicleLocations(
+    apiToken: string,
+  ): Promise<ELDVehicleLocationData[]> {
+    if (this.useMockData) {
+      return [
+        {
+          vehicleId: '281474996387574',
+          vin: '1FUJGHDV9JLJY8062',
+          latitude: 32.7767,
+          longitude: -96.797,
+          speed: 62.5,
+          heading: 180,
+          odometer: 145230.5,
+          fuelLevel: 72.3,
+          engineRunning: true,
+          timestamp: new Date().toISOString(),
+        },
+        {
+          vehicleId: '281474996387575',
+          vin: '3AKJHPDV2KSKA4482',
+          latitude: 34.0522,
+          longitude: -118.2437,
+          speed: 0,
+          heading: 0,
+          odometer: 98452.1,
+          fuelLevel: 45.8,
+          engineRunning: false,
+          timestamp: new Date().toISOString(),
+        },
+      ];
+    }
+
+    const response = await axios.get(
+      `${this.baseUrl}/fleet/vehicles/locations`,
+      { headers: { Authorization: `Bearer ${apiToken}` } },
+    );
+
+    return (response.data.data || []).map((entry: any) => ({
+      vehicleId: entry.id ?? '',
+      latitude: entry.location?.latitude ?? 0,
+      longitude: entry.location?.longitude ?? 0,
+      speed: entry.location?.speedMilesPerHour ?? 0,
+      heading: entry.location?.headingDegrees ?? 0,
+      odometer: 0,
+      engineRunning: false,
+      timestamp: entry.location?.time ?? new Date().toISOString(),
+    }));
+  }
+
+  /**
+   * Get GPS location snapshot for monitoring (simplified GPS-only data)
+   *
+   * Uses the vehicle stats endpoint with types=gps for lightweight GPS data.
+   * Preferred for monitoring where we only need coordinates and speed.
+   *
+   * Real Samsara API response structure:
+   * {
+   *   data: [{
+   *     id: "vehicleId",
+   *     name: "Truck-01",
+   *     gps: {
+   *       latitude, longitude, speedMilesPerHour, headingDegrees, time
+   *     }
+   *   }]
+   * }
+   */
+  async getVehicleGPSSnapshots(
+    apiToken: string,
+  ): Promise<VehicleLocationData[]> {
     const response = await axios.get(
       `${this.baseUrl}/fleet/vehicles/stats?types=gps`,
       { headers: { Authorization: `Bearer ${apiToken}` } },

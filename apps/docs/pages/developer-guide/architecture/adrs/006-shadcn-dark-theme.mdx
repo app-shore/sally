@@ -1,0 +1,70 @@
+---
+title: "ADR-006: Shadcn + Dark Theme First"
+description: Copy-paste component library with mandatory dark theme and grayscale-only color palette.
+---
+
+# ADR-006: Shadcn + Dark Theme First
+
+**Status:** Accepted
+**Date:** February 2026
+**Decision makers:** SALLY Engineering Team
+
+---
+
+## Context
+
+SALLY's frontend needs a consistent, accessible UI component library. Dispatchers often work in low-light environments (early morning, late night shifts), making dark theme support a practical requirement rather than a cosmetic preference. The team evaluated three approaches:
+
+1. **Material UI (MUI)** -- Comprehensive component library with theming support. Installed as a package dependency. Customization requires overriding the theme object and dealing with CSS-in-JS specificity issues.
+2. **Radix UI + custom styling** -- Headless, accessible primitives with no built-in styling. Full control but requires building every component's visual layer from scratch.
+3. **Shadcn/ui** -- Pre-built, accessible components based on Radix UI primitives, styled with Tailwind CSS. Components are copied into the project (not installed as a package dependency), giving full ownership and customization control.
+
+MUI's package-based approach would create a dependency on their theming system and make it harder to enforce SALLY's strict design constraints (grayscale-only palette, specific dark theme behavior). Radix alone would require too much upfront investment in building the visual layer. Shadcn/ui provides the middle ground: production-ready components that the team owns and can modify freely.
+
+The team also decided that dark theme should not be an afterthought. Adding dark mode after building a light-mode UI leads to inconsistencies and missed styles. Instead, dark theme support should be mandatory from the first component.
+
+## Decision
+
+Use **Shadcn/ui components with a mandatory dark theme-first approach**. The specific conventions are:
+
+**Component library:**
+- Shadcn/ui components are copied into `src/components/ui/` and become part of the codebase. They are not a package dependency.
+- New components are added with `pnpm dlx shadcn@latest add [component-name]`.
+- All UI elements must use Shadcn components instead of plain HTML. For example, `<Button>` instead of `<button>`, `<Card>` instead of `<div className="border rounded-lg">`.
+
+**Color palette:**
+- The UI uses only black, white, and gray shades. No brand colors, no accent colors.
+- Status indicators (red for critical, yellow for warning, green for success, blue for info) are the only exception, and they must include dark mode variants.
+- This restriction keeps the interface clean and professional, and reduces the surface area for dark theme inconsistencies.
+
+**Semantic color tokens:**
+- Backgrounds use `bg-background`, `bg-card`, `bg-muted` instead of hardcoded values like `bg-white`.
+- Text uses `text-foreground`, `text-muted-foreground` instead of `text-gray-900`.
+- Borders use `border-border` instead of `border-gray-200`.
+- These tokens are defined as CSS variables in `globals.css` and automatically switch values between light and dark themes via the `next-themes` provider.
+
+**Mandatory dark mode classes:**
+- If a component uses a light-mode-only class (e.g., `bg-gray-50`), it must include the dark variant (e.g., `bg-gray-50 dark:bg-gray-900`).
+- Inverted elements (black background in light mode) must invert in dark mode: `bg-black dark:bg-white text-white dark:text-black`.
+
+**Theme management:**
+- `next-themes` handles theme switching and persistence.
+- The theme is stored in `localStorage` and respects the system preference by default.
+
+## Consequences
+
+**What became easier:**
+
+- Dark theme works everywhere from day one. There is no "dark theme retrofit" project because every component is built with both themes from the start.
+- The grayscale palette eliminates color decision fatigue. Developers do not need to choose between shades of blue or debate brand color placement. The UI is visually consistent without a dedicated design system team.
+- Full ownership of components means the team can modify any component's behavior, accessibility, or styling without waiting for an upstream package release or working around library limitations.
+- Semantic tokens make theming declarative. A developer writes `bg-background` once, and it works in both themes without conditional logic.
+- Adding a new Shadcn component is a one-command operation that generates a file the team owns.
+
+**What became harder:**
+
+- Developers must learn and follow strict conventions. Using `bg-white` instead of `bg-background` is a code review rejection. This requires training and vigilance.
+- Shadcn components are copied, not installed. When the upstream Shadcn project releases improvements (accessibility fixes, new variants), the team must manually review and apply those changes. There is no automatic update path.
+- The grayscale restriction limits visual expressiveness. Some UI patterns (colored navigation, branded headers, data visualizations with color encoding) require explicit exceptions to the palette rule.
+- Every new UI component must be tested in both light and dark themes at three breakpoints (mobile, tablet, desktop). This doubles the visual QA surface area compared to a light-theme-only approach.
+- Developers unfamiliar with Tailwind's dark mode variant (`dark:`) syntax need time to learn the patterns.

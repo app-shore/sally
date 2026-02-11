@@ -1,0 +1,453 @@
+---
+title: Data Flow
+description: End-to-end request lifecycles for route planning, alert management, integration sync, and real-time events.
+---
+
+# Data Flow
+
+This page traces how data moves through the SALLY platform for the four most important operations: route planning, alert lifecycle, integration synchronization, and real-time event delivery. Each flow includes a sequence diagram showing the exact path a request takes through the system's components.
+
+---
+
+## Route Planning Request
+
+When a dispatcher creates a new route plan, the request passes through authentication, the planning engine pipeline, and persistence before returning the complete plan with all segments.
+
+```mermaid
+sequenceDiagram
+    participant Dispatcher
+    participant Frontend as Next.js Frontend
+    participant API as NestJS API
+    participant Guards as Auth Guards
+    participant Controller as RoutePlanningController
+    participant Engine as RoutePlanningEngine
+    participant HOS as HOSRuleEngine
+    participant Fuel as FuelProvider
+    participant Weather as WeatherProvider
+    participant Routing as RoutingProvider
+    participant Persist as RoutePlanPersistence
+    participant Prisma
+    participant PG as PostgreSQL
+    participant Redis
+
+    Dispatcher->>Frontend: Submit route plan form<br/>(loads, driver, vehicle, departure time)
+    Frontend->>API: POST /api/v1/routes/plan<br/>{loadIds, driverId, vehicleId, departureTime}
+
+    API->>Guards: JwtAuthGuard (verify JWT cookie)
+    Guards->>Guards: TenantGuard (extract tenantId)
+    Guards->>Guards: RolesGuard (DISPATCHER or ADMIN)
+    Guards-->>API: Authorized
+
+    API->>Controller: planRoute(dto)
+    Controller->>Engine: generatePlan(dto, tenantId)
+
+    Note over Engine: Step 1: Load Data
+    Engine->>Prisma: Fetch driver (with HOS fields)
+    Prisma->>PG: SELECT from drivers
+    PG-->>Prisma: Driver + HOS state
+    Engine->>Prisma: Fetch vehicle (fuel capacity, MPG)
+    Engine->>Prisma: Fetch loads with stops
+
+    Note over Engine: Step 2: Optimize Stop Sequence
+    Engine->>Routing: Get distances between all stop pairs
+    Routing-->>Engine: Distance matrix
+    Engine->>Engine: TSP solver (nearest-neighbor + 2-opt)
+
+    Note over Engine: Step 3: Simulate HOS Segment-by-Segment
+    loop For each segment in optimized sequence
+        Engine->>HOS: simulateSegment(hosState, driveTime)
+        HOS->>HOS: Check 11h drive limit
+        HOS->>HOS: Check 14h on-duty limit
+        HOS->>HOS: Check 8h break requirement
+        HOS->>HOS: Check 70h cycle limit
+
+        alt HOS violation detected
+            HOS-->>Engine: NEEDS_REST (type, duration)
+            Engine->>Engine: Insert rest segment
+        else Within limits
+            HOS-->>Engine: OK (updated hosState)
+        end
+
+        Engine->>Weather: Check conditions on segment
+        Weather-->>Engine: Weather alerts (if any)
+    end
+
+    Note over Engine: Step 4: Insert Fuel Stops
+    Engine->>Engine: Simulate fuel consumption across segments
+    loop For each fuel shortfall
+        Engine->>Fuel: Find cheapest station near segment
+        Fuel-->>Engine: Station (name, price, location)
+        Engine->>Engine: Insert fuel segment
+    end
+
+    Note over Engine: Step 5: Validate Feasibility
+    Engine->>Engine: Verify zero HOS violations
+    Engine->>Engine: Verify all appointments reachable
+    Engine->>Engine: Verify fuel levels safe throughout
+
+    Note over Engine: Step 6: Persist
+    Engine->>Persist: savePlan(plan, segments)
+    Persist->>Prisma: Create RoutePlan
+    Persist->>Prisma: Create RouteSegments (batch)
+    Persist->>Prisma: Create RoutePlanLoads
+    Prisma->>PG: INSERT transactions
+
+    Engine->>Redis: Cache plan summary
+
+    Engine-->>Controller: Complete plan with segments
+    Controller-->>API: Response DTO
+    API-->>Frontend: 201 Created {plan, segments, compliance}
+    Frontend-->>Dispatcher: Route displayed on map + timeline
+```
+
+### What Gets Returned
+
+The response includes:
+
+- **Plan summary** -- Total distance, drive time, on-duty time, cost estimate, feasibility status, daily breakdown.
+- **Ordered segments** -- Each segment with type (drive/rest/fuel/dock), locations, timing, and HOS state snapshot after completion.
+- **Compliance report** -- A structured record confirming zero violations, with details of every rest stop insertion and the reasoning behind it.
+- **Feasibility issues** -- If the route cannot be completed without violations (e.g., appointment windows are impossible), the issues array explains why.
+
+---
+
+## Alert Lifecycle
+
+Alerts flow from trigger detection through generation, notification, and resolution. This is the most complex data flow in the system because it involves multiple services working in concert.
+
+```mermaid
+sequenceDiagram
+    participant Trigger as Alert Trigger<br/>(monitoring event)
+    participant TrigSvc as AlertTriggersService
+    participant GenSvc as AlertGenerationService
+    participant GrpSvc as AlertGroupingService
+    participant DedupSvc as Dedup Logic
+    participant Prisma
+    participant PG as PostgreSQL
+    participant ChanRes as ChannelResolutionService
+    participant Delivery as DeliveryService
+    participant Email as Email Service
+    participant Push as Push Service
+    participant SSE as SSE Service
+    participant Cache as Alert Cache
+    participant Frontend as Dispatcher Dashboard
+
+    Note over Trigger: Trigger sources:<br/>HOS approaching limit,<br/>driver not moving,<br/>dock time exceeded, etc.
+
+    Trigger->>TrigSvc: processTrigger(event)
+    TrigSvc->>TrigSvc: Evaluate trigger rules<br/>(threshold, timing, category)
+
+    TrigSvc->>GenSvc: generateAlert(type, params)
+    GenSvc->>GenSvc: Look up AlertTypeDefinition<br/>(title, message, priority, recommendedAction)
+
+    GenSvc->>DedupSvc: checkDuplicate(dedupKey)
+    DedupSvc->>Prisma: Find active alert with dedupKey
+    Prisma->>PG: SELECT from alerts
+    PG-->>Prisma: Existing alert or null
+
+    alt Duplicate found
+        DedupSvc-->>GenSvc: Update existing alert metadata
+        GenSvc->>Prisma: UPDATE alert metadata + timestamp
+    else No duplicate
+        GenSvc->>GrpSvc: resolveGrouping(driverId, routePlanId)
+        GrpSvc-->>GenSvc: groupKey, parentAlertId
+
+        GenSvc->>Prisma: INSERT new alert
+        Prisma->>PG: INSERT into alerts
+    end
+
+    GenSvc->>Cache: Invalidate alert counts
+
+    Note over GenSvc: Notification dispatch
+    GenSvc->>ChanRes: resolveChannels(alertType, priority, tenantId)
+    ChanRes->>Prisma: Load AlertConfiguration + UserPreferences
+    ChanRes-->>GenSvc: Channels per recipient<br/>(email, push, in-app, SMS)
+
+    GenSvc->>Delivery: dispatch(alert, channels)
+
+    par Email channel
+        Delivery->>Email: sendAlertEmail(alert, recipient)
+    and Push channel
+        Delivery->>Push: sendPushNotification(alert, subscriptions)
+    and SSE channel
+        Delivery->>SSE: broadcastAlert(tenantId, alert)
+        SSE->>Frontend: SSE event: new_alert
+    end
+
+    Frontend->>Frontend: React Query invalidates alerts cache
+    Frontend->>Frontend: UI updates (badge count, alert list)
+
+    Note over Frontend: Dispatcher acknowledges
+    Frontend->>Prisma: PATCH /alerts/{id}/acknowledge
+    Prisma->>PG: UPDATE alert SET status=acknowledged
+
+    Note over Frontend: Dispatcher resolves
+    Frontend->>Prisma: PATCH /alerts/{id}/resolve<br/>{resolutionNotes}
+    Prisma->>PG: UPDATE alert SET status=resolved
+    Cache->>Cache: Invalidate alert counts
+    SSE->>Frontend: SSE event: alert_resolved
+```
+
+### Alert Channel Resolution
+
+The channel resolution service determines how each alert reaches the right people through the right channels:
+
+1. **Tenant defaults** (`AlertConfiguration.defaultChannels`) define the baseline: e.g., critical alerts go to email + push + in-app; low-priority alerts are in-app only.
+2. **User overrides** (`UserPreferences.alertChannels`) allow individual dispatchers to customize: e.g., "send me SMS for critical alerts too."
+3. **Quiet hours** (`UserPreferences.quietHoursEnabled/Start/End`) suppress non-critical notifications during off hours.
+4. **Category filtering** (`UserPreferences.alertCategories`) lets users opt out of entire alert categories.
+
+### Escalation Flow
+
+Unacknowledged alerts escalate automatically:
+
+```mermaid
+sequenceDiagram
+    participant Scheduler as Escalation Scheduler
+    participant EscSvc as EscalationService
+    participant Prisma
+    participant PG as PostgreSQL
+    participant Delivery as DeliveryService
+
+    Scheduler->>EscSvc: checkEscalations()
+
+    EscSvc->>Prisma: Find active, unacknowledged alerts<br/>past escalation threshold
+    Prisma->>PG: SELECT from alerts<br/>WHERE status=active<br/>AND createdAt < threshold
+    PG-->>Prisma: Alerts to escalate
+
+    loop Each alert to escalate
+        EscSvc->>Prisma: UPDATE escalationLevel + 1
+        EscSvc->>EscSvc: Increase priority if policy requires
+        EscSvc->>Delivery: Re-notify with escalated priority
+    end
+```
+
+### Auto-Resolution
+
+Certain alert types auto-resolve when conditions clear:
+
+```mermaid
+sequenceDiagram
+    participant Monitor as Monitoring Cycle
+    participant AutoRes as AutoResolutionService
+    participant Prisma
+    participant PG as PostgreSQL
+
+    Monitor->>AutoRes: checkAutoResolve(event)
+    AutoRes->>AutoRes: Evaluate resolution condition<br/>(e.g., driver resumed movement,<br/>fuel level increased,<br/>ETA recovered)
+
+    alt Condition met
+        AutoRes->>Prisma: UPDATE alert<br/>SET status=resolved,<br/>autoResolved=true,<br/>autoResolveReason=reason
+        Prisma->>PG: UPDATE alerts
+    end
+```
+
+---
+
+## Integration Sync Flow
+
+External integrations synchronize data on scheduled intervals. The flow demonstrates the ELD sync pattern; TMS sync follows the same structure with different entity types.
+
+```mermaid
+sequenceDiagram
+    participant Cron as Auto-Sync Job<br/>(Cron Scheduler)
+    participant SyncSvc as SyncService
+    participant Factory as AdapterFactory
+    participant Adapter as Samsara ELD Adapter
+    participant ExtAPI as Samsara API
+    participant Match as MatchingService
+    participant Merge as MergingService
+    participant Prisma
+    participant PG as PostgreSQL
+    participant Log as SyncLog
+
+    Cron->>SyncSvc: triggerSync(integrationConfigId)
+
+    SyncSvc->>Prisma: Load IntegrationConfig<br/>(vendor, credentials, tenantId)
+    Prisma->>PG: SELECT from integration_configs
+    PG-->>Prisma: Config (SAMSARA_ELD, credentials)
+
+    SyncSvc->>Log: Create sync log (status: started)
+
+    SyncSvc->>Factory: getAdapter(SAMSARA_ELD)
+    Factory-->>SyncSvc: SamsaraEldAdapter instance
+
+    SyncSvc->>Adapter: fetchDrivers(credentials)
+    Adapter->>ExtAPI: GET /fleet/drivers<br/>Authorization: Bearer {apiToken}
+    ExtAPI-->>Adapter: Raw driver + HOS data
+
+    Adapter->>Adapter: Transform to normalized format<br/>(vendor-agnostic DTO)
+    Adapter-->>SyncSvc: NormalizedDriver[]
+
+    loop Each normalized driver
+        SyncSvc->>Match: matchToLocal(externalDriverId, tenantId)
+        Match->>Prisma: Find driver by externalDriverId + tenantId
+        Prisma->>PG: SELECT from drivers
+        PG-->>Match: Local driver or null
+
+        alt Match found
+            Match-->>SyncSvc: Existing driver
+            SyncSvc->>Merge: mergeUpdates(localDriver, externalData)
+            Merge->>Merge: Compare fields, detect changes
+            Merge->>Prisma: UPDATE driver (HOS fields, sync timestamp)
+            Prisma->>PG: UPDATE drivers
+            Log->>Log: Increment recordsUpdated
+        else No match
+            Match-->>SyncSvc: No match
+            SyncSvc->>Prisma: INSERT driver<br/>(status: PENDING_ACTIVATION)
+            Prisma->>PG: INSERT into drivers
+            Log->>Log: Increment recordsCreated
+        end
+    end
+
+    SyncSvc->>Log: Complete sync log<br/>(status: success, counts)
+    SyncSvc->>Prisma: UPDATE integration config<br/>(lastSyncAt, lastSuccessAt)
+```
+
+### Sync Characteristics
+
+| Aspect | ELD Sync (Samsara, Motive) | TMS Sync (McLeod, project44) |
+|---|---|---|
+| Entities synced | Drivers + HOS clocks | Loads + Stops + Appointments |
+| Sync frequency | Configurable (default: 5 min) | Configurable (default: 15 min) |
+| Matching key | `externalDriverId` | `externalLoadId` |
+| New record status | `PENDING_ACTIVATION` | `pending` |
+| HOS fields updated | 6 structured fields + raw JSON | N/A |
+| Conflict resolution | External data wins (ELD is source of truth) | External data wins for load status; manual edits preserved for notes |
+
+### Error Handling
+
+```mermaid
+graph TB
+    SYNC["Sync Attempt"] --> SUCCESS{"API call<br/>succeeded?"}
+    SUCCESS -->|Yes| PROCESS["Process records"]
+    SUCCESS -->|No| RETRY{"Retries<br/>remaining?"}
+    RETRY -->|Yes| BACKOFF["Exponential backoff<br/>(1s, 2s, 4s, 8s)"]
+    BACKOFF --> SYNC
+    RETRY -->|No| FAIL["Log failure"]
+    FAIL --> UPDATE["Update integration config<br/>(lastErrorAt, lastErrorMessage)"]
+    UPDATE --> ALERT["Generate INTEGRATION_FAILURE alert"]
+```
+
+When an integration sync fails after all retries, the system:
+
+1. Records the error in the sync log with full details.
+2. Updates the integration config's error fields for the health dashboard.
+3. Sets the integration status to `ERROR`.
+4. Generates an `INTEGRATION_FAILURE` alert so dispatchers know their data may be stale.
+
+---
+
+## Real-Time Events Flow
+
+SALLY uses two real-time protocols for different communication patterns.
+
+### SSE: Server-to-Client Push
+
+Server-Sent Events deliver unidirectional updates from the backend to the dispatcher dashboard. This is used for alerts, route status changes, and integration sync progress.
+
+```mermaid
+sequenceDiagram
+    participant Dashboard as Dispatcher Dashboard
+    participant EventSource as EventSource API
+    participant SSECtrl as SSE Controller
+    participant SSESvc as SSE Service
+    participant Redis
+    participant Backend as Backend Services
+
+    Dashboard->>EventSource: new EventSource('/sse/events')
+    EventSource->>SSECtrl: GET /sse/events<br/>Cookie: access_token
+    SSECtrl->>SSECtrl: Verify JWT, extract tenantId + userId
+    SSECtrl->>SSESvc: registerClient(tenantId, userId, response)
+    SSESvc->>SSESvc: Store response stream reference
+
+    Note over Backend: Alert generated for this tenant
+    Backend->>Redis: PUBLISH tenant:{tenantId}:alerts {alertData}
+    Redis->>SSESvc: Message received on subscription
+    SSESvc->>SSESvc: Find connected clients for tenantId
+    SSESvc->>SSECtrl: Write SSE event to response streams
+
+    SSECtrl-->>EventSource: data: {"type":"new_alert","alert":{...}}
+    EventSource-->>Dashboard: onmessage event fires
+
+    Dashboard->>Dashboard: React Query invalidates alerts cache
+    Dashboard->>Dashboard: Toast notification displayed
+    Dashboard->>Dashboard: Alert badge count updated
+```
+
+### WebSocket: Bidirectional Messaging
+
+WebSocket (via Socket.IO) handles the messaging gateway between dispatchers and drivers, where both sides send and receive in real-time.
+
+```mermaid
+sequenceDiagram
+    participant Dispatcher
+    participant DispFE as Dispatcher Frontend
+    participant Gateway as Messaging Gateway<br/>(WebSocket)
+    participant DrvFE as Driver Frontend
+    participant Driver
+
+    Dispatcher->>DispFE: Type message to driver
+    DispFE->>Gateway: socket.emit('send_message',<br/>{recipientId, content})
+    Gateway->>Gateway: Validate sender auth
+    Gateway->>Gateway: Store message (optional)
+
+    Gateway->>DrvFE: socket.emit('new_message',<br/>{senderId, content, timestamp})
+    DrvFE-->>Driver: Display message notification
+
+    Driver->>DrvFE: Type reply
+    DrvFE->>Gateway: socket.emit('send_message',<br/>{recipientId, content})
+    Gateway->>DispFE: socket.emit('new_message',<br/>{senderId, content, timestamp})
+    DispFE-->>Dispatcher: Display reply in chat
+```
+
+### When Each Protocol Is Used
+
+| Protocol | Direction | Use Cases |
+|---|---|---|
+| SSE | Server to Client | Alert notifications, route status updates, integration sync progress, ETA changes |
+| WebSocket | Bidirectional | Dispatcher-driver messaging, acknowledgment requests, real-time chat |
+| HTTP polling | Client to Server | Fallback when SSE/WebSocket unavailable; React Query background refetch |
+
+### Frontend Event Handling
+
+When real-time events arrive at the frontend, they follow a consistent pattern:
+
+```mermaid
+graph LR
+    EVENT["SSE/WebSocket<br/>Event"] --> HANDLER["Event Handler<br/>(useEffect hook)"]
+    HANDLER --> INVALIDATE["React Query<br/>Cache Invalidation"]
+    HANDLER --> TOAST["Toast<br/>Notification"]
+    HANDLER --> STORE["Zustand<br/>Store Update"]
+    INVALIDATE --> REFETCH["Background<br/>Refetch"]
+    REFETCH --> UI["UI Re-render<br/>(with fresh data)"]
+    TOAST --> UI
+    STORE --> UI
+```
+
+1. **Event arrives** via SSE `onmessage` or Socket.IO `on` handler.
+2. **React Query cache invalidation** marks relevant queries as stale, triggering a background refetch to get the complete data from the API.
+3. **Toast notification** shows a brief visual alert for high-priority events (new critical alert, message received).
+4. **Zustand store update** for UI state that does not need an API round-trip (e.g., incrementing the unread count badge).
+
+This pattern ensures the UI always shows server-authoritative data (via React Query refetch) while providing instant visual feedback (via toast and store updates).
+
+---
+
+## Summary: Data Flow Patterns
+
+| Flow | Entry Point | Key Services | Data Store | Real-Time Output |
+|---|---|---|---|---|
+| Route Planning | `POST /api/v1/routes/plan` | RoutePlanningEngine, HOSRuleEngine, Providers | PostgreSQL (plans, segments), Redis (cache) | None (synchronous response) |
+| Alert Lifecycle | Trigger event (internal) | AlertTriggers, AlertGeneration, AlertGrouping, Escalation, ChannelResolution, Delivery | PostgreSQL (alerts), Redis (pub/sub) | SSE (new_alert, alert_resolved) |
+| Integration Sync | Cron scheduler | SyncService, AdapterFactory, Matching, Merging | PostgreSQL (drivers/loads, sync logs) | SSE (sync_progress) |
+| Messaging | WebSocket event | MessagingGateway | Optional persistence | WebSocket (new_message) |
+
+---
+
+## Further Reading
+
+- [System Overview](/developer-guide/architecture) -- High-level architecture context for these flows
+- [Backend Architecture](/developer-guide/architecture/backend) -- Detailed module structure of the services referenced here
+- [Database Schema](/developer-guide/architecture/database) -- Table structures that these flows read and write
+- [Frontend Architecture](/developer-guide/architecture/frontend) -- How the frontend handles the responses and events described here

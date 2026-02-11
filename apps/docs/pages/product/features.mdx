@@ -1,0 +1,438 @@
+---
+title: Core Features
+description: Detailed breakdown of SALLY's core capabilities — route planning, HOS compliance, fuel optimization, monitoring, alerts, notifications, command center, and more.
+---
+
+# Core Features
+
+SALLY's functionality is organized around a conversational AI interface backed by fifteen core capabilities that work together to provide end-to-end fleet operations intelligence.
+
+---
+
+## SALLY AI -- Conversational Interface
+
+SALLY AI is the primary way users interact with the platform. Rather than navigating dashboards and filling out forms, dispatchers and drivers converse with SALLY in natural language.
+
+**What it does:**
+- Accepts natural language requests for route planning, status queries, and fleet management
+- Translates requests into the appropriate backend operations (route planning, HOS checks, alert queries)
+- Returns results in conversational format with actionable recommendations
+- Maintains conversation context across multi-turn interactions
+
+**Example interactions:**
+
+| User | SALLY Response |
+|---|---|
+| "Plan a route for Martinez, LA to Dallas with stops in Phoenix and El Paso" | Plans the route, optimizes stop order, inserts rest/fuel stops, returns the full plan |
+| "Johnson's dock is taking 2 hours longer than expected" | Checks HOS impact, determines if re-plan needed, suggests next steps |
+| "Who needs rest in the next 2 hours?" | Queries monitoring layer, surfaces drivers approaching HOS limits |
+| "Find cheap diesel near Amarillo" | Queries fuel prices, returns top options with prices and distance |
+
+**Status:** UX built and live. SALLY AI is the initial feature and the core user experience -- all other capabilities are accessed through it.
+
+---
+
+## 1. Route Planning Engine
+
+The route planner takes a driver, truck, and set of stops, then produces an optimized, HOS-compliant route plan.
+
+**Input:**
+- Driver with current HOS status (hours driven, on-duty time, break status)
+- Truck with fuel level, MPG, and capacity
+- Stops with origin, waypoints, destination, and time windows
+
+**Output:**
+- Optimal stop sequence (minimize time or cost)
+- Complete route with drive, rest, fuel, and dock segments
+- HOS compliance validation
+- Feasibility report
+
+**Planning pipeline:**
+
+1. **Stop sequence optimization** — TSP solver (greedy nearest-neighbor + 2-opt) orders stops to minimize total drive time while respecting time windows
+2. **HOS simulation** — Walks each segment tracking 11h drive clock, 14h on-duty window, 8h break requirement, and 70h cycle
+3. **Rest stop insertion** — When the simulation detects the driver cannot legally complete a segment, it determines the rest type and inserts a rest segment
+4. **Fuel stop insertion** — Monitors fuel state and inserts stops when the tank drops below a safe threshold, selecting the cheapest nearby station
+5. **Feasibility validation** — Confirms zero HOS violations, all appointments reachable, fuel levels safe throughout
+
+**Performance:** Less than 5 seconds for 10 stops, less than 15 seconds for 20 stops.
+
+**API:** `POST /api/v1/routes/plan` — See [Creating Routes](/api-guides/route-planning/creating-routes) for details.
+
+---
+
+## 2. HOS Compliance
+
+SALLY enforces FMCSA Hours of Service regulations at every step.
+
+**Rules enforced:**
+
+| Rule | Limit | What Happens |
+|---|---|---|
+| Drive time | 11 hours | Rest stop inserted when approaching limit |
+| On-duty window | 14 hours | Full rest required when window expires |
+| Break requirement | 30 min after 8h driving | Break segment inserted |
+| Cycle limit | 70 hours / 8 days | Route marked infeasible if exceeded |
+
+**Accuracy:** 100% — zero HOS violations on generated routes.
+
+**Audit trail:** Every decision is logged with the reasoning, including:
+- HOS status at each segment
+- Legal reasoning for rest recommendations
+- Comparison against FMCSA regulations
+- Violation warnings (if any)
+
+---
+
+## 3. Intelligent Rest Management
+
+When the route planner detects a driver will run out of hours, it calls the REST Optimization Engine to determine the best rest strategy.
+
+**Rest types:**
+
+| Type | Duration | When Used |
+|---|---|---|
+| Full rest | 10 hours | Resets all hours (11h drive + 14h duty) |
+| Partial rest (sleeper berth) | 7h or 8h | Sleeper berth split provision (7/3 or 8/2) |
+| Break | 30 minutes | Required after 8 hours of driving |
+
+**Rest recommendation categories:**
+
+| Category | Confidence | Description |
+|---|---|---|
+| Mandatory rest | 100% | Route not feasible without rest; cannot decline |
+| Opportunistic rest | 60–75% | Route is feasible but marginal; dock time available |
+| Dedicated rest stop | 100% | No dock available; truck stop inserted as waypoint |
+
+**Decision factors:**
+- Current HOS state (how close to limits?)
+- Remaining route demand (how many hours needed?)
+- Dock time availability (can leverage forced downtime?)
+- Cost (how much extra time to extend rest?)
+- Opportunity score (0–100)
+
+**API:** `POST /api/v1/rest/recommend` — Called internally by the route planner.
+
+---
+
+## 4. Fuel Stop Optimization
+
+The fuel optimizer tracks consumption across segments and inserts stops before the tank runs low.
+
+**How it works:**
+- Tracks fuel consumption per segment: `distance / MPG`
+- Alerts when fuel drops below 25% tank capacity
+- Finds stations within 10 miles of the route
+- Optimizes for price (cheapest) or time (fastest)
+- Prefers truck-friendly stations (Pilot, TA, Loves)
+
+**Example:**
+
+| Segment | Fuel Remaining | Range | Decision |
+|---|---|---|---|
+| Stop A → Stop B (300 mi) | 100 gal (600 mi range) | Sufficient | No stop needed |
+| Stop B → Stop C (400 mi) | 50 gal (300 mi range) | Insufficient | Insert fuel stop at mile 150 |
+
+**API:** `POST /api/v1/fuel/find-stops` — Called internally by the route planner.
+
+---
+
+## 5. Continuous Monitoring
+
+The monitoring layer watches all active routes and generates alerts when conditions change. It runs every 60 seconds per active route.
+
+**20 alert types across 6 categories:**
+
+| Category | Alert Types |
+|---|---|
+| HOS Compliance | Violation, Approaching Limit, Break Required, Cycle Limit, Recap Available, Duty Status Change |
+| Route Progress | Missed Appointment, At Risk, Dock Time Exceeded, Route Delay, Route Completed |
+| Driver Behavior | Not Moving, Speeding, Unauthorized Stop |
+| Vehicle State | Fuel Low, Maintenance Due |
+| External Conditions | Weather Alert, Road Closure |
+| System | Integration Failure, System Error |
+
+**Alert lifecycle:** Active → Acknowledged → Resolved
+
+**Features:**
+- Alert grouping (related alerts under a parent)
+- Deduplication (same condition doesn't generate duplicates)
+- Escalation (unacknowledged alerts increase in priority)
+- Auto-resolution (alerts resolve when conditions clear)
+
+---
+
+## 6. Dynamic Route Updates
+
+When conditions change, SALLY decides whether to re-plan or just update ETAs.
+
+**Trigger types:**
+
+| Trigger | Example | Response |
+|---|---|---|
+| Dock time change | Dock took 4h instead of 2h | Re-plan if HOS impacted |
+| Traffic delay | 45-minute highway closure | Re-plan if delay exceeds 30 min |
+| Load added/cancelled | Dispatcher adds urgent stop | Re-sequence remaining stops |
+| Driver rest request | Driver wants to rest now | Update HOS, re-plan remaining route |
+
+**Decision logic:**
+- **Minor impact** (less than 30 min ETA change) → Update ETAs only
+- **Major impact** → Full re-plan through Route Planning Engine
+- Every update recorded as a `RoutePlanUpdate` with trigger type, impact summary, and before/after plan versions
+
+**API:** `POST /api/v1/routes/update` — See [Route Updates](/api-guides/route-planning/route-updates) for details.
+
+---
+
+## 7. Automated Alert System
+
+Proactively notifies dispatchers when intervention is needed, reducing reactive fire-fighting.
+
+**Key alert types:**
+
+| Alert | Priority | Trigger | Recommended Action |
+|---|---|---|---|
+| DRIVER_NOT_MOVING | HIGH | No movement for 2+ hours during drive segment | Call driver |
+| HOS_APPROACHING_LIMIT | MEDIUM | Less than 1h drive time remaining | Monitor; ensure rest stop upcoming |
+| HOS_VIOLATION | CRITICAL | Active HOS violation detected | Mandatory rest immediate |
+| DOCK_TIME_EXCEEDED | HIGH | Actual dock time exceeds estimate by 1h+ | Re-plan remaining route |
+| ROUTE_DELAY | MEDIUM | ETA delay exceeds 30 minutes | Update customer |
+| FUEL_LOW | HIGH | Fuel below 20% capacity | Insert fuel stop |
+| MISSED_APPOINTMENT | CRITICAL | Driver missed time window | Contact customer, re-plan |
+
+**Alert flow:**
+1. Event detected by monitoring layer
+2. Alert Engine evaluates severity
+3. Alert record created (Active status)
+4. Dispatcher notified in-app
+5. Dispatcher acknowledges, takes action, resolves
+
+**Key principle:** The system handles routine updates automatically. Dispatchers only intervene when human judgment is needed.
+
+---
+
+## 8. Dual User Interfaces
+
+### Dispatcher Dashboard
+
+- **Create Plan** — Wizard-style workflow: Select Load → Driver → Vehicle → Generate Plan
+- **Active Routes** — Status board grouped by On Track / Minor Delay / At Risk
+- **Alerts** — Priority-based triage with acknowledge and resolve actions
+- **Settings** — Fleet configuration, integrations, user management
+
+### Driver View
+
+- **Route View** — Map with route line and markers for drive, rest, fuel, dock segments
+- **Compliance Panel** — Live HOS clocks, break status, next rest location
+- **Update Feed** — Real-time log of route changes
+- **Actions** — "I'm here", "Dock taking longer", "I want to rest here", "Accept new route"
+
+---
+
+## 9. Notifications System
+
+SALLY delivers alerts and updates through four delivery channels, ensuring dispatchers and drivers receive critical information wherever they are.
+
+**Delivery channels:**
+
+| Channel | Provider | Use Case |
+|---|---|---|
+| Email | Resend | Shift summaries, daily reports, non-urgent alerts |
+| SMS | Twilio | Critical alerts, HOS violations, missed appointments |
+| Browser Push | Web Push (VAPID) | Real-time alerts when the app is in the background |
+| In-App | Server-Sent Events (SSE) | Live updates within the SALLY interface |
+
+**Channel resolution:**
+- Channels are selected based on **alert priority** combined with **user preferences**
+- Critical alerts go to all enabled channels simultaneously
+- Medium and low priority alerts respect the user's preferred channel configuration
+- **Quiet hours** support — suppress non-critical notifications during off-hours (configurable per user)
+
+**Notification types:** 18+ types covering HOS alerts, route updates, driver status changes, system events, invitation notifications, and administrative messages.
+
+**Key features:**
+- Per-user channel preferences (enable/disable each channel independently)
+- Priority-based routing (critical alerts bypass quiet hours)
+- Delivery status tracking (sent, delivered, failed)
+- Retry logic for failed deliveries
+
+---
+
+## 10. Command Center
+
+The Command Center is the dispatcher operations dashboard — the central hub for managing fleet operations in real time.
+
+**Key sections:**
+
+| Section | Purpose |
+|---|---|
+| Real-time Overview | Live fleet status with active routes, driver positions, and alert counts |
+| Active Route Monitoring | Route progress tracking with ETA updates and deviation detection |
+| Shift Notes | Structured handoff notes between dispatcher shifts |
+
+**Real-time overview:**
+- At-a-glance fleet health: routes on track, at risk, delayed
+- Active alert count by priority (critical, high, medium, low)
+- Driver status summary (driving, on break, at dock, off duty)
+
+**Shift notes:**
+- Dispatchers create handoff notes at shift end
+- Notes capture: active issues, pending actions, driver communications, route concerns
+- Incoming dispatcher sees prioritized summary of what needs attention
+- Full history preserved for audit trail
+
+**Active route monitoring:**
+- Live route progress with segment-level tracking
+- ETA confidence indicators
+- One-click access to re-plan or update routes
+
+---
+
+## 11. Settings & Preferences
+
+SALLY supports a three-level configuration hierarchy, allowing fleet-wide defaults with per-user and per-driver overrides.
+
+**Configuration levels:**
+
+| Level | Scope | Examples |
+|---|---|---|
+| Tenant | Fleet-wide operations settings | Default HOS rules, fuel thresholds, alert policies, operational defaults |
+| User | Display and notification preferences | Theme, timezone, notification channels, quiet hours, dashboard layout |
+| Driver | Route and contact preferences | Preferred rest stops, communication preferences, default truck type |
+
+**Tenant-level settings:**
+- Fleet operations defaults (HOS rule set, fuel reserve threshold, max route stops)
+- Alert configuration (which alert types are active, priority overrides, escalation timers)
+- Integration settings (API endpoints, sync frequency)
+
+**User-level preferences:**
+- Display settings (theme, timezone, date format)
+- Notification preferences (channels, quiet hours, frequency)
+- Dashboard customization (default views, pinned routes)
+
+**Driver-level preferences:**
+- Route preferences (preferred fuel brands, rest stop preferences)
+- Contact information (phone, email for notifications)
+- Default vehicle assignment
+
+**Inheritance:** Driver settings inherit from tenant defaults, with user-level and driver-level overrides applied in order.
+
+---
+
+## 12. API Key Management
+
+Server-to-server integrations authenticate via API keys, managed through the SALLY dashboard.
+
+**Capabilities:**
+
+| Action | Description |
+|---|---|
+| Create | Generate new API keys with optional expiration and scope |
+| List | View all active keys with usage statistics and last-used timestamps |
+| Revoke | Immediately invalidate a key (cannot be undone) |
+
+**Key features:**
+- **Rate limiting** — Per-key rate limits to prevent abuse and ensure fair usage
+- **Environment separation** — Distinct keys for staging and production environments
+- **Scope control** — Keys can be scoped to specific API endpoints or operations
+- **Audit logging** — All key creation, usage, and revocation events are logged
+
+**Use cases:**
+- TMS integration (push loads, receive route plans)
+- ELD/telematics data sync (Samsara, KeepTruckin)
+- Custom reporting and analytics pipelines
+- Third-party dispatch tools
+
+---
+
+## 13. Feature Flags
+
+SALLY uses system-wide feature flags for progressive rollout of new capabilities.
+
+**Flag categories:**
+
+| Category | Description | Examples |
+|---|---|---|
+| General | Platform-wide features | New route algorithm, updated HOS rules |
+| Dispatcher | Dispatcher-facing features | Command center widgets, bulk route actions |
+| Driver | Driver-facing features | New route view, voice commands |
+| Admin | Administrative features | Advanced analytics, custom integrations |
+
+**How it works:**
+- Feature flags are managed at the system level by administrators
+- Flags control visibility and availability of features across the platform
+- Progressive rollout: enable for internal users first, then expand to all tenants
+- Instant rollback: disable a flag to immediately remove a feature if issues arise
+
+**Benefits:**
+- Ship code continuously without exposing unfinished features
+- A/B test new capabilities with a subset of users
+- Quick kill switch for problematic features
+- Decouples deployment from release
+
+---
+
+## 14. User Invitations
+
+Tenant administrators invite new users via email, with role pre-assignment to streamline onboarding.
+
+**Invitation flow:**
+
+1. **Admin sends invite** — Specifies email address and assigns role (dispatcher, driver, admin)
+2. **Email delivered** — Recipient receives invitation email with a unique acceptance link
+3. **Token-based acceptance** — Clicking the link validates the token and creates the user account
+4. **Role applied** — The pre-assigned role is automatically applied upon acceptance
+
+**Management features:**
+
+| Action | Description |
+|---|---|
+| Send | Invite one or more users with role pre-assignment |
+| Track | View pending, accepted, and expired invitations |
+| Resend | Re-send invitation email for pending invites |
+| Cancel | Revoke a pending invitation before acceptance |
+
+**Key details:**
+- Invitation tokens expire after a configurable period (default: 7 days)
+- Expired invitations can be re-sent with a new token
+- Duplicate invitations to the same email are prevented
+- Invitation history preserved for audit purposes
+
+---
+
+## 15. Onboarding
+
+New tenants are guided through a step-by-step setup flow to configure their fleet operations on SALLY.
+
+**Onboarding steps:**
+
+| Step | What's Configured |
+|---|---|
+| Organization setup | Company name, fleet size, operating regions |
+| HOS rules | FMCSA rule set selection, exceptions (short-haul, etc.) |
+| Fleet defaults | Default fuel thresholds, preferred fuel brands, rest policies |
+| User invitations | Invite dispatchers, drivers, and administrators |
+| Integration setup | Connect TMS, ELD, and fuel card systems (optional) |
+| Verification | Review configuration and activate the tenant |
+
+**Key features:**
+- **Progress tracking** — Visual indicator of completed vs. remaining steps
+- **Skip and return** — Non-critical steps can be skipped and completed later
+- **Guided recommendations** — SALLY suggests sensible defaults based on fleet size and region
+- **Completion milestone** — Tenant is fully activated once required steps are complete
+
+---
+
+## Technology Stack
+
+SALLY is built on a modern, full-stack TypeScript architecture.
+
+| Layer | Technology |
+|---|---|
+| **Backend** | NestJS 11, TypeScript, Prisma 7, PostgreSQL 16, Redis 7 |
+| **Frontend** | Next.js 15, TypeScript, Tailwind CSS + Shadcn/ui, Zustand, React Query |
+| **Auth** | Firebase Authentication + JWT |
+| **Notifications** | Resend (email), Twilio (SMS), Web Push / VAPID (push notifications) |
+| **Real-time** | Server-Sent Events (SSE) + Socket.IO (WebSocket) |
+| **Monorepo** | Turborepo + pnpm |
+| **Infrastructure** | Docker + Docker Compose, Vercel (docs), AWS (Phase 2) |

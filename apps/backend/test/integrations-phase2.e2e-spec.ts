@@ -14,7 +14,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
  * - Alerting scenarios
  *
  * Prerequisites:
- * - Database must be seeded (npm run db:seed)
+ * - Database must be seeded (pnpm run db:seed)
  * - Environment variables must be set for real API testing
  * - Test user: tenant_id = 'jyc_carriers', user_id exists in database
  */
@@ -42,7 +42,7 @@ describe('Phase 2 Integration Tests (E2E)', () => {
 
     if (!tenant) {
       throw new Error(
-        'Test tenant jyc_carriers not found. Run npm run db:seed first.',
+        'Test tenant jyc_carriers not found. Run pnpm run db:seed first.',
       );
     }
 
@@ -55,7 +55,7 @@ describe('Phase 2 Integration Tests (E2E)', () => {
 
     if (!user) {
       throw new Error(
-        'No users found for tenant jyc_carriers. Run npm run db:seed first.',
+        'No users found for tenant jyc_carriers. Run pnpm run db:seed first.',
       );
     }
 

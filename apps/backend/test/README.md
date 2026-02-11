@@ -20,13 +20,13 @@ This directory contains end-to-end integration tests for the SALLY backend API.
 
 2. Database must be seeded with test data:
    ```bash
-   npm run db:seed
+   pnpm run db:seed
    ```
 
 ### Running E2E Tests
 
 ```bash
-npm run test:e2e
+pnpm run test:e2e
 ```
 
 ## Known Issues
@@ -37,7 +37,7 @@ The current Jest configuration has issues with uuid v13+ which uses pure ES modu
 
 If you encounter issues running tests, ensure:
 1. The uuid mock is properly configured in `jest-e2e.json`
-2. Prisma client has been generated: `npm run prisma:generate`
+2. Prisma client has been generated: `pnpm run prisma:generate`
 
 ## Integration Tests
 

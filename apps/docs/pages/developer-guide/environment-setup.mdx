@@ -1,0 +1,317 @@
+---
+title: Environment Setup
+description: Go from zero to a running SALLY development environment in 15 minutes.
+---
+
+# Environment Setup
+
+This guide walks you through setting up your local development environment. By the end, you will have the backend API, frontend app, and docs site all running locally.
+
+## Prerequisites Checklist
+
+Verify each tool is installed before continuing:
+
+```bash
+node -v    # Must be 20.0.0 or higher
+pnpm -v    # Must be 9.0.0 or higher
+docker --version   # Docker Desktop must be installed and running
+git --version
+```
+
+If any of these are missing, install them before proceeding.
+
+## Step 1: Clone the Repository
+
+```bash
+git clone <your-repo-url> sally
+cd sally
+```
+
+## Step 2: Install Dependencies
+
+Run `pnpm install` from the project root. pnpm workspaces will handle all sub-packages automatically -- you do not need to install dependencies in individual apps.
+
+```bash
+pnpm install
+```
+
+This installs dependencies for:
+- `apps/backend` (NestJS API)
+- `apps/web` (Next.js frontend)
+- `apps/docs` (Nextra documentation site)
+- `packages/shared-types` (shared TypeScript types)
+
+## Step 3: Start Infrastructure
+
+SALLY uses PostgreSQL 16 and Redis 7 for local development, both running in Docker containers.
+
+```bash
+pnpm run docker:up
+```
+
+This starts two containers:
+- **sally-postgres** -- PostgreSQL 16 on port `5432`
+- **sally-redis** -- Redis 7 on port `6379`
+
+Verify the containers are running:
+
+```bash
+docker ps
+```
+
+You should see both `sally-postgres` and `sally-redis` listed with a status of `Up`.
+
+## Step 4: Configure Environment
+
+Copy the example environment files for both backend and frontend:
+
+```bash
+cp apps/backend/.env.example apps/backend/.env.local
+cp apps/web/.env.example apps/web/.env.local
+```
+
+The default values work out of the box for local development. The key variables in `apps/backend/.env.local`:
+
+```bash filename="apps/backend/.env.local"
+# Database -- matches docker-compose.yml defaults
+DATABASE_URL=postgresql://sally_user:sally_password@localhost:5432/sally
+
+# Redis
+REDIS_URL=redis://localhost:6379/0
+
+# CORS -- allows frontend requests
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+# JWT secrets -- any strings 32+ characters for local dev
+SECRET_KEY=local-dev-secret-key-minimum-32-chars-here-change-me
+JWT_ACCESS_SECRET=local-jwt-access-secret-change-in-dev-min-32-chars
+JWT_REFRESH_SECRET=local-jwt-refresh-secret-change-in-dev-min-32-chars
+
+# Mock auth -- login without Firebase (recommended for local dev)
+ENABLE_MOCK_AUTH=true
+
+# Distance calculation -- 'haversine' is free and works offline
+DISTANCE_CALCULATION_METHOD=haversine
+```
+
+You do not need to configure Firebase, Google Maps, or email (Resend) to get started. These are optional integrations. See the [Authentication section](#authentication-mock-auth-vs-firebase) below for details.
+
+## Step 5: Set Up the Database
+
+Run migrations to create the database schema, then seed it with base data:
+
+```bash
+cd apps/backend
+pnpm run prisma:migrate
+pnpm run setup:base
+```
+
+- `prisma:migrate` -- Creates all database tables from the Prisma schema
+- `setup:base` -- Seeds essential data (roles, default tenant, etc.)
+
+If you also want demo data (sample drivers, vehicles, routes):
+
+```bash
+pnpm run setup:demo
+```
+
+Return to the project root:
+
+```bash
+cd ../..
+```
+
+## Step 6: Generate the Prisma Client
+
+If the Prisma client has not been generated yet (you will see import errors otherwise):
+
+```bash
+pnpm run backend:prisma:generate
+```
+
+## Step 7: Start Development
+
+From the project root, start all apps simultaneously:
+
+```bash
+pnpm run dev
+```
+
+This uses Turborepo to start:
+- **Backend** on [http://localhost:8000](http://localhost:8000)
+- **Frontend** on [http://localhost:3000](http://localhost:3000)
+- **Docs** on [http://localhost:3001](http://localhost:3001)
+
+If you only need one app:
+
+```bash
+pnpm run backend:dev     # Backend only
+pnpm run frontend:dev    # Frontend only
+pnpm run docs:dev        # Docs only
+```
+
+## Step 8: Verify
+
+Open each URL to confirm everything is running:
+
+| Service | URL | What You Should See |
+|---------|-----|-------------------|
+| Frontend | [http://localhost:3000](http://localhost:3000) | SALLY login page |
+| Backend Health | [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health) | JSON with `"status": "healthy"` |
+| Swagger Docs | [http://localhost:8000/api](http://localhost:8000/api) | Interactive API documentation |
+| Docs Site | [http://localhost:3001](http://localhost:3001) | This documentation site |
+
+## Authentication: Mock Auth vs Firebase
+
+SALLY supports two authentication modes. For local development, **mock auth is recommended** and requires zero setup.
+
+### Mock Auth (Default -- No Firebase Needed)
+
+The `.env.example` ships with `ENABLE_MOCK_AUTH=true`. With this enabled, you can authenticate using the mock login endpoint:
+
+```bash
+# Login as a seeded user (returns a JWT access token)
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "USR-D1A2B3"}'
+```
+
+Or use **Swagger UI** at [http://localhost:8000/api](http://localhost:8000/api):
+1. Find `POST /auth/login` under the Authentication tag
+2. Enter a `user_id` from the seed data (e.g., `USR-D1A2B3`)
+3. Copy the `accessToken` from the response
+4. Click "Authorize" at the top and paste the token
+
+The mock login generates real SALLY JWT tokens -- all API endpoints work normally. No Firebase project, credentials, or configuration needed.
+
+**What works without Firebase:**
+- All backend API endpoints (route planning, alerts, fleet management, etc.)
+- API key authentication (`X-API-Key` header)
+- Mock login via Swagger or curl
+- Full business logic
+
+**What requires Firebase:**
+- The frontend login page (uses Firebase UI for email/password sign-in)
+- Production user authentication
+
+### Optional: Firebase Setup (For Frontend Login UI)
+
+If you want the full frontend login experience, set up Firebase:
+
+1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+2. Enable **Email/Password** authentication in the Firebase Console
+3. Go to **Project Settings > Service Accounts > Generate new private key**
+4. Add the credentials to `apps/backend/.env.local`:
+
+```bash filename="apps/backend/.env.local"
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+```
+
+5. Add the web app config to `apps/web/.env.local`:
+
+```bash filename="apps/web/.env.local"
+NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+```
+
+6. Create Firebase users and link them to the database:
+
+```bash
+cd apps/backend
+pnpm run firebase:create-users
+pnpm run firebase:link-uids
+```
+
+If Firebase credentials are missing or invalid, the backend logs a warning (`Firebase credentials not configured. Using development mode.`) and continues running -- only the `POST /auth/firebase/exchange` endpoint will return an error.
+
+## Optional: Google Maps API Key (coming soon)
+
+By default, SALLY uses the haversine formula for distance calculations (free, no API key needed, roughly 10-15% error margin). To use Google Maps for more accurate distances:
+
+1. Get an API key at [console.cloud.google.com](https://console.cloud.google.com)
+2. Enable the Distance Matrix API
+3. Add to your `.env.local`:
+
+```bash filename="apps/backend/.env.local"
+DISTANCE_CALCULATION_METHOD=google_maps
+GOOGLE_MAPS_API_KEY=AIza...your_key_here
+```
+
+## Troubleshooting
+
+### Port conflicts
+
+If port 5432, 6379, 8000, or 3000 is already in use:
+
+```bash
+# Check what is using a port
+lsof -i :8000
+
+# Stop existing Docker containers
+pnpm run docker:down
+pnpm run docker:up
+```
+
+### Docker is not running
+
+If `pnpm run docker:up` fails, make sure Docker Desktop is open and running.
+
+### Prisma client not generated
+
+If you see import errors related to `@prisma/client`:
+
+```bash
+pnpm run backend:prisma:generate
+```
+
+### node_modules issues
+
+If dependencies seem broken or out of date:
+
+```bash
+pnpm run clean      # Removes node_modules from all packages
+pnpm install        # Reinstall everything
+```
+
+### Database connection refused
+
+Make sure the PostgreSQL container is running and healthy:
+
+```bash
+docker ps
+docker logs sally-postgres
+```
+
+### Migration errors
+
+If migrations fail on an existing database, you can reset everything:
+
+```bash
+cd apps/backend
+pnpm run setup:reset   # WARNING: Drops all data
+```
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Start all apps | `pnpm run dev` |
+| Start backend only | `pnpm run backend:dev` |
+| Start frontend only | `pnpm run frontend:dev` |
+| Start infrastructure | `pnpm run docker:up` |
+| Stop infrastructure | `pnpm run docker:down` |
+| View infrastructure logs | `pnpm run docker:logs` |
+| Run migrations | `cd apps/backend && pnpm run prisma:migrate` |
+| Seed base data | `cd apps/backend && pnpm run setup:base` |
+| Seed demo data | `cd apps/backend && pnpm run setup:demo` |
+| Reset database | `cd apps/backend && pnpm run setup:reset` |
+| Generate Prisma client | `pnpm run backend:prisma:generate` |
+| Open Prisma Studio | `pnpm run backend:prisma:studio` |
+| Run backend tests | `pnpm run backend:test` |
+| Build all apps | `pnpm run build` |

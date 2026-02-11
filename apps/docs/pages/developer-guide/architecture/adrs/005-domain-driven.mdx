@@ -1,0 +1,83 @@
+---
+title: "ADR-005: Domain-Driven Modules"
+description: Backend organized into domain modules that map to business capabilities.
+---
+
+# ADR-005: Domain-Driven Modules
+
+**Status:** Accepted
+**Date:** February 2026
+**Decision makers:** SALLY Engineering Team
+
+---
+
+## Context
+
+As SALLY's backend grew beyond a handful of endpoints, the team needed a strategy for organizing code. The two main approaches considered were:
+
+1. **Technical layering** -- Organize by technical role: `controllers/`, `services/`, `repositories/`, `dtos/`. Each directory contains files from all business domains mixed together.
+2. **Domain-driven modules** -- Organize by business capability: `fleet/`, `operations/`, `routing/`, `integrations/`, `platform/`. Each module contains its own controllers, services, and DTOs.
+
+With technical layering, a developer working on "add a new alert type" would need to modify files in `controllers/`, `services/`, `dtos/`, and potentially `repositories/` -- all in different directories. As the codebase grows, these directories become unwieldy and it becomes difficult to understand which files belong to which business feature.
+
+NestJS's module system is designed for domain-driven organization. Each NestJS module defines its own providers (services), controllers, imports, and exports, creating a natural boundary around a business capability.
+
+## Decision
+
+Organize the backend into **five domain modules**, each owning its controllers, services, DTOs, and business logic:
+
+| Module | Responsibility | Key Entities |
+|---|---|---|
+| **Fleet** | Driver, vehicle, and carrier management | Driver, Vehicle, Tenant |
+| **Operations** | Route execution, alerts, and monitoring | RoutePlan, Alert, RoutePlanUpdate |
+| **Routing** | Route planning, HOS simulation, optimization | RouteSegment, HosState, FuelStop, RestStop |
+| **Integrations** | External system connections and data sync | IntegrationConfig, SyncJob, Adapter |
+| **Platform** | Cross-cutting platform features | User, ApiKey, FeatureFlag, Notification, Settings |
+
+Each module is a NestJS module with explicit imports and exports:
+
+```typescript
+@Module({
+  imports: [PrismaModule, RedisModule],
+  controllers: [AlertController],
+  providers: [AlertService, AlertGateway],
+  exports: [AlertService],
+})
+export class OperationsModule {}
+```
+
+Cross-domain communication happens through **exported services**. If the Routing module needs driver data, it imports the Fleet module and injects `DriverService`. Modules never reach into another module's internal services or database queries.
+
+The file structure within each module follows a consistent pattern:
+
+```
+src/modules/operations/
+  controllers/
+    alert.controller.ts
+    route-plan.controller.ts
+  services/
+    alert.service.ts
+    route-plan.service.ts
+    monitoring.service.ts
+  dto/
+    create-alert.dto.ts
+    update-alert.dto.ts
+  operations.module.ts
+```
+
+## Consequences
+
+**What became easier:**
+
+- Finding code for a business feature. If a developer needs to modify alert behavior, everything is in `src/modules/operations/`. There is no need to search across multiple top-level directories.
+- Understanding module boundaries. The NestJS module definition makes it explicit which services are public (exported) and which are internal. This prevents accidental tight coupling.
+- Onboarding new developers. The module structure mirrors the product's feature set. A developer can understand the system's scope by reading the module directory names.
+- Independent evolution. The Fleet module can be refactored without touching Operations, as long as the exported service interface does not change.
+- Code reviews. Changes to a single feature are localized to one module, making pull requests easier to review.
+
+**What became harder:**
+
+- Cross-domain operations require careful thought about module boundaries. When a route plan needs to update a driver's HOS state and create an alert, the developer must decide which module orchestrates the operation.
+- Circular dependencies between modules must be avoided. If Fleet imports Operations and Operations imports Fleet, NestJS will throw a circular dependency error. This requires using `forwardRef()` or restructuring the dependency.
+- Some shared utilities (date formatting, coordinate calculations, HOS rule constants) do not belong to any single domain. These live in a `common/` directory outside the module structure.
+- The five-module structure is a starting point. As the codebase grows, some modules (especially Operations) may need to be split into sub-modules to stay manageable.

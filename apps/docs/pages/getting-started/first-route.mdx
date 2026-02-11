@@ -1,535 +1,882 @@
 ---
 title: Your First Route
-description: Step-by-step guide to planning your first HOS-compliant route with SALLY
+description: End-to-end tutorial for planning an HOS-compliant route with SALLY
 ---
 
 # Your First Route
 
-Learn how to plan a complete, HOS-compliant route from start to finish. This hands-on tutorial walks through a realistic scenario with multiple stops, rest requirements, and compliance validation.
+This tutorial walks you through planning a complete, HOS-compliant route from scratch. You will create a driver, register a vehicle, set up loads, plan the route, and activate it -- all through the SALLY API.
 
-## What You'll Learn
+## What You Will Build
 
-- Making authenticated API requests
-- Planning routes with multiple stops
-- Understanding HOS compliance in route planning
-- Interpreting route segments (drive, rest, fuel, dock)
-- Handling API responses and errors
+A multi-stop route for driver Mike Johnson hauling freight from Chicago, IL through Indianapolis, IN to Columbus, OH. SALLY will optimize the stop sequence, insert rest and fuel stops as needed, and validate HOS compliance at every segment.
+
+**Scenario:**
+- **Driver:** Mike Johnson, CDL holder, 2 hours already driven today
+- **Vehicle:** Unit TRK-4821, Freightliner Cascadia, 150-gallon tank at 60% fuel
+- **Route:** Chicago warehouse to Indianapolis customer to Columbus terminal
+- **Challenge:** The driver has been on duty for 4 hours already; SALLY will determine if rest stops are required
 
 ## Prerequisites
 
-Before starting, ensure you have:
+- A SALLY account ([sign up here](https://sally.appshore.in))
+- An API key or JWT token ([get your API key](/getting-started/api-keys))
+- curl, Postman, or any HTTP client
 
-1. **A SALLY account** - Sign up at [sally.appshore.in](https://sally.appshore.in)
-2. **An API key** - Generate one in [Dashboard → API Keys](/getting-started/api-keys)
-3. **A REST client** - Use curl, Postman, or your favorite HTTP client
+## Step 1: Authenticate
 
-## Tutorial Overview
-
-We'll plan a route for a driver traveling from Los Angeles to Phoenix with two customer stops along the way. The driver has already used some of their hours of service (HOS), so SALLY will need to insert rest stops to maintain compliance.
-
-**Scenario:**
-- **Driver:** Has 6 hours of drive time remaining, 8 hours on duty
-- **Vehicle:** 75% fuel, 6.5 MPG average
-- **Stops:** 3 locations (origin, 2 customer deliveries, destination)
-- **Challenge:** Route requires more driving than available HOS allows
-
-## Step 1: Set Your API Key
-
-Save your API key as an environment variable for convenience:
+Set your API key as an environment variable for convenience:
 
 ```bash
 export SALLY_API_KEY="sk_staging_your_key_here"
+export SALLY_BASE="https://sally-api.apps.appshore.in/api/v1"
 ```
 
-Or if you prefer to copy-paste, replace `$SALLY_API_KEY` in the examples below with your actual key.
-
-## Step 2: Plan Your First Route
-
-Let's send a route planning request to SALLY. This endpoint analyzes driver HOS, vehicle state, and stop requirements to generate an optimized, compliant route.
-
-### Request
+Alternatively, obtain a JWT token using the mock login endpoint (for POC/development):
 
 ```bash
-curl -X POST https://sally-api.apps.appshore.in/api/v1/routes/plan \
-  -H "Authorization: Bearer $SALLY_API_KEY" \
+curl -X POST $SALLY_BASE/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "driver_id": "DRV-001",
-    "vehicle_id": "TRUCK-123",
-    "driver_state": {
-      "hours_driven": 5.0,
-      "on_duty_time": 8.0,
-      "hours_since_break": 4.5
-    },
-    "vehicle_state": {
-      "fuel_capacity_gallons": 150.0,
-      "current_fuel_gallons": 112.5,
-      "mpg": 6.5
-    },
-    "stops": [
-      {
-        "stop_id": "STOP-001",
-        "name": "Distribution Center LA",
-        "lat": 34.0522,
-        "lon": -118.2437,
-        "location_type": "warehouse",
-        "is_origin": true,
-        "is_destination": false,
-        "estimated_dock_hours": 1.0
-      },
-      {
-        "stop_id": "STOP-002",
-        "name": "Customer - Riverside Logistics",
-        "lat": 33.9806,
-        "lon": -117.3755,
-        "location_type": "customer",
-        "is_origin": false,
-        "is_destination": false,
-        "estimated_dock_hours": 2.0,
-        "customer_name": "Riverside Logistics"
-      },
-      {
-        "stop_id": "STOP-003",
-        "name": "Customer - Phoenix Distribution",
-        "lat": 33.4484,
-        "lon": -112.0740,
-        "location_type": "customer",
-        "is_origin": false,
-        "is_destination": false,
-        "estimated_dock_hours": 1.5,
-        "customer_name": "Phoenix Distribution"
-      },
-      {
-        "stop_id": "STOP-004",
-        "name": "Phoenix Terminal",
-        "lat": 33.4255,
-        "lon": -112.0376,
-        "location_type": "terminal",
-        "is_origin": false,
-        "is_destination": true,
-        "estimated_dock_hours": 0.5
-      }
-    ],
-    "optimization_priority": "balance"
+    "user_id": "user_swift_disp_001"
   }'
 ```
 
-### Request Parameters Explained
-
-**Driver State:**
-- `hours_driven`: 5.0 hours already driven today (11h max)
-- `on_duty_time`: 8.0 hours on duty (14h max)
-- `hours_since_break`: 4.5 hours since last 30-min break (8h max)
-
-**Vehicle State:**
-- `fuel_capacity_gallons`: Total tank capacity
-- `current_fuel_gallons`: Current fuel level (75% = 112.5/150)
-- `mpg`: Average miles per gallon for route planning
-
-**Stops:**
-- `is_origin`: true for starting location
-- `is_destination`: true for final location
-- `estimated_dock_hours`: Time spent at customer location loading/unloading
-- `location_type`: warehouse, customer, terminal, rest_area, fuel_station
-
-**Optimization Priority:**
-- `time`: Minimize total time
-- `cost`: Minimize fuel and operational costs
-- `balance`: Balance time and cost (recommended)
-
-## Step 3: Understand the Response
-
-SALLY returns a detailed route plan with segments, compliance validation, and cost estimates.
-
-### Response Structure
+**Response:**
 
 ```json
 {
-  "plan_id": "plan_a1b2c3d4e5f6",
-  "optimization_priority": "balance",
+  "accessToken": "eyJhbGciOiJSUzI1NiIs...",
+  "user": {
+    "userId": "user_swift_disp_001",
+    "email": "dispatcher@swifthaul.com",
+    "role": "DISPATCHER",
+    "tenantId": "tnt_swift001"
+  }
+}
+```
+
+The `refreshToken` is set as an HTTP-only cookie and is not included in the response body.
+
+For this tutorial, we will use the `X-API-Key` header. All subsequent requests include:
+
+```bash
+-H "X-API-Key: $SALLY_API_KEY"
+-H "Content-Type: application/json"
+```
+
+## Step 2: Create a Driver
+
+Register the driver who will operate this route:
+
+```bash
+curl -X POST $SALLY_BASE/drivers \
+  -H "X-API-Key: $SALLY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Mike",
+    "lastName": "Johnson",
+    "licenseNumber": "D410-7892-4501",
+    "licenseState": "IL",
+    "truckNumber": "TRK-4821",
+    "phoneNumber": "+1-312-555-0147",
+    "email": "mike.johnson@acmefreight.com"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "id": "drv_a1b2c3d4",
+  "firstName": "Mike",
+  "lastName": "Johnson",
+  "licenseNumber": "D410-7892-4501",
+  "licenseState": "IL",
+  "truckNumber": "TRK-4821",
+  "phoneNumber": "+1-312-555-0147",
+  "email": "mike.johnson@acmefreight.com",
+  "status": "ACTIVE",
+  "currentHoursDriven": 0,
+  "currentOnDutyTime": 0,
+  "currentCycleUsed": 0,
+  "lastRestartDate": null,
+  "createdAt": "2026-02-10T08:00:00Z",
+  "updatedAt": "2026-02-10T08:00:00Z"
+}
+```
+
+**JavaScript (fetch):**
+
+```javascript
+const response = await fetch(`${BASE_URL}/drivers`, {
+  method: "POST",
+  headers: {
+    "X-API-Key": process.env.SALLY_API_KEY,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    firstName: "Mike",
+    lastName: "Johnson",
+    licenseNumber: "D410-7892-4501",
+    licenseState: "IL",
+    truckNumber: "TRK-4821",
+    phoneNumber: "+1-312-555-0147",
+    email: "mike.johnson@acmefreight.com",
+  }),
+});
+
+const driver = await response.json();
+console.log("Driver ID:", driver.id);
+```
+
+Save the `id` value. You will need it in Step 5.
+
+## Step 3: Create a Vehicle
+
+Register the truck assigned to this route:
+
+```bash
+curl -X POST $SALLY_BASE/vehicles \
+  -H "X-API-Key: $SALLY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "unitNumber": "TRK-4821",
+    "make": "Freightliner",
+    "model": "Cascadia",
+    "year": 2023,
+    "vin": "3AKJHHDR7PSLA9274",
+    "licensePlate": "IL-CDL-4821",
+    "fuelTankCapacity": 150,
+    "mpg": 6.2,
+    "status": "ACTIVE"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "id": "veh_e5f6g7h8",
+  "unitNumber": "TRK-4821",
+  "make": "Freightliner",
+  "model": "Cascadia",
+  "year": 2023,
+  "vin": "3AKJHHDR7PSLA9274",
+  "licensePlate": "IL-CDL-4821",
+  "fuelTankCapacity": 150,
+  "mpg": 6.2,
+  "status": "ACTIVE",
+  "createdAt": "2026-02-10T08:01:00Z",
+  "updatedAt": "2026-02-10T08:01:00Z"
+}
+```
+
+**JavaScript (fetch):**
+
+```javascript
+const response = await fetch(`${BASE_URL}/vehicles`, {
+  method: "POST",
+  headers: {
+    "X-API-Key": process.env.SALLY_API_KEY,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    unitNumber: "TRK-4821",
+    make: "Freightliner",
+    model: "Cascadia",
+    year: 2023,
+    vin: "3AKJHHDR7PSLA9274",
+    licensePlate: "IL-CDL-4821",
+    fuelTankCapacity: 150,
+    mpg: 6.2,
+    status: "ACTIVE",
+  }),
+});
+
+const vehicle = await response.json();
+console.log("Vehicle ID:", vehicle.id);
+```
+
+The `fuelTankCapacity` and `mpg` fields are critical -- SALLY uses them to calculate when fuel stops are needed along the route.
+
+## Step 4: Create Loads
+
+Create the loads (shipments) that define the pickup and delivery stops:
+
+### Load 1: Chicago to Indianapolis
+
+```bash
+curl -X POST $SALLY_BASE/loads \
+  -H "X-API-Key: $SALLY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "referenceNumber": "LD-20260210-001",
+    "customer": "Midwest Auto Parts",
+    "originAddress": "2800 S Western Ave, Chicago, IL 60608",
+    "originCity": "Chicago",
+    "originState": "IL",
+    "originZip": "60608",
+    "originLat": 41.8423,
+    "originLon": -87.6845,
+    "destinationAddress": "5900 W Raymond St, Indianapolis, IN 46241",
+    "destinationCity": "Indianapolis",
+    "destinationState": "IN",
+    "destinationZip": "46241",
+    "destinationLat": 39.7355,
+    "destinationLon": -86.2388,
+    "scheduledPickup": "2026-02-10T09:00:00Z",
+    "scheduledDelivery": "2026-02-10T15:00:00Z",
+    "weight": 38500,
+    "commodity": "Auto parts",
+    "status": "PENDING"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "id": "load_i9j0k1l2",
+  "referenceNumber": "LD-20260210-001",
+  "customer": "Midwest Auto Parts",
+  "originAddress": "2800 S Western Ave, Chicago, IL 60608",
+  "destinationAddress": "5900 W Raymond St, Indianapolis, IN 46241",
+  "scheduledPickup": "2026-02-10T09:00:00Z",
+  "scheduledDelivery": "2026-02-10T15:00:00Z",
+  "weight": 38500,
+  "commodity": "Auto parts",
+  "status": "PENDING",
+  "createdAt": "2026-02-10T08:02:00Z"
+}
+```
+
+### Load 2: Indianapolis to Columbus
+
+```bash
+curl -X POST $SALLY_BASE/loads \
+  -H "X-API-Key: $SALLY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "referenceNumber": "LD-20260210-002",
+    "customer": "Central Ohio Distribution",
+    "originAddress": "5900 W Raymond St, Indianapolis, IN 46241",
+    "originCity": "Indianapolis",
+    "originState": "IN",
+    "originZip": "46241",
+    "originLat": 39.7355,
+    "originLon": -86.2388,
+    "destinationAddress": "4100 Groves Rd, Columbus, OH 43232",
+    "destinationCity": "Columbus",
+    "destinationState": "OH",
+    "destinationZip": "43232",
+    "destinationLat": 39.9171,
+    "destinationLon": -82.8834,
+    "scheduledPickup": "2026-02-10T15:30:00Z",
+    "scheduledDelivery": "2026-02-10T21:00:00Z",
+    "weight": 42000,
+    "commodity": "Consumer electronics",
+    "status": "PENDING"
+  }'
+```
+
+**JavaScript (fetch):**
+
+```javascript
+const loads = [
+  {
+    referenceNumber: "LD-20260210-001",
+    customer: "Midwest Auto Parts",
+    originAddress: "2800 S Western Ave, Chicago, IL 60608",
+    originCity: "Chicago",
+    originState: "IL",
+    originZip: "60608",
+    originLat: 41.8423,
+    originLon: -87.6845,
+    destinationAddress: "5900 W Raymond St, Indianapolis, IN 46241",
+    destinationCity: "Indianapolis",
+    destinationState: "IN",
+    destinationZip: "46241",
+    destinationLat: 39.7355,
+    destinationLon: -86.2388,
+    scheduledPickup: "2026-02-10T09:00:00Z",
+    scheduledDelivery: "2026-02-10T15:00:00Z",
+    weight: 38500,
+    commodity: "Auto parts",
+    status: "PENDING",
+  },
+  {
+    referenceNumber: "LD-20260210-002",
+    customer: "Central Ohio Distribution",
+    originAddress: "5900 W Raymond St, Indianapolis, IN 46241",
+    originCity: "Indianapolis",
+    originState: "IN",
+    originZip: "46241",
+    originLat: 39.7355,
+    originLon: -86.2388,
+    destinationAddress: "4100 Groves Rd, Columbus, OH 43232",
+    destinationCity: "Columbus",
+    destinationState: "OH",
+    destinationZip: "43232",
+    destinationLat: 39.9171,
+    destinationLon: -82.8834,
+    scheduledPickup: "2026-02-10T15:30:00Z",
+    scheduledDelivery: "2026-02-10T21:00:00Z",
+    weight: 42000,
+    commodity: "Consumer electronics",
+    status: "PENDING",
+  },
+];
+
+const loadIds = [];
+for (const load of loads) {
+  const response = await fetch(`${BASE_URL}/loads`, {
+    method: "POST",
+    headers: {
+      "X-API-Key": process.env.SALLY_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(load),
+  });
+  const created = await response.json();
+  loadIds.push(created.id);
+}
+
+console.log("Load IDs:", loadIds);
+```
+
+## Step 5: Plan the Route
+
+Now bring everything together. Pass the driver, vehicle, and load IDs to the route planning endpoint. SALLY will optimize the stop sequence, simulate HOS compliance segment by segment, and automatically insert rest and fuel stops where needed.
+
+```bash
+curl -X POST $SALLY_BASE/routes/plan \
+  -H "X-API-Key: $SALLY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "driverId": "drv_a1b2c3d4",
+    "vehicleId": "veh_e5f6g7h8",
+    "loadIds": ["load_i9j0k1l2", "load_m3n4o5p6"],
+    "driverState": {
+      "hoursDriven": 2.0,
+      "onDutyTime": 4.0,
+      "hoursSinceBreak": 3.5,
+      "currentCycleUsed": 42.0
+    },
+    "vehicleState": {
+      "currentFuelGallons": 90,
+      "fuelTankCapacity": 150,
+      "mpg": 6.2
+    },
+    "stops": [
+      {
+        "stopId": "stop-chicago-wh",
+        "name": "Acme Freight Chicago Warehouse",
+        "address": "2800 S Western Ave, Chicago, IL 60608",
+        "lat": 41.8423,
+        "lon": -87.6845,
+        "locationType": "warehouse",
+        "isOrigin": true,
+        "isDestination": false,
+        "estimatedDockHours": 1.0
+      },
+      {
+        "stopId": "stop-indy-customer",
+        "name": "Midwest Auto Parts - Indianapolis",
+        "address": "5900 W Raymond St, Indianapolis, IN 46241",
+        "lat": 39.7355,
+        "lon": -86.2388,
+        "locationType": "customer",
+        "isOrigin": false,
+        "isDestination": false,
+        "estimatedDockHours": 1.5,
+        "customerName": "Midwest Auto Parts"
+      },
+      {
+        "stopId": "stop-columbus-terminal",
+        "name": "Central Ohio Distribution Center",
+        "address": "4100 Groves Rd, Columbus, OH 43232",
+        "lat": 39.9171,
+        "lon": -82.8834,
+        "locationType": "customer",
+        "isOrigin": false,
+        "isDestination": true,
+        "estimatedDockHours": 1.0,
+        "customerName": "Central Ohio Distribution"
+      }
+    ],
+    "optimizationPriority": "balance"
+  }'
+```
+
+**JavaScript (fetch):**
+
+```javascript
+const routePlan = await fetch(`${BASE_URL}/routes/plan`, {
+  method: "POST",
+  headers: {
+    "X-API-Key": process.env.SALLY_API_KEY,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    driverId: "drv_a1b2c3d4",
+    vehicleId: "veh_e5f6g7h8",
+    loadIds: ["load_i9j0k1l2", "load_m3n4o5p6"],
+    driverState: {
+      hoursDriven: 2.0,
+      onDutyTime: 4.0,
+      hoursSinceBreak: 3.5,
+      currentCycleUsed: 42.0,
+    },
+    vehicleState: {
+      currentFuelGallons: 90,
+      fuelTankCapacity: 150,
+      mpg: 6.2,
+    },
+    stops: [
+      {
+        stopId: "stop-chicago-wh",
+        name: "Acme Freight Chicago Warehouse",
+        address: "2800 S Western Ave, Chicago, IL 60608",
+        lat: 41.8423,
+        lon: -87.6845,
+        locationType: "warehouse",
+        isOrigin: true,
+        isDestination: false,
+        estimatedDockHours: 1.0,
+      },
+      {
+        stopId: "stop-indy-customer",
+        name: "Midwest Auto Parts - Indianapolis",
+        address: "5900 W Raymond St, Indianapolis, IN 46241",
+        lat: 39.7355,
+        lon: -86.2388,
+        locationType: "customer",
+        isOrigin: false,
+        isDestination: false,
+        estimatedDockHours: 1.5,
+        customerName: "Midwest Auto Parts",
+      },
+      {
+        stopId: "stop-columbus-terminal",
+        name: "Central Ohio Distribution Center",
+        address: "4100 Groves Rd, Columbus, OH 43232",
+        lat: 39.9171,
+        lon: -82.8834,
+        locationType: "customer",
+        isOrigin: false,
+        isDestination: true,
+        estimatedDockHours: 1.0,
+        customerName: "Central Ohio Distribution",
+      },
+    ],
+    optimizationPriority: "balance",
+  }),
+});
+
+const route = await routePlan.json();
+console.log("Plan ID:", route.planId);
+console.log("Segments:", route.segments.length);
+console.log("Feasible:", route.complianceReport.isFeasible);
+```
+
+## Step 6: Understand the Route Response
+
+SALLY returns a detailed route plan with every segment the driver will follow:
+
+```json
+{
+  "planId": "rte_f8e7d6c5",
+  "status": "DRAFT",
+  "driverId": "drv_a1b2c3d4",
+  "vehicleId": "veh_e5f6g7h8",
+  "optimizationPriority": "balance",
   "segments": [
     {
-      "sequence_order": 1,
-      "segment_type": "dock",
-      "from_location": "Distribution Center LA",
-      "to_location": "Distribution Center LA",
-      "dock_duration_hours": 1.0,
-      "estimated_arrival": "2026-02-06T08:00:00Z",
-      "estimated_departure": "2026-02-06T09:00:00Z",
-      "hos_state_after": {
-        "hours_driven": 5.0,
-        "on_duty_time": 9.0,
-        "hours_since_break": 5.5
+      "sequenceOrder": 1,
+      "segmentType": "DOCK",
+      "fromLocation": "Acme Freight Chicago Warehouse",
+      "toLocation": "Acme Freight Chicago Warehouse",
+      "dockDurationHours": 1.0,
+      "estimatedArrival": "2026-02-10T09:00:00Z",
+      "estimatedDeparture": "2026-02-10T10:00:00Z",
+      "hosStateAfter": {
+        "hoursDriven": 2.0,
+        "onDutyTime": 5.0,
+        "hoursSinceBreak": 4.5
       }
     },
     {
-      "sequence_order": 2,
-      "segment_type": "drive",
-      "from_location": "Distribution Center LA",
-      "to_location": "Customer - Riverside Logistics",
-      "distance_miles": 53.2,
-      "drive_time_hours": 1.1,
-      "estimated_arrival": "2026-02-06T10:06:00Z",
-      "estimated_departure": "2026-02-06T10:06:00Z",
-      "hos_state_after": {
-        "hours_driven": 6.1,
-        "on_duty_time": 10.1,
-        "hours_since_break": 6.6
+      "sequenceOrder": 2,
+      "segmentType": "DRIVE",
+      "fromLocation": "Acme Freight Chicago Warehouse",
+      "toLocation": "Midwest Auto Parts - Indianapolis",
+      "distanceMiles": 184.2,
+      "driveTimeHours": 2.9,
+      "estimatedArrival": "2026-02-10T12:54:00Z",
+      "hosStateAfter": {
+        "hoursDriven": 4.9,
+        "onDutyTime": 7.9,
+        "hoursSinceBreak": 7.4
       }
     },
     {
-      "sequence_order": 3,
-      "segment_type": "dock",
-      "from_location": "Customer - Riverside Logistics",
-      "to_location": "Customer - Riverside Logistics",
-      "dock_duration_hours": 2.0,
-      "customer_name": "Riverside Logistics",
-      "estimated_arrival": "2026-02-06T10:06:00Z",
-      "estimated_departure": "2026-02-06T12:06:00Z",
-      "hos_state_after": {
-        "hours_driven": 6.1,
-        "on_duty_time": 12.1,
-        "hours_since_break": 8.6
+      "sequenceOrder": 3,
+      "segmentType": "DOCK",
+      "fromLocation": "Midwest Auto Parts - Indianapolis",
+      "toLocation": "Midwest Auto Parts - Indianapolis",
+      "dockDurationHours": 1.5,
+      "customerName": "Midwest Auto Parts",
+      "estimatedArrival": "2026-02-10T12:54:00Z",
+      "estimatedDeparture": "2026-02-10T14:24:00Z",
+      "hosStateAfter": {
+        "hoursDriven": 4.9,
+        "onDutyTime": 9.4,
+        "hoursSinceBreak": 8.9
       }
     },
     {
-      "sequence_order": 4,
-      "segment_type": "rest",
-      "from_location": "Customer - Riverside Logistics",
-      "to_location": "Customer - Riverside Logistics",
-      "rest_type": "full_rest",
-      "rest_duration_hours": 10.0,
-      "rest_reason": "Driver approaching 14h duty limit. Full rest required for HOS compliance.",
-      "estimated_arrival": "2026-02-06T12:06:00Z",
-      "estimated_departure": "2026-02-06T22:06:00Z",
-      "hos_state_after": {
-        "hours_driven": 0.0,
-        "on_duty_time": 0.0,
-        "hours_since_break": 0.0
+      "sequenceOrder": 4,
+      "segmentType": "REST",
+      "fromLocation": "Midwest Auto Parts - Indianapolis",
+      "toLocation": "Midwest Auto Parts - Indianapolis",
+      "restType": "BREAK",
+      "restDurationHours": 0.5,
+      "restReason": "Driver approaching 8-hour break limit. 30-minute break required per FMCSA 395.3.",
+      "estimatedArrival": "2026-02-10T14:24:00Z",
+      "estimatedDeparture": "2026-02-10T14:54:00Z",
+      "hosStateAfter": {
+        "hoursDriven": 4.9,
+        "onDutyTime": 9.4,
+        "hoursSinceBreak": 0.0
       }
     },
     {
-      "sequence_order": 5,
-      "segment_type": "drive",
-      "from_location": "Customer - Riverside Logistics",
-      "to_location": "Customer - Phoenix Distribution",
-      "distance_miles": 297.5,
-      "drive_time_hours": 4.8,
-      "estimated_arrival": "2026-02-07T02:54:00Z",
-      "estimated_departure": "2026-02-07T02:54:00Z",
-      "hos_state_after": {
-        "hours_driven": 4.8,
-        "on_duty_time": 4.8,
-        "hours_since_break": 4.8
+      "sequenceOrder": 5,
+      "segmentType": "DRIVE",
+      "fromLocation": "Midwest Auto Parts - Indianapolis",
+      "toLocation": "Central Ohio Distribution Center",
+      "distanceMiles": 175.8,
+      "driveTimeHours": 2.8,
+      "estimatedArrival": "2026-02-10T17:42:00Z",
+      "hosStateAfter": {
+        "hoursDriven": 7.7,
+        "onDutyTime": 12.2,
+        "hoursSinceBreak": 2.8
       }
     },
     {
-      "sequence_order": 6,
-      "segment_type": "dock",
-      "from_location": "Customer - Phoenix Distribution",
-      "to_location": "Customer - Phoenix Distribution",
-      "dock_duration_hours": 1.5,
-      "customer_name": "Phoenix Distribution",
-      "estimated_arrival": "2026-02-07T02:54:00Z",
-      "estimated_departure": "2026-02-07T04:24:00Z",
-      "hos_state_after": {
-        "hours_driven": 4.8,
-        "on_duty_time": 6.3,
-        "hours_since_break": 6.3
-      }
-    },
-    {
-      "sequence_order": 7,
-      "segment_type": "drive",
-      "from_location": "Customer - Phoenix Distribution",
-      "to_location": "Phoenix Terminal",
-      "distance_miles": 4.2,
-      "drive_time_hours": 0.2,
-      "estimated_arrival": "2026-02-07T04:36:00Z",
-      "estimated_departure": "2026-02-07T04:36:00Z",
-      "hos_state_after": {
-        "hours_driven": 5.0,
-        "on_duty_time": 6.5,
-        "hours_since_break": 6.5
-      }
-    },
-    {
-      "sequence_order": 8,
-      "segment_type": "dock",
-      "from_location": "Phoenix Terminal",
-      "to_location": "Phoenix Terminal",
-      "dock_duration_hours": 0.5,
-      "estimated_arrival": "2026-02-07T04:36:00Z",
-      "estimated_departure": "2026-02-07T05:06:00Z",
-      "hos_state_after": {
-        "hours_driven": 5.0,
-        "on_duty_time": 7.0,
-        "hours_since_break": 7.0
+      "sequenceOrder": 6,
+      "segmentType": "DOCK",
+      "fromLocation": "Central Ohio Distribution Center",
+      "toLocation": "Central Ohio Distribution Center",
+      "dockDurationHours": 1.0,
+      "customerName": "Central Ohio Distribution",
+      "estimatedArrival": "2026-02-10T17:42:00Z",
+      "estimatedDeparture": "2026-02-10T18:42:00Z",
+      "hosStateAfter": {
+        "hoursDriven": 7.7,
+        "onDutyTime": 13.2,
+        "hoursSinceBreak": 3.8
       }
     }
   ],
   "summary": {
-    "total_distance_miles": 354.9,
-    "total_drive_time_hours": 6.1,
-    "total_on_duty_time_hours": 16.1,
-    "total_cost_estimate": 285.43,
-    "total_driving_segments": 3,
-    "total_rest_stops": 1,
-    "total_fuel_stops": 0,
-    "total_dock_stops": 4,
-    "estimated_completion": "2026-02-07T05:06:00Z"
+    "totalDistanceMiles": 360.0,
+    "totalDriveTimeHours": 5.7,
+    "totalOnDutyTimeHours": 13.2,
+    "totalCostEstimate": 312.50,
+    "totalDrivingSegments": 2,
+    "totalRestStops": 1,
+    "totalFuelStops": 0,
+    "totalDockStops": 3,
+    "estimatedCompletion": "2026-02-10T18:42:00Z"
   },
-  "rest_stops": [
+  "restStops": [
     {
-      "location": "Customer - Riverside Logistics",
-      "type": "full_rest",
-      "duration_hours": 10.0,
-      "reason": "Driver approaching 14h duty limit. Full rest required for HOS compliance."
+      "location": "Midwest Auto Parts - Indianapolis",
+      "type": "BREAK",
+      "durationHours": 0.5,
+      "reason": "Driver approaching 8-hour break limit. 30-minute break required per FMCSA 395.3."
     }
   ],
-  "fuel_stops": [],
-  "compliance_report": {
-    "is_feasible": true,
-    "max_drive_hours_used": 6.1,
-    "max_duty_hours_used": 12.1,
-    "breaks_required": 0,
-    "breaks_planned": 0,
+  "fuelStops": [],
+  "complianceReport": {
+    "isFeasible": true,
+    "maxDriveHoursUsed": 7.7,
+    "maxDutyHoursUsed": 13.2,
+    "breaksRequired": 1,
+    "breaksPlanned": 1,
     "violations": []
   },
-  "feasibility_issues": [],
-  "data_sources": [
-    "Distance Matrix: Static OSM Data (MVP)",
-    "HOS State: Manual Input",
-    "Fuel Prices: Static Estimates"
-  ]
+  "createdAt": "2026-02-10T08:05:00Z"
 }
 ```
 
-### Key Response Fields
+### Reading the Segments
 
-**Segment Types:**
+Each segment represents one step in the driver's journey:
 
-1. **drive** - Driving from one location to another
-   - `distance_miles`: Distance traveled
-   - `drive_time_hours`: Estimated drive time
-   - Consumes HOS drive time and duty time
+| Segment | Type | What Happens |
+|---|---|---|
+| 1 | DOCK | Loading at Chicago warehouse (1 hour) |
+| 2 | DRIVE | Chicago to Indianapolis (184.2 mi, 2.9 hours) |
+| 3 | DOCK | Unloading at Midwest Auto Parts (1.5 hours) |
+| 4 | REST | 30-minute break (FMCSA 8-hour rule) |
+| 5 | DRIVE | Indianapolis to Columbus (175.8 mi, 2.8 hours) |
+| 6 | DOCK | Unloading at Central Ohio Distribution (1 hour) |
 
-2. **rest** - Required rest stop for HOS compliance
-   - `rest_type`: full_rest (10h), partial_rest (7-8h), break (30min)
-   - `rest_duration_hours`: How long driver must rest
-   - `rest_reason`: Why this rest is needed
-   - Resets HOS hours (full rest) or allows split sleeper berth
+### Why SALLY Inserted a Rest Stop
 
-3. **dock** - Time at customer location loading/unloading
-   - `dock_duration_hours`: Estimated time at dock
-   - `customer_name`: Customer facility name
-   - Consumes HOS duty time (not drive time)
+After segment 3, the driver has been 8.9 hours since their last break. FMCSA regulation 395.3 requires a 30-minute break before the 8th hour of driving. SALLY detected that the driver would exceed this threshold during the next drive segment and proactively inserted a 30-minute break.
 
-4. **fuel** - Fuel stop (inserted when fuel low)
-   - `fuel_gallons`: Gallons to purchase
-   - `fuel_cost_estimate`: Estimated cost
-   - `fuel_station_name`: Station name/brand
+### HOS State Tracking
 
-**HOS State After Each Segment:**
-- `hours_driven`: Cumulative drive time (max 11h)
-- `on_duty_time`: Cumulative on-duty time (max 14h)
-- `hours_since_break`: Time since last 30-min break (max 8h)
+The `hosStateAfter` field on each segment shows the driver's cumulative hours after completing that segment:
 
-**Compliance Report:**
-- `is_feasible`: Can driver complete route without violations?
-- `violations`: List of HOS violations (should be empty for valid routes)
-- `max_drive_hours_used`: Peak drive time reached during route
-- `max_duty_hours_used`: Peak duty time reached during route
+- **hoursDriven**: Time behind the wheel (FMCSA limit: 11 hours)
+- **onDutyTime**: Total on-duty time including dock work (FMCSA limit: 14 hours)
+- **hoursSinceBreak**: Time since the last qualifying break (FMCSA limit: 8 hours)
 
-## Step 4: Analyze the Route Plan
+## Step 7: Activate the Route
 
-Let's break down what SALLY did:
+The route is created in `DRAFT` status. Activate it to begin monitoring:
 
-### 1. Sequenced Stops Optimally
-SALLY analyzed all stops and determined the most efficient order while respecting customer time windows.
-
-### 2. Tracked HOS Consumption
-After each segment, SALLY calculated:
-- How much drive time consumed
-- How much on-duty time consumed
-- How close to HOS limits
-
-### 3. Inserted Rest Stop
-At **sequence 4**, SALLY detected the driver would exceed the 14-hour duty limit before completing the route. It inserted a **full 10-hour rest** at the customer location (leveraging dock time).
-
-**Why this location?**
-- Driver had 12.1 hours on duty after Customer - Riverside Logistics dock
-- Remaining route requires ~5 hours drive time
-- Driver would exceed 14h duty limit without rest
-- Rest at customer location is safer and more convenient
-
-### 4. Validated Compliance
-The compliance report shows:
-- ✅ Route is feasible
-- ✅ No HOS violations
-- ✅ Maximum drive time: 6.1h (under 11h limit)
-- ✅ Maximum duty time: 12.1h (under 14h limit)
-
-### 5. Provided Transparency
-Each rest stop includes a `rest_reason` explaining why it's needed. This audit trail is critical for compliance and dispatcher decision-making.
-
-## Step 5: Common Scenarios
-
-### Scenario A: Route Without Rest Stops
-
-If the driver has enough hours available, SALLY won't insert unnecessary rest stops.
-
-**Example:** Driver has 9h drive time remaining, route only needs 4h.
-
-```json
-{
-  "driver_state": {
-    "hours_driven": 2.0,
-    "on_duty_time": 3.0,
-    "hours_since_break": 2.0
-  }
-}
-```
-
-**Result:** Direct route with no rest stops inserted.
-
-### Scenario B: Multiple Rest Stops
-
-For long-haul routes, SALLY may insert multiple rest stops.
-
-**Example:** 1,200-mile route across 3 days.
-
-**Result:** SALLY inserts 2-3 rest stops spaced appropriately to maintain compliance throughout the journey.
-
-### Scenario C: Fuel Stops Inserted
-
-When fuel runs low, SALLY automatically inserts fuel stops.
-
-**Example:**
-```json
-{
-  "vehicle_state": {
-    "fuel_capacity_gallons": 150.0,
-    "current_fuel_gallons": 30.0,
-    "mpg": 6.5
-  }
-}
-```
-
-**Result:** Route includes fuel stop segments with station names, gallons needed, and estimated cost.
-
-### Scenario D: Infeasible Route
-
-Sometimes a route cannot be completed as requested.
-
-**Example:** Customer appointment time is impossible to meet with available HOS.
-
-**Result:**
-```json
-{
-  "compliance_report": {
-    "is_feasible": false,
-    "violations": ["Cannot meet appointment time at STOP-003 due to HOS constraints"]
-  },
-  "feasibility_issues": [
-    "Driver needs 8h drive time but only has 5h available",
-    "Earliest arrival: 2026-02-07T10:00:00Z (3h after appointment)"
-  ]
-}
-```
-
-## Step 6: Troubleshooting
-
-### Error: 401 Unauthorized
-
-**Cause:** Invalid or missing API key
-
-**Solution:**
 ```bash
-# Check your API key format
-echo $SALLY_API_KEY
-# Should start with: sk_staging_
-
-# Regenerate key if needed in dashboard
+curl -X POST $SALLY_BASE/routes/rte_f8e7d6c5/activate \
+  -H "X-API-Key: $SALLY_API_KEY"
 ```
 
-### Error: 400 Bad Request - Invalid driver_state
+**Response:**
 
-**Cause:** HOS values exceed legal limits
-
-**Solution:**
 ```json
 {
-  "driver_state": {
-    "hours_driven": 5.0,    // Must be ≤ 11.0
-    "on_duty_time": 8.0,    // Must be ≤ 14.0
-    "hours_since_break": 4.5 // Must be ≤ 8.0
-  }
+  "planId": "rte_f8e7d6c5",
+  "status": "ACTIVE",
+  "activatedAt": "2026-02-10T08:55:00Z",
+  "message": "Route is now active. Monitoring has started."
 }
 ```
 
-### Error: 400 Bad Request - Invalid stops
+**JavaScript (fetch):**
 
-**Cause:** Missing required fields or invalid stop configuration
+```javascript
+const activateResponse = await fetch(
+  `${BASE_URL}/routes/rte_f8e7d6c5/activate`,
+  {
+    method: "POST",
+    headers: { "X-API-Key": process.env.SALLY_API_KEY },
+  }
+);
 
-**Solution:**
-- Ensure exactly one stop has `is_origin: true`
-- Ensure exactly one stop has `is_destination: true`
-- All stops must have `lat`, `lon`, and `name`
-- `estimated_dock_hours` defaults to 0 if not provided
+const activated = await activateResponse.json();
+console.log("Status:", activated.status); // "ACTIVE"
+```
 
-### Error: 422 Unprocessable Entity
+Once active, SALLY begins continuous monitoring -- checking for HOS violations, route deviations, weather changes, and mechanical alerts every 60 seconds.
 
-**Cause:** Request schema validation failed
+## Step 8: Check for Alerts
 
-**Solution:** Check request matches the schema:
-- All required fields present
-- Correct data types (numbers not strings)
-- Valid enum values for `optimization_priority` (time, cost, balance)
+After activating the route, check for any alerts that SALLY has generated:
 
-### Empty Response or Timeout
+```bash
+curl "$SALLY_BASE/alerts?driverId=drv_a1b2c3d4&status=ACTIVE" \
+  -H "X-API-Key: $SALLY_API_KEY"
+```
 
-**Cause:** Request payload too large or API issue
+**Response (no alerts -- everything is on track):**
 
-**Solution:**
-- Reduce number of stops (try with 2-3 first)
-- Check API status at [status.sally.com](https://status.sally.com)
-- Contact support if issue persists
+```json
+{
+  "data": [],
+  "total": 0,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+If the driver deviates from the plan or an HOS threshold approaches, SALLY generates alerts automatically. You can subscribe to real-time alerts using [Server-Sent Events](/api-guides/alerts-monitoring/real-time-events).
+
+## Step 9: Get Route Details Anytime
+
+Retrieve the current state of the route at any point:
+
+```bash
+curl $SALLY_BASE/routes/rte_f8e7d6c5 \
+  -H "X-API-Key: $SALLY_API_KEY"
+```
+
+**JavaScript (fetch):**
+
+```javascript
+const routeDetails = await fetch(`${BASE_URL}/routes/rte_f8e7d6c5`, {
+  headers: { "X-API-Key": process.env.SALLY_API_KEY },
+});
+
+const route = await routeDetails.json();
+console.log("Status:", route.status);
+console.log("Current segment:", route.currentSegment);
+console.log("ETA:", route.summary.estimatedCompletion);
+```
+
+## Complete Script
+
+Here is the full workflow as a single JavaScript script:
+
+```javascript
+const SALLY_API_KEY = process.env.SALLY_API_KEY;
+const BASE_URL = "https://sally-api.apps.appshore.in/api/v1";
+
+const headers = {
+  "X-API-Key": SALLY_API_KEY,
+  "Content-Type": "application/json",
+};
+
+async function planFirstRoute() {
+  // Step 1: Create driver
+  const driverRes = await fetch(`${BASE_URL}/drivers`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      firstName: "Mike",
+      lastName: "Johnson",
+      licenseNumber: "D410-7892-4501",
+      licenseState: "IL",
+      truckNumber: "TRK-4821",
+      phoneNumber: "+1-312-555-0147",
+    }),
+  });
+  const driver = await driverRes.json();
+
+  // Step 2: Create vehicle
+  const vehicleRes = await fetch(`${BASE_URL}/vehicles`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      unitNumber: "TRK-4821",
+      make: "Freightliner",
+      model: "Cascadia",
+      year: 2023,
+      vin: "3AKJHHDR7PSLA9274",
+      licensePlate: "IL-CDL-4821",
+      fuelTankCapacity: 150,
+      mpg: 6.2,
+    }),
+  });
+  const vehicle = await vehicleRes.json();
+
+  // Step 3: Create loads
+  const load1Res = await fetch(`${BASE_URL}/loads`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      referenceNumber: "LD-20260210-001",
+      customer: "Midwest Auto Parts",
+      originAddress: "2800 S Western Ave, Chicago, IL 60608",
+      destinationAddress: "5900 W Raymond St, Indianapolis, IN 46241",
+      scheduledPickup: "2026-02-10T09:00:00Z",
+      scheduledDelivery: "2026-02-10T15:00:00Z",
+      weight: 38500,
+    }),
+  });
+  const load1 = await load1Res.json();
+
+  const load2Res = await fetch(`${BASE_URL}/loads`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      referenceNumber: "LD-20260210-002",
+      customer: "Central Ohio Distribution",
+      originAddress: "5900 W Raymond St, Indianapolis, IN 46241",
+      destinationAddress: "4100 Groves Rd, Columbus, OH 43232",
+      scheduledPickup: "2026-02-10T15:30:00Z",
+      scheduledDelivery: "2026-02-10T21:00:00Z",
+      weight: 42000,
+    }),
+  });
+  const load2 = await load2Res.json();
+
+  // Step 4: Plan the route
+  const planRes = await fetch(`${BASE_URL}/routes/plan`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      driverId: driver.id,
+      vehicleId: vehicle.id,
+      loadIds: [load1.id, load2.id],
+      driverState: {
+        hoursDriven: 2.0,
+        onDutyTime: 4.0,
+        hoursSinceBreak: 3.5,
+        currentCycleUsed: 42.0,
+      },
+      vehicleState: {
+        currentFuelGallons: 90,
+        fuelTankCapacity: 150,
+        mpg: 6.2,
+      },
+      stops: [
+        {
+          stopId: "stop-chicago-wh",
+          name: "Acme Freight Chicago Warehouse",
+          lat: 41.8423,
+          lon: -87.6845,
+          locationType: "warehouse",
+          isOrigin: true,
+          isDestination: false,
+          estimatedDockHours: 1.0,
+        },
+        {
+          stopId: "stop-indy-customer",
+          name: "Midwest Auto Parts - Indianapolis",
+          lat: 39.7355,
+          lon: -86.2388,
+          locationType: "customer",
+          isOrigin: false,
+          isDestination: false,
+          estimatedDockHours: 1.5,
+          customerName: "Midwest Auto Parts",
+        },
+        {
+          stopId: "stop-columbus-terminal",
+          name: "Central Ohio Distribution Center",
+          lat: 39.9171,
+          lon: -82.8834,
+          locationType: "customer",
+          isOrigin: false,
+          isDestination: true,
+          estimatedDockHours: 1.0,
+          customerName: "Central Ohio Distribution",
+        },
+      ],
+      optimizationPriority: "balance",
+    }),
+  });
+  const route = await planRes.json();
+
+  console.log("Route planned:", route.planId);
+  console.log("Segments:", route.segments.length);
+  console.log("Total miles:", route.summary.totalDistanceMiles);
+  console.log("HOS compliant:", route.complianceReport.isFeasible);
+
+  // Step 5: Activate the route
+  const activateRes = await fetch(
+    `${BASE_URL}/routes/${route.planId}/activate`,
+    { method: "POST", headers: { "X-API-Key": SALLY_API_KEY } }
+  );
+  const activated = await activateRes.json();
+  console.log("Route status:", activated.status);
+
+  return route;
+}
+
+planFirstRoute().catch(console.error);
+```
 
 ## Next Steps
 
-Congratulations! You've successfully planned your first HOS-compliant route with SALLY.
-
-### Go Deeper
-
-- **[Understanding HOS Rules](/guides/understanding-hos)** - Learn how SALLY validates HOS compliance
-- **[Route Updates](/guides/route-planning/route-updates)** - Handle dynamic changes (dock delays, traffic, etc.)
-- **[Rest Optimization](/guides/route-planning/rest-stops)** - How SALLY decides when and where to rest
-- **[Monitoring Active Routes](/api-playground#operation/getRouteMonitoring)** - Track routes in real-time
-
-### Explore API Reference
-
-- **[POST /routes/plan](/api-playground#operation/planRoute)** - Full endpoint documentation
-- **[Driver State Schema](/api-playground#model/DriverState)** - All HOS fields explained
-- **[Segment Types](/api-playground#model/SegmentType)** - Complete segment reference
-
-### Build Your Integration
-
-- **[Webhooks](/guides/integration/webhook-setup)** - Get notified of route events
-- **[Error Handling](/guides/integration/error-handling)** - Handle API errors gracefully
-- **[Rate Limiting](/guides/integration/rate-limiting)** - Optimize API usage
-
-## Summary
-
-In this tutorial, you learned:
-
-✅ How to authenticate API requests with API keys
-✅ How to structure a route planning request with driver, vehicle, and stops
-✅ How SALLY analyzes HOS and inserts rest stops automatically
-✅ How to interpret route segments (drive, rest, fuel, dock)
-✅ How to read compliance reports and feasibility validation
-✅ How to troubleshoot common API errors
-
-SALLY handles the complexity of HOS compliance so you can focus on building great fleet management experiences.
-
-Ready to handle alerts and monitoring? Check out our [Monitoring Guide](/guides/monitoring/overview).
+- [Drivers API](/api-guides/fleet-management/drivers) -- Manage driver profiles and HOS data
+- [Vehicles API](/api-guides/fleet-management/vehicles) -- Fleet vehicle management
+- [Alerts and Monitoring](/api-guides/alerts-monitoring) -- Monitor active routes and handle alerts
+- [Real-time Events](/api-guides/alerts-monitoring/real-time-events) -- Subscribe to live route updates
+- [Route Planning Guide](/api-guides/route-planning/creating-routes) -- Advanced route planning options

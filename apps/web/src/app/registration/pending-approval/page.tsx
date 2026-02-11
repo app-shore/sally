@@ -1,21 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { HeroRouteBackground } from "@/shared/components/common/landing/AnimatedRoute";
 import Link from "next/link";
 
 export default function PendingApprovalPage() {
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background p-4">
-      {/* Animated Background */}
-      <HeroRouteBackground />
-
-      {/* Content */}
-      <div className="relative z-20">
-        {/* Subtle backdrop for better contrast */}
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-2xl -z-10" />
-
-        <div className="w-full max-w-[600px] mx-auto relative isolate text-center">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-[600px] mx-auto relative isolate text-center">
           {/* Success Icon Animation */}
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
@@ -45,18 +36,6 @@ export default function PendingApprovalPage() {
                 />
               </svg>
             </div>
-          </motion.div>
-
-          {/* SALLY Wordmark */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-6"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tighter mb-3 text-gradient font-space-grotesk">
-              SALLY
-            </h1>
           </motion.div>
 
           {/* Success Message */}
@@ -106,7 +85,6 @@ export default function PendingApprovalPage() {
               Return to sign in
             </Link>
           </motion.div>
-        </div>
       </div>
     </div>
   );

@@ -14,14 +14,15 @@ export class LoadsService {
 
   /**
    * Create a new load with stops
+   * Supports inline stop creation for manual entry (when stop doesn't exist yet)
    */
   async create(data: {
+    tenant_id: number;
     load_number: string;
     weight_lbs: number;
     commodity_type: string;
     special_requirements?: string;
     customer_name: string;
-    tenant_id: number;
     stops: Array<{
       stop_id: string;
       sequence_order: number;
@@ -29,6 +30,10 @@ export class LoadsService {
       earliest_arrival?: string;
       latest_arrival?: string;
       estimated_dock_hours: number;
+      name?: string;
+      address?: string;
+      city?: string;
+      state?: string;
     }>;
   }) {
     const loadId = `LOAD-${data.load_number}`;
@@ -50,9 +55,25 @@ export class LoadsService {
     // Create load stops
     for (const stopData of data.stops) {
       // Look up stop by stop_id string
-      const stop = await this.prisma.stop.findFirst({
+      let stop = await this.prisma.stop.findFirst({
         where: { stopId: stopData.stop_id },
       });
+
+      // Create stop inline if it doesn't exist (manual entry flow)
+      if (!stop && stopData.name) {
+        stop = await this.prisma.stop.create({
+          data: {
+            stopId: stopData.stop_id,
+            name: stopData.name,
+            address: stopData.address || null,
+            city: stopData.city || null,
+            state: stopData.state || null,
+            locationType: 'customer',
+            isActive: true,
+            tenantId: data.tenant_id,
+          },
+        });
+      }
 
       if (!stop) {
         // Rollback: delete the created load
@@ -92,6 +113,7 @@ export class LoadsService {
    * Find all loads with optional filtering and pagination
    */
   async findAll(
+    tenantId: number,
     filters?: {
       status?: string;
       customer_name?: string;
@@ -103,6 +125,7 @@ export class LoadsService {
   ) {
     const loads = await this.prisma.load.findMany({
       where: {
+        tenantId,
         ...(filters?.status ? { status: filters.status } : {}),
         ...(filters?.customer_name
           ? {

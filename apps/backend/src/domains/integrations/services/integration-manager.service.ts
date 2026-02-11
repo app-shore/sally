@@ -3,7 +3,10 @@ import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { CredentialsService } from '../credentials/credentials.service';
 import { RetryService } from '../../../infrastructure/retry/retry.service';
 import { AlertService, AlertSeverity } from '../../operations/alerts/services/alert.service';
-import { SamsaraELDAdapter, VehicleLocationData } from '../adapters/eld/samsara-eld.adapter';
+import {
+  SamsaraELDAdapter,
+  VehicleLocationData,
+} from '../adapters/eld/samsara-eld.adapter';
 import { McLeodTMSAdapter } from '../adapters/tms/mcleod-tms.adapter';
 import { Project44TMSAdapter } from '../adapters/tms/project44-tms.adapter';
 import { GasBuddyFuelAdapter } from '../adapters/fuel/gasbuddy-fuel.adapter';
@@ -184,7 +187,7 @@ export class IntegrationManagerService {
     }
 
     const apiToken = this.getCredentialField(integration.credentials, 'apiToken');
-    const locations = await this.samsaraAdapter.getVehicleLocations(apiToken);
+    const locations = await this.samsaraAdapter.getVehicleGPSSnapshots(apiToken);
     const match = locations.find((l) => l.vehicleId === vehicleId);
 
     if (!match) {

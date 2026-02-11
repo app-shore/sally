@@ -1,0 +1,260 @@
+---
+title: Adding an Endpoint
+description: Step-by-step tutorial for adding a new API endpoint to the SALLY backend.
+---
+
+# Adding an Endpoint
+
+This tutorial walks through adding a new endpoint from scratch. We will add a hypothetical `GET /api/v1/drivers/:driver_id/maintenance-log` endpoint that returns a driver's maintenance history.
+
+By the end, you will understand the complete flow: controller, service, DTO, Swagger docs, and role-based access.
+
+## Before You Start
+
+Make sure you are familiar with:
+- [Module Structure](/developer-guide/backend/module-structure) -- how NestJS modules are organized
+- [Database & Prisma](/developer-guide/backend/database-prisma) -- how to query the database
+
+## Step 1: Define the Response DTO
+
+Start by defining the shape of the response. Create a DTO file if one does not already exist for your feature:
+
+```typescript filename="apps/backend/src/domains/fleet/drivers/dto/maintenance-log.dto.ts"
+import { ApiProperty } from '@nestjs/swagger';
+
+export class MaintenanceLogEntryDto {
+  @ApiProperty({ example: 'ML-001', description: 'Maintenance log entry ID' })
+  id: string;
+
+  @ApiProperty({ example: 'Oil change', description: 'Description of maintenance performed' })
+  description: string;
+
+  @ApiProperty({ example: '2026-01-15T10:00:00Z', description: 'Date maintenance was performed' })
+  performedAt: string;
+
+  @ApiProperty({ example: 45000, description: 'Odometer reading at time of maintenance' })
+  odometerMiles: number;
+
+  @ApiProperty({ example: 'Completed', description: 'Status of the maintenance entry' })
+  status: string;
+}
+```
+
+Export it from the DTO barrel file:
+
+```typescript filename="apps/backend/src/domains/fleet/drivers/dto/index.ts"
+export * from './create-driver.dto';
+export * from './update-driver.dto';
+export * from './maintenance-log.dto';
+```
+
+## Step 2: Add the Service Method
+
+Add the business logic to the appropriate service. This is where you write Prisma queries and apply business rules:
+
+```typescript filename="apps/backend/src/domains/fleet/drivers/services/drivers.service.ts"
+/**
+ * Get maintenance log entries for a driver
+ */
+async getMaintenanceLog(driverId: string, tenantId: number) {
+  // First verify the driver exists and belongs to this tenant
+  const driver = await this.findOne(driverId, tenantId);
+
+  // Query maintenance records
+  const records = await this.prisma.maintenanceLog.findMany({
+    where: {
+      driverId: driver.id,
+    },
+    orderBy: { performedAt: 'desc' },
+  });
+
+  return records.map((record) => ({
+    id: record.logId,
+    description: record.description,
+    performedAt: record.performedAt.toISOString(),
+    odometerMiles: record.odometerMiles,
+    status: record.status,
+  }));
+}
+```
+
+Key points:
+- Always verify tenant ownership by calling `findOne()` first (which already checks `tenantId`)
+- Return plain objects, not Prisma models (keeps the API contract stable even if the schema changes)
+- Use `toISOString()` for dates to ensure consistent formatting
+
+## Step 3: Add the Controller Route
+
+Add the endpoint to the controller with all the necessary decorators:
+
+```typescript filename="apps/backend/src/domains/fleet/drivers/controllers/drivers.controller.ts"
+@Get(':driver_id/maintenance-log')
+@Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
+@ApiOperation({
+  summary: 'Get maintenance log for a driver',
+  description: 'Returns all maintenance records for the specified driver, ordered by most recent first.',
+})
+@ApiParam({ name: 'driver_id', description: 'Driver ID (e.g., DRV-M1A2B3)' })
+@ApiResponse({
+  status: 200,
+  description: 'List of maintenance log entries',
+  type: [MaintenanceLogEntryDto],
+})
+@ApiResponse({ status: 404, description: 'Driver not found' })
+async getMaintenanceLog(
+  @Param('driver_id') driverId: string,
+  @CurrentUser() user: any,
+) {
+  const tenantDbId = await this.getTenantDbId(user);
+  return this.driversService.getMaintenanceLog(driverId, tenantDbId);
+}
+```
+
+Make sure to import the DTO at the top of the controller file:
+
+```typescript
+import { MaintenanceLogEntryDto } from '../dto';
+```
+
+## Step 4: Add Request Validation (For POST/PUT/PATCH)
+
+If your endpoint accepts a request body, create a DTO with `class-validator` decorators. Here is an example for a hypothetical create endpoint:
+
+```typescript filename="apps/backend/src/domains/fleet/drivers/dto/create-maintenance-log.dto.ts"
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsDateString } from 'class-validator';
+
+export class CreateMaintenanceLogDto {
+  @ApiProperty({ example: 'Oil change and filter replacement' })
+  @IsString()
+  @IsNotEmpty()
+  description: string;
+
+  @ApiProperty({ example: '2026-01-15T10:00:00Z' })
+  @IsDateString()
+  performedAt: string;
+
+  @ApiProperty({ example: 45000, required: false })
+  @IsNumber()
+  @IsOptional()
+  odometerMiles?: number;
+}
+```
+
+Then use it in the controller with `@Body()`:
+
+```typescript
+@Post(':driver_id/maintenance-log')
+@Roles(UserRole.ADMIN, UserRole.OWNER)
+@ApiOperation({ summary: 'Add a maintenance log entry' })
+async addMaintenanceLog(
+  @Param('driver_id') driverId: string,
+  @Body() dto: CreateMaintenanceLogDto,
+  @CurrentUser() user: any,
+) {
+  const tenantDbId = await this.getTenantDbId(user);
+  return this.driversService.addMaintenanceLog(driverId, tenantDbId, dto);
+}
+```
+
+The global `ValidationPipe` automatically validates the request body against the DTO. Invalid requests receive a 400 response with details about which fields failed validation.
+
+## Step 5: Add Swagger Decorators
+
+The Swagger decorators you added in Step 3 (`@ApiOperation`, `@ApiParam`, `@ApiResponse`) automatically generate API documentation. The controller-level decorators also contribute:
+
+- `@ApiTags('Drivers')` -- groups the endpoint under "Drivers" in Swagger UI
+- `@ApiBearerAuth()` -- shows the lock icon indicating authentication is required
+
+After starting the backend, view the generated docs at [http://localhost:8000/api](http://localhost:8000/api).
+
+## Step 6: Configure Role-Based Access
+
+The `@Roles()` decorator determines which user roles can access the endpoint:
+
+```typescript
+// Only admins and owners can create
+@Roles(UserRole.ADMIN, UserRole.OWNER)
+
+// Dispatchers can also read
+@Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
+
+// Drivers can access their own data
+@Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER, UserRole.DRIVER)
+```
+
+If you omit the `@Roles()` decorator, any authenticated user can access the endpoint (the `RolesGuard` passes when no roles are specified).
+
+For public endpoints (no authentication required), use `@Public()`:
+
+```typescript
+@Public()
+@Get('health')
+healthCheck() { ... }
+```
+
+## Step 7: Test Your Endpoint
+
+### With curl
+
+```bash
+# Get a JWT token first (via login or Swagger)
+TOKEN="your-jwt-token"
+
+# Test the new endpoint
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/v1/drivers/DRV-M1A2B3/maintenance-log
+```
+
+### With Swagger UI
+
+1. Open [http://localhost:8000/api](http://localhost:8000/api)
+2. Click "Authorize" and enter your JWT token
+3. Find the new endpoint under the "Drivers" tag
+4. Click "Try it out", enter the driver ID, and execute
+
+### With a Unit Test
+
+```typescript filename="apps/backend/src/domains/fleet/drivers/__tests__/drivers.service.spec.ts"
+describe('DriversService', () => {
+  describe('getMaintenanceLog', () => {
+    it('should return maintenance records for a valid driver', async () => {
+      // Arrange
+      const mockRecords = [
+        { logId: 'ML-001', description: 'Oil change', performedAt: new Date(), odometerMiles: 45000, status: 'Completed' },
+      ];
+      prisma.maintenanceLog.findMany.mockResolvedValue(mockRecords);
+      prisma.driver.findUnique.mockResolvedValue({ id: 1, driverId: 'DRV-001', tenantId: 1 });
+
+      // Act
+      const result = await service.getMaintenanceLog('DRV-001', 1);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('ML-001');
+    });
+
+    it('should throw NotFoundException for unknown driver', async () => {
+      prisma.driver.findUnique.mockResolvedValue(null);
+
+      await expect(service.getMaintenanceLog('INVALID', 1))
+        .rejects.toThrow(NotFoundException);
+    });
+  });
+});
+```
+
+## Checklist
+
+Before submitting your PR, verify:
+
+- [ ] DTO defined with `class-validator` decorators (for request bodies)
+- [ ] Service method queries with `tenantId` filter (multi-tenancy)
+- [ ] Controller has `@Roles()` decorator with appropriate roles
+- [ ] Controller has `@ApiOperation()` and `@ApiResponse()` decorators
+- [ ] Controller has `@ApiParam()` for URL parameters
+- [ ] Response uses plain objects (not raw Prisma models)
+- [ ] Dates formatted with `toISOString()`
+- [ ] Error cases handled (NotFoundException, ConflictException, etc.)
+- [ ] Endpoint visible and testable in Swagger UI
+- [ ] Unit test written for the service method

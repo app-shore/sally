@@ -38,18 +38,18 @@ curl -X POST https://sally-api.apps.appshore.in/api/v1/routes/plan \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "driver_id": "DRV001",
-    "vehicle_id": "VEH001",
+    "driverId": "DRV001",
+    "vehicleId": "VEH001",
     "stops": [
       {
         "location": "Los Angeles, CA",
         "type": "origin",
-        "appointment_time": "2026-02-06T08:00:00Z"
+        "appointmentTime": "2026-02-06T08:00:00Z"
       },
       {
         "location": "Phoenix, AZ",
         "type": "delivery",
-        "appointment_time": "2026-02-06T16:00:00Z"
+        "appointmentTime": "2026-02-06T16:00:00Z"
       }
     ]
   }'
@@ -63,22 +63,22 @@ The API returns an optimized route with:
 
 ```json
 {
-  "plan_id": "plan_abc123",
+  "planId": "plan_abc123",
   "status": "optimized",
   "segments": [
     {
       "type": "drive",
       "from": "Los Angeles, CA",
       "to": "Phoenix, AZ",
-      "distance_miles": 373,
-      "duration_hours": 5.5
+      "distanceMiles": 373,
+      "durationHours": 5.5
     }
   ],
-  "total_distance_miles": 373,
-  "total_duration_hours": 5.5,
-  "hos_compliant": true,
+  "totalDistanceMiles": 373,
+  "totalDurationHours": 5.5,
+  "hosCompliant": true,
   "feasibility": {
-    "is_feasible": true,
+    "isFeasible": true,
     "violations": []
   }
 }
@@ -96,10 +96,10 @@ Visit our [API Reference](/api-reference/routes) to test endpoints interactively
 ## What's Next?
 
 - [Understanding Authentication](/getting-started/authentication) - Learn about API key authentication
-- [Route Planning Guide](/guides/route-planning/creating-routes) - Deep dive into route planning
+- [Route Planning Guide](/api-guides/route-planning/creating-routes) - Deep dive into route planning
 - [API Reference](/api-reference) - Explore all available endpoints
 
 ## Need Help?
 
-- 📧 Email: support@sally.com
+- 📧 Email: support@sally.appshore.in
 - 🐛 GitHub: [Report issues](https://github.com/ajaynarang/sally/issues)

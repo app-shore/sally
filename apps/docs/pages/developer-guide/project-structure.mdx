@@ -1,0 +1,208 @@
+---
+title: Project Structure
+description: A map of the SALLY monorepo -- where code lives and where to add new code.
+---
+
+# Project Structure
+
+SALLY is a Turborepo monorepo with three apps and one shared package. This page explains the directory layout, what each directory is for, and where to put new code.
+
+## Top-Level Layout
+
+```
+sally/
+├── apps/
+│   ├── backend/          # NestJS API server (port 8000)
+│   ├── web/              # Next.js frontend (port 3000)
+│   └── docs/             # Nextra documentation site (port 3001)
+├── packages/
+│   └── shared-types/     # Shared TypeScript type definitions
+├── docker-compose.yml    # PostgreSQL + Redis for local dev
+├── turbo.json            # Turborepo pipeline configuration
+├── package.json          # Root package with workspace scripts
+└── CLAUDE.md             # AI context and project standards
+```
+
+### Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `turbo.json` | Defines Turborepo task pipeline (build, dev, test, lint) |
+| `docker-compose.yml` | PostgreSQL 16 + Redis 7 containers for local development |
+| `package.json` | Root workspace config, global scripts, engine requirements |
+
+## apps/backend/ -- NestJS API
+
+The backend is a NestJS 11 application using Prisma 7.3 as the ORM, PostgreSQL 16 as the database, and Redis 7 for caching.
+
+```
+apps/backend/
+├── prisma/
+│   ├── schema.prisma         # Database schema (single source of truth)
+│   ├── migrations/           # Generated migration files
+│   ├── seeds/                # Seed data (base + demo profiles)
+│   └── seed.ts               # Seed entry point
+├── scripts/                  # Utility scripts (Firebase, cleanup)
+├── src/
+│   ├── main.ts               # App bootstrap, Swagger setup, global pipes
+│   ├── app.module.ts          # Root module -- imports all domain + infra modules
+│   ├── auth/                  # Authentication (JWT, Firebase, guards, decorators)
+│   │   ├── guards/            # JwtAuthGuard, TenantGuard, RolesGuard
+│   │   ├── decorators/        # @CurrentUser(), @Roles(), @Public(), @CurrentTenant()
+│   │   └── strategies/        # Passport JWT strategy
+│   ├── config/                # Application configuration (env vars)
+│   ├── domains/               # Business logic -- organized by domain
+│   │   ├── fleet/             # Drivers, Vehicles, Loads
+│   │   ├── operations/        # Alerts, Command Center, Notifications
+│   │   ├── routing/           # Route planning, HOS compliance, fuel/weather providers
+│   │   ├── integrations/      # External system integrations (ELD, fuel APIs)
+│   │   └── platform/         # Tenants, Users, Settings, API Keys, Feature Flags, AI
+│   ├── health/                # Health check endpoint
+│   ├── infrastructure/        # Cross-cutting infrastructure
+│   │   ├── cache/             # Redis cache module
+│   │   ├── database/          # Prisma module and service
+│   │   ├── notification/      # Email notifications (Resend)
+│   │   ├── push/              # Web push notifications
+│   │   ├── sms/               # SMS notifications (Twilio)
+│   │   ├── sse/               # Server-Sent Events
+│   │   ├── websocket/         # WebSocket gateway (Socket.io)
+│   │   ├── jobs/              # Scheduled jobs (auto-sync)
+│   │   └── retry/             # Retry service for transient failures
+│   └── shared/                # Shared utilities
+│       ├── base/              # Base controller classes (BaseTenantController)
+│       ├── filters/           # Global exception filter
+│       ├── guards/            # Shared guards (ExternalSourceGuard)
+│       └── utils/             # Utility functions
+└── test/                      # E2E test configuration
+```
+
+### Domain Structure
+
+Each domain follows a consistent module pattern. For example, `domains/fleet/` contains:
+
+| Subdomain | What It Manages |
+|-----------|----------------|
+| `drivers/` | Driver CRUD, activation/deactivation, HOS data |
+| `vehicles/` | Vehicle management, specifications |
+| `loads/` | Load/shipment management |
+
+Each subdomain has:
+- `*.module.ts` -- NestJS module declaration
+- `controllers/` -- HTTP endpoint handlers
+- `services/` -- Business logic
+- `dto/` -- Request/response validation schemas
+- `__tests__/` -- Unit tests
+
+## apps/web/ -- Next.js Frontend
+
+The frontend is a Next.js 15 application using the App Router, TypeScript, Tailwind CSS, and Shadcn/ui components.
+
+```
+apps/web/
+├── src/
+│   ├── app/                   # Next.js App Router (pages and layouts)
+│   │   ├── layout.tsx         # Root layout (providers, fonts, metadata)
+│   │   ├── globals.css        # Global styles and Tailwind config
+│   │   ├── providers.tsx      # React Query, theme, and auth providers
+│   │   ├── page.tsx           # Landing/redirect page
+│   │   ├── (dashboard)/       # Route group: dispatcher and driver views
+│   │   ├── (super-admin)/     # Route group: super admin panel
+│   │   ├── login/             # Login page
+│   │   ├── register/          # Registration page
+│   │   ├── accept-invitation/ # Invitation acceptance page
+│   │   ├── dispatcher/        # Dispatcher dashboard pages
+│   │   │   ├── overview/      # Fleet overview
+│   │   │   ├── fleet/         # Fleet management
+│   │   │   ├── alerts/        # Alert management
+│   │   │   ├── active-routes/ # Active route monitoring
+│   │   │   ├── create-plan/   # Route plan creation
+│   │   │   ├── analytics/     # Analytics dashboards
+│   │   │   ├── invoicing/     # Invoice management
+│   │   │   └── settlements/   # Settlement management
+│   │   ├── driver/            # Driver-facing pages
+│   │   ├── settings/          # Settings pages
+│   │   ├── admin/             # Admin pages
+│   │   └── notifications/     # Notification center
+│   ├── features/              # Domain feature modules
+│   │   ├── auth/              # Authentication (login, registration, store)
+│   │   ├── fleet/             # Fleet management (drivers, vehicles, loads)
+│   │   ├── operations/        # Operations (alerts, monitoring, command center)
+│   │   ├── routing/           # Routing (HOS compliance, optimization)
+│   │   ├── platform/          # Platform (admin, settings, users, AI chat)
+│   │   └── integrations/      # External integrations UI
+│   └── shared/                # Shared code used across features
+│       ├── components/        # Shared React components
+│       │   ├── ui/            # Shadcn/ui components (28 installed)
+│       │   ├── layout/        # Layout components (sidebar, header)
+│       │   └── common/        # Common reusable components
+│       ├── hooks/             # Shared React hooks
+│       ├── lib/               # Libraries and utilities
+│       │   ├── api/           # API client configuration
+│       │   └── firebase.ts    # Firebase client setup
+│       ├── config/            # App configuration
+│       ├── types/             # Shared TypeScript types
+│       └── utils/             # Utility functions
+├── public/                    # Static assets
+└── next.config.ts             # Next.js configuration
+```
+
+## apps/docs/ -- Documentation Site
+
+The docs site is built with Nextra and deployed alongside the main application.
+
+```
+apps/docs/
+├── pages/
+│   ├── index.mdx              # Home page
+│   ├── developer-guide/       # Developer onboarding (this section)
+│   ├── architecture/          # Architecture documentation
+│   ├── api-reference/         # API reference
+│   ├── api-guides/            # API usage guides
+│   ├── guides/                # User guides
+│   ├── contributing/          # Contribution guidelines
+│   └── resources/             # Additional resources
+└── theme.config.tsx           # Nextra theme configuration
+```
+
+## packages/shared-types/ -- Shared Types
+
+Contains TypeScript type definitions shared between the backend and frontend. Import from `@sally/shared-types`:
+
+```typescript
+import { SomeSharedType } from '@sally/shared-types';
+```
+
+## Where to Find Things
+
+Use this table when you need to locate or add code:
+
+| I Need To... | Go To |
+|--------------|-------|
+| Add an API endpoint | `apps/backend/src/domains/<domain>/` |
+| Add a page | `apps/web/src/app/<route>/page.tsx` |
+| Add a feature component | `apps/web/src/features/<domain>/<feature>/components/` |
+| Add a shared component | `apps/web/src/shared/components/` |
+| Add a Shadcn/ui component | Run `pnpm dlx shadcn@latest add <name>` from `apps/web/` |
+| Add a React hook (feature) | `apps/web/src/features/<domain>/<feature>/hooks/` |
+| Add a React hook (shared) | `apps/web/src/shared/hooks/` |
+| Change the database schema | `apps/backend/prisma/schema.prisma` |
+| Add seed data | `apps/backend/prisma/seeds/` |
+| Add a shared type | `packages/shared-types/src/` |
+| Add infrastructure (cache, email) | `apps/backend/src/infrastructure/` |
+| Add auth logic | `apps/backend/src/auth/` |
+| Add documentation | `apps/docs/pages/` |
+| Write a test (backend unit) | `apps/backend/src/**/*.spec.ts` |
+| Write a test (backend E2E) | `apps/backend/test/**/*.e2e-spec.ts` |
+| Write a test (frontend) | `apps/web/src/features/<domain>/<feature>/__tests__/` |
+
+## Naming Conventions
+
+| Context | Convention | Example |
+|---------|-----------|---------|
+| Backend modules | PascalCase | `DriversModule` |
+| Backend files | kebab-case | `drivers.controller.ts` |
+| Frontend components | kebab-case | `driver-list.tsx` |
+| Frontend hooks | kebab-case with `use` prefix | `use-drivers.ts` |
+| Database tables | snake_case (via Prisma `@@map`) | `route_plans` |
+| API routes | kebab-case | `/api/v1/fleet/drivers` |
+| Environment variables | SCREAMING_SNAKE_CASE | `DATABASE_URL` |

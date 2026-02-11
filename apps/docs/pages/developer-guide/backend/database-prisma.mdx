@@ -1,0 +1,259 @@
+---
+title: Database & Prisma
+description: How to work with the PostgreSQL database using Prisma -- schema changes, migrations, seeding, and common patterns.
+---
+
+# Database & Prisma
+
+SALLY uses PostgreSQL 16 as the database and Prisma 7.3 as the ORM. This page covers the database schema, migrations, seeding, and the patterns used across all models.
+
+## Schema Location
+
+The single source of truth for the database schema is:
+
+```
+apps/backend/prisma/schema.prisma
+```
+
+All tables, relationships, enums, and indexes are defined in this one file.
+
+## Making Schema Changes
+
+When you need to add or modify a table, follow these three steps:
+
+### 1. Edit the Schema
+
+Open `apps/backend/prisma/schema.prisma` and make your changes. For example, to add a `maintenanceLog` field to the vehicle model:
+
+```prisma filename="schema.prisma"
+model Vehicle {
+  id              Int       @id @default(autoincrement())
+  vehicleId       String    @unique @map("vehicle_id") @db.VarChar(50)
+  // ... existing fields ...
+  maintenanceNotes String?  @map("maintenance_notes")
+
+  tenantId        Int       @map("tenant_id")
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("vehicles")
+}
+```
+
+### 2. Create a Migration
+
+From the `apps/backend` directory:
+
+```bash
+cd apps/backend
+pnpm run prisma:migrate
+```
+
+Prisma will prompt you to name the migration. Use a descriptive name like `add-maintenance-notes-to-vehicles`. This creates a new SQL migration file in `prisma/migrations/`.
+
+### 3. Regenerate the Prisma Client
+
+```bash
+pnpm run prisma:generate
+```
+
+This regenerates the TypeScript types so your code picks up the schema changes. From the project root, you can also run:
+
+```bash
+pnpm run backend:prisma:generate
+```
+
+## Alternative: Push Without Migration
+
+For rapid prototyping, you can push schema changes directly without creating a migration file:
+
+```bash
+cd apps/backend
+pnpm run db:push
+```
+
+This updates the database schema to match `schema.prisma` but does not create a migration file. Use this only during development -- always use `prisma:migrate` before committing.
+
+## Seeding
+
+SALLY has two seed profiles:
+
+### Base Profile
+
+Seeds essential data required for the application to function (default tenant, roles, admin users):
+
+```bash
+cd apps/backend
+pnpm run setup:base
+```
+
+### Demo Profile
+
+Seeds sample data for development and demos (sample drivers, vehicles, routes, alerts):
+
+```bash
+cd apps/backend
+pnpm run setup:demo
+```
+
+### Check Seed Status
+
+```bash
+cd apps/backend
+pnpm run setup:status
+```
+
+## Prisma Studio
+
+Prisma Studio provides a visual browser for your database. Open it with:
+
+```bash
+pnpm run backend:prisma:studio
+```
+
+This opens a web interface where you can browse tables, view records, edit data, and explore relationships. Useful for debugging and verifying seed data.
+
+## Resetting the Database
+
+To drop all data and re-run migrations with base seeding:
+
+```bash
+cd apps/backend
+pnpm run setup:reset
+```
+
+This runs `prisma migrate reset --force` (drops and recreates all tables) and then seeds with the base profile.
+
+## Common Patterns
+
+### Multi-Tenancy
+
+Every model that contains tenant-specific data includes a `tenantId` foreign key:
+
+```prisma
+model Driver {
+  id        Int    @id @default(autoincrement())
+  driverId  String @unique @map("driver_id") @db.VarChar(50)
+  name      String @db.VarChar(255)
+
+  tenantId  Int    @map("tenant_id")
+  tenant    Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("drivers")
+}
+```
+
+In service code, always filter by `tenantId` to ensure data isolation:
+
+```typescript
+async findAll(tenantId: number): Promise<Driver[]> {
+  return this.prisma.driver.findMany({
+    where: { tenantId, isActive: true },
+  });
+}
+```
+
+### Soft Delete
+
+Models that support soft deletion include these fields:
+
+```prisma
+deletedAt       DateTime?  @map("deleted_at") @db.Timestamptz
+deletedBy       Int?       @map("deleted_by")
+deletionReason  String?    @map("deletion_reason")
+```
+
+When querying, filter out soft-deleted records:
+
+```typescript
+where: { deletedAt: null }
+```
+
+### Timestamp Fields
+
+All models include creation and update timestamps:
+
+```prisma
+createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+```
+
+`@default(now())` sets the creation timestamp automatically. `@updatedAt` is managed by Prisma and updates on every write.
+
+### String IDs
+
+Business-facing identifiers use string IDs (separate from the auto-incrementing primary key):
+
+```prisma
+model Driver {
+  id        Int    @id @default(autoincrement())   // Internal PK
+  driverId  String @unique @map("driver_id")       // Business ID (e.g., "DRV-M1A2B3")
+}
+```
+
+String IDs are generated in service code, typically using timestamp-based encoding or nanoid:
+
+```typescript
+const driverId = `DRV-${Date.now().toString(36).toUpperCase()}`;
+```
+
+### Column Mapping
+
+Prisma model fields use camelCase, but database columns use snake_case. The `@map()` directive handles this:
+
+```prisma
+licenseNumber  String?  @map("license_number") @db.VarChar(50)
+```
+
+Table names are also mapped using `@@map()`:
+
+```prisma
+@@map("drivers")
+```
+
+### Composite Unique Constraints
+
+Some models use composite unique keys for tenant isolation:
+
+```prisma
+@@unique([driverId, tenantId])
+```
+
+This allows different tenants to have records with the same business ID while maintaining uniqueness within each tenant.
+
+### Indexes
+
+Add indexes on columns that are frequently used in WHERE clauses or JOINs:
+
+```prisma
+@@index([tenantId])
+@@index([status])
+@@index([isActive])
+```
+
+## Enums
+
+The schema defines several enums used across models:
+
+| Enum | Values | Used By |
+|------|--------|---------|
+| `UserRole` | DISPATCHER, DRIVER, ADMIN, OWNER, SUPER_ADMIN | User |
+| `TenantStatus` | PENDING_APPROVAL, ACTIVE, REJECTED, SUSPENDED | Tenant |
+| `FleetSize` | SIZE_1_10, SIZE_11_50, SIZE_51_100, SIZE_101_500, SIZE_500_PLUS | Tenant |
+| `InvitationStatus` | PENDING, ACCEPTED, CANCELLED, EXPIRED | UserInvitation |
+
+## Key Commands Reference
+
+| Task | Command | Run From |
+|------|---------|----------|
+| Create migration | `pnpm run prisma:migrate` | `apps/backend/` |
+| Deploy migrations (production) | `pnpm run prisma:migrate:deploy` | `apps/backend/` |
+| Check migration status | `pnpm run prisma:migrate:status` | `apps/backend/` |
+| Push schema (no migration) | `pnpm run db:push` | `apps/backend/` |
+| Generate Prisma client | `pnpm run prisma:generate` | `apps/backend/` |
+| Open Prisma Studio | `pnpm run prisma:studio` | `apps/backend/` |
+| Seed base data | `pnpm run setup:base` | `apps/backend/` |
+| Seed demo data | `pnpm run setup:demo` | `apps/backend/` |
+| Reset database | `pnpm run setup:reset` | `apps/backend/` |
+| Seed status | `pnpm run setup:status` | `apps/backend/` |

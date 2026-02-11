@@ -1,0 +1,4 @@
+{
+  "installCommand": "cd ../.. && npx pnpm install --frozen-lockfile",
+  "buildCommand": "next build"
+}

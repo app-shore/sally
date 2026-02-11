@@ -7,10 +7,12 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { BaseTenantController } from '../../../../shared/base/base-tenant.controller';
 import { CurrentUser } from '../../../../auth/decorators/current-user.decorator';
+import { Roles } from '../../../../auth/decorators/roles.decorator';
+import { UserRole } from '@prisma/client';
 import { LoadsService } from '../services/loads.service';
 import { CreateLoadDto } from '../dto';
 
@@ -19,6 +21,7 @@ import { CreateLoadDto } from '../dto';
  * Extends BaseTenantController for tenant utilities.
  */
 @ApiTags('Loads')
+@ApiBearerAuth()
 @Controller('loads')
 export class LoadsController extends BaseTenantController {
   constructor(
@@ -29,6 +32,7 @@ export class LoadsController extends BaseTenantController {
   }
 
   @Post()
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Create a new load with stops' })
   async createLoad(
     @CurrentUser() user: any,
@@ -39,18 +43,22 @@ export class LoadsController extends BaseTenantController {
   }
 
   @Get()
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'List all loads with optional filtering' })
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'customer_name', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'offset', required: false })
   async listLoads(
+    @CurrentUser() user: any,
     @Query('status') status?: string,
     @Query('customer_name') customerName?: string,
     @Query('limit') limit = 50,
     @Query('offset') offset = 0,
   ) {
+    const tenantDbId = await this.getTenantDbId(user);
     return this.loadsService.findAll(
+      tenantDbId,
       {
         status,
         customer_name: customerName,
@@ -63,12 +71,14 @@ export class LoadsController extends BaseTenantController {
   }
 
   @Get(':load_id')
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Get load details with stops' })
   async getLoad(@Param('load_id') loadId: string) {
     return this.loadsService.findOne(loadId);
   }
 
   @Patch(':load_id/status')
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Update load status' })
   async updateLoadStatus(
     @Param('load_id') loadId: string,
@@ -78,6 +88,7 @@ export class LoadsController extends BaseTenantController {
   }
 
   @Post(':load_id/assign')
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Assign driver and vehicle to load' })
   async assignLoad(
     @Param('load_id') loadId: string,

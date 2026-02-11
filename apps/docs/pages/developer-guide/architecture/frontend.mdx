@@ -1,0 +1,428 @@
+---
+title: Frontend Architecture
+description: App Router structure, feature modules, state management, and theming in the Next.js frontend.
+---
+
+# Frontend Architecture
+
+The SALLY frontend is a Next.js 15 application using the App Router, TypeScript, Tailwind CSS, and Shadcn/ui. It serves two distinct user experiences -- a dispatcher dashboard for fleet operations management and a driver view for route guidance -- from a single codebase using route groups and shared components.
+
+---
+
+## App Router Structure
+
+The frontend source tree (`apps/web/src/`) separates routing (the `app/` directory) from business logic (the `features/` directory) and shared infrastructure (the `shared/` directory).
+
+```mermaid
+graph TB
+    subgraph AppDir["app/ (Route Layer)"]
+        ROOT["layout.tsx<br/>(ThemeProvider, Providers,<br/>LayoutClient, Toaster)"]
+
+        subgraph Public["Public Routes"]
+            LOGIN["/login"]
+            REG["/register"]
+            ACCEPT["/accept-invitation"]
+            ONBOARD["/onboarding"]
+        end
+
+        subgraph Dispatcher["Dispatcher Routes"]
+            DISP_OVER["/dispatcher/overview"]
+            DISP_ACTIVE["/dispatcher/active-routes"]
+            DISP_CREATE["/dispatcher/create-plan"]
+            DISP_ALERTS["/dispatcher/alerts"]
+            DISP_ANALYTICS["/dispatcher/analytics"]
+            DISP_FLEET["/dispatcher/fleet"]
+            DISP_SETTLE["/dispatcher/settlements"]
+            DISP_INVOICE["/dispatcher/invoicing"]
+        end
+
+        subgraph Driver["Driver Routes"]
+            DRV_DASH["/driver/dashboard"]
+            DRV_ROUTE["/driver/current-route"]
+            DRV_MSG["/driver/messages"]
+            DRV_NOTIF["/driver/notifications"]
+        end
+
+        subgraph Settings["Settings Routes"]
+            SET_GEN["/settings/general"]
+            SET_NOTIF["/settings/notifications"]
+            SET_ALERTS["/settings/alerts"]
+            SET_DRV["/settings/driver"]
+            SET_OPS["/settings/operations"]
+            SET_INT["/settings/integrations"]
+            SET_API["/settings/api-keys"]
+        end
+
+        subgraph Admin["Admin Routes"]
+            ADMIN_DASH["/admin/dashboard"]
+        end
+
+        subgraph Other["Other Routes"]
+            SALLY_AI["/sally-canvas"]
+            SALLY_DEF["/sally-default"]
+            SALLY_NERVE["/sally-nerve"]
+            SETUP["/setup-hub"]
+            NOTIFS["/notifications"]
+        end
+    end
+
+    ROOT --> Public
+    ROOT --> Dispatcher
+    ROOT --> Driver
+    ROOT --> Settings
+    ROOT --> Admin
+    ROOT --> Other
+```
+
+### Route Groups
+
+The app uses Next.js route groups (directories in parentheses) to apply different layouts without affecting the URL:
+
+- **`(dashboard)`** -- Wraps dispatcher and standard user routes with the main application shell (sidebar navigation, header, notification bar).
+- **`(super-admin)`** -- Wraps the super-admin dashboard with an admin-specific layout.
+
+These route groups share the root layout (`layout.tsx`), which provides the theme provider, global providers (React Query, auth), and the toaster for notifications.
+
+### Layout Hierarchy
+
+```mermaid
+graph TB
+    ROOT_L["RootLayout<br/>(html, body, ThemeProvider,<br/>Providers, LayoutClient, Toaster)"]
+    DASH_L["Dashboard Layout<br/>(sidebar, header, breadcrumbs)"]
+    ADMIN_L["Super Admin Layout<br/>(admin sidebar, header)"]
+    PAGE["Page Component"]
+
+    ROOT_L --> DASH_L
+    ROOT_L --> ADMIN_L
+    DASH_L --> PAGE
+    ADMIN_L --> PAGE
+```
+
+The `LayoutClient` component handles client-side layout concerns: detecting the current route to determine which navigation to render, managing sidebar open/close state, and handling responsive breakpoint transitions.
+
+---
+
+## Feature Module Pattern
+
+Business logic lives in the `features/` directory, organized to mirror the backend's domain structure. Each feature module is self-contained with its own components, hooks, API functions, types, and tests.
+
+```mermaid
+graph TB
+    subgraph Features["features/"]
+        subgraph AuthF["auth/"]
+            A_COMP["components/"]
+            A_HOOKS["hooks/"]
+            A_API["api.ts"]
+            A_STORE["store.ts"]
+            A_TYPES["types.ts"]
+            A_TEST["__tests__/"]
+        end
+
+        subgraph FleetF["fleet/"]
+            F_DRV["drivers/"]
+            F_VEH["vehicles/"]
+            F_LOAD["loads/"]
+        end
+
+        subgraph OpsF["operations/"]
+            O_ALERT["alerts/"]
+            O_CMD["command-center/"]
+            O_MON["monitoring/"]
+            O_NOTIF["notifications/"]
+        end
+
+        subgraph RoutingF["routing/"]
+            R_HOS["hos-compliance/"]
+            R_OPT["optimization/"]
+            R_PLAN["route-planning/"]
+        end
+
+        subgraph PlatformF["platform/"]
+            P_ADMIN["admin/"]
+            P_CHAT["chat/"]
+            P_FF["feature-flags/"]
+            P_ONBOARD["onboarding/"]
+            P_PREF["preferences/"]
+            P_AI["sally-ai/"]
+            P_SET["settings/"]
+            P_USERS["users/"]
+        end
+
+        subgraph IntF["integrations/"]
+            I_COMP["components/"]
+            I_HOOKS["hooks/"]
+            I_API["api.ts"]
+            I_TEST["__tests__/"]
+        end
+    end
+```
+
+### Module Internals
+
+Each feature module follows a consistent structure:
+
+| File/Directory | Purpose |
+|---|---|
+| `components/` | React components specific to this feature |
+| `hooks/` | Custom hooks (React Query queries, mutations, local state) |
+| `api.ts` | API client functions (fetch wrappers for backend endpoints) |
+| `types.ts` | TypeScript interfaces and types for this domain |
+| `store.ts` | Zustand store slice (only where client-side state is needed) |
+| `index.ts` | Public API barrel export |
+| `__tests__/` | Unit and integration tests |
+
+**Pages are thin.** Route pages in the `app/` directory import feature components and compose them. Business logic, data fetching, and state management stay in the feature modules.
+
+---
+
+## State Management Strategy
+
+SALLY uses a deliberate split between client state and server state, managed by different libraries optimized for each concern.
+
+```mermaid
+graph LR
+    subgraph Client["Client State (Zustand)"]
+        AUTH_ST["Auth Store<br/>(user, token, role)"]
+        UI_ST["UI State<br/>(sidebar, modals, filters)"]
+        PREF_ST["Preferences<br/>(theme, units, timezone)"]
+    end
+
+    subgraph Server["Server State (React Query)"]
+        ROUTES_Q["Routes<br/>(plans, segments, ETAs)"]
+        ALERTS_Q["Alerts<br/>(active, acknowledged)"]
+        FLEET_Q["Fleet<br/>(drivers, vehicles, loads)"]
+        INT_Q["Integrations<br/>(configs, sync status)"]
+    end
+
+    subgraph Cache["React Query Cache"]
+        STALE["Stale-while-revalidate"]
+        BG["Background refetch"]
+        OPT["Optimistic updates"]
+    end
+
+    Server --> Cache
+```
+
+### Zustand (Client State)
+
+Zustand stores hold state that originates on the client and does not need to be synchronized with the server:
+
+- **Auth store** -- Current user profile, authentication status, active role. Populated after login, cleared on logout.
+- **UI state** -- Sidebar open/close, active modal, selected filters, map viewport. Ephemeral state that resets on navigation.
+- **Preferences** -- Cached user preferences (theme, distance units, time format). Loaded once from the server, then managed locally with periodic sync-back.
+
+Zustand is chosen over React Context for its minimal boilerplate, ability to access state outside React components, and built-in support for selective re-rendering.
+
+### React Query (Server State)
+
+React Query manages all data that lives on the server:
+
+- **Queries** fetch data with automatic caching, background refetching, and stale-while-revalidate. For example, the alerts list refreshes every 30 seconds to reflect new alerts.
+- **Mutations** handle create/update/delete operations with optimistic updates. When a dispatcher acknowledges an alert, the UI updates immediately while the API call happens in the background.
+- **Query invalidation** ensures consistency. When a new route is planned, React Query invalidates the active routes list and driver availability queries.
+
+### When to Use Which
+
+| Scenario | Tool | Example |
+|---|---|---|
+| Data from the server | React Query | Route plans, alert lists, driver records |
+| Data from the client | Zustand | Sidebar state, selected map marker |
+| Data from server, rarely changes | Zustand (cached) | User preferences, feature flags |
+| Form state | React Hook Form | Route planning form, settings forms |
+
+---
+
+## Component Hierarchy
+
+Components are organized in three tiers, with strict dependency rules: lower tiers never import from higher tiers.
+
+```mermaid
+graph TB
+    subgraph Tier1["Tier 1: Shadcn/ui Primitives"]
+        BTN["Button"]
+        INPUT["Input"]
+        CARD["Card"]
+        DIALOG["Dialog"]
+        SELECT["Select"]
+        TABLE["Table"]
+        TABS["Tabs"]
+        BADGE["Badge"]
+        TOOLTIP["Tooltip"]
+        OTHERS["... 28 total"]
+    end
+
+    subgraph Tier2["Tier 2: Shared Components"]
+        LAYOUT["Layout<br/>(Sidebar, Header,<br/>Breadcrumbs)"]
+        COMMON["Common<br/>(ThemeProvider,<br/>LoadingSpinner,<br/>ErrorBoundary)"]
+    end
+
+    subgraph Tier3["Tier 3: Feature Components"]
+        ROUTE_MAP["RouteMap"]
+        ALERT_LIST["AlertList"]
+        DRIVER_TABLE["DriverTable"]
+        HOS_DISPLAY["HOSDisplay"]
+        PLAN_FORM["PlanForm"]
+    end
+
+    subgraph Tier4["Tier 4: Page Compositions"]
+        DISP_PAGE["Dispatcher Overview"]
+        DRV_PAGE["Driver Dashboard"]
+        ALERT_PAGE["Alerts Page"]
+    end
+
+    Tier4 --> Tier3
+    Tier3 --> Tier2
+    Tier3 --> Tier1
+    Tier2 --> Tier1
+```
+
+**Tier 1: Shadcn/ui Primitives** (`shared/components/ui/`) -- 28 accessible, themeable base components. These are installed via the Shadcn CLI and customized through CSS variables. They handle dark mode, focus management, and keyboard navigation out of the box.
+
+**Tier 2: Shared Components** (`shared/components/`) -- Application-level shared components built on Tier 1 primitives. The layout module provides the sidebar, header, and breadcrumb components. The common module provides the theme provider, loading states, and error boundaries.
+
+**Tier 3: Feature Components** (`features/*/components/`) -- Domain-specific components that combine Tier 1 and Tier 2 components with business logic. An `AlertList` component composes `Table`, `Badge`, and `Button` from Tier 1, adds alert-specific logic from its feature hooks, and renders within the shared layout from Tier 2.
+
+**Tier 4: Page Compositions** (`app/*/page.tsx`) -- Route pages that compose feature components into a complete view. Pages are intentionally thin -- they import feature components and pass route-level props (params, search params).
+
+---
+
+## Authentication Flow
+
+The frontend handles its half of the two-stage authentication:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant LoginPage
+    participant FirebaseSDK as Firebase SDK
+    participant AuthStore as Zustand Auth Store
+    participant Backend
+
+    User->>LoginPage: Enter credentials
+    LoginPage->>FirebaseSDK: signInWithEmailAndPassword()
+    FirebaseSDK-->>LoginPage: Firebase ID Token
+
+    LoginPage->>Backend: POST /auth/firebase-exchange<br/>{firebaseToken}
+    Backend-->>LoginPage: Set-Cookie: access_token, refresh_token<br/>Return: user profile, tenant, role
+
+    LoginPage->>AuthStore: setUser(profile, tenant, role)
+    AuthStore-->>LoginPage: State updated
+
+    LoginPage->>LoginPage: router.push(/dispatcher/overview)<br/>or router.push(/driver/dashboard)
+
+    Note over User,Backend: Subsequent API calls
+    User->>Backend: API request<br/>(cookie sent automatically)
+    Backend-->>User: Response (or 401)
+
+    alt Token expired
+        User->>Backend: POST /auth/refresh<br/>(refresh_token cookie)
+        Backend-->>User: New access_token cookie
+    end
+```
+
+**Key implementation details:**
+
+- Firebase SDK runs entirely on the client. The backend never sees the user's password.
+- After token exchange, the backend sets HTTP-only cookies (`access_token`, `refresh_token`). The frontend never directly handles JWTs.
+- The auth store tracks login state for UI rendering (showing/hiding nav items, redirecting). The actual authorization happens server-side via cookie-based JWTs.
+- Route-based redirects use the user's role: dispatchers land on `/dispatcher/overview`, drivers on `/driver/dashboard`.
+
+---
+
+## Dark Theme Implementation
+
+SALLY supports light and dark themes using `next-themes` with CSS custom properties. The theme toggles instantly with no flash of unstyled content.
+
+### How It Works
+
+1. **`ThemeProvider`** wraps the entire application in the root layout. It reads the user's system preference by default and allows manual override.
+2. **CSS variables** defined in `globals.css` change based on the `dark` class on `<html>`:
+   - `--background`, `--foreground`, `--card`, `--border`, `--muted`, etc.
+3. **Semantic Tailwind classes** reference these variables:
+   - `bg-background`, `text-foreground`, `border-border`, `bg-card`, `text-muted-foreground`
+4. **Shadcn/ui components** use these semantic classes internally, so they automatically adapt to the active theme.
+
+### Color Palette
+
+SALLY uses a monochrome palette (black, white, and grays) with color reserved exclusively for status indicators:
+
+| Usage | Light Mode | Dark Mode |
+|---|---|---|
+| Page background | `bg-background` (white) | `bg-background` (near-black) |
+| Card surfaces | `bg-card` (white) | `bg-card` (dark gray) |
+| Primary text | `text-foreground` (gray-900) | `text-foreground` (gray-50) |
+| Secondary text | `text-muted-foreground` (gray-500) | `text-muted-foreground` (gray-400) |
+| Borders | `border-border` (gray-200) | `border-border` (gray-800) |
+| Inverted elements | `bg-black text-white` | `bg-white text-black` |
+
+**Status colors** (the only non-gray colors in the UI):
+
+| Status | Color | Use Case |
+|---|---|---|
+| Critical / Error | Red | HOS violations, system errors |
+| Warning | Yellow/Amber | Approaching limits, at-risk appointments |
+| Success | Green | Route completed, sync success |
+| Info | Blue | Informational alerts, status changes |
+
+Each status color includes a dark mode variant (e.g., `text-red-600 dark:text-red-400`) to maintain contrast ratios.
+
+---
+
+## Responsive Design
+
+All SALLY pages are built mobile-first, with breakpoint-specific adjustments for tablet and desktop.
+
+### Breakpoints
+
+| Breakpoint | Width | Layout Change |
+|---|---|---|
+| Default (mobile) | < 640px | Single column, bottom nav, stacked cards |
+| `sm` | 640px | Slightly wider spacing |
+| `md` | 768px | Sidebar becomes visible, two-column layouts |
+| `lg` | 1024px | Three-column layouts, expanded tables |
+| `xl` | 1280px | Full-width dashboard with all panels visible |
+
+### Key Responsive Patterns
+
+**Sidebar navigation:** Hidden on mobile (`hidden md:block`), visible as a fixed sidebar on `md` and above. On mobile, a `Sheet` component provides a slide-out overlay menu triggered by a hamburger button.
+
+**Data tables:** Full tables on `lg` and above. On smaller screens, tables transform into card-based lists where each row becomes a stacked card with key fields visible and a tap-to-expand for details.
+
+**Route maps:** Full-width map with overlay controls on all sizes. On mobile, the timeline panel slides up from the bottom as a draggable sheet. On desktop, it sits in a side panel.
+
+**Spacing:** Progressive spacing using Tailwind's responsive modifiers: `px-4 md:px-6 lg:px-8` for horizontal padding, `gap-4 md:gap-6` for grid gaps.
+
+**Touch targets:** All interactive elements (buttons, links, checkboxes) meet the 44x44px minimum touch target on mobile viewports.
+
+---
+
+## Shared Infrastructure
+
+### API Client (`shared/lib/api/`)
+
+A centralized fetch wrapper that:
+- Prepends the backend base URL to all requests
+- Includes credentials (cookies) automatically
+- Handles 401 responses by triggering token refresh
+- Provides typed response parsing
+
+### Utilities (`shared/utils/`)
+
+Formatting helpers shared across features: date formatting (respecting user timezone and format preferences), distance unit conversion (miles/km), currency formatting, and HOS time display.
+
+### Hooks (`shared/hooks/`)
+
+Reusable hooks for cross-cutting concerns: media query detection (responsive breakpoints), debounced values, intersection observer (infinite scroll), and keyboard shortcuts.
+
+### Types (`shared/types/`)
+
+Shared TypeScript interfaces that mirror backend DTOs. These are not auto-generated -- they are manually maintained to match the backend API contracts.
+
+---
+
+## Further Reading
+
+- [System Overview](/developer-guide/architecture) -- How the frontend fits into the overall platform
+- [Backend Architecture](/developer-guide/architecture/backend) -- The API the frontend consumes
+- [Data Flow](/developer-guide/architecture/data-flow) -- Request flows from frontend through backend
+- [Database Schema](/developer-guide/architecture/database) -- The data model behind the API responses

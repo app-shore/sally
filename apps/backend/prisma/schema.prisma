@@ -89,6 +89,7 @@ model Tenant {
   loads                 Load[]
   shiftNotes            ShiftNote[]
   conversations         Conversation[]
+  vehicleTelematics     VehicleTelematics[]
 
   @@index([tenantId])
   @@index([subdomain])
@@ -393,6 +394,7 @@ model Vehicle {
   tenantId              Int          @map("tenant_id")
 
   routePlans            RoutePlan[]
+  telematics            VehicleTelematics?
 
   @@unique([vehicleId, tenantId])
   @@unique([externalVehicleId, tenantId])
@@ -1198,4 +1200,27 @@ model ConversationMessage {
 
   @@index([conversationId, createdAt])
   @@map("conversation_messages")
+}
+
+model VehicleTelematics {
+  id            Int      @id @default(autoincrement())
+  vehicleId     Int      @unique @map("vehicle_id")
+  tenantId      Int      @map("tenant_id")
+  latitude      Float
+  longitude     Float
+  speed         Float    @default(0)
+  heading       Float    @default(0)
+  odometer      Float    @default(0)
+  fuelLevel     Float?   @map("fuel_level")
+  engineRunning Boolean  @default(false) @map("engine_running")
+  timestamp     DateTime @db.Timestamptz
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([timestamp])
+  @@map("vehicle_telematics")
 }

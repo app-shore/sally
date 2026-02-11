@@ -48,26 +48,45 @@ export class DriversController extends BaseTenantController {
   @Get()
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({
-    summary:
-      'List all active drivers (basic info only, HOS fetched from external API)',
+    summary: 'List all active drivers with SALLY access status',
   })
   async listDrivers(@CurrentUser() user: any) {
     const tenantDbId = await this.getTenantDbId(user);
     const drivers = await this.driversService.findAll(tenantDbId);
 
-    // Return only basic driver info
-    // HOS data should be fetched from /api/v1/external/hos/:driver_id
-    return drivers.map((driver) => ({
-      id: driver.id,
-      driver_id: driver.driverId,
-      name: driver.name,
-      is_active: driver.isActive,
-      external_driver_id: driver.externalDriverId,
-      external_source: driver.externalSource,
-      last_synced_at: driver.lastSyncedAt?.toISOString(),
-      created_at: driver.createdAt.toISOString(),
-      updated_at: driver.updatedAt.toISOString(),
-    }));
+    return drivers.map((driver) => {
+      // Derive SALLY access status
+      let sallyAccessStatus: 'ACTIVE' | 'INVITED' | 'NO_ACCESS' | 'DEACTIVATED' = 'NO_ACCESS';
+      let linkedUserId: string | null = null;
+      let pendingInvitationId: string | null = null;
+
+      if (driver.user) {
+        linkedUserId = driver.user.userId;
+        sallyAccessStatus = driver.user.isActive ? 'ACTIVE' : 'DEACTIVATED';
+      } else if (driver.invitations?.length > 0) {
+        sallyAccessStatus = 'INVITED';
+        pendingInvitationId = driver.invitations[0].invitationId;
+      }
+
+      return {
+        id: driver.id,
+        driver_id: driver.driverId,
+        name: driver.name,
+        license_number: driver.licenseNumber,
+        phone: driver.phone,
+        email: driver.email,
+        status: driver.status,
+        is_active: driver.isActive,
+        external_driver_id: driver.externalDriverId,
+        external_source: driver.externalSource,
+        last_synced_at: driver.lastSyncedAt?.toISOString(),
+        created_at: driver.createdAt.toISOString(),
+        updated_at: driver.updatedAt.toISOString(),
+        sally_access_status: sallyAccessStatus,
+        linked_user_id: linkedUserId,
+        pending_invitation_id: pendingInvitationId,
+      };
+    });
   }
 
   @Post()
@@ -79,16 +98,20 @@ export class DriversController extends BaseTenantController {
   ) {
     const tenantDbId = await this.getTenantDbId(user);
 
-    const driver = await this.driversService.create(
-      tenantDbId,
-      createDriverDto.driver_id,
-      createDriverDto.name,
-    );
+    const driver = await this.driversService.create(tenantDbId, {
+      name: createDriverDto.name,
+      license_number: createDriverDto.license_number,
+      phone: createDriverDto.phone,
+      email: createDriverDto.email,
+    });
 
     return {
       id: driver.id,
       driver_id: driver.driverId,
       name: driver.name,
+      license_number: driver.licenseNumber,
+      phone: driver.phone,
+      email: driver.email,
       is_active: driver.isActive,
       created_at: driver.createdAt,
       updated_at: driver.updatedAt,
@@ -108,16 +131,20 @@ export class DriversController extends BaseTenantController {
   ) {
     const tenantDbId = await this.getTenantDbId(user);
 
-    const driver = await this.driversService.update(
-      driverId,
-      tenantDbId,
-      updateDriverDto.name,
-    );
+    const driver = await this.driversService.update(driverId, tenantDbId, {
+      name: updateDriverDto.name,
+      license_number: updateDriverDto.license_number,
+      phone: updateDriverDto.phone,
+      email: updateDriverDto.email,
+    });
 
     return {
       id: driver.id,
       driver_id: driver.driverId,
       name: driver.name,
+      license_number: driver.licenseNumber,
+      phone: driver.phone,
+      email: driver.email,
       is_active: driver.isActive,
       updated_at: driver.updatedAt,
     };
@@ -163,6 +190,9 @@ export class DriversController extends BaseTenantController {
       id: driver.id,
       driver_id: driver.driverId,
       name: driver.name,
+      license_number: driver.licenseNumber,
+      phone: driver.phone,
+      email: driver.email,
       is_active: driver.isActive,
       created_at: driver.createdAt,
       updated_at: driver.updatedAt,
@@ -254,6 +284,25 @@ export class DriversController extends BaseTenantController {
 
     return this.driversActivationService.reactivateDriver(driverId, {
       id: user.id,
+      tenant: { id: tenant.id },
+    });
+  }
+
+  @Post(':driver_id/activate-and-invite')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({
+    summary: 'Activate a driver and send SALLY invitation in one step',
+  })
+  @ApiParam({ name: 'driver_id', description: 'Driver ID' })
+  async activateAndInvite(
+    @Param('driver_id') driverId: string,
+    @CurrentUser() user: any,
+    @Body('email') email?: string,
+  ) {
+    const tenant = await this.getTenant(user.tenantId);
+
+    return this.driversActivationService.activateAndInvite(driverId, email, {
+      ...user,
       tenant: { id: tenant.id },
     });
   }

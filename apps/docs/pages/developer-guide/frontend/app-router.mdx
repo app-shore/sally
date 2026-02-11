@@ -1,0 +1,221 @@
+---
+title: App Router Guide
+description: How Next.js 15 App Router routing and layouts work in the SALLY frontend.
+---
+
+# App Router Guide
+
+The SALLY frontend uses Next.js 15 with the App Router. This page explains how routing works, how layouts are structured, and how to add new pages.
+
+## How App Router Works
+
+In Next.js App Router, the file system defines your routes. Every `page.tsx` file inside `apps/web/src/app/` becomes a URL:
+
+```
+src/app/login/page.tsx        →  /login
+src/app/dispatcher/page.tsx   →  /dispatcher
+src/app/settings/page.tsx     →  /settings
+```
+
+Directories without a `page.tsx` are not routable -- they only serve as organizational groupings.
+
+## Route Groups
+
+Route groups use parentheses in the directory name and do not affect the URL. SALLY uses two route groups:
+
+```
+src/app/
+├── (dashboard)/              # Dispatcher and driver views
+│   ├── drivers/              # /drivers
+│   └── users/                # /users
+├── (super-admin)/            # Super admin panel
+│   └── admin/                # /admin
+```
+
+Route groups are used to apply different layouts to different sections of the app without nesting the URL path.
+
+## Layout Hierarchy
+
+Layouts wrap pages and persist across navigation. SALLY uses a nested layout structure:
+
+```
+Root Layout (src/app/layout.tsx)
+├── Providers (src/app/providers.tsx)
+│   ├── React Query Provider
+│   ├── Theme Provider (next-themes)
+│   └── Auth Provider
+├── Layout Client (src/app/layout-client.tsx)
+│   ├── (dashboard) layout → Sidebar + header for dispatchers/drivers
+│   ├── (super-admin) layout → Admin sidebar
+│   └── Auth pages → No sidebar (login, register)
+```
+
+The root layout at `src/app/layout.tsx` applies globally. It sets up:
+- HTML lang attribute and metadata
+- Global CSS (`globals.css`)
+- Font loading
+- Provider wrappers (React Query, theme, auth)
+
+Route group layouts apply only to their children. For example, the dashboard layout adds a sidebar and header that only appear on dashboard pages.
+
+## Key Routes
+
+| Route | Page File | Description |
+|-------|-----------|-------------|
+| `/` | `src/app/page.tsx` | Landing page / redirect |
+| `/login` | `src/app/login/page.tsx` | Login form |
+| `/register` | `src/app/register/page.tsx` | Registration form |
+| `/accept-invitation` | `src/app/accept-invitation/page.tsx` | Invitation acceptance |
+| `/dispatcher` | `src/app/dispatcher/page.tsx` | Dispatcher dashboard home |
+| `/dispatcher/overview` | `src/app/dispatcher/overview/` | Fleet overview |
+| `/dispatcher/fleet` | `src/app/dispatcher/fleet/page.tsx` | Fleet management (drivers, vehicles) |
+| `/dispatcher/alerts` | `src/app/dispatcher/alerts/page.tsx` | Alert management |
+| `/dispatcher/active-routes` | `src/app/dispatcher/active-routes/page.tsx` | Active route monitoring |
+| `/dispatcher/create-plan` | `src/app/dispatcher/create-plan/page.tsx` | Create new route plan |
+| `/dispatcher/analytics` | `src/app/dispatcher/analytics/page.tsx` | Analytics dashboards |
+| `/dispatcher/invoicing` | `src/app/dispatcher/invoicing/page.tsx` | Invoice management |
+| `/dispatcher/settlements` | `src/app/dispatcher/settlements/` | Settlement management |
+| `/driver/*` | `src/app/driver/` | Driver-facing pages |
+| `/settings/*` | `src/app/settings/` | Settings pages |
+| `/admin/*` | `src/app/admin/` | Admin dashboard |
+| `/notifications` | `src/app/notifications/page.tsx` | Notification center |
+
+## Adding a New Page
+
+To add a new page at `/dispatcher/reports`:
+
+### 1. Create the Directory and Page File
+
+```typescript filename="src/app/dispatcher/reports/page.tsx"
+import { ReportsDashboard } from '@/features/operations/reports/components/ReportsDashboard';
+
+export default function ReportsPage() {
+  return <ReportsDashboard />;
+}
+```
+
+That is all you need. Next.js automatically registers the route.
+
+### 2. Add Metadata (Optional)
+
+```typescript filename="src/app/dispatcher/reports/page.tsx"
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Reports | SALLY',
+  description: 'Fleet operations reports and analytics',
+};
+
+export default function ReportsPage() {
+  return <ReportsDashboard />;
+}
+```
+
+### 3. Add a Layout (Optional)
+
+If the page needs a different layout from its parent:
+
+```typescript filename="src/app/dispatcher/reports/layout.tsx"
+export default function ReportsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-foreground">Reports</h1>
+      {children}
+    </div>
+  );
+}
+```
+
+## Page Structure Pattern
+
+Pages in SALLY are thin. They import a feature component and render it:
+
+```typescript
+// Page files are minimal -- they delegate to feature components
+import { FleetDashboard } from '@/features/fleet/components/FleetDashboard';
+
+export default function FleetPage() {
+  return <FleetDashboard />;
+}
+```
+
+All the actual UI logic, data fetching, and state management live in [feature modules](/developer-guide/frontend/feature-modules), not in page files. This keeps the routing layer clean and the business logic reusable.
+
+## Dynamic Routes
+
+For pages with URL parameters, use square bracket directory names:
+
+```
+src/app/dispatcher/drivers/[driverId]/page.tsx  →  /dispatcher/drivers/:driverId
+```
+
+```typescript filename="src/app/dispatcher/drivers/[driverId]/page.tsx"
+interface Props {
+  params: { driverId: string };
+}
+
+export default function DriverDetailPage({ params }: Props) {
+  return <DriverDetail driverId={params.driverId} />;
+}
+```
+
+## Loading and Error States
+
+Add `loading.tsx` and `error.tsx` files alongside `page.tsx` for built-in loading and error handling:
+
+```typescript filename="src/app/dispatcher/reports/loading.tsx"
+import { Skeleton } from '@/shared/components/ui/skeleton';
+
+export default function Loading() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-64 w-full" />
+    </div>
+  );
+}
+```
+
+```typescript filename="src/app/dispatcher/reports/error.tsx"
+'use client';
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-4 py-12">
+      <p className="text-muted-foreground">Something went wrong loading reports.</p>
+      <Button onClick={reset} variant="outline">Try again</Button>
+    </div>
+  );
+}
+```
+
+## Client vs Server Components
+
+By default, all components in the App Router are Server Components. Add the `'use client'` directive at the top of files that need:
+
+- Event handlers (`onClick`, `onChange`)
+- React hooks (`useState`, `useEffect`, `useQuery`)
+- Browser APIs (`window`, `localStorage`)
+
+```typescript
+'use client';
+
+import { useState } from 'react';
+
+export function InteractiveComponent() {
+  const [count, setCount] = useState(0);
+  // ...
+}
+```
+
+Pages that import client-side feature components do not need `'use client'` themselves -- the boundary is set at the component level.

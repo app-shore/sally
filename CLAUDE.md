@@ -27,23 +27,15 @@
 - **planning/** - Product planning documents
 - **archive/** - Historical documents from earlier iterations
 
-**.docs/technical/** - Technical documentation
-- **INDEX.md** - Technical documentation index
-- **SETUP.md** - Detailed setup instructions
-- **DEPLOY.md** - Deployment guide (Docker, Vercel, CapRover)
-- **C4_MODEL_SUMMARY.md** - C4 model overview
-- **QUICK_REFERENCE.md** - Quick reference guide
-- **DARK_THEME_IMPLEMENTATION.md** - Dark theme guidelines and checklist
+**apps/docs/pages/developer-guide/** - Technical documentation
+- Developer guide pages served via the docs app
 - **architecture/** - C4 diagrams, sequence diagrams, deployment diagrams
-- **implementation/** - Implementation summaries and completion docs
-- **migrations/** - Database and system migration guides
-- **setup/** - Quick start and setup guides
-- **testing/** - Testing documentation and summaries
+- Setup, deployment, and implementation guides
 
 **Key Rules:**
 1. AI-generated plans → `.docs/plans/`
 2. Product specs and features → `.docs/specs/`
-3. Technical docs and guides → `.docs/technical/`
+3. Technical docs and guides → `apps/docs/pages/developer-guide/`
 4. App-specific docs stay in app directories (apps/backend/README.md, etc.)
 
 ---
@@ -241,7 +233,7 @@ bg-secondary text-secondary-foreground  // Secondary buttons
 ```
 
 ### Reference Documentation
-See `.docs/technical/DARK_THEME_IMPLEMENTATION.md` for complete implementation details.
+See `apps/docs/pages/developer-guide/` for complete implementation details.
 
 ---
 
@@ -292,7 +284,7 @@ Core capabilities:
 
 1. **AI-generated plans** → `.docs/plans/` directory
 2. **Product specs and features** → `.docs/specs/` directory
-3. **Technical docs and architecture** → `.docs/technical/` directory
+3. **Technical docs and architecture** → `apps/docs/pages/developer-guide/` directory
 4. **Essential getting started guides** → Root directory (README.md, CLAUDE.md, DOCUMENTATION.md only)
 5. **App-specific documentation** → Keep in app directories (apps/backend/README.md, etc.)
 6. **Always maintain index files** (README.md, INDEX.md) when adding new docs
@@ -345,10 +337,10 @@ Route Planner: Inserts rest segment
 ## Technology Stack
 
 **Backend:**
-- Python 3.11+, FastAPI (async)
+- NestJS 11, TypeScript 5.9
 - PostgreSQL 16, Redis 7
-- SQLAlchemy 2.0 (async), Pydantic v2
-- UV package manager
+- Prisma 7.3 ORM
+- pnpm package manager
 
 **Frontend:**
 - Next.js 15 (App Router), TypeScript
@@ -396,11 +388,11 @@ Route Planner: Inserts rest segment
 2. **Choose location**:
    - AI-generated plans → `.docs/plans/`
    - Product specs → `.docs/specs/`
-   - Technical docs → `.docs/technical/`
+   - Technical docs → `apps/docs/pages/developer-guide/`
    - Root only for essential guides
 3. **Estimate reading time** (helps users prioritize)
 4. **Frame correctly** (route planning platform, not REST system)
-5. **Update index files** (README.md, .docs/specs/README.md, .docs/technical/INDEX.md, DOCUMENTATION.md)
+5. **Update index files** (README.md, .docs/specs/README.md, DOCUMENTATION.md)
 6. **Cross-reference** related documents
 7. **Use examples** for complex concepts
 
@@ -409,7 +401,7 @@ Route Planner: Inserts rest segment
 Check for:
 - [ ] Correct framing (route planning primary, REST component)
 - [ ] Accurate audience identification
-- [ ] Proper location (.docs/plans/ vs .docs/specs/ vs .docs/technical/ vs root)
+- [ ] Proper location (.docs/plans/ vs .docs/specs/ vs apps/docs/pages/developer-guide/ vs root)
 - [ ] Updated index files
 - [ ] Working links
 - [ ] Code examples tested

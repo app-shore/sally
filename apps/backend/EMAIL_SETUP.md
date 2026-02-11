@@ -75,7 +75,7 @@ You'll see emails in the backend logs like this:
 ========================================
 EMAIL (Console Mode)
 ========================================
-From: noreply@sally.com
+From: noreply@sally.appshore.in
 To: user@example.com
 Subject: You're invited to join Acme Corp on SALLY
 ----------------------------------------

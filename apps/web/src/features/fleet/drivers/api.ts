@@ -1,5 +1,5 @@
 import { apiClient } from '@/shared/lib/api';
-import type { Driver, CreateDriverRequest, UpdateDriverRequest, DriverHOS } from './types';
+import type { Driver, CreateDriverRequest, UpdateDriverRequest, DriverHOS, ActivateAndInviteResponse } from './types';
 
 export const driversApi = {
   list: async (): Promise<Driver[]> => {
@@ -32,12 +32,59 @@ export const driversApi = {
 
   /**
    * Fetch live HOS data for a driver from external integration
-   * Falls back to cached data if integration is unavailable
    */
   getHOS: async (driverId: string): Promise<DriverHOS> => {
     return apiClient(`/api/v1/drivers/${driverId}/hos`, {
       method: 'GET',
     });
+  },
+
+  /**
+   * Activate a driver AND send SALLY invitation in one step
+   */
+  activateAndInvite: async (driverId: string, email?: string): Promise<ActivateAndInviteResponse> => {
+    return apiClient<ActivateAndInviteResponse>(`/drivers/${driverId}/activate-and-invite`, {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  /**
+   * Get pending activation drivers
+   */
+  getPending: async (): Promise<any[]> => {
+    return apiClient<any[]>('/drivers/pending/list');
+  },
+
+  /**
+   * Get inactive drivers
+   */
+  getInactive: async (): Promise<any[]> => {
+    return apiClient<any[]>('/drivers/inactive/list');
+  },
+
+  /**
+   * Activate a pending driver (fleet activation only, no SALLY invite)
+   */
+  activate: async (driverId: string): Promise<any> => {
+    return apiClient(`/drivers/${driverId}/activate`, { method: 'POST' });
+  },
+
+  /**
+   * Deactivate a driver
+   */
+  deactivate: async (driverId: string, reason?: string): Promise<any> => {
+    return apiClient(`/drivers/${driverId}/deactivate`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  /**
+   * Reactivate an inactive driver
+   */
+  reactivate: async (driverId: string): Promise<any> => {
+    return apiClient(`/drivers/${driverId}/reactivate`, { method: 'POST' });
   },
 };
 

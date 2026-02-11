@@ -43,6 +43,7 @@ describe('IntegrationManagerService', () => {
     getDrivers: jest.fn(),
     getHOSClocks: jest.fn(),
     getVehicleLocations: jest.fn(),
+    getVehicleGPSSnapshots: jest.fn(),
     testConnection: jest.fn(),
   };
 
@@ -242,7 +243,7 @@ describe('IntegrationManagerService', () => {
         credentials: { apiToken: 'test-token' },
       });
 
-      mockSamsaraAdapter.getVehicleLocations.mockResolvedValue([
+      mockSamsaraAdapter.getVehicleGPSSnapshots.mockResolvedValue([
         {
           vehicleId: 'veh-456',
           gps: { latitude: 34.05, longitude: -118.24, speedMilesPerHour: 65, headingDegrees: 270, time: '2026-02-09T12:00:00Z' },
@@ -272,7 +273,7 @@ describe('IntegrationManagerService', () => {
         credentials: { apiToken: 'test-token' },
       });
 
-      mockSamsaraAdapter.getVehicleLocations.mockResolvedValue([
+      mockSamsaraAdapter.getVehicleGPSSnapshots.mockResolvedValue([
         {
           vehicleId: 'veh-other',
           gps: { latitude: 34.05, longitude: -118.24, speedMilesPerHour: 65, headingDegrees: 270, time: '2026-02-09T12:00:00Z' },

@@ -4,10 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "next build",
+    "build": "pnpm run sync-openapi && next build",
     "start": "next start -p 3001",
     "export": "next build",
-    "prebuild": "npm run sync-openapi",
     "sync-openapi": "node scripts/sync-openapi.js",
     "lint": "next lint",
     "type-check": "tsc --noEmit"

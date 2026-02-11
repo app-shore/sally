@@ -8,16 +8,17 @@ const config = {
   project: {
     link: 'https://github.com/ajaynarang/sally'
   },
-  docsRepositoryBase: 'https://github.com/ajaynarang/sally/tree/main/apps/.docs',
+  docsRepositoryBase: 'https://github.com/ajaynarang/sally/tree/main/apps/docs',
 
   // Black, white, and gray color scheme
   primaryHue: 0,
   primarySaturation: 0,
 
-  // Dark mode configuration with next-themes
-  darkMode: true,
+  // Force light mode only -- no light/dark toggle
+  darkMode: false,
   nextThemes: {
-    defaultTheme: 'dark',
+    defaultTheme: 'light',
+    forcedTheme: 'light',
     storageKey: 'sally-theme'
   },
 

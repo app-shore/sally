@@ -1,6 +1,7 @@
 export default {
   index: 'Overview',
-  support: 'Support',
+  glossary: 'Glossary',
   faq: 'FAQ',
-  changelog: 'Changelog'
+  changelog: 'Changelog',
+  support: 'Support'
 }

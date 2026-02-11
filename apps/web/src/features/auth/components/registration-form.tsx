@@ -244,19 +244,16 @@ export function RegistrationForm() {
 
   return (
     <div className="w-full max-w-[600px] mx-auto relative isolate">
-      {/* SALLY Wordmark */}
+      {/* Page heading */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className="text-center mb-8"
       >
-        <h1 className="text-5xl md:text-6xl font-bold tracking-tighter mb-3 text-gradient font-space-grotesk">
-          SALLY
-        </h1>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-6">
           Register Your Organization
-        </h2>
+        </h1>
 
         {/* Step Indicator */}
         <div className="flex items-center justify-center gap-3 mb-2">
