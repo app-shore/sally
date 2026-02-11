@@ -34,8 +34,16 @@ export class CustomersService {
     const customers = await this.prisma.customer.findMany({
       where: { tenantId, isActive: true },
       orderBy: { companyName: 'asc' },
+      include: {
+        users: { select: { userId: true, isActive: true } },
+        invitations: {
+          where: { status: 'PENDING' },
+          select: { invitationId: true, email: true, status: true },
+          take: 1,
+        },
+      },
     });
-    return customers.map((c) => this.formatResponse(c));
+    return customers.map((c) => this.formatResponseWithAccess(c));
   }
 
   async findOne(customerId: string) {
@@ -157,6 +165,21 @@ export class CustomersService {
       contact_phone: customer.contactPhone,
       is_active: customer.isActive,
       created_at: customer.createdAt?.toISOString(),
+    };
+  }
+
+  private formatResponseWithAccess(customer: any) {
+    let portal_access_status: string = 'NO_ACCESS';
+    if (customer.users?.length > 0) {
+      portal_access_status = customer.users[0].isActive ? 'ACTIVE' : 'DEACTIVATED';
+    } else if (customer.invitations?.length > 0) {
+      portal_access_status = 'INVITED';
+    }
+
+    return {
+      ...this.formatResponse(customer),
+      portal_access_status,
+      pending_invitation_id: customer.invitations?.[0]?.invitationId || null,
     };
   }
 }

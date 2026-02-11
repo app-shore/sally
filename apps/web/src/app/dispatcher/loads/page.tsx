@@ -7,6 +7,8 @@ import { loadsApi } from '@/features/fleet/loads/api';
 import { customersApi } from '@/features/fleet/customers/api';
 import type { LoadListItem, Load, LoadCreate, LoadStopCreate } from '@/features/fleet/loads/types';
 import type { Customer } from '@/features/fleet/customers/types';
+import { CustomerList } from '@/features/fleet/customers/components/customer-list';
+import { InviteCustomerDialog } from '@/features/fleet/customers/components/invite-customer-dialog';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
@@ -71,6 +73,10 @@ export default function LoadsPage() {
 
   // New load dialog
   const [isNewLoadOpen, setIsNewLoadOpen] = useState(false);
+
+  // Customer invite dialog
+  const [inviteCustomer, setInviteCustomer] = useState<Customer | null>(null);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   // Group loads by status
   const drafts = loads.filter((l) => l.status === 'draft');
@@ -148,6 +154,11 @@ export default function LoadsPage() {
   const handleCreateSuccess = async () => {
     setIsNewLoadOpen(false);
     await fetchLoads();
+  };
+
+  const handleCustomerInviteClick = (customer: Customer) => {
+    setInviteCustomer(customer);
+    setInviteDialogOpen(true);
   };
 
   if (!isAuthenticated || user?.role === 'DRIVER') {
@@ -239,6 +250,7 @@ export default function LoadsPage() {
               <TabsTrigger value="cancelled">
                 Cancelled ({cancelled.length})
               </TabsTrigger>
+              <TabsTrigger value="customers">Customers</TabsTrigger>
             </TabsList>
           </div>
 
@@ -292,6 +304,10 @@ export default function LoadsPage() {
               emptyMessage="No cancelled loads"
             />
           </TabsContent>
+
+          <TabsContent value="customers" className="p-4 md:p-6 overflow-auto">
+            <CustomerList onInviteClick={handleCustomerInviteClick} />
+          </TabsContent>
         </Tabs>
       )}
 
@@ -309,6 +325,13 @@ export default function LoadsPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Customer invite dialog */}
+      <InviteCustomerDialog
+        open={inviteDialogOpen}
+        onOpenChange={setInviteDialogOpen}
+        customer={inviteCustomer}
+      />
     </div>
   );
 }

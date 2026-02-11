@@ -19,7 +19,6 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { useAuth } from '@/features/auth';
 import { apiClient } from '@/shared/lib/api';
 import { UserPlus } from 'lucide-react';
-import { CustomerList } from '@/features/fleet/customers/components/customer-list';
 
 interface UserListProps {
   onInviteClick: () => void;
@@ -183,7 +182,6 @@ export function UserList({ onInviteClick, defaultTab = 'staff' }: UserListProps)
             <TabsTrigger value="staff">Staff ({staffUsers.length})</TabsTrigger>
             <TabsTrigger value="drivers">Drivers ({driverUsers.length})</TabsTrigger>
             <TabsTrigger value="invitations">Invitations ({pendingInvitations.length})</TabsTrigger>
-            <TabsTrigger value="customers">Customers</TabsTrigger>
           </TabsList>
 
           {/* Staff Tab */}
@@ -435,10 +433,6 @@ export function UserList({ onInviteClick, defaultTab = 'staff' }: UserListProps)
             )}
           </TabsContent>
 
-          {/* Customers Tab */}
-          <TabsContent value="customers" className="mt-4">
-            <CustomerList />
-          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>

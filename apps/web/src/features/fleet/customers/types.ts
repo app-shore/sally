@@ -7,6 +7,8 @@ export interface Customer {
   contact_phone?: string;
   is_active: boolean;
   created_at: string;
+  portal_access_status?: 'NO_ACCESS' | 'INVITED' | 'ACTIVE' | 'DEACTIVATED';
+  pending_invitation_id?: string | null;
 }
 
 export interface CustomerCreate {
