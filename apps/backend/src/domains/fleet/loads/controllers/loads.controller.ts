@@ -16,10 +16,6 @@ import { UserRole } from '@prisma/client';
 import { LoadsService } from '../services/loads.service';
 import { CreateLoadDto } from '../dto';
 
-/**
- * LoadsController handles HTTP requests for load management.
- * Extends BaseTenantController for tenant utilities.
- */
 @ApiTags('Loads')
 @ApiBearerAuth()
 @Controller('loads')
@@ -95,5 +91,23 @@ export class LoadsController extends BaseTenantController {
     @Body() body: { driver_id: string; vehicle_id: string },
   ) {
     return this.loadsService.assignLoad(loadId, body.driver_id, body.vehicle_id);
+  }
+
+  @Post(':load_id/tracking-token')
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'Generate tracking token for load' })
+  async generateTrackingToken(@Param('load_id') loadId: string) {
+    return this.loadsService.generateTrackingToken(loadId);
+  }
+
+  @Post(':load_id/duplicate')
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'Duplicate an existing load' })
+  async duplicateLoad(
+    @CurrentUser() user: any,
+    @Param('load_id') loadId: string,
+  ) {
+    const tenantDbId = await this.getTenantDbId(user);
+    return this.loadsService.duplicate(loadId, tenantDbId);
   }
 }
