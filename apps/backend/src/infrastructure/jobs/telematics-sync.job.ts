@@ -70,9 +70,6 @@ export class TelematicsSyncJob {
               longitude: location.longitude,
               speed: location.speed,
               heading: location.heading,
-              odometer: location.odometer,
-              fuelLevel: location.fuelLevel,
-              engineRunning: location.engineRunning,
               timestamp: new Date(location.timestamp),
             },
             create: {
@@ -82,9 +79,6 @@ export class TelematicsSyncJob {
               longitude: location.longitude,
               speed: location.speed,
               heading: location.heading,
-              odometer: location.odometer,
-              fuelLevel: location.fuelLevel,
-              engineRunning: location.engineRunning,
               timestamp: new Date(location.timestamp),
             },
           });
