@@ -44,6 +44,14 @@ export const loadsApi = {
       body: JSON.stringify({ status }),
     });
   },
+
+  duplicate: async (loadId: string): Promise<Load> => {
+    return apiClient<Load>(`/loads/${loadId}/duplicate`, { method: 'POST' });
+  },
+
+  generateTrackingToken: async (loadId: string): Promise<{ tracking_token: string; tracking_url: string }> => {
+    return apiClient(`/loads/${loadId}/tracking-token`, { method: 'POST' });
+  },
 };
 
 // Re-export legacy functions for backwards compatibility during migration

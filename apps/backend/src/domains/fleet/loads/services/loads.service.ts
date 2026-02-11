@@ -1,12 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
-import { Load } from '@prisma/client';
 
-/**
- * LoadsService handles all load-related business logic.
- * Extracted from LoadsController to separate concerns.
- */
 @Injectable()
 export class LoadsService {
   private readonly logger = new Logger(LoadsService.name);
@@ -24,10 +19,10 @@ export class LoadsService {
     commodity_type: string;
     special_requirements?: string;
     customer_name: string;
-    customer_id?: number;
     equipment_type?: string;
     intake_source?: string;
     intake_metadata?: any;
+    customer_id?: number;
     status?: string;
     stops: Array<{
       stop_id: string;
@@ -53,10 +48,10 @@ export class LoadsService {
         commodityType: data.commodity_type,
         specialRequirements: data.special_requirements || null,
         customerName: data.customer_name,
-        customerId: data.customer_id || null,
         equipmentType: data.equipment_type || null,
-        intakeSource: data.intake_source || null,
+        intakeSource: data.intake_source || 'manual',
         intakeMetadata: data.intake_metadata || null,
+        customerId: data.customer_id || null,
         tenantId: data.tenant_id,
         isActive: true,
       },
@@ -141,7 +136,7 @@ export class LoadsService {
           ? {
               customerName: {
                 contains: filters.customer_name,
-                mode: 'insensitive',
+                mode: 'insensitive' as const,
               },
             }
           : {}),
@@ -161,6 +156,8 @@ export class LoadsService {
       stop_count: load.stops.length,
       weight_lbs: load.weightLbs,
       commodity_type: load.commodityType,
+      equipment_type: load.equipmentType,
+      intake_source: load.intakeSource,
       external_load_id: load.externalLoadId,
       external_source: load.externalSource,
       last_synced_at: load.lastSyncedAt?.toISOString(),
@@ -234,20 +231,21 @@ export class LoadsService {
       throw new NotFoundException(`Load not found: ${loadId}`);
     }
 
-    // Validate driver exists
     const driver = await this.prisma.driver.findFirst({ where: { driverId } });
     if (!driver) {
       throw new NotFoundException(`Driver not found: ${driverId}`);
     }
 
-    // Validate vehicle exists
     const vehicle = await this.prisma.vehicle.findFirst({ where: { vehicleId } });
     if (!vehicle) {
       throw new NotFoundException(`Vehicle not found: ${vehicleId}`);
     }
 
-    // TODO: Add driverId and vehicleId fields to Load model in future migration
-    // For now, just validate and return success response
+    await this.prisma.load.update({
+      where: { id: load.id },
+      data: { driverId: driver.id, vehicleId: vehicle.id },
+    });
+
     this.logger.log(`Load ${loadId} assigned to driver ${driverId} and vehicle ${vehicleId}`);
 
     return {
@@ -429,6 +427,74 @@ export class LoadsService {
   }
 
   /**
+   * Generate a tracking token for a load
+   */
+  async generateTrackingToken(loadId: string) {
+    const load = await this.prisma.load.findFirst({ where: { loadId } });
+    if (!load) throw new NotFoundException(`Load not found: ${loadId}`);
+
+    const token = `${load.loadNumber}-${randomBytes(3).toString('hex')}`;
+    await this.prisma.load.update({
+      where: { id: load.id },
+      data: { trackingToken: token },
+    });
+
+    return { tracking_token: token, tracking_url: `/track/${token}` };
+  }
+
+  /**
+   * Duplicate an existing load
+   */
+  async duplicate(loadId: string, tenantId: number) {
+    const original = await this.prisma.load.findFirst({
+      where: { loadId },
+      include: { stops: { include: { stop: true }, orderBy: { sequenceOrder: 'asc' } } },
+    });
+    if (!original) throw new NotFoundException(`Load not found: ${loadId}`);
+
+    const newLoadNumber = `${original.loadNumber}-COPY`;
+    const newLoadId = `LOAD-${newLoadNumber}`;
+
+    const newLoad = await this.prisma.load.create({
+      data: {
+        loadId: newLoadId,
+        loadNumber: newLoadNumber,
+        status: 'pending',
+        weightLbs: original.weightLbs,
+        commodityType: original.commodityType,
+        specialRequirements: original.specialRequirements,
+        customerName: original.customerName,
+        equipmentType: original.equipmentType,
+        intakeSource: 'manual',
+        customerId: original.customerId,
+        tenantId,
+        isActive: true,
+      },
+    });
+
+    // Copy stops
+    for (const loadStop of original.stops) {
+      await this.prisma.loadStop.create({
+        data: {
+          loadId: newLoad.id,
+          stopId: loadStop.stopId,
+          sequenceOrder: loadStop.sequenceOrder,
+          actionType: loadStop.actionType,
+          estimatedDockHours: loadStop.estimatedDockHours,
+        },
+      });
+    }
+
+    const result = await this.prisma.load.findUnique({
+      where: { id: newLoad.id },
+      include: { stops: { include: { stop: true }, orderBy: { sequenceOrder: 'asc' } } },
+    });
+
+    this.logger.log(`Load duplicated: ${loadId} -> ${newLoadId}`);
+    return this.formatLoadResponse(result);
+  }
+
+  /**
    * Build tracking timeline events from load data
    */
   private buildTrackingTimeline(load: any) {
@@ -510,8 +576,11 @@ export class LoadsService {
       special_requirements: load.specialRequirements,
       customer_name: load.customerName,
       equipment_type: load.equipmentType,
-      tracking_token: load.trackingToken,
       intake_source: load.intakeSource,
+      tracking_token: load.trackingToken,
+      customer_id: load.customerId,
+      driver_id: load.driverId,
+      vehicle_id: load.vehicleId,
       is_active: load.isActive,
       created_at: load.createdAt.toISOString(),
       updated_at: load.updatedAt.toISOString(),

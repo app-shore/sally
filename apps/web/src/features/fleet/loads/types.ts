@@ -23,11 +23,17 @@ export interface Load {
   id: number;
   load_id: string;
   load_number: string;
-  status: "pending" | "planned" | "active" | "completed" | "cancelled";
+  status: "draft" | "pending" | "planned" | "active" | "in_transit" | "completed" | "cancelled";
   weight_lbs: number;
-  commodity_type: "general" | "hazmat" | "refrigerated" | "fragile";
+  commodity_type: string;
+  equipment_type?: string;
   special_requirements?: string;
   customer_name: string;
+  customer_id?: number;
+  intake_source: string;
+  tracking_token?: string;
+  driver_id?: number;
+  vehicle_id?: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -45,6 +51,8 @@ export interface LoadListItem {
   stop_count: number;
   weight_lbs: number;
   commodity_type: string;
+  equipment_type?: string;
+  intake_source?: string;
   external_load_id?: string;
   external_source?: string;
   last_synced_at?: string;
@@ -67,7 +75,11 @@ export interface LoadCreate {
   load_number: string;
   weight_lbs: number;
   commodity_type: string;
+  equipment_type?: string;
   special_requirements?: string;
   customer_name: string;
+  customer_id?: number;
+  intake_source?: string;
+  status?: string;
   stops: LoadStopCreate[];
 }

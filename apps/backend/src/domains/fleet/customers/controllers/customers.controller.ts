@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { BaseTenantController } from '../../../../shared/base/base-tenant.controller';
@@ -18,23 +18,34 @@ export class CustomersController extends BaseTenantController {
     super(prisma);
   }
 
+  @Post()
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'Create a customer' })
+  async create(@CurrentUser() user: any, @Body() body: any) {
+    const tenantDbId = await this.getTenantDbId(user);
+    return this.customersService.create({ ...body, tenant_id: tenantDbId });
+  }
+
   @Get()
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
-  @ApiOperation({ summary: 'List all customers for the tenant' })
-  async listCustomers(@CurrentUser() user: any) {
+  @ApiOperation({ summary: 'List all customers' })
+  async list(@CurrentUser() user: any) {
     const tenantDbId = await this.getTenantDbId(user);
     return this.customersService.findAll(tenantDbId);
   }
 
-  @Post()
+  @Get(':customer_id')
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
-  @ApiOperation({ summary: 'Create a new customer' })
-  async createCustomer(
-    @CurrentUser() user: any,
-    @Body() body: { company_name: string; contact_email?: string; contact_phone?: string },
-  ) {
-    const tenantDbId = await this.getTenantDbId(user);
-    return this.customersService.create({ ...body, tenant_id: tenantDbId });
+  @ApiOperation({ summary: 'Get customer details' })
+  async get(@Param('customer_id') customerId: string) {
+    return this.customersService.findOne(customerId);
+  }
+
+  @Put(':customer_id')
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'Update customer' })
+  async update(@Param('customer_id') customerId: string, @Body() body: any) {
+    return this.customersService.update(customerId, body);
   }
 
   @Post(':customer_id/invite')
