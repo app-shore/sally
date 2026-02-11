@@ -171,7 +171,7 @@ export class CustomersService {
   private formatResponseWithAccess(customer: any) {
     let portal_access_status: string = 'NO_ACCESS';
     if (customer.users?.length > 0) {
-      portal_access_status = customer.users[0].isActive ? 'ACTIVE' : 'DEACTIVATED';
+      portal_access_status = customer.users.some((u: any) => u.isActive) ? 'ACTIVE' : 'DEACTIVATED';
     } else if (customer.invitations?.length > 0) {
       portal_access_status = 'INVITED';
     }

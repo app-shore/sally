@@ -59,11 +59,19 @@ export function InviteCustomerDialog({
   });
 
   const handleSubmit = () => {
-    if (!firstName.trim() || !lastName.trim()) {
-      setError('First and last name are required');
+    if (!firstName.trim()) {
+      setError('First name is required');
       return;
     }
-    if (!email.trim() || !email.includes('@')) {
+    if (!lastName.trim()) {
+      setError('Last name is required');
+      return;
+    }
+    if (!email.trim()) {
+      setError('Email address is required');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Please enter a valid email address');
       return;
     }

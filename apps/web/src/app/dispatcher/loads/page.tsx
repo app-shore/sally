@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '@/features/auth';
 import { loadsApi } from '@/features/fleet/loads/api';
 import { customersApi } from '@/features/fleet/customers/api';
 import type { LoadListItem, Load, LoadCreate, LoadStopCreate } from '@/features/fleet/loads/types';
-import type { Customer } from '@/features/fleet/customers/types';
+import type { Customer, CustomerCreate } from '@/features/fleet/customers/types';
 import { CustomerList } from '@/features/fleet/customers/components/customer-list';
 import { InviteCustomerDialog } from '@/features/fleet/customers/components/invite-customer-dialog';
 import { Button } from '@/shared/components/ui/button';
@@ -17,10 +18,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/component
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/shared/components/ui/dialog';
+import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import {
   Table,
   TableBody,
@@ -62,6 +66,7 @@ import {
 
 export default function LoadsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuthStore();
   const [loads, setLoads] = useState<LoadListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,6 +85,29 @@ export default function LoadsPage() {
   // Customer invite
   const [inviteCustomer, setInviteCustomer] = useState<Customer | null>(null);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+
+  // New customer dialog
+  const [isNewCustomerOpen, setIsNewCustomerOpen] = useState(false);
+  const [newCustomerForm, setNewCustomerForm] = useState<CustomerCreate>({
+    company_name: '',
+    contact_name: '',
+    contact_email: '',
+    contact_phone: '',
+  });
+  const [newCustomerError, setNewCustomerError] = useState<string | null>(null);
+
+  const createCustomerMutation = useMutation({
+    mutationFn: (data: CustomerCreate) => customersApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      setIsNewCustomerOpen(false);
+      setNewCustomerForm({ company_name: '', contact_name: '', contact_email: '', contact_phone: '' });
+      setNewCustomerError(null);
+    },
+    onError: (err: Error) => {
+      setNewCustomerError(err.message || 'Failed to create customer');
+    },
+  });
 
 
   // Group loads by status
@@ -160,6 +188,22 @@ export default function LoadsPage() {
     await fetchLoads();
   };
 
+  const handleCreateCustomer = () => {
+    if (!newCustomerForm.company_name.trim()) {
+      setNewCustomerError('Company name is required');
+      return;
+    }
+    if (newCustomerForm.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newCustomerForm.contact_email)) {
+      setNewCustomerError('Please enter a valid email address');
+      return;
+    }
+    if (newCustomerForm.contact_phone && !/^[\d\s()+\-]{7,}$/.test(newCustomerForm.contact_phone)) {
+      setNewCustomerError('Please enter a valid phone number');
+      return;
+    }
+    setNewCustomerError(null);
+    createCustomerMutation.mutate(newCustomerForm);
+  };
 
   if (!isAuthenticated || user?.role === 'DRIVER') {
     return null;
@@ -211,6 +255,12 @@ export default function LoadsPage() {
                 </DialogContent>
               </Dialog>
             </>
+          )}
+          {activeView === 'customers' && (
+            <Button size="sm" onClick={() => setIsNewCustomerOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Customer
+            </Button>
           )}
         </div>
       </div>
@@ -350,6 +400,82 @@ export default function LoadsPage() {
         onOpenChange={setInviteDialogOpen}
         customer={inviteCustomer}
       />
+
+      {/* New customer dialog */}
+      <Dialog open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Customer</DialogTitle>
+            <DialogDescription>
+              Add a new customer to your account. You can invite them to the portal after.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {newCustomerError && (
+              <Alert variant="destructive">
+                <AlertDescription>{newCustomerError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div>
+              <Label htmlFor="new-company-name">Company Name *</Label>
+              <Input
+                id="new-company-name"
+                value={newCustomerForm.company_name}
+                onChange={(e) => setNewCustomerForm({ ...newCustomerForm, company_name: e.target.value })}
+                placeholder="Acme Logistics"
+                className="bg-background mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="new-contact-name">Contact Name</Label>
+              <Input
+                id="new-contact-name"
+                value={newCustomerForm.contact_name}
+                onChange={(e) => setNewCustomerForm({ ...newCustomerForm, contact_name: e.target.value })}
+                placeholder="Jane Smith"
+                className="bg-background mt-1"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="new-contact-email">Email</Label>
+                <Input
+                  id="new-contact-email"
+                  type="email"
+                  value={newCustomerForm.contact_email}
+                  onChange={(e) => setNewCustomerForm({ ...newCustomerForm, contact_email: e.target.value })}
+                  placeholder="jane@acme.com"
+                  className="bg-background mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="new-contact-phone">Phone</Label>
+                <Input
+                  id="new-contact-phone"
+                  type="tel"
+                  value={newCustomerForm.contact_phone}
+                  onChange={(e) => setNewCustomerForm({ ...newCustomerForm, contact_phone: e.target.value })}
+                  placeholder="(555) 123-4567"
+                  className="bg-background mt-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewCustomerOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateCustomer} disabled={createCustomerMutation.isPending}>
+              {createCustomerMutation.isPending ? 'Creating...' : 'Add Customer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
