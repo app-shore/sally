@@ -641,7 +641,7 @@ model Load {
   intakeMetadata        Json?        @map("intake_metadata")
 
   // Tracking token for shipper portal
-  trackingToken         String?      @unique @map("tracking_token") @db.VarChar(100)
+  trackingToken         String?      @unique @map("tracking_token") @db.VarChar(50)
 
   // Customer entity link (nullable during migration)
   customerId            Int?         @map("customer_id")
