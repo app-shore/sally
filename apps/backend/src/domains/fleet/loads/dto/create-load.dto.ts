@@ -44,6 +44,30 @@ export class CreateLoadDto {
   @IsNotEmpty()
   customer_name: string;
 
+  @ApiProperty({ example: 'dry_van', required: false })
+  @IsString()
+  @IsOptional()
+  equipment_type?: string;
+
+  @ApiProperty({ example: 'manual', required: false })
+  @IsString()
+  @IsOptional()
+  intake_source?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  intake_metadata?: any;
+
+  @ApiProperty({ required: false })
+  @IsNumber()
+  @IsOptional()
+  customer_id?: number;
+
+  @ApiProperty({ example: 'draft', required: false })
+  @IsString()
+  @IsOptional()
+  status?: string;
+
   @ApiProperty({
     type: [CreateLoadStopDto],
     description: 'Array of stops for this load',
