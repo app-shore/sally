@@ -25,8 +25,7 @@ const inviteSchema = z.object({
   email: z.string().email('Valid email is required'),
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
-  role: z.enum(['ADMIN', 'DISPATCHER', 'DRIVER']),
-  driverId: z.string().optional(),
+  role: z.enum(['ADMIN', 'DISPATCHER']),
 });
 
 type InviteFormData = z.infer<typeof inviteSchema>;
@@ -50,15 +49,12 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
     reset,
     formState: { errors },
   } = useForm<InviteFormData>({
     resolver: zodResolver(inviteSchema),
   });
-
-  const selectedRole = watch('role');
 
   const inviteMutation = useMutation({
     mutationFn: async (data: InviteFormData) => {
@@ -97,9 +93,9 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite Team Member</DialogTitle>
+          <DialogTitle>Invite Staff Member</DialogTitle>
           <DialogDescription>
-            Send an invitation to join your team
+            Send an invitation to join your team as staff
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -163,7 +159,6 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
                 <SelectContent>
                   {isOwner && <SelectItem value="ADMIN">Admin</SelectItem>}
                   <SelectItem value="DISPATCHER">Dispatcher</SelectItem>
-                  <SelectItem value="DRIVER">Driver</SelectItem>
                 </SelectContent>
               </Select>
               {errors.role && (
@@ -176,22 +171,10 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
                   Only the tenant owner can invite admin users
                 </p>
               )}
+              <p className="text-sm text-muted-foreground mt-1">
+                To add drivers, use Fleet &rarr; Drivers
+              </p>
             </div>
-
-            {selectedRole === 'DRIVER' && (
-              <div>
-                <Label htmlFor="driverId">Driver ID (optional)</Label>
-                <Input
-                  id="driverId"
-                  {...register('driverId')}
-                  placeholder="Link to existing driver record"
-                  className="bg-background"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Leave empty if this is a new driver
-                </p>
-              </div>
-            )}
           </div>
 
           <DialogFooter className="mt-6">

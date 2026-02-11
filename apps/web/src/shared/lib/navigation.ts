@@ -49,8 +49,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
   admin: [
     { label: 'Setup Hub', href: '/setup-hub', icon: Rocket },
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { label: 'Team', href: '/users', icon: Users },
-    { label: 'Drivers', href: '/drivers', icon: Truck },
+    { label: 'Team', href: '/team', icon: Users },
     { type: 'separator', label: 'Operations' } as NavSeparator,
     { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
@@ -67,8 +66,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
   owner: [
     { label: 'Setup Hub', href: '/setup-hub', icon: Rocket },
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { label: 'Team', href: '/users', icon: Users },
-    { label: 'Drivers', href: '/drivers', icon: Truck },
+    { label: 'Team', href: '/team', icon: Users },
     { type: 'separator', label: 'Operations' } as NavSeparator,
     { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
@@ -102,6 +100,7 @@ export const protectedRoutePatterns = [
   '/driver',
   '/admin',
   '/settings',
+  '/team',
   '/users',
   '/drivers',
   '/setup-hub',

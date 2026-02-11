@@ -14,76 +14,62 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/ui/table';
-import { useAuth } from '@/features/auth';
+import { driversApi } from '../api';
 
 interface DriverListProps {
   onActivateClick: (driver: any) => void;
   onDeactivateClick: (driver: any) => void;
+  onInviteClick?: (driver: any) => void;
 }
 
-export function DriverList({ onActivateClick, onDeactivateClick }: DriverListProps) {
-  const { accessToken } = useAuth();
+const getSallyAccessBadge = (status: string | undefined) => {
+  switch (status) {
+    case 'ACTIVE':
+      return <Badge variant="default">Active</Badge>;
+    case 'INVITED':
+      return <Badge variant="muted">Invited</Badge>;
+    case 'DEACTIVATED':
+      return <Badge variant="destructive">Deactivated</Badge>;
+    default:
+      return <Badge variant="outline">No Access</Badge>;
+  }
+};
+
+const getStatusBadge = (status: string, isActive: boolean) => {
+  if (status === 'PENDING_ACTIVATION') {
+    return <Badge variant="muted">Pending</Badge>;
+  }
+  if (status === 'ACTIVE' && isActive) {
+    return <Badge variant="default">Active</Badge>;
+  }
+  if (status === 'INACTIVE' || !isActive) {
+    return <Badge variant="outline">Inactive</Badge>;
+  }
+  return <Badge variant="muted">{status}</Badge>;
+};
+
+export function DriverList({ onActivateClick, onDeactivateClick, onInviteClick }: DriverListProps) {
   const [activeTab, setActiveTab] = useState('all');
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-
-  // Fetch all drivers
+  // Fetch all drivers using API client
   const { data: allDrivers, isLoading: allLoading } = useQuery({
     queryKey: ['drivers', 'all'],
-    queryFn: async () => {
-      const response = await fetch(`${apiUrl}/drivers`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch drivers');
-      return response.json();
-    },
-    enabled: !!accessToken,
+    queryFn: () => driversApi.list(),
   });
 
   // Fetch pending drivers
   const { data: pendingDrivers, isLoading: pendingLoading } = useQuery({
     queryKey: ['drivers', 'pending'],
-    queryFn: async () => {
-      const response = await fetch(`${apiUrl}/drivers/pending/list`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch pending drivers');
-      return response.json();
-    },
-    enabled: !!accessToken && activeTab === 'pending',
+    queryFn: () => driversApi.getPending(),
+    enabled: activeTab === 'pending',
   });
 
   // Fetch inactive drivers
   const { data: inactiveDrivers, isLoading: inactiveLoading } = useQuery({
     queryKey: ['drivers', 'inactive'],
-    queryFn: async () => {
-      const response = await fetch(`${apiUrl}/drivers/inactive/list`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch inactive drivers');
-      return response.json();
-    },
-    enabled: !!accessToken && activeTab === 'inactive',
+    queryFn: () => driversApi.getInactive(),
+    enabled: activeTab === 'inactive',
   });
-
-  const getStatusBadge = (status: string, isActive: boolean) => {
-    if (status === 'PENDING_ACTIVATION') {
-      return <Badge variant="muted">Pending</Badge>;
-    }
-    if (status === 'ACTIVE' && isActive) {
-      return <Badge variant="default">Active</Badge>;
-    }
-    if (status === 'INACTIVE' || !isActive) {
-      return <Badge variant="outline">Inactive</Badge>;
-    }
-    return <Badge variant="muted">{status}</Badge>;
-  };
 
   return (
     <Card>
@@ -108,9 +94,10 @@ export function DriverList({ onActivateClick, onDeactivateClick }: DriverListPro
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Driver ID</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>External Source</TableHead>
-                      <TableHead>Last Synced</TableHead>
+                      <TableHead>License</TableHead>
+                      <TableHead>Source</TableHead>
+                      <TableHead>SALLY Access</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -123,7 +110,9 @@ export function DriverList({ onActivateClick, onDeactivateClick }: DriverListPro
                           </code>
                         </TableCell>
                         <TableCell>
-                          {getStatusBadge(driver.status || 'ACTIVE', driver.is_active)}
+                          {driver.license_number || (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           {driver.external_source ? (
@@ -133,12 +122,33 @@ export function DriverList({ onActivateClick, onDeactivateClick }: DriverListPro
                           )}
                         </TableCell>
                         <TableCell>
-                          {driver.last_synced_at
-                            ? new Date(driver.last_synced_at).toLocaleDateString()
-                            : 'Never'}
+                          {getSallyAccessBadge(driver.sally_access_status)}
+                        </TableCell>
+                        <TableCell>
+                          {driver.sally_access_status === 'NO_ACCESS' && onInviteClick && (
+                            <Button
+                              size="sm"
+                              onClick={() => onInviteClick(driver)}
+                            >
+                              Invite to SALLY
+                            </Button>
+                          )}
+                          {driver.sally_access_status === 'INVITED' && (
+                            <span className="text-sm text-muted-foreground">Pending invite</span>
+                          )}
+                          {driver.sally_access_status === 'ACTIVE' && (
+                            <span className="text-sm text-muted-foreground">Has access</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
+                    {(!allDrivers || allDrivers.length === 0) && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          No active drivers found
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -170,21 +180,45 @@ export function DriverList({ onActivateClick, onDeactivateClick }: DriverListPro
                           </code>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{driver.externalSource}</Badge>
+                          {driver.externalSource ? (
+                            <Badge variant="outline">{driver.externalSource}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell>
-                          {new Date(driver.lastSyncedAt).toLocaleDateString()}
+                          {driver.lastSyncedAt
+                            ? new Date(driver.lastSyncedAt).toLocaleDateString()
+                            : '—'}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            size="sm"
-                            onClick={() => onActivateClick(driver)}
-                          >
-                            Activate
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => onActivateClick(driver)}
+                            >
+                              Activate
+                            </Button>
+                            {onInviteClick && (
+                              <Button
+                                size="sm"
+                                onClick={() => onInviteClick(driver)}
+                              >
+                                Activate &amp; Invite
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
+                    {(!pendingDrivers || pendingDrivers.length === 0) && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                          No pending drivers
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -239,6 +273,13 @@ export function DriverList({ onActivateClick, onDeactivateClick }: DriverListPro
                         </TableCell>
                       </TableRow>
                     ))}
+                    {(!inactiveDrivers || inactiveDrivers.length === 0) && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          No inactive drivers
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>

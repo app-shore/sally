@@ -5,6 +5,8 @@ export interface Driver {
   license_number: string;
   phone?: string;
   email?: string;
+  status?: string;
+  is_active?: boolean;
   current_hos?: {
     drive_remaining: number;
     shift_remaining: number;
@@ -20,6 +22,10 @@ export interface Driver {
   last_synced_at?: string;
   created_at?: string;
   updated_at?: string;
+  // SALLY access status
+  sally_access_status?: 'ACTIVE' | 'INVITED' | 'NO_ACCESS' | 'DEACTIVATED';
+  linked_user_id?: string;
+  pending_invitation_id?: string;
 }
 
 export interface CreateDriverRequest {
@@ -47,4 +53,17 @@ export interface DriverHOS {
   cached?: boolean;
   stale?: boolean;
   cache_age_seconds?: number;
+}
+
+export interface ActivateAndInviteRequest {
+  email?: string;
+}
+
+export interface ActivateAndInviteResponse {
+  driver: Driver;
+  invitation: {
+    invitationId: string;
+    email: string;
+    status: string;
+  };
 }

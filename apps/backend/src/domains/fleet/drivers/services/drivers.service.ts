@@ -13,13 +13,30 @@ export class DriversService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Find all active drivers for a tenant
+   * Find all active drivers for a tenant, including SALLY access status
    */
-  async findAll(tenantId: number): Promise<Driver[]> {
+  async findAll(tenantId: number): Promise<any[]> {
     return this.prisma.driver.findMany({
       where: {
         tenantId,
         isActive: true,
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            isActive: true,
+          },
+        },
+        invitations: {
+          where: { status: 'PENDING' },
+          select: {
+            invitationId: true,
+            status: true,
+          },
+          take: 1,
+          orderBy: { createdAt: 'desc' },
+        },
       },
       orderBy: { driverId: 'asc' },
     });

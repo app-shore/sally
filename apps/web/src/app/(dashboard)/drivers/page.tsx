@@ -1,25 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { DriverList, DriverActivationDialog } from "@/features/fleet/drivers";
+import {
+  DriverList,
+  DriverActivationDialog,
+  InviteDriverDialog,
+} from "@/features/fleet/drivers";
 
 export default function DriversPage() {
   const [selectedDriver, setSelectedDriver] = useState<any>(null);
   const [dialogMode, setDialogMode] = useState<
     "activate" | "reactivate" | "deactivate"
   >("activate");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [activationDialogOpen, setActivationDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   const handleActivateClick = (driver: any) => {
     setSelectedDriver(driver);
     setDialogMode(driver.status === "INACTIVE" ? "reactivate" : "activate");
-    setDialogOpen(true);
+    setActivationDialogOpen(true);
   };
 
   const handleDeactivateClick = (driver: any) => {
     setSelectedDriver(driver);
     setDialogMode("deactivate");
-    setDialogOpen(true);
+    setActivationDialogOpen(true);
+  };
+
+  const handleInviteClick = (driver: any) => {
+    setSelectedDriver(driver);
+    setInviteDialogOpen(true);
   };
 
   return (
@@ -36,13 +46,20 @@ export default function DriversPage() {
       <DriverList
         onActivateClick={handleActivateClick}
         onDeactivateClick={handleDeactivateClick}
+        onInviteClick={handleInviteClick}
       />
 
       <DriverActivationDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        open={activationDialogOpen}
+        onOpenChange={setActivationDialogOpen}
         driver={selectedDriver}
         mode={dialogMode}
+      />
+
+      <InviteDriverDialog
+        open={inviteDialogOpen}
+        onOpenChange={setInviteDialogOpen}
+        driver={selectedDriver}
       />
     </div>
   );
