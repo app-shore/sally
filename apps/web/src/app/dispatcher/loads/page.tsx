@@ -74,9 +74,13 @@ export default function LoadsPage() {
   // New load dialog
   const [isNewLoadOpen, setIsNewLoadOpen] = useState(false);
 
-  // Customer invite dialog
+  // Top-level view: loads vs customers (like Fleet has Drivers | Assets)
+  const [activeView, setActiveView] = useState<'loads' | 'customers'>('loads');
+
+  // Customer invite
   const [inviteCustomer, setInviteCustomer] = useState<Customer | null>(null);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+
 
   // Group loads by status
   const drafts = loads.filter((l) => l.status === 'draft');
@@ -156,10 +160,6 @@ export default function LoadsPage() {
     await fetchLoads();
   };
 
-  const handleCustomerInviteClick = (customer: Customer) => {
-    setInviteCustomer(customer);
-    setInviteDialogOpen(true);
-  };
 
   if (!isAuthenticated || user?.role === 'DRIVER') {
     return null;
@@ -172,87 +172,98 @@ export default function LoadsPage() {
         <div>
           <h1 className="text-xl font-semibold text-foreground">Loads</h1>
           <p className="text-sm text-muted-foreground hidden sm:block">
-            Manage and dispatch freight loads
+            Manage freight loads and customers
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Upload className="h-4 w-4 mr-2" />
-                Import
-                <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem disabled>CSV/Excel Import (Phase 2)</DropdownMenuItem>
-              <DropdownMenuItem disabled>Email-to-Load (Phase 2)</DropdownMenuItem>
-              <DropdownMenuItem disabled>DAT Search (Phase 2)</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {activeView === 'loads' && (
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem disabled>CSV/Excel Import (Phase 2)</DropdownMenuItem>
+                  <DropdownMenuItem disabled>Email-to-Load (Phase 2)</DropdownMenuItem>
+                  <DropdownMenuItem disabled>DAT Search (Phase 2)</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-          <Dialog open={isNewLoadOpen} onOpenChange={setIsNewLoadOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                New Load
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create Load</DialogTitle>
-              </DialogHeader>
-              <NewLoadForm
-                onSuccess={handleCreateSuccess}
-                onCancel={() => setIsNewLoadOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
+              <Dialog open={isNewLoadOpen} onOpenChange={setIsNewLoadOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Load
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Create Load</DialogTitle>
+                  </DialogHeader>
+                  <NewLoadForm
+                    onSuccess={handleCreateSuccess}
+                    onCancel={() => setIsNewLoadOpen(false)}
+                  />
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Stats strip */}
-      <div className="flex items-center gap-4 md:gap-6 px-4 md:px-6 py-2 border-b border-border text-sm overflow-x-auto">
-        <StatPill label="Drafts" count={drafts.length} />
-        <StatPill label="Ready" count={readyToPlan.length} />
-        <StatPill label="Planned" count={planned.length} />
-        <StatPill label="Active" count={active.length} />
-        <StatPill label="Completed" count={completed.length} />
-        <StatPill label="Total" count={loads.length} />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="ml-auto"
-          onClick={fetchLoads}
-          disabled={isLoading}
-        >
-          <RefreshCw className={`h-3 w-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </div>
-
-      {/* Main content */}
-      {error ? (
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="text-center">
-            <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
-            <Button onClick={fetchLoads}>Retry</Button>
-          </div>
+      {/* Top-level view toggle: Loads | Customers */}
+      <Tabs value={activeView} onValueChange={(v) => setActiveView(v as 'loads' | 'customers')} className="flex-1 flex flex-col min-h-0">
+        <div className="flex items-center justify-between px-4 md:px-6 py-2 border-b border-border">
+          <TabsList>
+            <TabsTrigger value="loads">Loads</TabsTrigger>
+            <TabsTrigger value="customers">Customers</TabsTrigger>
+          </TabsList>
+          {activeView === 'loads' && (
+            <div className="flex items-center gap-4 md:gap-6 text-sm overflow-x-auto">
+              <StatPill label="Drafts" count={drafts.length} />
+              <StatPill label="Ready" count={readyToPlan.length} />
+              <StatPill label="Planned" count={planned.length} />
+              <StatPill label="Active" count={active.length} />
+              <StatPill label="Total" count={loads.length} />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={fetchLoads}
+                disabled={isLoading}
+              >
+                <RefreshCw className={`h-3 w-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
+          )}
         </div>
-      ) : (
-        <Tabs defaultValue="board" className="flex-1 flex flex-col min-h-0">
-          <div className="px-4 md:px-6 pt-3">
-            <TabsList>
-              <TabsTrigger value="board">Active Board</TabsTrigger>
-              <TabsTrigger value="completed">
-                Completed ({completed.length})
-              </TabsTrigger>
-              <TabsTrigger value="cancelled">
-                Cancelled ({cancelled.length})
-              </TabsTrigger>
-              <TabsTrigger value="customers">Customers</TabsTrigger>
-            </TabsList>
-          </div>
+
+        {/* Loads View */}
+        <TabsContent value="loads" className="flex-1 flex flex-col min-h-0 mt-0">
+          {error ? (
+            <div className="flex-1 flex items-center justify-center p-4">
+              <div className="text-center">
+                <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+                <Button onClick={fetchLoads}>Retry</Button>
+              </div>
+            </div>
+          ) : (
+            <Tabs defaultValue="board" className="flex-1 flex flex-col min-h-0">
+              <div className="px-4 md:px-6 pt-3">
+                <TabsList>
+                  <TabsTrigger value="board">Active Board</TabsTrigger>
+                  <TabsTrigger value="completed">
+                    Completed ({completed.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="cancelled">
+                    Cancelled ({cancelled.length})
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
           <TabsContent value="board" className="flex-1 p-4 md:p-6 overflow-auto">
             {isLoading ? (
@@ -305,11 +316,18 @@ export default function LoadsPage() {
             />
           </TabsContent>
 
-          <TabsContent value="customers" className="p-4 md:p-6 overflow-auto">
-            <CustomerList onInviteClick={handleCustomerInviteClick} />
-          </TabsContent>
-        </Tabs>
-      )}
+            </Tabs>
+          )}
+        </TabsContent>
+
+        {/* Customers View */}
+        <TabsContent value="customers" className="flex-1 p-4 md:p-6 overflow-auto mt-0">
+          <CustomerList onInviteClick={(customer) => {
+            setInviteCustomer(customer);
+            setInviteDialogOpen(true);
+          }} />
+        </TabsContent>
+      </Tabs>
 
       {/* Detail slide-out panel */}
       <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
