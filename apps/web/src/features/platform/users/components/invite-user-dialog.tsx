@@ -172,7 +172,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
                 </p>
               )}
               <p className="text-sm text-muted-foreground mt-1">
-                To add drivers, use Fleet &rarr; Drivers
+                To add drivers, use Fleet Management
               </p>
             </div>
           </div>

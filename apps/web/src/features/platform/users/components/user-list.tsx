@@ -315,7 +315,7 @@ export function UserList({ onInviteClick }: UserListProps) {
                             <TableCell>
                               {canManage && (
                                 <div className="flex gap-2">
-                                  <Link href="/drivers">
+                                  <Link href="/dispatcher/fleet">
                                     <Button size="sm" variant="outline">
                                       View in Fleet
                                     </Button>
@@ -348,8 +348,8 @@ export function UserList({ onInviteClick }: UserListProps) {
                 </div>
                 <p className="text-sm text-muted-foreground mt-4">
                   To invite more drivers, go to{' '}
-                  <Link href="/drivers" className="underline hover:text-foreground">
-                    Fleet &rarr; Drivers
+                  <Link href="/dispatcher/fleet" className="underline hover:text-foreground">
+                    Fleet Management
                   </Link>
                 </p>
               </>
