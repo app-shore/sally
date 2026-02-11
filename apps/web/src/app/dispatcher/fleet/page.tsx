@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/features/auth';
 import {
   listDrivers,
@@ -301,10 +302,20 @@ function DriversTab({
                       <Badge variant="default">Active</Badge>
                     )}
                     {driver.sally_access_status === 'INVITED' && (
-                      <Badge variant="muted">Invited</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="muted">Invited</Badge>
+                        <Link
+                          href="/admin/team?tab=invitations"
+                          className="text-xs text-muted-foreground underline hover:text-foreground"
+                        >
+                          Manage invite
+                        </Link>
+                      </div>
                     )}
                     {driver.sally_access_status === 'DEACTIVATED' && (
-                      <Badge variant="destructive">Deactivated</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="destructive">Deactivated</Badge>
+                      </div>
                     )}
                     {(!driver.sally_access_status || driver.sally_access_status === 'NO_ACCESS') && (
                       onInviteClick ? (

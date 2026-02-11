@@ -22,6 +22,7 @@ import { UserPlus } from 'lucide-react';
 
 interface UserListProps {
   onInviteClick: () => void;
+  defaultTab?: string;
 }
 
 const getRoleBadgeVariant = (role: string) => {
@@ -73,10 +74,10 @@ const isExpiryWarning = (dateStr: string) => {
   return diffDays < 2;
 };
 
-export function UserList({ onInviteClick }: UserListProps) {
+export function UserList({ onInviteClick, defaultTab = 'staff' }: UserListProps) {
   const { user: currentUser, isSuperAdmin } = useAuth();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('staff');
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
   // Fetch users
   const { data: users, isLoading: usersLoading } = useQuery({
