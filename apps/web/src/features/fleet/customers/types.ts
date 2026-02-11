@@ -15,3 +15,17 @@ export interface CustomerCreate {
   contact_email?: string;
   contact_phone?: string;
 }
+
+export interface CustomerInvite {
+  email: string;
+  first_name: string;
+  last_name: string;
+}
+
+export interface CustomerInviteResponse {
+  invitation_id: string;
+  email: string;
+  status: string;
+  customer_id: string;
+  expires_at: string;
+}

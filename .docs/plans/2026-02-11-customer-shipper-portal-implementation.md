@@ -1093,6 +1093,42 @@ git commit -m "feat: auto-generate tracking token when load status changes to ac
 
 ---
 
+## Task 9: Customer Management & Invite UI for Dispatchers
+
+**Problem:** Tasks 1-8 built the backend invite endpoint and customer portal pages, but there's no UI for dispatchers/admins to manage customers or send portal invitations. Without this, customers can never receive an invitation and log in.
+
+**Approach:** Add a "Customers" tab to the existing Team page (`/admin/team`) — consistent and minimalistic. Dispatchers see their customer list with an "Invite to Portal" action on each customer. Follows the exact same pattern as the existing InviteDriverDialog and InviteUserDialog.
+
+**Files:**
+- Modify: `apps/web/src/features/fleet/customers/api.ts` (add invite method)
+- Modify: `apps/web/src/features/fleet/customers/types.ts` (add invite types)
+- Create: `apps/web/src/features/fleet/customers/components/invite-customer-dialog.tsx`
+- Create: `apps/web/src/features/fleet/customers/components/customer-list.tsx`
+- Modify: `apps/web/src/features/fleet/customers/index.ts` (create barrel export)
+- Modify: `apps/web/src/app/admin/team/page.tsx` (add Customers tab)
+
+### Step 1: Add invite API method and types
+
+In `api.ts`, add `invite` method. In `types.ts`, add `CustomerInvite` and `CustomerInviteResponse` types.
+
+### Step 2: Create InviteCustomerDialog component
+
+Follow InviteDriverDialog pattern: Dialog with first name, last name, email fields. Calls `customersApi.invite(customerId, data)`. Shows customer info summary. Error/loading states.
+
+### Step 3: Create CustomerList component
+
+Table of customers with columns: Company, Contact, Email, Phone, Actions. Each row has an "Invite to Portal" button. Uses Shadcn Table. Empty state when no customers. Follows same visual style as UserList.
+
+### Step 4: Add Customers tab to Team page
+
+Add a third tab "Customers" to `/admin/team/page.tsx` alongside existing Staff and Invitations tabs. Tab shows CustomerList with invite dialog.
+
+### Step 5: Verify and commit
+
+Test: Navigate to /admin/team?tab=customers, see customer list, click invite, fill form, submit.
+
+---
+
 ## Phase 2 Tasks (Not in this plan)
 
 - Email notifications (pickup, in-transit, delivery, delay)
