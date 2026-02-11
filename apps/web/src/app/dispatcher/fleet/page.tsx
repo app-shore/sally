@@ -301,10 +301,15 @@ function DriversTab({
                       <Badge variant="default">Active</Badge>
                     )}
                     {driver.sally_access_status === 'INVITED' && (
-                      <Badge variant="muted">Invited</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="muted">Invited</Badge>
+                        <span className="text-xs text-muted-foreground">Pending acceptance</span>
+                      </div>
                     )}
                     {driver.sally_access_status === 'DEACTIVATED' && (
-                      <Badge variant="destructive">Deactivated</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="destructive">Deactivated</Badge>
+                      </div>
                     )}
                     {(!driver.sally_access_status || driver.sally_access_status === 'NO_ACCESS') && (
                       onInviteClick ? (
