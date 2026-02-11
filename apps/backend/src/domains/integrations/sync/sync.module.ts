@@ -7,15 +7,27 @@ import { VehicleMatcher } from './matching/vehicle-matcher';
 import { DriverMatcher } from './matching/driver-matcher';
 import { VehicleMerger } from './merging/vehicle-merger';
 import { DriverMerger } from './merging/driver-merger';
-import { AutoSyncJob } from '../../../infrastructure/jobs/auto-sync.job';
+import { DriversSyncJob } from '../../../infrastructure/jobs/drivers-sync.job';
+import { VehiclesSyncJob } from '../../../infrastructure/jobs/vehicles-sync.job';
+import { LoadsSyncJob } from '../../../infrastructure/jobs/loads-sync.job';
+import { TelematicsSyncJob } from '../../../infrastructure/jobs/telematics-sync.job';
+import { SyncLogCleanupJob } from '../../../infrastructure/jobs/sync-log-cleanup.job';
+import { FuelPriceSyncJob } from '../../../infrastructure/jobs/fuel-price-sync.job';
+import { WeatherSyncJob } from '../../../infrastructure/jobs/weather-sync.job';
 import { CredentialsService } from '../credentials/credentials.service';
 import { AdaptersModule } from '../adapters/adapters.module';
 
 /**
  * SyncModule handles data synchronization from external systems.
  *
+ * Jobs are organized by data type (not integration source):
+ * - DriversSyncJob: TMS creates → ELD enriches (every 15 min)
+ * - VehiclesSyncJob: TMS creates → ELD enriches (every 15 min)
+ * - LoadsSyncJob: TMS only (every 15 min)
+ * - TelematicsSyncJob: ELD vehicle locations (every 2 min)
+ *
+ * Note: HosSyncJob is registered in IntegrationsModule (depends on IntegrationManagerService)
  * Note: Adapters are imported from AdaptersModule (shared with IntegrationsModule)
- * to avoid duplicate registration and circular dependency issues.
  */
 @Module({
   imports: [PrismaModule, AdaptersModule],
@@ -27,7 +39,13 @@ import { AdaptersModule } from '../adapters/adapters.module';
     DriverMatcher,
     VehicleMerger,
     DriverMerger,
-    AutoSyncJob,
+    DriversSyncJob,
+    VehiclesSyncJob,
+    LoadsSyncJob,
+    TelematicsSyncJob,
+    SyncLogCleanupJob,
+    FuelPriceSyncJob,
+    WeatherSyncJob,
     CredentialsService,
   ],
   exports: [SyncService],
