@@ -3,6 +3,7 @@ import {
   IELDAdapter,
   ELDVehicleData,
   ELDDriverData,
+  ELDVehicleLocationData,
 } from './eld-adapter.interface';
 import axios from 'axios';
 
@@ -105,6 +106,46 @@ export class SamsaraELDAdapter implements IELDAdapter {
 
     // Real API call
     const response = await axios.get(`${this.baseUrl}/fleet/drivers`, {
+      headers: { Authorization: `Bearer ${apiToken}` },
+    });
+
+    return response.data.data;
+  }
+
+  /**
+   * Get current vehicle locations from Samsara ELD
+   */
+  async getVehicleLocations(apiToken: string): Promise<ELDVehicleLocationData[]> {
+    if (this.useMockData) {
+      return [
+        {
+          vehicleId: '281474996387574',
+          vin: '1FUJGHDV9JLJY8062',
+          latitude: 32.7767,
+          longitude: -96.797,
+          speed: 62.5,
+          heading: 180,
+          odometer: 145230.5,
+          fuelLevel: 72.3,
+          engineRunning: true,
+          timestamp: new Date().toISOString(),
+        },
+        {
+          vehicleId: '281474996387575',
+          vin: '3AKJHPDV2KSKA4482',
+          latitude: 34.0522,
+          longitude: -118.2437,
+          speed: 0,
+          heading: 0,
+          odometer: 98452.1,
+          fuelLevel: 45.8,
+          engineRunning: false,
+          timestamp: new Date().toISOString(),
+        },
+      ];
+    }
+
+    const response = await axios.get(`${this.baseUrl}/fleet/vehicles/locations`, {
       headers: { Authorization: `Bearer ${apiToken}` },
     });
 
