@@ -1,99 +1,226 @@
+---
+title: Scheduled Jobs
+description: All background jobs running in the SALLY backend -- schedules, what they do, where they live, and how to add new ones.
+---
+
 # Scheduled Jobs
 
-SALLY uses `@nestjs/schedule` for cron-based background jobs. Each job is a dedicated `@Injectable()` class with a `@Cron()` decorator on its main method.
+The SALLY backend uses [NestJS Schedule](https://docs.nestjs.com/techniques/task-scheduling) (`@nestjs/schedule`) for all recurring background work. Every job runs in-process -- there are no separate worker containers, no Bull/BullMQ queues, and no system-level cron.
+
+The schedule module is registered globally in `app.module.ts`:
+
+```ts
+import { ScheduleModule } from '@nestjs/schedule';
+
+@Module({
+  imports: [
+    ScheduleModule.forRoot(),
+    // ...
+  ],
+})
+export class AppModule {}
+```
 
 ## Quick Reference
 
-| Job | Default Frequency | File | Purpose |
-|-----|-------------------|------|---------|
-| Drivers Sync | Every 15 min | `infrastructure/jobs/drivers-sync.job.ts` | Syncs driver rosters (TMS creates, ELD enriches) |
-| Vehicles Sync | Every 15 min | `infrastructure/jobs/vehicles-sync.job.ts` | Syncs vehicle data (TMS creates, ELD enriches) |
-| Loads Sync | Every 15 min | `infrastructure/jobs/loads-sync.job.ts` | Syncs active loads from TMS |
-| HOS Sync | Every 5 min | `infrastructure/jobs/hos-sync.job.ts` | Syncs HOS hours per driver from ELD |
-| Telematics Sync | Every 2 min | `infrastructure/jobs/telematics-sync.job.ts` | Syncs vehicle location, speed, fuel from ELD |
-| Fuel Price Sync | Every hour | `infrastructure/jobs/fuel-price-sync.job.ts` | Syncs fuel prices (Phase 3 placeholder) |
-| Weather Sync | Every 30 min | `infrastructure/jobs/weather-sync.job.ts` | Syncs weather data (Phase 3 placeholder) |
-| Sync Log Cleanup | Daily at 2 AM | `infrastructure/jobs/sync-log-cleanup.job.ts` | Deletes sync logs older than 30 days |
-| Alert Escalation | Every minute | `operations/alerts/services/escalation.service.ts` | Escalates unacknowledged alerts past SLA |
-| Snooze Expiry | Every minute | `operations/alerts/services/auto-resolution.service.ts` | Reactivates alerts whose snooze period expired |
-| Alert Digest | Configurable | `operations/alerts/services/alert-digest.service.ts` | Sends periodic alert digest summaries |
+| Job | Frequency | Domain | Status |
+|-----|-----------|--------|--------|
+| [Auto-Sync Check](#auto-sync-check) | Every 1 min | Integrations | Active |
+| [HOS Data Sync](#hos-data-sync) | Every 5 min | Integrations | Active |
+| [Driver List Sync](#driver-list-sync) | Every 15 min | Integrations | Stub (Phase 3) |
+| [Sync Log Cleanup](#sync-log-cleanup) | Daily @ 2 AM | Integrations | Active |
+| [Alert Escalation](#alert-escalation) | Every 1 min | Alerts | Active |
+| [Daily Alert Digest](#daily-alert-digest) | Daily @ 6 AM | Alerts | Active |
+| [Shift Handoff Summary](#shift-handoff-summary) | 6 AM & 6 PM | Alerts | Active |
+| [Snooze Expiry](#snooze-expiry) | Every 1 min | Alerts | Active |
 
-## Data-Type Sync Jobs
+---
 
-### Architecture
+## Why `@nestjs/schedule` and Not BullMQ
 
-Jobs are organized by **data type**, not by integration source. Each job syncs one kind of data across all relevant integrations:
+The current jobs are lightweight cron triggers, not heavy queued workloads. `@nestjs/schedule` is the right choice because:
+
+- Jobs are simple periodic tasks (query + sync + log), not complex workflows
+- Single backend instance -- no need for distributed job coordination
+- Redis is used for caching only, not job state
+- No need for retry queues, rate limiting, or concurrency control yet
+
+**When to migrate to BullMQ (Phase 3+):**
+
+- 50+ tenants where sync jobs start overlapping or taking longer than their interval
+- Continuous monitoring running per-route creates heavy load
+- Need for job retry with backoff, priority queues, or concurrency limits
+- Horizontal scaling requires distributed job locking
+
+When that time comes, BullMQ integrates cleanly with NestJS via `@nestjs/bullmq` and our existing Redis instance.
+
+---
+
+## Integrations Domain
+
+These jobs keep external system data (ELD, TMS) in sync and manage integration housekeeping.
+
+### Auto-Sync Check
+
+**File:** `src/infrastructure/jobs/auto-sync.job.ts`
+**Module:** `SyncModule` (via `IntegrationsModule`)
+**Schedule:** `@Cron(CronExpression.EVERY_MINUTE)`
+
+Checks which integrations are due for sync based on each integration's `syncIntervalSeconds` setting. For each enabled integration where enough time has elapsed since `lastSyncAt`, it triggers `SyncService.syncIntegration()`.
 
 ```
-DriversSyncJob (every 15 min)
-  → TMS integrations: creates/updates drivers (source of truth)
-  → ELD integrations: enriches drivers with ELD metadata
-
-VehiclesSyncJob (every 15 min)
-  → TMS integrations: creates/updates vehicles (source of truth)
-  → ELD integrations: enriches vehicles with telematics metadata
-
-LoadsSyncJob (every 15 min)
-  → TMS integrations only: syncs active loads and stops
-
-HosSyncJob (every 5 min)
-  → Deduplicates by tenant (one sync per tenant, not per integration)
-  → Calls IntegrationManagerService.syncAllDriversForTenant()
-
-TelematicsSyncJob (every 2 min)
-  → ELD integrations: fetches vehicle locations via adapter
-  → Matches vehicles by VIN or ELD ID
-  → Upserts into vehicle_telematics table
+Every minute:
+  → Query integrations where isEnabled = true
+  → For each: has syncIntervalSeconds elapsed since lastSyncAt?
+  → If yes: call syncService.syncIntegration(id)
 ```
 
-### Configurable Timing
+**Error handling:** Per-integration try-catch -- logs the error and continues to the next integration.
 
-All sync job frequencies can be overridden via environment variables:
+---
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SYNC_DRIVERS_CRON` | `0 */15 * * * *` | Driver roster sync interval |
-| `SYNC_VEHICLES_CRON` | `0 */15 * * * *` | Vehicle data sync interval |
-| `SYNC_LOADS_CRON` | `0 */15 * * * *` | Active loads sync interval |
-| `SYNC_HOS_CRON` | `0 */5 * * * *` | HOS hours sync interval |
-| `SYNC_TELEMATICS_CRON` | `0 */2 * * * *` | Vehicle telematics sync interval |
+### HOS Data Sync
 
-### Error Handling
+**File:** `src/domains/integrations/services/integration-scheduler.service.ts`
+**Module:** `IntegrationsModule`
+**Schedule:** `@Cron(CronExpression.EVERY_5_MINUTES)`
 
-All sync jobs follow the same error handling pattern:
-- Each integration sync is wrapped in a try-catch
-- If one integration fails, the job continues with the next
-- Errors are logged with integration and tenant context
+Pulls current Hours of Service data from ELD systems (Samsara) for all active drivers. This keeps drive-time-remaining and duty-status values fresh for route planning.
 
-### Registration
+```
+Every 5 minutes:
+  → Find tenants with active HOS_ELD integrations
+  → For each tenant: integrationManager.syncAllDriversForTenant(tenantId)
+```
 
-Data-type sync jobs are registered as providers in `SyncModule` (`domains/integrations/sync/sync.module.ts`), except `HosSyncJob` which is registered in `IntegrationsModule` (depends on `IntegrationManagerService`).
+**Error handling:** Per-tenant try-catch -- logs error with tenant ID and continues.
 
-## Alert Jobs
+---
 
-Alert jobs live in their respective service files within the alerts domain. All alert cron methods wrap their body in a try-catch to prevent unhandled exceptions from crashing the scheduler.
+### Driver List Sync
+
+**File:** `src/domains/integrations/services/integration-scheduler.service.ts`
+**Module:** `IntegrationsModule`
+**Schedule:** `@Cron('0 */15 * * * *')`
+
+Intended to sync the driver roster from TMS integrations. Currently stubbed -- logs "TMS driver sync not yet implemented". Planned for Phase 3.
+
+---
+
+### Sync Log Cleanup
+
+**File:** `src/domains/integrations/services/integration-scheduler.service.ts`
+**Module:** `IntegrationsModule`
+**Schedule:** `@Cron('0 2 * * *')` (daily at 2:00 AM)
+
+Deletes `IntegrationSyncLog` records older than 30 days to prevent database bloat. Runs during low-traffic hours.
+
+```
+Daily at 2 AM:
+  → Delete from IntegrationSyncLog where createdAt < (now - 30 days)
+  → Log count of deleted records
+```
+
+---
+
+## Alerts Domain
+
+These jobs handle alert lifecycle automation -- escalation, digest emails, and snooze management.
+
+### Alert Escalation
+
+**File:** `src/domains/operations/alerts/services/escalation.service.ts`
+**Module:** `AlertsModule` (via `OperationsModule`)
+**Schedule:** `@Cron(CronExpression.EVERY_MINUTE)`
+
+Monitors active alerts for SLA violations. If an alert remains unacknowledged beyond its configured `acknowledgeSlaMinutes`, it gets escalated (level incremented) and an SSE event is emitted to notify dispatchers.
+
+```
+Every minute:
+  → Load AlertConfiguration per tenant (escalation policies by priority)
+  → For each priority policy:
+    → Find alerts: status=active, acknowledgedAt=null, createdAt <= SLA cutoff
+    → Increment escalationLevel, set escalatedAt
+    → Emit SSE event: alert:escalated
+```
+
+**Error handling:** No explicit try-catch -- relies on NestJS global exception handling.
+
+---
+
+### Daily Alert Digest
+
+**File:** `src/domains/operations/alerts/services/alert-digest.service.ts`
+**Module:** `AlertsModule` (via `OperationsModule`)
+**Schedule:** `@Cron('0 6 * * *')` (daily at 6:00 AM)
+
+Sends an HTML email summary of the last 24 hours of alert activity to dispatchers, admins, and owners. Includes counts for new alerts, resolved, auto-resolved, escalated, currently unresolved, and volume by category.
+
+**Error handling:** Per-tenant try-catch -- logs error and continues.
+
+---
+
+### Shift Handoff Summary
+
+**File:** `src/domains/operations/alerts/services/alert-digest.service.ts`
+**Module:** `AlertsModule` (via `OperationsModule`)
+**Schedule:** `@Cron('0 6,18 * * *')` (6:00 AM and 6:00 PM)
+
+Sends an HTML email listing the top 20 unresolved alerts (ordered by priority, then recency) to incoming shift teams. Skipped if there are no unresolved alerts.
+
+**Error handling:** Per-tenant try-catch -- logs error and continues.
+
+---
+
+### Snooze Expiry
+
+**File:** `src/domains/operations/alerts/services/auto-resolution.service.ts`
+**Module:** `AlertsModule` (via `OperationsModule`)
+**Schedule:** `@Cron(CronExpression.EVERY_MINUTE)`
+
+Reactivates snoozed alerts whose snooze period has expired. Sets status back to `active`, clears `snoozedUntil`, and emits an SSE event (`alert:unsnoozed`).
+
+```
+Every minute:
+  → Find alerts: status=snoozed, snoozedUntil <= now
+  → For each: set status=active, clear snoozedUntil
+  → Emit SSE event: alert:unsnoozed
+```
+
+**Error handling:** No explicit try-catch -- relies on NestJS global exception handling.
+
+---
 
 ## Adding a New Job
 
-1. Create `apps/backend/src/infrastructure/jobs/your-job.job.ts`
-2. Add the `@Injectable()` decorator and inject dependencies
-3. Add `@Cron(process.env.YOUR_CRON_VAR || 'default-expression')` with the desired schedule
-4. Wrap the method body in try-catch for error resilience
-5. Register the job as a provider in the appropriate module
-6. Write tests in `apps/backend/src/infrastructure/jobs/__tests__/`
-7. Add the env var to `.env.example`
+1. **Create or update a service** with a method decorated with `@Cron()`:
 
-### Frequency Guide
+```ts
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
 
-| Data Type | Suggested Interval | Rationale |
-|-----------|-------------------|-----------|
-| Telematics | 2 minutes | Real-time vehicle location tracking |
-| HOS | 5 minutes | HOS changes frequently during driving |
-| Drivers / Vehicles / Loads | 15 minutes | Fleet data changes less frequently |
-| Fuel prices | 1 hour | Prices update infrequently |
-| Weather | 30 minutes | Conditions change moderately |
-| Cleanup | Daily | Housekeeping, low urgency |
+@Injectable()
+export class MyService {
+  private readonly logger = new Logger(MyService.name);
 
-## `ScheduleModule` Configuration
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async myJob() {
+    this.logger.log('Job started');
+    try {
+      // ... your logic
+    } catch (error) {
+      this.logger.error('Job failed', error.stack);
+    }
+  }
+}
+```
 
-`ScheduleModule.forRoot()` is registered once in `AppModule` (the root module). Individual modules should **not** call `forRoot()` again.
+2. **Register the service** in its domain module's `providers` array.
+
+3. **Use per-iteration error handling** for jobs that process multiple items -- catch and log per item so one failure doesn't stop the entire batch.
+
+4. **Update this page** with the new job's details.
+
+## Planned: Continuous Monitoring Service
+
+A background daemon running every 60 seconds per active route is designed but not yet implemented. It will monitor 14 trigger types across 5 categories (HOS compliance, driver behavior, route progress, vehicle state, external conditions) and auto-generate alerts. See the design document at `.docs/plans/2026-02-09-continuous-monitoring-design.md`.

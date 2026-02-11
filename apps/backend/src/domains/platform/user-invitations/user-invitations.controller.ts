@@ -86,4 +86,19 @@ export class UserInvitationsController {
       reason,
     );
   }
+
+  /**
+   * Resend invitation with new token (OWNER and ADMIN)
+   */
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @Post(':invitationId/resend')
+  async resendInvitation(
+    @Param('invitationId') invitationId: string,
+    @CurrentUser() currentUser: any,
+  ) {
+    return this.userInvitationsService.resendInvitation(
+      invitationId,
+      currentUser.tenantId,
+    );
+  }
 }
