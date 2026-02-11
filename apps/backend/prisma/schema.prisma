@@ -15,6 +15,7 @@ enum UserRole {
   DRIVER
   ADMIN
   OWNER           // Tenant owner - created during registration, cannot be deleted
+  CUSTOMER        // External customer/shipper with limited portal access
   SUPER_ADMIN
 }
 
@@ -87,6 +88,7 @@ model Tenant {
   notifications         Notification[]
   alertConfiguration    AlertConfiguration?
   loads                 Load[]
+  customers             Customer[]
   shiftNotes            ShiftNote[]
   conversations         Conversation[]
   vehicleTelematics     VehicleTelematics[]
@@ -118,6 +120,10 @@ model User {
   // Driver link (optional, only for DRIVER role)
   driver            Driver?          @relation(fields: [driverId], references: [id])
   driverId          Int?             @unique @map("driver_id")
+
+  // Customer link (optional, only for CUSTOMER role)
+  customer          Customer?        @relation(fields: [customerId], references: [id])
+  customerId        Int?             @unique @map("customer_id")
 
   // Status tracking
   isActive          Boolean          @default(true) @map("is_active")
@@ -580,6 +586,26 @@ model Stop {
   @@map("stops")
 }
 
+model Customer {
+  id                    Int          @id @default(autoincrement())
+  customerId            String       @unique @map("customer_id") @db.VarChar(50)
+  companyName           String       @map("company_name") @db.VarChar(200)
+  contactEmail          String?      @map("contact_email") @db.VarChar(255)
+  contactPhone          String?      @map("contact_phone") @db.VarChar(50)
+  isActive              Boolean      @default(true) @map("is_active")
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenantId              Int          @map("tenant_id")
+  tenant                Tenant       @relation(fields: [tenantId], references: [id])
+
+  loads                 Load[]
+  users                 User[]
+
+  @@index([tenantId])
+  @@map("customers")
+}
+
 model Load {
   id                    Int          @id @default(autoincrement())
   loadId                String       @unique @map("load_id") @db.VarChar(50)
@@ -593,6 +619,18 @@ model Load {
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
+  // Customer link (optional - for portal access)
+  customerId            Int?         @map("customer_id")
+  customer              Customer?    @relation(fields: [customerId], references: [id])
+
+  // Public tracking
+  trackingToken         String?      @unique @map("tracking_token") @db.VarChar(100)
+
+  // Load intake source
+  equipmentType         String?      @map("equipment_type") @db.VarChar(50)
+  intakeSource          String?      @map("intake_source") @db.VarChar(30)
+  intakeMetadata        Json?        @map("intake_metadata")
+
   // External system linkage (for integration sync)
   externalLoadId        String?      @map("external_load_id") @db.VarChar(100)
   externalSource        IntegrationVendor?  @map("external_source")
@@ -602,6 +640,8 @@ model Load {
   tenant                  Tenant     @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
+  @@index([customerId])
+  @@index([trackingToken])
 
   stops                 LoadStop[]
   routePlanLoads        RoutePlanLoad[]

@@ -1,16 +1,16 @@
-import { Activity, BarChart3, Building2, FileText, Flag, Home, LucideIcon, Map, MessageSquare, Package, Plus, Rocket, Settings, Truck, Users, Wallet } from 'lucide-react';
+import { Activity, BarChart3, Building2, FileText, Flag, Home, LucideIcon, Map, MessageSquare, Package, Plus, Rocket, Settings, Truck, Users, Wallet, ClipboardList } from 'lucide-react';
 
 export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
-  roles?: ('DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER')[];
+  roles?: ('DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER' | 'CUSTOMER')[];
 }
 
 export interface NavSeparator {
   type: 'separator';
   label: string;
-  roles?: ('DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER')[];
+  roles?: ('DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER' | 'CUSTOMER')[];
 }
 
 export type NavigationItem = NavItem | NavSeparator;
@@ -88,12 +88,19 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Feature Flags', href: '/admin/feature-flags', icon: Flag },
     { label: 'Settings', href: '/admin/settings', icon: Settings },
   ],
+
+  customer: [
+    { label: 'My Shipments', href: '/customer/dashboard', icon: Package },
+    { label: 'Request Load', href: '/customer/request-load', icon: Plus },
+    { type: 'separator', label: 'Configuration' } as NavSeparator,
+    { label: 'Settings', href: '/settings/general', icon: Settings },
+  ],
 };
 
 /**
  * Public routes that don't require authentication
  */
-export const publicRoutes = ['/', '/login'] as const;
+export const publicRoutes = ['/', '/login', '/track'] as const;
 
 /**
  * Routes that require authentication
@@ -102,6 +109,7 @@ export const protectedRoutePatterns = [
   '/dispatcher',
   '/driver',
   '/admin',
+  '/customer',
   '/settings',
   '/setup-hub',
   '/notifications',
@@ -110,7 +118,7 @@ export const protectedRoutePatterns = [
 /**
  * Get navigation items based on user role
  */
-export function getNavigationForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER' | 'SUPER_ADMIN' | undefined): NavigationItem[] {
+export function getNavigationForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER' | 'CUSTOMER' | 'SUPER_ADMIN' | undefined): NavigationItem[] {
   if (!role) return [];
 
   const roleKey = role.toLowerCase() as keyof typeof navigationConfig;
@@ -128,13 +136,13 @@ export function isProtectedRoute(pathname: string): boolean {
  * Check if a route is public (doesn't require auth)
  */
 export function isPublicRoute(pathname: string): boolean {
-  return publicRoutes.includes(pathname as any) || pathname.startsWith('/login');
+  return publicRoutes.includes(pathname as any) || pathname.startsWith('/login') || pathname.startsWith('/track');
 }
 
 /**
  * Get default route for user role
  */
-export function getDefaultRouteForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER' | 'SUPER_ADMIN' | undefined): string {
+export function getDefaultRouteForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' | 'OWNER' | 'CUSTOMER' | 'SUPER_ADMIN' | undefined): string {
   switch (role) {
     case 'SUPER_ADMIN':
       return '/admin/tenants';
@@ -146,6 +154,8 @@ export function getDefaultRouteForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' |
       return '/dispatcher/overview';
     case 'DRIVER':
       return '/driver/dashboard';
+    case 'CUSTOMER':
+      return '/customer/dashboard';
     default:
       return '/login';
   }

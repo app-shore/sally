@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { Load } from '@prisma/client';
 
@@ -23,6 +24,11 @@ export class LoadsService {
     commodity_type: string;
     special_requirements?: string;
     customer_name: string;
+    customer_id?: number;
+    equipment_type?: string;
+    intake_source?: string;
+    intake_metadata?: any;
+    status?: string;
     stops: Array<{
       stop_id: string;
       sequence_order: number;
@@ -42,11 +48,15 @@ export class LoadsService {
       data: {
         loadId,
         loadNumber: data.load_number,
-        status: 'pending',
+        status: data.status || 'pending',
         weightLbs: data.weight_lbs,
         commodityType: data.commodity_type,
         specialRequirements: data.special_requirements || null,
         customerName: data.customer_name,
+        customerId: data.customer_id || null,
+        equipmentType: data.equipment_type || null,
+        intakeSource: data.intake_source || null,
+        intakeMetadata: data.intake_metadata || null,
         tenantId: data.tenant_id,
         isActive: true,
       },
@@ -187,14 +197,22 @@ export class LoadsService {
       throw new NotFoundException(`Load not found: ${loadId}`);
     }
 
-    const validStatuses = ['pending', 'planned', 'active', 'in_transit', 'completed', 'cancelled'];
+    const validStatuses = ['draft', 'pending', 'planned', 'active', 'in_transit', 'completed', 'cancelled'];
     if (!validStatuses.includes(status)) {
       throw new BadRequestException(`Invalid status: ${status}. Valid statuses: ${validStatuses.join(', ')}`);
     }
 
+    const updateData: any = { status, updatedAt: new Date() };
+
+    // Auto-generate tracking token when load goes active
+    if (status === 'active' && !load.trackingToken) {
+      const token = `${load.loadNumber}-${randomBytes(3).toString('hex')}`;
+      updateData.trackingToken = token;
+    }
+
     const updated = await this.prisma.load.update({
       where: { id: load.id },
-      data: { status, updatedAt: new Date() },
+      data: updateData,
       include: {
         stops: {
           include: { stop: true },
@@ -244,6 +262,226 @@ export class LoadsService {
   }
 
   /**
+   * Find loads scoped to a specific customer ID
+   */
+  async findByCustomerId(customerId: number, tenantId?: number) {
+    const loads = await this.prisma.load.findMany({
+      where: { customerId, isActive: true, ...(tenantId ? { tenantId } : {}) },
+      include: {
+        stops: { include: { stop: true }, orderBy: { sequenceOrder: 'asc' } },
+        routePlanLoads: {
+          include: {
+            plan: { select: { estimatedArrival: true, isActive: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return loads.map((load) => {
+      const firstPickup = load.stops.find((s) => s.actionType === 'pickup');
+      const lastDelivery = [...load.stops].reverse().find((s) => s.actionType === 'delivery');
+      const activePlan = load.routePlanLoads.map((rpl) => rpl.plan).find((p) => p.isActive);
+
+      return {
+        load_id: load.loadId,
+        load_number: load.loadNumber,
+        status: load.status,
+        customer_name: load.customerName,
+        estimated_delivery: activePlan?.estimatedArrival?.toISOString() || null,
+        origin_city: firstPickup?.stop?.city || null,
+        origin_state: firstPickup?.stop?.state || null,
+        destination_city: lastDelivery?.stop?.city || null,
+        destination_state: lastDelivery?.stop?.state || null,
+        tracking_token: load.trackingToken,
+        created_at: load.createdAt.toISOString(),
+      };
+    });
+  }
+
+  /**
+   * Find a single load for a customer (validates customer ownership)
+   */
+  async findOneForCustomer(loadId: string, customerId: number) {
+    const load = await this.prisma.load.findFirst({
+      where: { loadId, customerId },
+      include: {
+        stops: { include: { stop: true }, orderBy: { sequenceOrder: 'asc' } },
+      },
+    });
+    if (!load) throw new NotFoundException(`Load not found: ${loadId}`);
+    return this.formatLoadResponse(load);
+  }
+
+  /**
+   * Create a load from customer portal request (creates as draft)
+   */
+  async createFromCustomerRequest(data: {
+    tenant_id: number;
+    customer_id: number;
+    customer_name: string;
+    pickup_address: string;
+    pickup_city: string;
+    pickup_state: string;
+    delivery_address: string;
+    delivery_city: string;
+    delivery_state: string;
+    pickup_date?: string;
+    delivery_date?: string;
+    weight_lbs: number;
+    equipment_type?: string;
+    commodity_type?: string;
+    notes?: string;
+  }) {
+    const loadNumber = `REQ-${Date.now().toString(36).toUpperCase()}`;
+
+    return this.create({
+      tenant_id: data.tenant_id,
+      load_number: loadNumber,
+      weight_lbs: data.weight_lbs,
+      commodity_type: data.commodity_type || 'general',
+      special_requirements: data.notes || undefined,
+      customer_name: data.customer_name,
+      customer_id: data.customer_id,
+      equipment_type: data.equipment_type || undefined,
+      intake_source: 'portal',
+      intake_metadata: { requested_by: 'customer_portal' },
+      status: 'draft',
+      stops: [
+        {
+          stop_id: `stop_${Date.now()}_pickup`,
+          sequence_order: 1,
+          action_type: 'pickup',
+          estimated_dock_hours: 2,
+          earliest_arrival: data.pickup_date || undefined,
+          name: data.pickup_address,
+          address: data.pickup_address,
+          city: data.pickup_city,
+          state: data.pickup_state,
+        },
+        {
+          stop_id: `stop_${Date.now()}_delivery`,
+          sequence_order: 2,
+          action_type: 'delivery',
+          estimated_dock_hours: 2,
+          earliest_arrival: data.delivery_date || undefined,
+          name: data.delivery_address,
+          address: data.delivery_address,
+          city: data.delivery_city,
+          state: data.delivery_state,
+        },
+      ],
+    });
+  }
+
+  /**
+   * Get public tracking data by tracking token (no auth)
+   */
+  async getPublicTracking(token: string) {
+    const load = await this.prisma.load.findFirst({
+      where: { trackingToken: token },
+      include: {
+        stops: {
+          include: { stop: true },
+          orderBy: { sequenceOrder: 'asc' },
+        },
+        tenant: { select: { companyName: true } },
+        routePlanLoads: {
+          include: {
+            plan: {
+              select: {
+                estimatedArrival: true,
+                status: true,
+                isActive: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!load) {
+      throw new NotFoundException('Tracking information not found');
+    }
+
+    const timeline = this.buildTrackingTimeline(load);
+
+    const activePlan = load.routePlanLoads
+      .map((rpl) => rpl.plan)
+      .find((p) => p.isActive);
+
+    return {
+      load_number: load.loadNumber,
+      status: load.status,
+      customer_name: load.customerName,
+      carrier_name: load.tenant.companyName,
+      equipment_type: load.equipmentType,
+      weight_lbs: load.weightLbs,
+      estimated_delivery: activePlan?.estimatedArrival?.toISOString() || null,
+      timeline,
+      stops: load.stops.map((ls) => ({
+        sequence_order: ls.sequenceOrder,
+        action_type: ls.actionType,
+        city: ls.stop?.city || null,
+        state: ls.stop?.state || null,
+      })),
+    };
+  }
+
+  /**
+   * Build tracking timeline events from load data
+   */
+  private buildTrackingTimeline(load: any) {
+    const events: Array<{ event: string; status: string; timestamp?: string; detail?: string }> = [];
+
+    events.push({
+      event: 'Order Confirmed',
+      status: 'completed',
+      timestamp: load.createdAt.toISOString(),
+    });
+
+    if (['planned', 'active', 'in_transit', 'completed'].includes(load.status)) {
+      events.push({
+        event: 'Driver Assigned',
+        status: 'completed',
+      });
+    }
+
+    const firstPickup = load.stops.find((s: any) => s.actionType === 'pickup');
+    if (firstPickup?.actualDockHours !== null && ['active', 'in_transit', 'completed'].includes(load.status)) {
+      events.push({
+        event: 'Picked Up',
+        status: 'completed',
+        detail: `${firstPickup.stop?.city}, ${firstPickup.stop?.state}`,
+      });
+    }
+
+    if (['active', 'in_transit'].includes(load.status)) {
+      events.push({
+        event: 'In Transit',
+        status: 'current',
+      });
+    }
+
+    const lastDelivery = [...load.stops].reverse().find((s: any) => s.actionType === 'delivery');
+    if (load.status === 'completed') {
+      events.push({
+        event: 'Delivered',
+        status: 'completed',
+        detail: `${lastDelivery?.stop?.city}, ${lastDelivery?.stop?.state}`,
+      });
+    } else {
+      events.push({
+        event: 'Delivery',
+        status: 'upcoming',
+        detail: `${lastDelivery?.stop?.city}, ${lastDelivery?.stop?.state}`,
+      });
+    }
+
+    return events;
+  }
+
+  /**
    * Format load response with stops
    */
   formatLoadResponse(load: any) {
@@ -271,6 +509,9 @@ export class LoadsService {
       commodity_type: load.commodityType,
       special_requirements: load.specialRequirements,
       customer_name: load.customerName,
+      equipment_type: load.equipmentType,
+      tracking_token: load.trackingToken,
+      intake_source: load.intakeSource,
       is_active: load.isActive,
       created_at: load.createdAt.toISOString(),
       updated_at: load.updatedAt.toISOString(),
