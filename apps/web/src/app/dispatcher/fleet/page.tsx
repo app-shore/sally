@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/features/auth';
 import {
   listDrivers,
@@ -303,7 +304,12 @@ function DriversTab({
                     {driver.sally_access_status === 'INVITED' && (
                       <div className="flex items-center gap-2">
                         <Badge variant="muted">Invited</Badge>
-                        <span className="text-xs text-muted-foreground">Pending acceptance</span>
+                        <Link
+                          href="/admin/team?tab=invitations"
+                          className="text-xs text-muted-foreground underline hover:text-foreground"
+                        >
+                          Manage invite
+                        </Link>
                       </div>
                     )}
                     {driver.sally_access_status === 'DEACTIVATED' && (

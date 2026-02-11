@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { UserList, InviteUserDialog } from "@/features/platform/users";
 
 export default function TeamPage() {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") || "staff";
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   return (
@@ -17,7 +20,10 @@ export default function TeamPage() {
         </p>
       </div>
 
-      <UserList onInviteClick={() => setInviteDialogOpen(true)} />
+      <UserList
+        onInviteClick={() => setInviteDialogOpen(true)}
+        defaultTab={initialTab}
+      />
       <InviteUserDialog
         open={inviteDialogOpen}
         onOpenChange={setInviteDialogOpen}
