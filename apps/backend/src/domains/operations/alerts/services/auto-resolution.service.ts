@@ -35,34 +35,38 @@ export class AutoResolutionService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async unsnoozeExpired() {
-    const now = new Date();
+    try {
+      const now = new Date();
 
-    const expiredSnoozes = await this.prisma.alert.findMany({
-      where: {
-        status: 'snoozed',
-        snoozedUntil: { lte: now },
-      },
-    });
-
-    for (const alert of expiredSnoozes) {
-      await this.prisma.alert.update({
-        where: { alertId: alert.alertId },
-        data: {
-          status: 'active',
-          snoozedUntil: null,
+      const expiredSnoozes = await this.prisma.alert.findMany({
+        where: {
+          status: 'snoozed',
+          snoozedUntil: { lte: now },
         },
       });
 
-      this.sseService.emitToTenant(alert.tenantId, 'alert:unsnoozed', {
-        alert_id: alert.alertId,
-        status: 'active',
-      });
+      for (const alert of expiredSnoozes) {
+        await this.prisma.alert.update({
+          where: { alertId: alert.alertId },
+          data: {
+            status: 'active',
+            snoozedUntil: null,
+          },
+        });
 
-      this.logger.log(`Unsnoozed alert ${alert.alertId} — snooze period expired`);
-    }
+        this.sseService.emitToTenant(alert.tenantId, 'alert:unsnoozed', {
+          alert_id: alert.alertId,
+          status: 'active',
+        });
 
-    if (expiredSnoozes.length > 0) {
-      this.logger.log(`Unsnoozed ${expiredSnoozes.length} expired alerts`);
+        this.logger.log(`Unsnoozed alert ${alert.alertId} — snooze period expired`);
+      }
+
+      if (expiredSnoozes.length > 0) {
+        this.logger.log(`Unsnoozed ${expiredSnoozes.length} expired alerts`);
+      }
+    } catch (error) {
+      this.logger.error('Snooze expiry check failed', error.stack);
     }
   }
 

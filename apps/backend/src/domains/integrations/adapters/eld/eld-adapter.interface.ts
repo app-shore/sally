@@ -27,6 +27,23 @@ export interface ELDDriverData {
 }
 
 /**
+ * Vehicle location data from ELD system
+ *
+ * Matches Samsara GET /fleet/vehicles/stats?types=gps response.
+ * Fields like odometer, fuelLevel, engineRunning are not available
+ * from this endpoint and default to zero/null/false in the DB.
+ */
+export interface ELDVehicleLocationData {
+  vehicleId: string;
+  vin?: string;
+  latitude: number;
+  longitude: number;
+  speed: number;
+  heading: number;
+  timestamp: string;
+}
+
+/**
  * Interface that all ELD adapters must implement
  */
 export interface IELDAdapter {
@@ -43,6 +60,13 @@ export interface IELDAdapter {
    * @returns Array of ELD driver data
    */
   getDrivers(apiToken: string): Promise<ELDDriverData[]>;
+
+  /**
+   * Fetch current vehicle locations from ELD system
+   * @param apiToken - API token for authentication
+   * @returns Array of vehicle location data
+   */
+  getVehicleLocations(apiToken: string): Promise<ELDVehicleLocationData[]>;
 
   /**
    * Test if credentials are valid and connection works
