@@ -8,6 +8,7 @@ import {
   createDriver,
   updateDriver,
   deleteDriver,
+  InviteDriverDialog,
   type Driver,
   type CreateDriverRequest,
 } from '@/features/fleet/drivers';
@@ -53,6 +54,8 @@ export default function FleetPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [inviteDriver, setInviteDriver] = useState<Driver | null>(null);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
 
@@ -78,6 +81,11 @@ export default function FleetPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleInviteClick = (driver: Driver) => {
+    setInviteDriver(driver);
+    setInviteDialogOpen(true);
   };
 
   if (!isAuthenticated || user?.role === 'DRIVER') {
@@ -106,6 +114,7 @@ export default function FleetPage() {
             isLoading={isLoading}
             error={error}
             onRefresh={loadData}
+            onInviteClick={handleInviteClick}
           />
         </TabsContent>
 
@@ -122,6 +131,12 @@ export default function FleetPage() {
           <LoadsTab />
         </TabsContent>
       </Tabs>
+
+      <InviteDriverDialog
+        open={inviteDialogOpen}
+        onOpenChange={setInviteDialogOpen}
+        driver={inviteDriver}
+      />
     </div>
   );
 }
@@ -131,11 +146,13 @@ function DriversTab({
   isLoading,
   error,
   onRefresh,
+  onInviteClick,
 }: {
   drivers: Driver[];
   isLoading: boolean;
   error: string | null;
   onRefresh: () => Promise<void>;
+  onInviteClick?: (driver: Driver) => void;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
@@ -249,6 +266,7 @@ function DriversTab({
                 <TableHead>Name</TableHead>
                 <TableHead>License Number</TableHead>
                 <TableHead>Source</TableHead>
+                <TableHead>SALLY Access</TableHead>
                 <TableHead>Last Synced</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -276,6 +294,30 @@ function DriversTab({
                         <span className="text-xs">✋</span>
                         Manual
                       </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {driver.sally_access_status === 'ACTIVE' && (
+                      <Badge variant="default">Active</Badge>
+                    )}
+                    {driver.sally_access_status === 'INVITED' && (
+                      <Badge variant="muted">Invited</Badge>
+                    )}
+                    {driver.sally_access_status === 'DEACTIVATED' && (
+                      <Badge variant="destructive">Deactivated</Badge>
+                    )}
+                    {(!driver.sally_access_status || driver.sally_access_status === 'NO_ACCESS') && (
+                      onInviteClick ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onInviteClick(driver)}
+                        >
+                          Invite to SALLY
+                        </Button>
+                      ) : (
+                        <Badge variant="outline">No Access</Badge>
+                      )
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
