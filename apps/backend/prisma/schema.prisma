@@ -239,6 +239,10 @@ model UserInvitation {
   driverId              Int?          @map("driver_id")
   driver                Driver?       @relation(fields: [driverId], references: [id])
 
+  // Optional customer link (for CUSTOMER role invitations)
+  customerId            Int?          @map("customer_id")
+  customer              Customer?     @relation(fields: [customerId], references: [id])
+
   token                 String        @unique @db.VarChar(255)
   expiresAt             DateTime      @map("expires_at") @db.Timestamptz
 
@@ -263,6 +267,7 @@ model UserInvitation {
   @@index([expiresAt])
   @@index([status])
   @@index([driverId])
+  @@index([customerId])
   @@map("user_invitations")
 }
 
@@ -601,6 +606,7 @@ model Customer {
 
   loads                 Load[]
   users                 User[]
+  invitations           UserInvitation[]
 
   @@index([tenantId])
   @@map("customers")
