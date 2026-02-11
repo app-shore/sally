@@ -42,6 +42,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       include: {
         tenant: true,
         driver: true,
+        customer: true,
       },
     });
 
@@ -64,6 +65,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       tenantName: user.tenant?.companyName,
       driverId: user.driver?.driverId,
       driverName: user.driver?.name,
+      customerId: user.customer?.customerId,
+      customerDbId: user.customer?.id,
+      customerName: user.customer?.companyName,
       isActive: user.isActive,
     };
   }
