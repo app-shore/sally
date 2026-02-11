@@ -269,6 +269,25 @@ export class UserInvitationsService {
         },
       });
 
+      // If invitation is linked to a driver, auto-activate if pending
+      if (invitation.driverId) {
+        const driver = await tx.driver.findUnique({
+          where: { id: invitation.driverId },
+        });
+
+        if (driver && driver.status === 'PENDING_ACTIVATION') {
+          await tx.driver.update({
+            where: { id: invitation.driverId },
+            data: {
+              status: 'ACTIVE',
+              isActive: true,
+              activatedAt: new Date(),
+              activatedBy: user.id,
+            },
+          });
+        }
+      }
+
       // Update invitation status
       await tx.userInvitation.update({
         where: { id: invitation.id },
@@ -330,6 +349,66 @@ export class UserInvitationsService {
         cancellationReason: reason,
       },
     });
+  }
+
+  /**
+   * Resend invitation with new token and reset expiry
+   */
+  async resendInvitation(invitationId: string, tenantIdString: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { tenantId: tenantIdString },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    const invitation = await this.prisma.userInvitation.findUnique({
+      where: { invitationId },
+      include: {
+        tenant: { select: { companyName: true } },
+        invitedByUser: { select: { firstName: true, lastName: true } },
+      },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invitation.tenantId !== tenant.id) {
+      throw new BadRequestException(
+        'Invitation does not belong to your organization',
+      );
+    }
+
+    if (invitation.status !== 'PENDING') {
+      throw new BadRequestException(
+        `Cannot resend invitation with status ${invitation.status}`,
+      );
+    }
+
+    const newToken = nanoid();
+    const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    const updatedInvitation = await this.prisma.userInvitation.update({
+      where: { invitationId },
+      data: {
+        token: newToken,
+        expiresAt: newExpiry,
+      },
+    });
+
+    const invitedByName = `${invitation.invitedByUser.firstName} ${invitation.invitedByUser.lastName}`;
+    await this.emailService.sendUserInvitation(
+      invitation.email,
+      invitation.firstName,
+      invitation.lastName,
+      invitedByName,
+      invitation.tenant.companyName,
+      newToken,
+    );
+
+    return updatedInvitation;
   }
 
   /**
