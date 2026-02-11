@@ -69,14 +69,15 @@ describe('SamsaraELDAdapter - Monitoring Methods', () => {
     });
   });
 
-  describe('getVehicleGPSSnapshots', () => {
-    it('should fetch and transform GPS snapshot data via stats endpoint', async () => {
+  describe('getVehicleLocations', () => {
+    it('should fetch and transform GPS data via stats endpoint', async () => {
       const mockResponse = {
         data: {
           data: [
             {
               id: 'veh-456',
               name: 'Truck-01',
+              externalIds: { 'samsara.vin': '1FUJGHDV9JLJY8062' },
               gps: {
                 latitude: 34.0522,
                 longitude: -118.2437,
@@ -90,7 +91,7 @@ describe('SamsaraELDAdapter - Monitoring Methods', () => {
       };
       mockedAxios.get.mockResolvedValue(mockResponse);
 
-      const result = await adapter.getVehicleGPSSnapshots('test-token');
+      const result = await adapter.getVehicleLocations('test-token');
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
         'https://api.samsara.com/fleet/vehicles/stats?types=gps',
@@ -99,14 +100,38 @@ describe('SamsaraELDAdapter - Monitoring Methods', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         vehicleId: 'veh-456',
-        gps: {
-          latitude: 34.0522,
-          longitude: -118.2437,
-          speedMilesPerHour: 65,
-          headingDegrees: 270,
-          time: '2026-02-09T12:00:00Z',
-        },
+        vin: '1FUJGHDV9JLJY8062',
+        latitude: 34.0522,
+        longitude: -118.2437,
+        speed: 65,
+        heading: 270,
+        timestamp: '2026-02-09T12:00:00Z',
       });
+    });
+
+    it('should handle missing VIN gracefully', async () => {
+      const mockResponse = {
+        data: {
+          data: [
+            {
+              id: 'veh-789',
+              name: 'Truck-02',
+              gps: {
+                latitude: 32.77,
+                longitude: -96.80,
+                speedMilesPerHour: 0,
+                headingDegrees: 0,
+                time: '2026-02-09T12:00:00Z',
+              },
+            },
+          ],
+        },
+      };
+      mockedAxios.get.mockResolvedValue(mockResponse);
+
+      const result = await adapter.getVehicleLocations('test-token');
+
+      expect(result[0].vin).toBeUndefined();
     });
   });
 });

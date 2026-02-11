@@ -17,7 +17,7 @@ describe('RouteMonitoringService', () => {
   };
   const mockIntegrationManager = {
     getDriverHOS: jest.fn().mockResolvedValue({ driveTimeRemainingMs: 5 * 3600000 }),
-    getVehicleLocation: jest.fn().mockResolvedValue({ gps: { latitude: 34.05, longitude: -118.24, speedMilesPerHour: 65 } }),
+    getVehicleLocation: jest.fn().mockResolvedValue({ vehicleId: 'veh-1', latitude: 34.05, longitude: -118.24, speed: 65, heading: 270, timestamp: new Date().toISOString() }),
   };
   const mockChecks = { runAllChecks: jest.fn().mockReturnValue([]) };
   const mockProgressTracker = {

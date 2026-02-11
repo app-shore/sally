@@ -20,7 +20,7 @@ describe('MonitoringChecksService', () => {
         timeUntilBreakMs: 4 * 3600000,
         currentDutyStatus: 'driving',
       },
-      gpsData: { gps: { latitude: 34.05, longitude: -118.24, speedMilesPerHour: 65, headingDegrees: 270, time: new Date().toISOString() } },
+      gpsData: { vehicleId: 'veh-1', latitude: 34.05, longitude: -118.24, speed: 65, heading: 270, timestamp: new Date().toISOString() },
       thresholds: { ...DEFAULT_THRESHOLDS },
       driverName: 'John Doe',
       ...overrides,
@@ -75,7 +75,7 @@ describe('MonitoringChecksService', () => {
     it('should trigger DRIVER_NOT_MOVING when speed is 0 for too long', () => {
       const stoppedSince = new Date(Date.now() - 130 * 60000).toISOString(); // 130 min ago
       const ctx = buildContext({
-        gpsData: { gps: { latitude: 34.05, longitude: -118.24, speedMilesPerHour: 0, headingDegrees: 0, time: stoppedSince } },
+        gpsData: { vehicleId: 'veh-1', latitude: 34.05, longitude: -118.24, speed: 0, heading: 0, timestamp: stoppedSince },
         currentSegment: { segmentType: 'drive', status: 'in_progress', estimatedDeparture: new Date(Date.now() - 130 * 60000) },
       });
 

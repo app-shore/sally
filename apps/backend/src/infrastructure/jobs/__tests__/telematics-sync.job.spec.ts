@@ -60,9 +60,6 @@ describe('TelematicsSyncJob', () => {
         longitude: -96.80,
         speed: 60,
         heading: 180,
-        odometer: 145000,
-        fuelLevel: 72,
-        engineRunning: true,
         timestamp: '2026-02-11T12:00:00Z',
       },
     ]);
@@ -107,8 +104,6 @@ describe('TelematicsSyncJob', () => {
         longitude: -96.80,
         speed: 0,
         heading: 0,
-        odometer: 0,
-        engineRunning: false,
         timestamp: '2026-02-11T12:00:00Z',
       },
     ]);

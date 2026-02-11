@@ -24,25 +24,12 @@ export interface HOSClockData {
 }
 
 /**
- * Vehicle GPS location data from Samsara API
- * Endpoint: GET /fleet/vehicles/locations
- * Docs: https://developers.samsara.com/reference/getvehiclelocations
- */
-export interface VehicleLocationData {
-  vehicleId: string;
-  gps: {
-    latitude: number;
-    longitude: number;
-    speedMilesPerHour: number;
-    headingDegrees: number;
-    time: string;
-  };
-}
-
-/**
  * Samsara ELD Adapter
  *
- * Fetches vehicle, driver, HOS, and location data from Samsara ELD API
+ * Fetches vehicle, driver, HOS, and location data from Samsara ELD API.
+ * Uses the recommended /fleet/vehicles/stats endpoint for GPS data
+ * (the legacy /fleet/vehicles/locations endpoint is deprecated by Samsara).
+ *
  * API Documentation: https://developers.samsara.com/
  */
 @Injectable()
@@ -55,7 +42,6 @@ export class SamsaraELDAdapter implements IELDAdapter {
    */
   async getVehicles(apiToken: string): Promise<ELDVehicleData[]> {
     if (this.useMockData) {
-      // MOCK DATA - Update this to match your actual Samsara fleet
       return [
         {
           id: '281474996387574',
@@ -82,7 +68,6 @@ export class SamsaraELDAdapter implements IELDAdapter {
       ];
     }
 
-    // Real API call
     const response = await axios.get(`${this.baseUrl}/fleet/vehicles`, {
       headers: { Authorization: `Bearer ${apiToken}` },
     });
@@ -95,7 +80,6 @@ export class SamsaraELDAdapter implements IELDAdapter {
    */
   async getDrivers(apiToken: string): Promise<ELDDriverData[]> {
     if (this.useMockData) {
-      // MOCK DATA - Update this to match your actual Samsara drivers
       return [
         {
           id: '53207939',
@@ -136,7 +120,6 @@ export class SamsaraELDAdapter implements IELDAdapter {
       ];
     }
 
-    // Real API call
     const response = await axios.get(`${this.baseUrl}/fleet/drivers`, {
       headers: { Authorization: `Bearer ${apiToken}` },
     });
@@ -184,17 +167,15 @@ export class SamsaraELDAdapter implements IELDAdapter {
   /**
    * Get GPS location data for all vehicles from Samsara
    *
-   * Uses the locations snapshot endpoint which returns the most recent
-   * location for each vehicle.
+   * Uses GET /fleet/vehicles/stats?types=gps (Samsara's recommended endpoint).
+   * The legacy /fleet/vehicles/locations endpoint is deprecated.
    *
-   * Real Samsara API response structure:
+   * Real Samsara API response:
    * {
    *   data: [{
    *     id: "vehicleId",
    *     name: "Truck-01",
-   *     location: {
-   *       latitude, longitude, headingDegrees, speedMilesPerHour, time
-   *     }
+   *     gps: { latitude, longitude, speedMilesPerHour, headingDegrees, time }
    *   }]
    * }
    */
@@ -205,68 +186,23 @@ export class SamsaraELDAdapter implements IELDAdapter {
       return [
         {
           vehicleId: '281474996387574',
-          vin: '1FUJGHDV9JLJY8062',
           latitude: 32.7767,
           longitude: -96.797,
           speed: 62.5,
           heading: 180,
-          odometer: 145230.5,
-          fuelLevel: 72.3,
-          engineRunning: true,
           timestamp: new Date().toISOString(),
         },
         {
           vehicleId: '281474996387575',
-          vin: '3AKJHPDV2KSKA4482',
           latitude: 34.0522,
           longitude: -118.2437,
           speed: 0,
           heading: 0,
-          odometer: 98452.1,
-          fuelLevel: 45.8,
-          engineRunning: false,
           timestamp: new Date().toISOString(),
         },
       ];
     }
 
-    const response = await axios.get(
-      `${this.baseUrl}/fleet/vehicles/locations`,
-      { headers: { Authorization: `Bearer ${apiToken}` } },
-    );
-
-    return (response.data.data || []).map((entry: any) => ({
-      vehicleId: entry.id ?? '',
-      latitude: entry.location?.latitude ?? 0,
-      longitude: entry.location?.longitude ?? 0,
-      speed: entry.location?.speedMilesPerHour ?? 0,
-      heading: entry.location?.headingDegrees ?? 0,
-      odometer: 0,
-      engineRunning: false,
-      timestamp: entry.location?.time ?? new Date().toISOString(),
-    }));
-  }
-
-  /**
-   * Get GPS location snapshot for monitoring (simplified GPS-only data)
-   *
-   * Uses the vehicle stats endpoint with types=gps for lightweight GPS data.
-   * Preferred for monitoring where we only need coordinates and speed.
-   *
-   * Real Samsara API response structure:
-   * {
-   *   data: [{
-   *     id: "vehicleId",
-   *     name: "Truck-01",
-   *     gps: {
-   *       latitude, longitude, speedMilesPerHour, headingDegrees, time
-   *     }
-   *   }]
-   * }
-   */
-  async getVehicleGPSSnapshots(
-    apiToken: string,
-  ): Promise<VehicleLocationData[]> {
     const response = await axios.get(
       `${this.baseUrl}/fleet/vehicles/stats?types=gps`,
       { headers: { Authorization: `Bearer ${apiToken}` } },
@@ -274,13 +210,12 @@ export class SamsaraELDAdapter implements IELDAdapter {
 
     return (response.data.data || []).map((entry: any) => ({
       vehicleId: entry.id ?? '',
-      gps: {
-        latitude: entry.gps?.latitude ?? 0,
-        longitude: entry.gps?.longitude ?? 0,
-        speedMilesPerHour: entry.gps?.speedMilesPerHour ?? 0,
-        headingDegrees: entry.gps?.headingDegrees ?? 0,
-        time: entry.gps?.time ?? new Date().toISOString(),
-      },
+      vin: entry.externalIds?.['samsara.vin'] ?? undefined,
+      latitude: entry.gps?.latitude ?? 0,
+      longitude: entry.gps?.longitude ?? 0,
+      speed: entry.gps?.speedMilesPerHour ?? 0,
+      heading: entry.gps?.headingDegrees ?? 0,
+      timestamp: entry.gps?.time ?? new Date().toISOString(),
     }));
   }
 
@@ -302,7 +237,6 @@ export class SamsaraELDAdapter implements IELDAdapter {
    */
   async testConnection(apiToken: string): Promise<boolean> {
     if (this.useMockData) {
-      // In mock mode, accept any non-empty token
       return !!apiToken && apiToken.length > 0;
     }
 

@@ -43,7 +43,6 @@ describe('IntegrationManagerService', () => {
     getDrivers: jest.fn(),
     getHOSClocks: jest.fn(),
     getVehicleLocations: jest.fn(),
-    getVehicleGPSSnapshots: jest.fn(),
     testConnection: jest.fn(),
   };
 
@@ -243,17 +242,23 @@ describe('IntegrationManagerService', () => {
         credentials: { apiToken: 'test-token' },
       });
 
-      mockSamsaraAdapter.getVehicleGPSSnapshots.mockResolvedValue([
+      mockSamsaraAdapter.getVehicleLocations.mockResolvedValue([
         {
           vehicleId: 'veh-456',
-          gps: { latitude: 34.05, longitude: -118.24, speedMilesPerHour: 65, headingDegrees: 270, time: '2026-02-09T12:00:00Z' },
+          vin: '1FUJGHDV9JLJY8062',
+          latitude: 34.05,
+          longitude: -118.24,
+          speed: 65,
+          heading: 270,
+          timestamp: '2026-02-09T12:00:00Z',
         },
       ]);
 
       const result = await service.getVehicleLocation(1, 'veh-456');
 
       expect(result).toBeDefined();
-      expect(result.gps.latitude).toBe(34.05);
+      expect(result.latitude).toBe(34.05);
+      expect(result.speed).toBe(65);
     });
 
     it('should throw if no active integration', async () => {
@@ -273,10 +278,14 @@ describe('IntegrationManagerService', () => {
         credentials: { apiToken: 'test-token' },
       });
 
-      mockSamsaraAdapter.getVehicleGPSSnapshots.mockResolvedValue([
+      mockSamsaraAdapter.getVehicleLocations.mockResolvedValue([
         {
           vehicleId: 'veh-other',
-          gps: { latitude: 34.05, longitude: -118.24, speedMilesPerHour: 65, headingDegrees: 270, time: '2026-02-09T12:00:00Z' },
+          latitude: 34.05,
+          longitude: -118.24,
+          speed: 65,
+          heading: 270,
+          timestamp: '2026-02-09T12:00:00Z',
         },
       ]);
 

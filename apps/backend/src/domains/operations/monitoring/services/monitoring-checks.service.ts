@@ -208,12 +208,12 @@ export class MonitoringChecksService {
 
   private checkDriverNotMoving(ctx: MonitoringContext, triggers: MonitoringTrigger[]) {
     if (ctx.currentSegment?.segmentType !== 'drive') return;
-    if (ctx.gpsData?.gps?.speedMilesPerHour > 0) return;
+    if (ctx.gpsData?.speed > 0) return;
 
     const stoppedSince = ctx.currentSegment.estimatedDeparture
       ? new Date(ctx.currentSegment.estimatedDeparture).getTime()
-      : ctx.gpsData?.gps?.time
-        ? new Date(ctx.gpsData.gps.time).getTime()
+      : ctx.gpsData?.timestamp
+        ? new Date(ctx.gpsData.timestamp).getTime()
         : null;
 
     if (!stoppedSince) return;

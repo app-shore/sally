@@ -73,7 +73,7 @@ describe('Monitoring Integration', () => {
       timeUntilBreakMs: 3 * 3600000,
     });
     mockIntegration.getVehicleLocation.mockResolvedValue({
-      gps: { latitude: 34.5, longitude: -117.5, speedMilesPerHour: 65, headingDegrees: 90, time: new Date().toISOString() },
+      vehicleId: 'veh-1', latitude: 34.5, longitude: -117.5, speed: 65, heading: 90, timestamp: new Date().toISOString(),
     });
 
     await monitoringService.monitorActiveRoutes();

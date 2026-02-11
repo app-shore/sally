@@ -18,8 +18,8 @@ export class RouteProgressTrackerService {
 
   async updateSegmentStatuses(segments: any[], gpsData: any): Promise<any | null> {
     const sorted = [...segments].sort((a, b) => a.sequenceOrder - b.sequenceOrder);
-    const driverLat = gpsData?.gps?.latitude;
-    const driverLon = gpsData?.gps?.longitude;
+    const driverLat = gpsData?.latitude;
+    const driverLon = gpsData?.longitude;
 
     if (driverLat == null || driverLon == null) return this.determineCurrentSegment(segments);
 
