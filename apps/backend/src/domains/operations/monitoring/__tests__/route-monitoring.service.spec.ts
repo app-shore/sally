@@ -4,7 +4,7 @@ import { PrismaService } from '../../../../infrastructure/database/prisma.servic
 import { IntegrationManagerService } from '../../../integrations/services/integration-manager.service';
 import { MonitoringChecksService } from '../services/monitoring-checks.service';
 import { RouteProgressTrackerService } from '../services/route-progress-tracker.service';
-import { RouteUpdateHandlerService } from '../services/route-update-handler.service';
+import { RouteEventService } from '../services/route-event.service';
 import { SseService } from '../../../../infrastructure/sse/sse.service';
 
 describe('RouteMonitoringService', () => {
@@ -24,7 +24,7 @@ describe('RouteMonitoringService', () => {
     updateSegmentStatuses: jest.fn().mockResolvedValue(null),
     determineCurrentSegment: jest.fn().mockReturnValue(null),
   };
-  const mockUpdateHandler = { handleTriggers: jest.fn().mockResolvedValue(undefined) };
+  const mockRouteEventService = { handleMonitoringTriggers: jest.fn().mockResolvedValue(undefined) };
   const mockSse = { emitToTenant: jest.fn() };
 
   beforeEach(async () => {
@@ -35,7 +35,7 @@ describe('RouteMonitoringService', () => {
         { provide: IntegrationManagerService, useValue: mockIntegrationManager },
         { provide: MonitoringChecksService, useValue: mockChecks },
         { provide: RouteProgressTrackerService, useValue: mockProgressTracker },
-        { provide: RouteUpdateHandlerService, useValue: mockUpdateHandler },
+        { provide: RouteEventService, useValue: mockRouteEventService },
         { provide: SseService, useValue: mockSse },
       ],
     }).compile();
