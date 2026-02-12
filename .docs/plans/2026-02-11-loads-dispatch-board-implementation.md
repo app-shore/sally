@@ -4,7 +4,7 @@
 
 **Goal:** Build a standalone Loads page with Kanban dispatch board, enhanced load creation, copy/duplicate, templates, and route planning integration.
 
-**Architecture:** New top-level `/dispatcher/loads` page with 4-column Kanban (Drafts → Ready to Plan → Planned → Active). Backend schema adds `draft` status, `equipment_type`, `intake_source`, and `tracking_token` fields to the Load model. Frontend is a new page component with Shadcn Card-based Kanban columns and slide-out detail panel using Sheet component.
+**Architecture:** New top-level `/dispatcher/loads` page with 4-column Kanban (Drafts → Pending → Assigned → In Transit). Backend schema adds `draft` status, `equipment_type`, `intake_source`, and `tracking_token` fields to the Load model. Frontend is a new page component with Shadcn Card-based Kanban columns and slide-out detail panel using Sheet component. Load status flow aligned with post-route lifecycle: `draft → pending → assigned → in_transit → delivered → cancelled`. Note: `planned`, `active`, and `completed` are route plan statuses, not load statuses.
 
 **Tech Stack:** NestJS 11, Prisma 7.3, PostgreSQL, Next.js 15 (App Router), TypeScript, Shadcn UI, Tailwind CSS, React Query, Zustand
 

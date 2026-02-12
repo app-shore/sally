@@ -361,9 +361,9 @@ export class TmsSyncService {
   ): string {
     const statusMap: Record<string, string> = {
       UNASSIGNED: 'pending',
-      ASSIGNED: 'pending',
+      ASSIGNED: 'assigned',
       IN_TRANSIT: 'in_transit',
-      DELIVERED: 'completed',
+      DELIVERED: 'delivered',
       CANCELLED: 'cancelled',
     };
     return statusMap[tmsStatus] || 'pending';

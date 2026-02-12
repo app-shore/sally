@@ -23,7 +23,7 @@ export interface Load {
   id: number;
   load_id: string;
   load_number: string;
-  status: "draft" | "pending" | "planned" | "active" | "in_transit" | "completed" | "cancelled";
+  status: "draft" | "pending" | "assigned" | "in_transit" | "delivered" | "cancelled";
   weight_lbs: number;
   commodity_type: string;
   equipment_type?: string;

@@ -194,7 +194,7 @@ export class LoadsService {
       throw new NotFoundException(`Load not found: ${loadId}`);
     }
 
-    const validStatuses = ['draft', 'pending', 'planned', 'active', 'in_transit', 'completed', 'cancelled'];
+    const validStatuses = ['draft', 'pending', 'assigned', 'in_transit', 'delivered', 'cancelled'];
     if (!validStatuses.includes(status)) {
       throw new BadRequestException(`Invalid status: ${status}. Valid statuses: ${validStatuses.join(', ')}`);
     }
