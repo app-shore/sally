@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,7 +36,7 @@ export function LoginForm() {
     formState: { errors },
     trigger,
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: standardSchemaResolver(loginSchema),
     mode: 'onSubmit',
     defaultValues: {
       email: '',

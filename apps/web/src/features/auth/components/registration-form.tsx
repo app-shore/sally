@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -61,8 +61,20 @@ export function RegistrationForm() {
     formState: { errors },
     trigger,
   } = useForm<RegistrationFormData>({
-    resolver: zodResolver(registrationSchema),
+    resolver: standardSchemaResolver(registrationSchema),
     mode: 'onChange',
+    defaultValues: {
+      companyName: '',
+      subdomain: '',
+      dotNumber: '',
+      fleetSize: undefined,
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: '',
+    },
   });
 
   const subdomain = watch('subdomain');

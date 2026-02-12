@@ -8,6 +8,16 @@ import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { Switch } from '@/shared/components/ui/switch';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/components/ui/alert-dialog';
 import { useAuthStore } from '@/features/auth';
 import { usePreferencesStore } from '@/features/platform/settings';
 import type { UserPreferences, DriverPreferences } from '@/features/platform/settings';
@@ -19,6 +29,7 @@ export default function GeneralSettingsPage() {
   const [formData, setFormData] = useState<Partial<UserPreferences>>(userPreferences || {});
   const [driverFormData, setDriverFormData] = useState<Partial<DriverPreferences>>(driverPreferences || {});
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   const isDriver = user?.role === 'DRIVER';
 
@@ -58,21 +69,20 @@ export default function GeneralSettingsPage() {
   };
 
   const handleReset = async () => {
-    if (confirm('Reset general settings to defaults?')) {
-      try {
-        await resetToDefaults('user');
-        const resetPrefs = usePreferencesStore.getState().userPreferences;
-        if (resetPrefs) setFormData(resetPrefs);
-        if (isDriver) {
-          await resetToDefaults('driver');
-          const resetDriverPrefs = usePreferencesStore.getState().driverPreferences;
-          if (resetDriverPrefs) setDriverFormData(resetDriverPrefs);
-        }
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000);
-      } catch (error) {
-        console.error('Failed to reset settings:', error);
+    setResetConfirmOpen(false);
+    try {
+      await resetToDefaults('user');
+      const resetPrefs = usePreferencesStore.getState().userPreferences;
+      if (resetPrefs) setFormData(resetPrefs);
+      if (isDriver) {
+        await resetToDefaults('driver');
+        const resetDriverPrefs = usePreferencesStore.getState().driverPreferences;
+        if (resetDriverPrefs) setDriverFormData(resetDriverPrefs);
       }
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to reset settings:', error);
     }
   };
 
@@ -367,7 +377,7 @@ export default function GeneralSettingsPage() {
 
       {/* Action Buttons */}
       <div className="flex justify-between">
-        <Button variant="outline" onClick={handleReset} disabled={isSaving}>
+        <Button variant="outline" onClick={() => setResetConfirmOpen(true)} disabled={isSaving}>
           <RotateCcw className="h-4 w-4 mr-2" />
           Reset to Defaults
         </Button>
@@ -379,6 +389,21 @@ export default function GeneralSettingsPage() {
           )}
         </Button>
       </div>
+
+      <AlertDialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset to Defaults</AlertDialogTitle>
+            <AlertDialogDescription>
+              Reset general settings to defaults? This will overwrite your current preferences.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReset}>Reset</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

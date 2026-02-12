@@ -22,6 +22,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/components/ui/alert-dialog';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Label } from '@/shared/components/ui/label';
 import { useAuth } from '@/features/auth';
@@ -32,6 +42,7 @@ export function TenantList() {
   const [selectedTenant, setSelectedTenant] = useState<any>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [approveConfirm, setApproveConfirm] = useState<any>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
@@ -103,9 +114,8 @@ export function TenantList() {
   });
 
   const handleApprove = (tenant: any) => {
-    if (confirm(`Approve ${tenant.companyName}?`)) {
-      approveMutation.mutate(tenant.tenantId);
-    }
+    setApproveConfirm(null);
+    approveMutation.mutate(tenant.tenantId);
   };
 
   const handleReject = () => {
@@ -190,7 +200,7 @@ export function TenantList() {
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            onClick={() => handleApprove(tenant)}
+                            onClick={() => setApproveConfirm(tenant)}
                             disabled={approveMutation.isPending}
                           >
                             Approve
@@ -216,6 +226,24 @@ export function TenantList() {
           )}
         </CardContent>
       </Card>
+
+      {/* Approve Confirmation */}
+      <AlertDialog open={!!approveConfirm} onOpenChange={(open) => !open && setApproveConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve Tenant</AlertDialogTitle>
+            <AlertDialogDescription>
+              Approve {approveConfirm?.companyName}? This will grant them access to the platform.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => approveConfirm && handleApprove(approveConfirm)}>
+              Approve
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>

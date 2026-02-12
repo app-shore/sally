@@ -185,7 +185,11 @@ export function ConnectionsTab() {
       setDeleteDialog({ open: false, integration: null });
       loadIntegrations();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete integration');
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed to delete integration',
+      });
     } finally {
       setIsDeleting(false);
     }

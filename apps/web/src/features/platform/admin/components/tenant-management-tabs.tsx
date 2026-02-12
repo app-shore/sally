@@ -3,6 +3,16 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/components/ui/alert-dialog';
 import { useAuth } from '@/features/auth';
 import { useToast } from '@/shared/hooks/use-toast';
 import { TenantTable } from './tenant-table';
@@ -60,6 +70,7 @@ export function TenantManagementTabs() {
   const [detailsDialog, setDetailsDialog] = useState<{ open: boolean; tenant?: Tenant }>({
     open: false,
   });
+  const [approveConfirm, setApproveConfirm] = useState<{ tenant: Tenant; fromDetails?: boolean } | null>(null);
 
   // Fetch tenants by status
   const fetchTenants = async (status: string) => {
@@ -216,9 +227,7 @@ export function TenantManagementTabs() {
   });
 
   const handleApprove = (tenant: Tenant) => {
-    if (confirm(`Approve ${tenant.companyName}?`)) {
-      approveMutation.mutate(tenant.tenantId);
-    }
+    setApproveConfirm({ tenant });
   };
 
   const handleReject = (tenant: Tenant) => {
@@ -339,11 +348,8 @@ export function TenantManagementTabs() {
           tenantId={detailsDialog.tenant.tenantId}
           tenantName={detailsDialog.tenant.companyName}
           tenantStatus={detailsDialog.tenant.status}
-          onApprove={(tenantId) => {
-            if (confirm(`Approve ${detailsDialog.tenant!.companyName}?`)) {
-              approveMutation.mutate(tenantId);
-              setDetailsDialog({ open: false });
-            }
+          onApprove={() => {
+            setApproveConfirm({ tenant: detailsDialog.tenant!, fromDetails: true });
           }}
           onReject={() => {
             const tenant = detailsDialog.tenant!;
@@ -361,6 +367,31 @@ export function TenantManagementTabs() {
           }}
         />
       )}
+
+      <AlertDialog open={!!approveConfirm} onOpenChange={(open) => !open && setApproveConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve Tenant</AlertDialogTitle>
+            <AlertDialogDescription>
+              Approve {approveConfirm?.tenant.companyName}? This will grant them access to the platform.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (approveConfirm) {
+                approveMutation.mutate(approveConfirm.tenant.tenantId);
+                if (approveConfirm.fromDetails) {
+                  setDetailsDialog({ open: false });
+                }
+                setApproveConfirm(null);
+              }
+            }}>
+              Approve
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

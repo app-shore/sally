@@ -9,6 +9,16 @@ import { Button } from '@/shared/components/ui/button';
 import { Switch } from '@/shared/components/ui/switch';
 import { Badge } from '@/shared/components/ui/badge';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/components/ui/alert-dialog';
 import { useAuthStore } from '@/features/auth';
 import { usePreferencesStore } from '@/features/platform/settings';
 import type { OperationsSettings } from '@/features/platform/settings';
@@ -19,6 +29,7 @@ export default function OperationsSettingsPage() {
   const { operationsSettings, updateOperationsSettings, resetToDefaults, loadAllPreferences, isSaving, isLoading } = usePreferencesStore();
   const [formData, setFormData] = useState<Partial<OperationsSettings>>(operationsSettings || {});
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   const canEdit = user?.role === 'ADMIN' || user?.role === 'OWNER';
 
@@ -47,16 +58,15 @@ export default function OperationsSettingsPage() {
   };
 
   const handleReset = async () => {
-    if (confirm('Reset operations settings to defaults?')) {
-      try {
-        await resetToDefaults('operations');
-        const resetSettings = usePreferencesStore.getState().operationsSettings;
-        if (resetSettings) setFormData(resetSettings);
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000);
-      } catch (error) {
-        console.error('Failed to reset operations settings:', error);
-      }
+    setResetConfirmOpen(false);
+    try {
+      await resetToDefaults('operations');
+      const resetSettings = usePreferencesStore.getState().operationsSettings;
+      if (resetSettings) setFormData(resetSettings);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to reset operations settings:', error);
     }
   };
 
@@ -330,7 +340,7 @@ export default function OperationsSettingsPage() {
       {/* Action Buttons */}
       {canEdit && (
         <div className="flex justify-between">
-          <Button variant="outline" onClick={handleReset} disabled={isSaving}>
+          <Button variant="outline" onClick={() => setResetConfirmOpen(true)} disabled={isSaving}>
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset to Defaults
           </Button>
@@ -343,6 +353,21 @@ export default function OperationsSettingsPage() {
           </Button>
         </div>
       )}
+
+      <AlertDialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset to Defaults</AlertDialogTitle>
+            <AlertDialogDescription>
+              Reset operations settings to defaults? This will overwrite your current settings.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReset}>Reset</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

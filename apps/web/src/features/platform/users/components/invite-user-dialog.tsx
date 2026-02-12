@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -53,7 +53,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
     reset,
     formState: { errors },
   } = useForm<InviteFormData>({
-    resolver: zodResolver(inviteSchema),
+    resolver: standardSchemaResolver(inviteSchema),
   });
 
   const inviteMutation = useMutation({

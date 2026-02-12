@@ -32,6 +32,16 @@ import {
   DialogTrigger,
 } from "@/shared/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -39,6 +49,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
+import { useToast } from "@/shared/hooks/use-toast";
 
 export default function ConfigPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -150,17 +161,20 @@ function DriversTab({
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleDelete = async (driverId: string) => {
-    if (!confirm("Are you sure you want to delete this driver?")) {
-      return;
-    }
-
+    setDeleteConfirm(null);
     try {
       await deleteDriver(driverId);
       await onRefresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete driver");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to delete driver",
+      });
     }
   };
 
@@ -245,7 +259,7 @@ function DriversTab({
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => handleDelete(driver.id)}
+                      onClick={() => setDeleteConfirm(driver.id)}
                     >
                       Delete
                     </Button>
@@ -256,6 +270,26 @@ function DriversTab({
           </Table>
         )}
       </CardContent>
+
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Driver</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this driver? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
@@ -368,17 +402,20 @@ function VehiclesTab({
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleDelete = async (vehicleId: string) => {
-    if (!confirm("Are you sure you want to delete this vehicle?")) {
-      return;
-    }
-
+    setDeleteConfirm(null);
     try {
       await deleteVehicle(vehicleId);
       await onRefresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete vehicle");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to delete vehicle",
+      });
     }
   };
 
@@ -473,7 +510,7 @@ function VehiclesTab({
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => handleDelete(vehicle.id)}
+                      onClick={() => setDeleteConfirm(vehicle.id)}
                     >
                       Delete
                     </Button>
@@ -484,6 +521,26 @@ function VehiclesTab({
           </Table>
         )}
       </CardContent>
+
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Vehicle</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this vehicle? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

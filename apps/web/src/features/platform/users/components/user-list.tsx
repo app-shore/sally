@@ -16,6 +16,16 @@ import {
   TableRow,
 } from '@/shared/components/ui/table';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/components/ui/alert-dialog';
 import { useAuth } from '@/features/auth';
 import { apiClient } from '@/shared/lib/api';
 import { UserPlus } from 'lucide-react';
@@ -78,6 +88,11 @@ export function UserList({ onInviteClick, defaultTab = 'staff' }: UserListProps)
   const { user: currentUser, isSuperAdmin } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState(defaultTab);
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'cancel-invitation' | 'deactivate-user' | 'activate-user';
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Fetch users
   const { data: users, isLoading: usersLoading } = useQuery({
@@ -137,9 +152,7 @@ export function UserList({ onInviteClick, defaultTab = 'staff' }: UserListProps)
   });
 
   const handleCancelInvitation = (invitationId: string) => {
-    if (confirm('Cancel this invitation?')) {
-      cancelInvitationMutation.mutate(invitationId);
-    }
+    setConfirmAction({ type: 'cancel-invitation', id: invitationId, name: '' });
   };
 
   const handleResendInvitation = (invitationId: string) => {
@@ -147,14 +160,50 @@ export function UserList({ onInviteClick, defaultTab = 'staff' }: UserListProps)
   };
 
   const handleDeactivateUser = (userId: string, userName: string) => {
-    if (confirm(`Deactivate ${userName}? They will no longer be able to access the system.`)) {
-      deactivateUserMutation.mutate(userId);
-    }
+    setConfirmAction({ type: 'deactivate-user', id: userId, name: userName });
   };
 
   const handleActivateUser = (userId: string, userName: string) => {
-    if (confirm(`Activate ${userName}? They will regain access to the system.`)) {
-      activateUserMutation.mutate(userId);
+    setConfirmAction({ type: 'activate-user', id: userId, name: userName });
+  };
+
+  const handleConfirmAction = () => {
+    if (!confirmAction) return;
+    switch (confirmAction.type) {
+      case 'cancel-invitation':
+        cancelInvitationMutation.mutate(confirmAction.id);
+        break;
+      case 'deactivate-user':
+        deactivateUserMutation.mutate(confirmAction.id);
+        break;
+      case 'activate-user':
+        activateUserMutation.mutate(confirmAction.id);
+        break;
+    }
+    setConfirmAction(null);
+  };
+
+  const getConfirmDialogContent = () => {
+    if (!confirmAction) return { title: '', description: '', action: '' };
+    switch (confirmAction.type) {
+      case 'cancel-invitation':
+        return {
+          title: 'Cancel Invitation',
+          description: 'Are you sure you want to cancel this invitation?',
+          action: 'Cancel Invitation',
+        };
+      case 'deactivate-user':
+        return {
+          title: 'Deactivate User',
+          description: `Deactivate ${confirmAction.name}? They will no longer be able to access the system.`,
+          action: 'Deactivate',
+        };
+      case 'activate-user':
+        return {
+          title: 'Activate User',
+          description: `Activate ${confirmAction.name}? They will regain access to the system.`,
+          action: 'Activate',
+        };
     }
   };
 
@@ -435,6 +484,26 @@ export function UserList({ onInviteClick, defaultTab = 'staff' }: UserListProps)
 
         </Tabs>
       </CardContent>
+
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{getConfirmDialogContent().title}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {getConfirmDialogContent().description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAction}
+              className={confirmAction?.type === 'deactivate-user' ? 'bg-red-600 hover:bg-red-700' : ''}
+            >
+              {getConfirmDialogContent().action}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

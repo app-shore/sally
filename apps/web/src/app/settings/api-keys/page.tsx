@@ -5,6 +5,16 @@ import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/components/ui/alert-dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
@@ -21,6 +31,7 @@ export default function ApiKeysPage() {
   const [newKeyName, setNewKeyName] = useState('');
   const [createdKey, setCreatedKey] = useState<ApiKey | null>(null);
   const [copiedKey, setCopiedKey] = useState(false);
+  const [revokeConfirm, setRevokeConfirm] = useState<string | null>(null);
 
   useEffect(() => {
     loadKeys();
@@ -55,10 +66,7 @@ export default function ApiKeysPage() {
   }
 
   async function handleRevokeKey(id: string) {
-    if (!confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) {
-      return;
-    }
-
+    setRevokeConfirm(null);
     try {
       await revokeApiKey(id);
       await loadKeys();
@@ -222,7 +230,7 @@ export default function ApiKeysPage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => handleRevokeKey(key.id)}
+                    onClick={() => setRevokeConfirm(key.id)}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -256,6 +264,26 @@ export default function ApiKeysPage() {
           ))
         )}
       </div>
+
+      <AlertDialog open={!!revokeConfirm} onOpenChange={(open) => !open && setRevokeConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke API Key</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to revoke this API key? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => revokeConfirm && handleRevokeKey(revokeConfirm)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Revoke
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
