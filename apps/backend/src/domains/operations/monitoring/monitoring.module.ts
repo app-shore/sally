@@ -4,6 +4,7 @@ import { RouteMonitoringService } from './services/route-monitoring.service';
 import { MonitoringChecksService } from './services/monitoring-checks.service';
 import { RouteProgressTrackerService } from './services/route-progress-tracker.service';
 import { RouteEventService } from './services/route-event.service';
+import { DriverEventService } from './services/driver-event.service';
 import { AlertsModule } from '../alerts/alerts.module';
 import { IntegrationsModule } from '../../integrations/integrations.module';
 
@@ -15,6 +16,7 @@ import { IntegrationsModule } from '../../integrations/integrations.module';
     MonitoringChecksService,
     RouteProgressTrackerService,
     RouteEventService,
+    DriverEventService,
   ],
   exports: [RouteMonitoringService, RouteEventService],
 })

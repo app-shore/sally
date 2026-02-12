@@ -1,11 +1,14 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { TenantDbId } from '../../../auth/decorators/tenant-db-id.decorator';
+import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
 import { RouteProgressTrackerService } from './services/route-progress-tracker.service';
 import { IntegrationManagerService } from '../../integrations/services/integration-manager.service';
 import { RouteEventService } from './services/route-event.service';
+import { DriverEventService } from './services/driver-event.service';
 import { ReportDockTimeSchema } from './dto/report-dock-time.dto';
 import { ReportDelaySchema } from './dto/report-delay.dto';
+import { StartRouteSchema, PickupCompleteSchema, DeliveryCompleteSchema, DispatcherOverrideSchema } from './dto/driver-event.dto';
 
 @Controller('api/v1/routes')
 export class MonitoringController {
@@ -14,6 +17,7 @@ export class MonitoringController {
     private readonly progressTracker: RouteProgressTrackerService,
     private readonly integrationManager: IntegrationManagerService,
     private readonly routeEventService: RouteEventService,
+    private readonly driverEventService: DriverEventService,
   ) {}
 
   @Get(':planId/monitoring')
@@ -142,6 +146,66 @@ export class MonitoringController {
     );
 
     return { status: 'reported' };
+  }
+
+  private async getActivePlan(planId: string, tenantId: number) {
+    const plan = await this.prisma.routePlan.findFirst({
+      where: { planId, tenantId },
+      include: {
+        segments: { orderBy: { sequenceOrder: 'asc' } },
+        driver: true,
+        vehicle: true,
+        loads: { include: { load: true } },
+      },
+    });
+    if (!plan) throw new BadRequestException(`Route plan ${planId} not found`);
+    if (plan.status !== 'active') throw new BadRequestException(`Route plan ${planId} is not active (status: ${plan.status})`);
+    return plan;
+  }
+
+  @Post(':planId/events/start-route')
+  async startRoute(
+    @Param('planId') planId: string,
+    @Body() body: any,
+    @TenantDbId() tenantId: number,
+  ) {
+    const dto = StartRouteSchema.parse(body);
+    const plan = await this.getActivePlan(planId, tenantId);
+    return this.driverEventService.handleStartRoute(plan, dto, tenantId);
+  }
+
+  @Post(':planId/events/pickup-complete')
+  async pickupComplete(
+    @Param('planId') planId: string,
+    @Body() body: any,
+    @TenantDbId() tenantId: number,
+  ) {
+    const dto = PickupCompleteSchema.parse(body);
+    const plan = await this.getActivePlan(planId, tenantId);
+    return this.driverEventService.handlePickupComplete(plan, dto, tenantId);
+  }
+
+  @Post(':planId/events/delivery-complete')
+  async deliveryComplete(
+    @Param('planId') planId: string,
+    @Body() body: any,
+    @TenantDbId() tenantId: number,
+  ) {
+    const dto = DeliveryCompleteSchema.parse(body);
+    const plan = await this.getActivePlan(planId, tenantId);
+    return this.driverEventService.handleDeliveryComplete(plan, dto, tenantId);
+  }
+
+  @Post(':planId/events/dispatcher-override')
+  async dispatcherOverride(
+    @Param('planId') planId: string,
+    @Body() body: any,
+    @TenantDbId() tenantId: number,
+    @CurrentUser() user: any,
+  ) {
+    const dto = DispatcherOverrideSchema.parse(body);
+    const plan = await this.getActivePlan(planId, tenantId);
+    return this.driverEventService.handleDispatcherOverride(plan, dto, tenantId, user.userId);
   }
 
   private calculateEtaDeviation(plan: any, currentSegment: any): { minutes: number; status: 'on_time' | 'at_risk' | 'late' } {
