@@ -426,7 +426,7 @@ export function ConnectionsTab() {
 
       {/* Category Detail Dialog */}
       <Dialog open={selectedCategory !== null} onOpenChange={(open) => !open && setSelectedCategory(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {selectedCategory && dynamicCategories.find(c => c.type === selectedCategory)?.label}
@@ -616,7 +616,7 @@ export function ConnectionsTab() {
 
       {/* Configure Integration Dialog */}
       <Dialog open={configureDialog.open} onOpenChange={(open) => !open && handleCloseDialog()}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {configureDialog.integration ? 'Configure Integration' : 'Add Integration'}

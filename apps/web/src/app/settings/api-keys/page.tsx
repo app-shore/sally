@@ -119,7 +119,7 @@ export default function ApiKeysPage() {
               Generate API Key
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             {!createdKey ? (
               <>
                 <DialogHeader>

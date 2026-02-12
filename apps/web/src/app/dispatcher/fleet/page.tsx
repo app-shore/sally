@@ -217,7 +217,7 @@ function DriversTab({
               Add Driver
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingDriver ? 'Edit Driver' : 'Add Driver'}
@@ -591,7 +591,7 @@ function AssetsTab({
                   Add Truck
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
                     {editingVehicle ? 'Edit Truck' : 'Add Truck'}

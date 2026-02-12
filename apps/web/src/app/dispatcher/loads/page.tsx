@@ -246,7 +246,7 @@ export default function LoadsPage() {
                     New Load
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Create Load</DialogTitle>
                   </DialogHeader>
@@ -405,7 +405,7 @@ export default function LoadsPage() {
 
       {/* New customer dialog */}
       <Dialog open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Customer</DialogTitle>
             <DialogDescription>
