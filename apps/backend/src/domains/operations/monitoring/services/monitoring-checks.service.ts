@@ -25,6 +25,9 @@ export class MonitoringChecksService {
     // Vehicle State (1 check)
     this.checkFuelLow(ctx, triggers);
 
+    // Lifecycle (1 check)
+    this.checkUnconfirmedDockEvent(ctx, triggers);
+
     // External (2 checks) — placeholders
     // Weather + road closure deferred (no external API yet)
 
@@ -227,6 +230,40 @@ export class MonitoringChecksService {
         etaImpactMinutes: Math.round(stoppedMinutes),
         params: { stoppedMinutes: Math.round(stoppedMinutes), driverName: ctx.driverName },
       });
+    }
+  }
+
+  // --- Lifecycle ---
+
+  /**
+   * Detect when driver has departed a dock without confirming pickup/delivery.
+   * Conditions: dock segment is in_progress (GPS arrived), but current segment
+   * (from GPS tracking) is AFTER the dock in sequence order.
+   */
+  private checkUnconfirmedDockEvent(ctx: MonitoringContext, triggers: MonitoringTrigger[]) {
+    if (!ctx.currentSegment) return;
+
+    for (const segment of ctx.segments) {
+      if (segment.segmentType !== 'dock') continue;
+      if (segment.status !== 'in_progress') continue;
+      if (!segment.actionType) continue;
+
+      // Check if current segment (from GPS) is AFTER this dock segment
+      if (ctx.currentSegment.sequenceOrder > segment.sequenceOrder) {
+        const alertType = segment.actionType === 'pickup' ? 'UNCONFIRMED_PICKUP' : 'UNCONFIRMED_DELIVERY';
+        triggers.push({
+          type: alertType,
+          severity: 'high',
+          requiresReplan: false,
+          etaImpactMinutes: 0,
+          params: {
+            segmentId: segment.segmentId,
+            stopName: segment.toLocation || segment.customerName,
+            actionType: segment.actionType,
+            driverName: ctx.driverName,
+          },
+        });
+      }
     }
   }
 
