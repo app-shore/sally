@@ -47,4 +47,20 @@ export class CustomersController extends BaseTenantController {
   async update(@Param('customer_id') customerId: string, @Body() body: any) {
     return this.customersService.update(customerId, body);
   }
+
+  @Post(':customer_id/invite')
+  @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: 'Invite a customer contact to the portal' })
+  async inviteCustomer(
+    @CurrentUser() user: any,
+    @Param('customer_id') customerId: string,
+    @Body() body: { email: string; first_name: string; last_name: string },
+  ) {
+    const tenantDbId = await this.getTenantDbId(user);
+    return this.customersService.inviteContact(customerId, {
+      ...body,
+      tenant_id: tenantDbId,
+      invited_by: user.userId,
+    });
+  }
 }

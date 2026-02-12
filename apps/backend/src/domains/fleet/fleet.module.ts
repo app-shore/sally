@@ -12,7 +12,7 @@ import { CustomersModule } from './customers/customers.module';
  * - Drivers: Driver management and activation
  * - Vehicles: Vehicle management
  * - Loads: Load and stop management
- * - Customers: Customer management
+ * - Customers: Customer management and portal invitations
  */
 @Module({
   imports: [DriversModule, VehiclesModule, LoadsModule, CustomersModule],

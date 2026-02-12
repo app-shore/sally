@@ -432,6 +432,7 @@ export function UserList({ onInviteClick, defaultTab = 'staff' }: UserListProps)
               </div>
             )}
           </TabsContent>
+
         </Tabs>
       </CardContent>
     </Card>

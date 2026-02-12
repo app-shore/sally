@@ -14,10 +14,11 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'OWNER' | 'ADMIN' | 'DISPATCHER' | 'DRIVER' | 'SUPER_ADMIN';
+  role: 'OWNER' | 'ADMIN' | 'DISPATCHER' | 'DRIVER' | 'CUSTOMER' | 'SUPER_ADMIN';
   tenantId?: string;
   tenantName?: string;
   driverId?: string;
+  customerId?: string;
 }
 
 interface AuthState {

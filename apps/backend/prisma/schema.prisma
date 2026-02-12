@@ -15,6 +15,7 @@ enum UserRole {
   DRIVER
   ADMIN
   OWNER           // Tenant owner - created during registration, cannot be deleted
+  CUSTOMER        // External customer/shipper with limited portal access
   SUPER_ADMIN
 }
 
@@ -120,9 +121,9 @@ model User {
   driver            Driver?          @relation(fields: [driverId], references: [id])
   driverId          Int?             @unique @map("driver_id")
 
-  // Customer link (optional, for shipper portal users)
+  // Customer link (optional, only for CUSTOMER role)
   customer          Customer?        @relation(fields: [customerId], references: [id])
-  customerId        Int?             @map("customer_id")
+  customerId        Int?             @unique @map("customer_id")
 
   // Status tracking
   isActive          Boolean          @default(true) @map("is_active")
@@ -238,6 +239,10 @@ model UserInvitation {
   driverId              Int?          @map("driver_id")
   driver                Driver?       @relation(fields: [driverId], references: [id])
 
+  // Optional customer link (for CUSTOMER role invitations)
+  customerId            Int?          @map("customer_id")
+  customer              Customer?     @relation(fields: [customerId], references: [id])
+
   token                 String        @unique @db.VarChar(255)
   expiresAt             DateTime      @map("expires_at") @db.Timestamptz
 
@@ -262,6 +267,7 @@ model UserInvitation {
   @@index([expiresAt])
   @@index([status])
   @@index([driverId])
+  @@index([customerId])
   @@map("user_invitations")
 }
 
@@ -587,6 +593,33 @@ model Stop {
   @@map("stops")
 }
 
+model Customer {
+  id                Int          @id @default(autoincrement())
+  customerId        String       @unique @map("customer_id") @db.VarChar(50)
+  companyName       String       @map("company_name") @db.VarChar(200)
+  contactName       String?      @map("contact_name") @db.VarChar(200)
+  contactEmail      String?      @map("contact_email") @db.VarChar(255)
+  contactPhone      String?      @map("contact_phone") @db.VarChar(20)
+  billingEmail      String?      @map("billing_email") @db.VarChar(255)
+  address           String?      @db.VarChar(500)
+  city              String?      @db.VarChar(100)
+  state             String?      @db.VarChar(50)
+  notificationPrefs Json?        @map("notification_prefs")
+  isActive          Boolean      @default(true) @map("is_active")
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenantId          Int          @map("tenant_id")
+  tenant            Tenant       @relation(fields: [tenantId], references: [id])
+
+  loads             Load[]
+  users             User[]
+  invitations       UserInvitation[]
+
+  @@index([tenantId])
+  @@map("customers")
+}
+
 model Load {
   id                    Int          @id @default(autoincrement())
   loadId                String       @unique @map("load_id") @db.VarChar(50)
@@ -638,32 +671,6 @@ model Load {
 
   @@unique([externalLoadId])
   @@map("loads")
-}
-
-model Customer {
-  id                Int          @id @default(autoincrement())
-  customerId        String       @unique @map("customer_id") @db.VarChar(50)
-  companyName       String       @map("company_name") @db.VarChar(200)
-  contactName       String?      @map("contact_name") @db.VarChar(200)
-  contactEmail      String?      @map("contact_email") @db.VarChar(255)
-  contactPhone      String?      @map("contact_phone") @db.VarChar(20)
-  billingEmail      String?      @map("billing_email") @db.VarChar(255)
-  address           String?      @db.VarChar(500)
-  city              String?      @db.VarChar(100)
-  state             String?      @db.VarChar(50)
-  notificationPrefs Json?        @map("notification_prefs")
-  isActive          Boolean      @default(true) @map("is_active")
-  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt         DateTime     @updatedAt @map("updated_at") @db.Timestamptz
-
-  tenantId          Int          @map("tenant_id")
-  tenant            Tenant       @relation(fields: [tenantId], references: [id])
-
-  loads             Load[]
-  users             User[]
-
-  @@index([tenantId])
-  @@map("customers")
 }
 
 model LoadStop {

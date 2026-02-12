@@ -71,9 +71,7 @@ export class RoutePlanningController extends BaseTenantController {
     };
 
     // Call the route planning engine
-    const result = await this.routePlanningEngine.planRoute(request);
-
-    return result;
+    return this.routePlanningEngine.planRoute(request);
   }
 
   /**
