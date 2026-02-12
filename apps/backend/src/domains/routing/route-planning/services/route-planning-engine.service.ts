@@ -252,12 +252,23 @@ export class RoutePlanningEngineService {
 
     // Step 6: Build plan ID and persist
     const planId = this.generatePlanId();
+
+    // Make segment IDs globally unique by prefixing with planId
+    for (const seg of simulation.segments) {
+      seg.segmentId = `${planId}-${seg.segmentId}`;
+    }
+
     const plan = await this.persistPlan(
       planId,
       simulation,
       input,
       driver,
       vehicle,
+    );
+
+    this.logger.log(
+      `Route planned: ${planId}, ${simulation.segments.length} segments, ` +
+        `${Math.round(simulation.totalDistanceMiles)}mi, feasible=${simulation.feasibilityIssues.length === 0}`,
     );
 
     // Step 7: Build response
@@ -310,11 +321,17 @@ export class RoutePlanningEngineService {
     }
 
     const resolvedStops: ResolvedStop[] = [];
+    const seen = new Set<string>();
 
     for (const load of loads) {
       for (const loadStop of load.stops) {
         const stop = loadStop.stop;
         if (!stop.lat || !stop.lon) continue;
+
+        // Deduplicate by (loadId, stopId, actionType)
+        const key = `${load.id}-${stop.id}-${loadStop.actionType}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
 
         const actionType = loadStop.actionType as 'pickup' | 'delivery';
         const appointmentWindow =
@@ -486,58 +503,66 @@ export class RoutePlanningEngineService {
       const legDriveTimeHours =
         matrixEntry?.driveTimeHours ?? legDistanceMiles / 55;
 
-      // Check weather along this leg
-      const legWeather = await this.checkWeatherForLeg(
-        from,
-        to,
-        state.currentTime,
-      );
-      state.weatherAlerts.push(...legWeather);
-      const weatherMultiplier = this.getMaxWeatherMultiplier(legWeather);
-      const adjustedDriveTime = legDriveTimeHours * weatherMultiplier;
+      // Skip zero-distance legs (same location, e.g. origin = first stop)
+      if (legDistanceMiles < 0.1) {
+        // Still update position to the next stop
+        state.currentLat = to.lat;
+        state.currentLon = to.lon;
+        state.currentLocation = to.name;
+      } else {
+        // Check weather along this leg
+        const legWeather = await this.checkWeatherForLeg(
+          from,
+          to,
+          state.currentTime,
+        );
+        state.weatherAlerts.push(...legWeather);
+        const weatherMultiplier = this.getMaxWeatherMultiplier(legWeather);
+        const adjustedDriveTime = legDriveTimeHours * weatherMultiplier;
 
-      // Check if we need fuel before this leg
-      const fuelNeeded = legDistanceMiles / DEFAULT_MPG;
-      if (state.fuelRemainingGallons - fuelNeeded < FUEL_RESERVE_GALLONS) {
-        await this.insertFuelStop(state, from, to, maxDetourMiles);
-      }
+        // Check if we need fuel before this leg
+        const fuelNeeded = legDistanceMiles / DEFAULT_MPG;
+        if (state.fuelRemainingGallons - fuelNeeded < FUEL_RESERVE_GALLONS) {
+          await this.insertFuelStop(state, from, to, maxDetourMiles);
+        }
 
-      // Check HOS: can we drive this leg without rest?
-      const hoursAvailable = this.hosEngine.hoursUntilRestRequired(
-        state.hosState,
-      );
-
-      if (hoursAvailable < adjustedDriveTime) {
-        // Need rest before driving. Decide what kind.
-        const restDecision = this.decideRest(
-          state,
-          adjustedDriveTime,
-          hasSleeperBerth,
-          preferredRest,
-          stops,
-          i,
-          distanceMatrix,
+        // Check HOS: can we drive this leg without rest?
+        const hoursAvailable = this.hosEngine.hoursUntilRestRequired(
+          state.hosState,
         );
 
-        await this.applyRestDecision(state, restDecision);
-      }
+        if (hoursAvailable < adjustedDriveTime) {
+          // Need rest before driving. Decide what kind.
+          const restDecision = this.decideRest(
+            state,
+            adjustedDriveTime,
+            hasSleeperBerth,
+            preferredRest,
+            stops,
+            i,
+            distanceMatrix,
+          );
 
-      // Check 30-min break requirement
-      if (state.hosState.hoursSinceBreak >= 7.5 && adjustedDriveTime > 0.5) {
-        this.insertBreak(state);
-      }
+          await this.applyRestDecision(state, restDecision);
+        }
 
-      // Build drive segment
-      const routeResult = await this.getRouteGeometry(from, to);
-      this.addDriveSegment(
-        state,
-        from,
-        to,
-        legDistanceMiles,
-        adjustedDriveTime,
-        legWeather,
-        routeResult?.geometry,
-      );
+        // Check 30-min break requirement
+        if (state.hosState.hoursSinceBreak >= 7.5 && adjustedDriveTime > 0.5) {
+          this.insertBreak(state);
+        }
+
+        // Build drive segment
+        const routeResult = await this.getRouteGeometry(from, to);
+        this.addDriveSegment(
+          state,
+          from,
+          to,
+          legDistanceMiles,
+          adjustedDriveTime,
+          legWeather,
+          routeResult?.geometry,
+        );
+      }
 
       // Handle dock activity at destination (if pickup/delivery)
       if (to.type === 'pickup' || to.type === 'delivery') {
