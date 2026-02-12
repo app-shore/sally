@@ -194,7 +194,7 @@ export class LoadsService {
       throw new NotFoundException(`Load not found: ${loadId}`);
     }
 
-    const validStatuses = ['draft', 'pending', 'planned', 'active', 'in_transit', 'completed', 'cancelled'];
+    const validStatuses = ['draft', 'pending', 'assigned', 'in_transit', 'delivered', 'cancelled'];
     if (!validStatuses.includes(status)) {
       throw new BadRequestException(`Invalid status: ${status}. Valid statuses: ${validStatuses.join(', ')}`);
     }
@@ -506,7 +506,7 @@ export class LoadsService {
       timestamp: load.createdAt.toISOString(),
     });
 
-    if (['planned', 'active', 'in_transit', 'completed'].includes(load.status)) {
+    if (['assigned', 'in_transit', 'delivered'].includes(load.status)) {
       events.push({
         event: 'Driver Assigned',
         status: 'completed',
@@ -514,7 +514,7 @@ export class LoadsService {
     }
 
     const firstPickup = load.stops.find((s: any) => s.actionType === 'pickup');
-    if (firstPickup?.actualDockHours !== null && ['active', 'in_transit', 'completed'].includes(load.status)) {
+    if (firstPickup?.actualDockHours !== null && ['in_transit', 'delivered'].includes(load.status)) {
       events.push({
         event: 'Picked Up',
         status: 'completed',
@@ -522,7 +522,7 @@ export class LoadsService {
       });
     }
 
-    if (['active', 'in_transit'].includes(load.status)) {
+    if (load.status === 'in_transit') {
       events.push({
         event: 'In Transit',
         status: 'current',
@@ -530,7 +530,7 @@ export class LoadsService {
     }
 
     const lastDelivery = [...load.stops].reverse().find((s: any) => s.actionType === 'delivery');
-    if (load.status === 'completed') {
+    if (load.status === 'delivered') {
       events.push({
         event: 'Delivered',
         status: 'completed',

@@ -193,4 +193,22 @@ export const ALERT_TYPES: Record<string, AlertTypeDefinition> = {
     message: (p) => `System error in ${p.component || 'unknown component'}: ${p.error || 'Unknown'}.`,
     recommendedAction: () => `Contact support if error persists.`,
   },
+
+  // Lifecycle (2 types)
+  UNCONFIRMED_PICKUP: {
+    type: 'UNCONFIRMED_PICKUP',
+    category: 'route',
+    defaultPriority: 'high',
+    title: (p) => `Unconfirmed Pickup — ${p.driverName || p.driverId}`,
+    message: (p) => `Driver departed ${p.stopName || 'dock'} without confirming pickup. Load may be on truck without confirmation.`,
+    recommendedAction: (p) => `Contact driver to confirm pickup, or confirm on their behalf for ${p.stopName || 'this stop'}.`,
+  },
+  UNCONFIRMED_DELIVERY: {
+    type: 'UNCONFIRMED_DELIVERY',
+    category: 'route',
+    defaultPriority: 'high',
+    title: (p) => `Unconfirmed Delivery — ${p.driverName || p.driverId}`,
+    message: (p) => `Driver departed ${p.stopName || 'dock'} without confirming delivery. Load status not updated.`,
+    recommendedAction: (p) => `Contact driver to confirm delivery, or confirm on their behalf for ${p.stopName || 'this stop'}.`,
+  },
 };

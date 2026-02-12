@@ -71,6 +71,29 @@ describe('MonitoringChecksService', () => {
     });
   });
 
+  describe('checkUnconfirmedDockEvent', () => {
+    it('should trigger UNCONFIRMED_PICKUP when dock is in_progress but driver has moved past it', () => {
+      const triggers = service.runAllChecks({
+        plan: { estimatedArrival: null },
+        segments: [
+          { segmentId: 'seg-1', sequenceOrder: 1, status: 'completed', segmentType: 'drive' },
+          { segmentId: 'seg-2', sequenceOrder: 2, status: 'in_progress', segmentType: 'dock', actionType: 'pickup', toLocation: 'Warehouse A' },
+          { segmentId: 'seg-3', sequenceOrder: 3, status: 'in_progress', segmentType: 'drive' },
+        ],
+        currentSegment: { segmentId: 'seg-3', sequenceOrder: 3, segmentType: 'drive', status: 'in_progress' },
+        hosData: { driveTimeRemainingMs: 36000000, shiftTimeRemainingMs: 36000000, cycleTimeRemainingMs: 180000000, timeUntilBreakMs: 36000000, currentDutyStatus: 'driving' },
+        gpsData: { speed: 65 },
+        thresholds: DEFAULT_THRESHOLDS,
+        driverName: 'John',
+      } as any);
+
+      const unconfirmed = triggers.find((t) => t.type === 'UNCONFIRMED_PICKUP');
+      expect(unconfirmed).toBeDefined();
+      expect(unconfirmed?.severity).toBe('high');
+      expect(unconfirmed?.params.segmentId).toBe('seg-2');
+    });
+  });
+
   describe('Driver behavior', () => {
     it('should trigger DRIVER_NOT_MOVING when speed is 0 for too long', () => {
       const stoppedSince = new Date(Date.now() - 130 * 60000).toISOString(); // 130 min ago

@@ -105,7 +105,7 @@ export default function TrackingPage() {
         <Separator />
         <div>
           <h3 className="text-sm font-medium text-foreground mb-2">Proof of Delivery</h3>
-          {data.status === 'completed' ? (
+          {data.status === 'delivered' ? (
             <p className="text-sm text-muted-foreground">Documents available for download.</p>
           ) : (
             <p className="text-sm text-muted-foreground">Available after delivery.</p>
@@ -118,11 +118,11 @@ export default function TrackingPage() {
 
 function StatusDisplay({ status }: { status: string }) {
   const labels: Record<string, string> = {
+    draft: 'Order Draft',
     pending: 'Order Pending',
-    planned: 'Route Planned',
-    active: 'In Transit',
+    assigned: 'Driver Assigned',
     in_transit: 'In Transit',
-    completed: 'Delivered',
+    delivered: 'Delivered',
     cancelled: 'Cancelled',
   };
   return (

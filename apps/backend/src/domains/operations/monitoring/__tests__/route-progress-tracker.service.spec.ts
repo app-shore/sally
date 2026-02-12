@@ -55,12 +55,12 @@ describe('RouteProgressTrackerService', () => {
   });
 
   describe('updateSegmentStatuses', () => {
-    it('should mark passed segments as completed', async () => {
+    it('should mark passed drive segments as completed', async () => {
       const segments = [
         { id: 1, segmentId: 'seg-1', sequenceOrder: 1, status: 'in_progress', segmentType: 'drive', toLat: 34.0, toLon: -118.0 },
         { id: 2, segmentId: 'seg-2', sequenceOrder: 2, status: 'planned', segmentType: 'drive', toLat: 35.0, toLon: -117.0 },
       ];
-      const gps = { gps: { latitude: 34.0, longitude: -118.0, speedMilesPerHour: 65 } };
+      const gps = { latitude: 34.0, longitude: -118.0 };
 
       await service.updateSegmentStatuses(segments, gps);
 
@@ -70,6 +70,64 @@ describe('RouteProgressTrackerService', () => {
           data: expect.objectContaining({ status: 'completed' }),
         }),
       );
+    });
+
+    it('should NOT auto-complete dock segments — only transition to in_progress', async () => {
+      const segments = [
+        { id: 1, segmentId: 'seg-1', sequenceOrder: 1, status: 'in_progress', segmentType: 'drive', toLat: 34.0, toLon: -118.0 },
+        { id: 2, segmentId: 'seg-2', sequenceOrder: 2, status: 'planned', segmentType: 'dock', actionType: 'pickup', toLat: 34.0, toLon: -118.0 },
+      ];
+      const gps = { latitude: 34.0, longitude: -118.0 };
+
+      const result = await service.updateSegmentStatuses(segments, gps);
+
+      // Drive segment should be completed
+      expect(mockPrisma.routeSegment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 1 },
+          data: expect.objectContaining({ status: 'completed' }),
+        }),
+      );
+      // Dock segment should transition to in_progress, NOT completed
+      expect(mockPrisma.routeSegment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 2 },
+          data: expect.objectContaining({ status: 'in_progress' }),
+        }),
+      );
+      // Current segment should be the dock (waiting for driver confirmation)
+      expect(result?.id).toBe(2);
+      expect(result?.status).toBe('in_progress');
+    });
+
+    it('should auto-complete drive segments when GPS < 1 mile', async () => {
+      const segments = [
+        { id: 1, segmentId: 'seg-1', sequenceOrder: 1, status: 'in_progress', segmentType: 'drive', toLat: 34.0, toLon: -118.0 },
+      ];
+      const gps = { latitude: 34.0, longitude: -118.0 };
+
+      await service.updateSegmentStatuses(segments, gps);
+
+      expect(mockPrisma.routeSegment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 1 },
+          data: expect.objectContaining({ status: 'completed' }),
+        }),
+      );
+    });
+
+    it('should leave in_progress dock segment alone when GPS is still nearby', async () => {
+      const segments = [
+        { id: 1, segmentId: 'seg-1', sequenceOrder: 1, status: 'completed', segmentType: 'drive', toLat: 34.0, toLon: -118.0 },
+        { id: 2, segmentId: 'seg-2', sequenceOrder: 2, status: 'in_progress', segmentType: 'dock', actionType: 'pickup', toLat: 34.0, toLon: -118.0 },
+      ];
+      const gps = { latitude: 34.0, longitude: -118.0 };
+
+      const result = await service.updateSegmentStatuses(segments, gps);
+
+      // Dock segment stays in_progress (no update call for it)
+      expect(result?.id).toBe(2);
+      expect(result?.status).toBe('in_progress');
     });
   });
 });

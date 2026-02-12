@@ -190,7 +190,7 @@ export class OnboardingService {
 
   private async checkActiveLoads(tenantId: number) {
     // TODO: Fix Load model schema to include tenantId
-    const statuses = ['pending', 'planned', 'active'];
+    const statuses = ['draft', 'pending', 'assigned', 'in_transit'];
     const count = await this.prisma.load.count({
       where: {
         status: { in: statuses },
