@@ -43,6 +43,8 @@ Sidebar (Dispatcher):
 
 ## Load Status Flow
 
+> **Updated Feb 11, 2026** — Aligned with post-route lifecycle. `planned`, `active`, and `completed` are **route plan** statuses, not load statuses. Loads follow: `draft → pending → assigned → in_transit → delivered`.
+
 ```
 Load enters (any source)
   ↓
@@ -54,18 +56,24 @@ Dispatcher clicks [Plan Route →]
   → navigates to /dispatcher/create-plan?load_id=LD-XXXX
   → load data pre-filled, dispatcher picks driver + vehicle
   → generates route, reviews on map
+  → route plan created (plan status: draft)
   ↓
-PLANNED → route generated, not yet activated
+Load remains PENDING (no "planned" load status)
   ↓
-Dispatcher clicks [Activate]
+Dispatcher activates the Route Plan
+  → Load status: pending → ASSIGNED (automatic, via plan activation)
   → appears on Live Routes page
   → monitoring kicks in
   → alerts go to Command Center
   ↓
-ACTIVE → in transit, tracked on Live Routes
+Driver confirms pickup at dock
+  → Load status: assigned → IN_TRANSIT (automatic, via driver event)
   ↓
-COMPLETED → delivered, POD available
+Driver confirms delivery at dock
+  → Load status: in_transit → DELIVERED (automatic, via driver event)
 ```
+
+**Key distinction:** Load statuses are driven by **events** (plan activation, driver pickup confirmation, driver delivery confirmation), not manual dispatcher clicks. The dispatcher's role is intake and route planning; the lifecycle is automated after that.
 
 ---
 
@@ -85,7 +93,7 @@ One primary action (New Load), one dropdown for other intake methods.
 ### Quick Stats Strip
 
 ```
-Today: 24 active  •  3 drafts  •  5 need planning  •  2 planned  •  8 completed  •  $47,200 revenue
+Drafts: 3  •  Pending: 5  •  Assigned: 4  •  In Transit: 8  •  Delivered: 12  •  Total: 32
 ```
 
 One line. Entire operation health at a glance.
@@ -93,24 +101,28 @@ One line. Entire operation health at a glance.
 ### View Toggle
 
 ```
-[Active Board]    [Completed]    [Cancelled]
+[Active Board]    [Delivered]    [Cancelled]
 ```
 
-Active Board shows the 4-column Kanban. Completed/Cancelled show a simple searchable table.
+Active Board shows the 4-column Kanban. Delivered/Cancelled show a simple searchable table.
 
 ### The Board — 4-Column Kanban
 
+> **Updated Feb 11, 2026** — "Planned" and "Active" columns replaced with "Assigned" and "In Transit" to match post-route lifecycle.
+
 ```
-┌─ Drafts ────────┐ ┌─ Ready to Plan ──┐ ┌─ Planned ────────┐ ┌─ Active ─────────┐
-│                  │ │                   │ │                   │ │                   │
-│ Loads from email │ │ Confirmed loads   │ │ Route planned,    │ │ Activated, now    │
-│ or import that   │ │ that need route   │ │ not yet activated │ │ on Live Routes    │
-│ need review      │ │ planning          │ │                   │ │                   │
-│                  │ │                   │ │                   │ │                   │
-│ Action: Review   │ │ Action: [Plan     │ │ Action: [Activate]│ │ Action: [View on  │
-│ & confirm        │ │ Route →]          │ │ or [Edit Plan]    │ │ Live Routes →]    │
-└──────────────────┘ └───────────────────┘ └───────────────────┘ └───────────────────┘
+┌─ Drafts ────────┐ ┌─ Pending ─────────┐ ┌─ Assigned ───────┐ ┌─ In Transit ─────┐
+│                  │ │                    │ │                   │ │                   │
+│ Loads from email │ │ Confirmed loads    │ │ Route activated,  │ │ Driver picked up  │
+│ or import that   │ │ that need route    │ │ awaiting driver   │ │ freight, en route  │
+│ need review      │ │ planning           │ │ pickup            │ │ to delivery       │
+│                  │ │                    │ │                   │ │                   │
+│ Action: Review   │ │ Action: [Plan      │ │ Action: [Copy     │ │ Action: [Copy     │
+│ & confirm        │ │ Route →]           │ │ Tracking Link]    │ │ Tracking Link]    │
+└──────────────────┘ └────────────────────┘ └───────────────────┘ └───────────────────┘
 ```
+
+**Note:** There is no "Planned" column. A load on a draft route plan is still `pending`. It becomes `assigned` only when the route plan is activated. **Delivered** and **Cancelled** loads are shown in separate table tabs below the board.
 
 ---
 
@@ -144,25 +156,25 @@ Active Board shows the 4-column Kanban. Completed/Cancelled show a simple search
 
 Clicking [Plan Route →] navigates to `/dispatcher/create-plan?load_id=LD-4821` with all load data pre-filled.
 
-### Planned Card
+### Assigned Card (awaiting driver pickup)
 
 ```
 ┌──────────────────────────────────┐
-│ LD-4821              ✋ Manual   │
+│ LD-4821           🔵 Assigned   │
 │ ABC Furniture                    │
 │ Dallas, TX → Atlanta, GA         │
 │ 🚛 Mike T. • Truck #204         │
-│ Departs: Feb 12, 5:30am         │
+│ Awaiting pickup                  │
 │                                  │
-│ [Activate]    [Edit Plan]        │
+│ [🔗 Copy Tracking Link]         │
 └──────────────────────────────────┘
 ```
 
-### Active Card (minimal — detail lives on Live Routes)
+### In Transit Card (driver picked up, en route)
 
 ```
 ┌──────────────────────────────────┐
-│ LD-4821              🟢 Active  │
+│ LD-4821          🟢 In Transit  │
 │ ABC Furniture                    │
 │ Dallas, TX → Atlanta, GA         │
 │ 🚛 Mike T.                      │
@@ -182,7 +194,7 @@ Clicking any card opens a right-side slide-out panel (never leaves the board):
 ┌──────────────────────────────────────────────┐
 │ ← Back                          LD-4818      │
 │                                              │
-│ Global Parts Inc           Status: Active    │
+│ Global Parts Inc        Status: In Transit   │
 │ Chicago, IL → Dallas, TX                     │
 │ 920 mi • Dry Van • 22,000 lbs               │
 │                                              │
@@ -294,21 +306,28 @@ When dispatcher clicks [Plan Route →] on a load card:
 4. Dispatcher selects: driver, vehicle
 5. System auto-suggests best driver (closest, most HOS hours, right equipment)
 6. Generate route → review on map → confirm
-7. Load status updates to PLANNED
-8. Dispatcher can activate from planning page or back on Loads board
+7. **Load stays `pending`** — there is no "planned" load status
+8. When dispatcher activates the route plan, load automatically becomes `assigned`
 
 ---
 
 ## Schema Changes
 
-### New Status: `draft`
-
-Add `draft` to load status enum (before `pending`):
+### Load Status Enum (aligned with post-route lifecycle)
 
 ```
-draft → pending → planned → active → in_transit → completed
-                                                 → cancelled
+draft → pending → assigned → in_transit → delivered
+                                        → cancelled
 ```
+
+- `draft` — incomplete load, needs dispatcher review
+- `pending` — confirmed, ready for route planning (stays pending even when a draft route plan references it)
+- `assigned` — route plan activated, driver notified, awaiting pickup
+- `in_transit` — driver confirmed pickup, freight moving
+- `delivered` — driver confirmed delivery
+- `cancelled` — load cancelled at any point before delivery
+
+**Note:** `planned`, `active`, and `completed` are **route plan** statuses, not load statuses.
 
 ### Equipment Type Field
 
@@ -387,7 +406,7 @@ ImportMapping:
 
 1. **Zero-click awareness** — dispatcher opens page and instantly knows state of everything
 2. **Problems float up** — drafts needing review are always visible in first column
-3. **Left-to-right flow** — loads naturally progress: Drafts → Ready to Plan → Planned → Active
+3. **Left-to-right flow** — loads naturally progress: Drafts → Pending → Assigned → In Transit
 4. **One review flow** — every intake source funnels into same draft → confirm pipeline
 5. **Never leave the board** — detail panel slides out, planning opens in new page with context preserved
 6. **Progressive detail** — cards show summary, panel shows full details

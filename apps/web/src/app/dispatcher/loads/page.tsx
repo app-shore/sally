@@ -111,11 +111,13 @@ export default function LoadsPage() {
 
 
   // Group loads by status
+  // Post-route lifecycle: pending → assigned → in_transit → delivered
+  // "planned" is NOT a load status — a load on a draft route plan is still pending
   const drafts = loads.filter((l) => l.status === 'draft');
-  const readyToPlan = loads.filter((l) => l.status === 'pending');
-  const planned = loads.filter((l) => l.status === 'planned');
-  const active = loads.filter((l) => ['active', 'in_transit'].includes(l.status));
-  const completed = loads.filter((l) => l.status === 'completed');
+  const pending = loads.filter((l) => l.status === 'pending');
+  const assigned = loads.filter((l) => l.status === 'assigned');
+  const inTransit = loads.filter((l) => l.status === 'in_transit');
+  const delivered = loads.filter((l) => l.status === 'delivered');
   const cancelled = loads.filter((l) => l.status === 'cancelled');
 
   const fetchLoads = useCallback(async () => {
@@ -275,9 +277,10 @@ export default function LoadsPage() {
           {activeView === 'loads' && (
             <div className="flex items-center gap-4 md:gap-6 text-sm overflow-x-auto">
               <StatPill label="Drafts" count={drafts.length} />
-              <StatPill label="Ready" count={readyToPlan.length} />
-              <StatPill label="Planned" count={planned.length} />
-              <StatPill label="Active" count={active.length} />
+              <StatPill label="Pending" count={pending.length} />
+              <StatPill label="Assigned" count={assigned.length} />
+              <StatPill label="In Transit" count={inTransit.length} />
+              <StatPill label="Delivered" count={delivered.length} />
               <StatPill label="Total" count={loads.length} />
               <Button
                 variant="ghost"
@@ -306,8 +309,8 @@ export default function LoadsPage() {
               <div className="px-4 md:px-6 pt-3">
                 <TabsList>
                   <TabsTrigger value="board">Active Board</TabsTrigger>
-                  <TabsTrigger value="completed">
-                    Completed ({completed.length})
+                  <TabsTrigger value="delivered">
+                    Delivered ({delivered.length})
                   </TabsTrigger>
                   <TabsTrigger value="cancelled">
                     Cancelled ({cancelled.length})
@@ -315,57 +318,56 @@ export default function LoadsPage() {
                 </TabsList>
               </div>
 
-          <TabsContent value="board" className="flex-1 p-4 md:p-6 overflow-auto">
-            {isLoading ? (
-              <div className="text-center py-16 text-muted-foreground">Loading loads...</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full min-h-[400px]">
-                <KanbanColumn
-                  title="Drafts"
-                  count={drafts.length}
-                  loads={drafts}
-                  onCardClick={handleCardClick}
-                />
-                <KanbanColumn
-                  title="Ready to Plan"
-                  count={readyToPlan.length}
-                  loads={readyToPlan}
-                  onCardClick={handleCardClick}
-                  actionLabel="Plan Route"
-                  onAction={(load) => handlePlanRoute(load.load_id)}
-                />
-                <KanbanColumn
-                  title="Planned"
-                  count={planned.length}
-                  loads={planned}
-                  onCardClick={handleCardClick}
-                />
-                <KanbanColumn
-                  title="Active"
-                  count={active.length}
-                  loads={active}
-                  onCardClick={handleCardClick}
-                />
-              </div>
-            )}
-          </TabsContent>
+              <TabsContent value="board" className="flex-1 p-4 md:p-6 overflow-auto">
+                {isLoading ? (
+                  <div className="text-center py-16 text-muted-foreground">Loading loads...</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full min-h-[400px]">
+                    <KanbanColumn
+                      title="Drafts"
+                      count={drafts.length}
+                      loads={drafts}
+                      onCardClick={handleCardClick}
+                    />
+                    <KanbanColumn
+                      title="Pending"
+                      count={pending.length}
+                      loads={pending}
+                      onCardClick={handleCardClick}
+                      actionLabel="Plan Route"
+                      onAction={(load) => handlePlanRoute(load.load_id)}
+                    />
+                    <KanbanColumn
+                      title="Assigned"
+                      count={assigned.length}
+                      loads={assigned}
+                      onCardClick={handleCardClick}
+                    />
+                    <KanbanColumn
+                      title="In Transit"
+                      count={inTransit.length}
+                      loads={inTransit}
+                      onCardClick={handleCardClick}
+                    />
+                  </div>
+                )}
+              </TabsContent>
 
-          <TabsContent value="completed" className="p-4 md:p-6 overflow-auto">
-            <LoadsTable
-              loads={completed}
-              onRowClick={handleCardClick}
-              emptyMessage="No completed loads"
-            />
-          </TabsContent>
+              <TabsContent value="delivered" className="p-4 md:p-6 overflow-auto">
+                <LoadsTable
+                  loads={delivered}
+                  onRowClick={handleCardClick}
+                  emptyMessage="No delivered loads"
+                />
+              </TabsContent>
 
-          <TabsContent value="cancelled" className="p-4 md:p-6 overflow-auto">
-            <LoadsTable
-              loads={cancelled}
-              onRowClick={handleCardClick}
-              emptyMessage="No cancelled loads"
-            />
-          </TabsContent>
-
+              <TabsContent value="cancelled" className="p-4 md:p-6 overflow-auto">
+                <LoadsTable
+                  loads={cancelled}
+                  onRowClick={handleCardClick}
+                  emptyMessage="No cancelled loads"
+                />
+              </TabsContent>
             </Tabs>
           )}
         </TabsContent>
@@ -724,17 +726,7 @@ function LoadDetailPanel({
             Plan Route <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         )}
-        {load.status === 'planned' && (
-          <>
-            <Button
-              className="w-full"
-              onClick={() => onStatusChange(load.load_id, 'active')}
-            >
-              Activate
-            </Button>
-          </>
-        )}
-        {(load.status === 'active' || load.status === 'in_transit') && (
+        {(load.status === 'assigned' || load.status === 'in_transit') && (
           <>
             <Button
               variant="outline"
@@ -744,12 +736,16 @@ function LoadDetailPanel({
               <Link2 className="h-4 w-4 mr-2" />
               Copy Tracking Link
             </Button>
-            <Button
-              className="w-full"
-              onClick={() => onStatusChange(load.load_id, 'completed')}
-            >
-              Mark Completed
-            </Button>
+            {load.status === 'assigned' && (
+              <p className="text-xs text-muted-foreground text-center py-1">
+                Awaiting driver pickup confirmation
+              </p>
+            )}
+            {load.status === 'in_transit' && (
+              <p className="text-xs text-muted-foreground text-center py-1">
+                Delivery confirmed by driver on route completion
+              </p>
+            )}
           </>
         )}
 
@@ -764,7 +760,7 @@ function LoadDetailPanel({
             <Copy className="h-3 w-3 mr-1" />
             Duplicate
           </Button>
-          {!['completed', 'cancelled'].includes(load.status) && (
+          {!['delivered', 'cancelled'].includes(load.status) && (
             <Button
               variant="outline"
               size="sm"
@@ -1218,10 +1214,9 @@ function getStatusVariant(
   const variants: Record<string, 'default' | 'muted' | 'destructive' | 'outline'> = {
     draft: 'outline',
     pending: 'outline',
-    planned: 'muted',
-    active: 'default',
+    assigned: 'default',
     in_transit: 'default',
-    completed: 'muted',
+    delivered: 'muted',
     cancelled: 'destructive',
   };
   return variants[status] || 'outline';

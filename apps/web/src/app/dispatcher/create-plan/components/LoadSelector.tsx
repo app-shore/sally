@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Package, Search } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
 import { Checkbox } from "@/shared/components/ui/checkbox";
@@ -20,8 +21,20 @@ export function LoadSelector({
   selectedLoadIds,
   onSelectionChange,
 }: LoadSelectorProps) {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: loads, isLoading, error } = useLoads({ status: "pending" });
+
+  // Pre-select load from URL query param (?load_id=LD-XXXX)
+  useEffect(() => {
+    const loadId = searchParams.get("load_id");
+    if (loadId && loads && loads.length > 0 && selectedLoadIds.length === 0) {
+      const match = loads.find((l) => l.load_id === loadId);
+      if (match) {
+        onSelectionChange([loadId]);
+      }
+    }
+  }, [searchParams, loads, selectedLoadIds.length, onSelectionChange]);
 
   const filteredLoads = useMemo(() => {
     if (!loads) return [];

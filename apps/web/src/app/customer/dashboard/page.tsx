@@ -20,8 +20,8 @@ export default function CustomerDashboard() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const activeLoads = loads.filter(l => !['completed', 'cancelled'].includes(l.status));
-  const historicalLoads = loads.filter(l => l.status === 'completed');
+  const activeLoads = loads.filter(l => !['delivered', 'cancelled'].includes(l.status));
+  const historicalLoads = loads.filter(l => l.status === 'delivered');
 
   return (
     <div className="p-4 md:p-6 space-y-6">
@@ -69,10 +69,9 @@ function CustomerLoadCard({ load }: { load: CustomerLoad }) {
   const statusLabels: Record<string, string> = {
     draft: 'Draft',
     pending: 'Pending',
-    planned: 'Planned',
-    active: 'In Transit',
+    assigned: 'Assigned',
     in_transit: 'In Transit',
-    completed: 'Delivered',
+    delivered: 'Delivered',
     cancelled: 'Cancelled',
   };
 
