@@ -1,7 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { RouteEventService } from './route-event.service';
-import { SseService } from '../../../../infrastructure/sse/sse.service';
 
 @Injectable()
 export class DriverEventService {
@@ -10,7 +9,6 @@ export class DriverEventService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly routeEventService: RouteEventService,
-    private readonly sse: SseService,
   ) {}
 
   /**
@@ -79,25 +77,31 @@ export class DriverEventService {
       throw new BadRequestException(`Segment must be in_progress to confirm pickup. Current: ${segment.status}`);
     }
 
-    // Complete the dock segment
-    await this.prisma.routeSegment.update({
-      where: { id: segment.id },
-      data: { status: 'completed', actualDeparture: new Date() },
+    const nextDrive = this.findNextPlannedSegment(plan.segments, segment.sequenceOrder);
+
+    // Wrap all DB writes in a transaction
+    const loadUpdates = await this.prisma.$transaction(async (tx) => {
+      // Complete the dock segment
+      await tx.routeSegment.update({
+        where: { id: segment.id },
+        data: { status: 'completed', actualDeparture: new Date() },
+      });
+
+      // Update load status: assigned → in_transit
+      const updates = await this.updateLoadsForSegment(tx, plan, segment, 'in_transit');
+
+      // Start next drive segment if available
+      if (nextDrive) {
+        await tx.routeSegment.update({
+          where: { id: nextDrive.id },
+          data: { status: 'in_progress', actualDeparture: new Date() },
+        });
+      }
+
+      return updates;
     });
 
-    // Update load status: assigned → in_transit
-    const loadUpdates = await this.updateLoadsForSegment(plan, segment, 'in_transit');
-
-    // Start next drive segment if available
-    const nextDrive = this.findNextPlannedSegment(plan.segments, segment.sequenceOrder);
-    if (nextDrive) {
-      await this.prisma.routeSegment.update({
-        where: { id: nextDrive.id },
-        data: { status: 'in_progress', actualDeparture: new Date() },
-      });
-    }
-
-    // Record event
+    // Record event (outside transaction — event recording is non-critical)
     await this.routeEventService.recordEvent({
       planId: plan.id,
       planStringId: plan.planId,
@@ -147,25 +151,31 @@ export class DriverEventService {
       throw new BadRequestException(`Segment must be in_progress to confirm delivery. Current: ${segment.status}`);
     }
 
-    // Complete the dock segment
-    await this.prisma.routeSegment.update({
-      where: { id: segment.id },
-      data: { status: 'completed', actualDeparture: new Date() },
+    const nextSegment = this.findNextPlannedSegment(plan.segments, segment.sequenceOrder);
+
+    // Wrap all DB writes in a transaction
+    const loadUpdates = await this.prisma.$transaction(async (tx) => {
+      // Complete the dock segment
+      await tx.routeSegment.update({
+        where: { id: segment.id },
+        data: { status: 'completed', actualDeparture: new Date() },
+      });
+
+      // Update load status: in_transit → delivered
+      const updates = await this.updateLoadsForSegment(tx, plan, segment, 'delivered');
+
+      // Start next segment if available
+      if (nextSegment) {
+        await tx.routeSegment.update({
+          where: { id: nextSegment.id },
+          data: { status: 'in_progress', actualDeparture: new Date() },
+        });
+      }
+
+      return updates;
     });
 
-    // Update load status: in_transit → delivered
-    const loadUpdates = await this.updateLoadsForSegment(plan, segment, 'delivered');
-
-    // Start next segment if available
-    const nextSegment = this.findNextPlannedSegment(plan.segments, segment.sequenceOrder);
-    if (nextSegment) {
-      await this.prisma.routeSegment.update({
-        where: { id: nextSegment.id },
-        data: { status: 'in_progress', actualDeparture: new Date() },
-      });
-    }
-
-    // Record event
+    // Record event (outside transaction — event recording is non-critical)
     await this.routeEventService.recordEvent({
       planId: plan.id,
       planStringId: plan.planId,
@@ -219,33 +229,38 @@ export class DriverEventService {
     if (dto.newStatus === 'completed' && !segment.actualDeparture) updateData.actualDeparture = new Date();
     if (dto.newStatus === 'in_progress' && !segment.actualArrival) updateData.actualArrival = new Date();
 
-    await this.prisma.routeSegment.update({
-      where: { id: segment.id },
-      data: updateData,
-    });
+    const nextSegment = dto.newStatus === 'completed'
+      ? this.findNextPlannedSegment(plan.segments, segment.sequenceOrder)
+      : null;
 
-    // Handle business event confirmations
-    let loadUpdates: { loadId: string; newStatus: string }[] = [];
-    if (dto.confirmPickup && segment.segmentType === 'dock' && segment.actionType === 'pickup') {
-      loadUpdates = await this.updateLoadsForSegment(plan, segment, 'in_transit');
-    }
-    if (dto.confirmDelivery && segment.segmentType === 'dock' && segment.actionType === 'dropoff') {
-      loadUpdates = await this.updateLoadsForSegment(plan, segment, 'delivered');
-    }
+    // Wrap all DB writes in a transaction
+    const loadUpdates = await this.prisma.$transaction(async (tx) => {
+      await tx.routeSegment.update({
+        where: { id: segment.id },
+        data: updateData,
+      });
 
-    // Start next segment if this one was completed
-    let nextSegment = null;
-    if (dto.newStatus === 'completed') {
-      nextSegment = this.findNextPlannedSegment(plan.segments, segment.sequenceOrder);
+      // Handle business event confirmations
+      let updates: { loadId: string; newStatus: string }[] = [];
+      if (dto.confirmPickup && segment.segmentType === 'dock' && segment.actionType === 'pickup') {
+        updates = await this.updateLoadsForSegment(tx, plan, segment, 'in_transit');
+      }
+      if (dto.confirmDelivery && segment.segmentType === 'dock' && segment.actionType === 'dropoff') {
+        updates = await this.updateLoadsForSegment(tx, plan, segment, 'delivered');
+      }
+
+      // Start next segment if this one was completed
       if (nextSegment) {
-        await this.prisma.routeSegment.update({
+        await tx.routeSegment.update({
           where: { id: nextSegment.id },
           data: { status: 'in_progress', actualDeparture: new Date() },
         });
       }
-    }
 
-    // Record event
+      return updates;
+    });
+
+    // Record event (outside transaction — event recording is non-critical)
     await this.routeEventService.recordEvent({
       planId: plan.id,
       planStringId: plan.planId,
@@ -282,8 +297,10 @@ export class DriverEventService {
 
   /**
    * Find loads connected to a dock segment via its stopId, and update their status.
+   * Accepts a Prisma transaction client for transactional safety.
    */
   private async updateLoadsForSegment(
+    tx: any,
     plan: any,
     segment: any,
     newLoadStatus: string,
@@ -291,7 +308,7 @@ export class DriverEventService {
     if (!segment.stopId) return [];
 
     // Find loads on this plan that have a stop matching this segment's stop
-    const routePlanLoads = await this.prisma.routePlanLoad.findMany({
+    const routePlanLoads = await tx.routePlanLoad.findMany({
       where: { planId: plan.id },
       include: {
         load: {
@@ -303,7 +320,7 @@ export class DriverEventService {
     const updates: { loadId: string; newStatus: string }[] = [];
     for (const rpl of routePlanLoads) {
       if (rpl.load.stops.length > 0) {
-        await this.prisma.load.update({
+        await tx.load.update({
           where: { id: rpl.load.id },
           data: { status: newLoadStatus },
         });
@@ -327,7 +344,7 @@ export class DriverEventService {
   /**
    * Check if all segments are done → mark plan as completed.
    */
-  async checkAndCompletePlan(plan: any, tenantId: number): Promise<boolean> {
+  private async checkAndCompletePlan(plan: any, tenantId: number): Promise<boolean> {
     // Re-fetch fresh segment statuses
     const segments = await this.prisma.routeSegment.findMany({
       where: { planId: plan.id },

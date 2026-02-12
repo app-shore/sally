@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { TenantDbId } from '../../../auth/decorators/tenant-db-id.decorator';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
@@ -35,7 +35,7 @@ export class MonitoringController {
       },
     });
 
-    if (!plan) throw new Error(`Route plan ${planId} not found`);
+    if (!plan) throw new NotFoundException(`Route plan ${planId} not found`);
 
     const currentSegment = this.progressTracker.determineCurrentSegment(plan.segments);
     const completedSegments = plan.segments.filter((s: any) => s.status === 'completed').length;
@@ -95,7 +95,7 @@ export class MonitoringController {
       where: { planId, tenantId },
       select: { id: true },
     });
-    if (!plan) throw new Error(`Route plan ${planId} not found`);
+    if (!plan) throw new NotFoundException(`Route plan ${planId} not found`);
 
     return this.prisma.routeEvent.findMany({
       where: { planId: plan.id },
@@ -115,7 +115,7 @@ export class MonitoringController {
       where: { planId, tenantId },
       include: { driver: true },
     });
-    if (!plan) throw new Error(`Route plan ${planId} not found`);
+    if (!plan) throw new NotFoundException(`Route plan ${planId} not found`);
 
     await this.routeEventService.handleMonitoringTriggers(
       [{ type: 'DOCK_TIME_EXCEEDED', severity: 'high', requiresReplan: true, etaImpactMinutes: Math.round(dto.actualDockHours * 60), params: { actualDockHours: dto.actualDockHours, driverName: plan.driver.name } }],
@@ -137,7 +137,7 @@ export class MonitoringController {
       where: { planId, tenantId },
       include: { driver: true },
     });
-    if (!plan) throw new Error(`Route plan ${planId} not found`);
+    if (!plan) throw new NotFoundException(`Route plan ${planId} not found`);
 
     await this.routeEventService.handleMonitoringTriggers(
       [{ type: 'ROUTE_DELAY', severity: dto.delayMinutes > 60 ? 'high' : 'medium', requiresReplan: dto.delayMinutes > 60, etaImpactMinutes: dto.delayMinutes, params: { delayMinutes: dto.delayMinutes, reason: dto.reason, driverName: plan.driver.name } }],

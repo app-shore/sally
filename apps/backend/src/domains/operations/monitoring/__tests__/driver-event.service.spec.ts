@@ -2,13 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DriverEventService } from '../services/driver-event.service';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { RouteEventService } from '../services/route-event.service';
-import { SseService } from '../../../../infrastructure/sse/sse.service';
 
 describe('DriverEventService', () => {
   let service: DriverEventService;
   let mockPrisma: any;
   let mockRouteEventService: any;
-  let mockSse: any;
 
   beforeEach(async () => {
     mockPrisma = {
@@ -19,18 +17,17 @@ describe('DriverEventService', () => {
       routePlan: { update: jest.fn().mockResolvedValue({}) },
       routePlanLoad: { findMany: jest.fn().mockResolvedValue([]) },
       load: { update: jest.fn().mockResolvedValue({}) },
+      $transaction: jest.fn((fn: any) => fn(mockPrisma)),
     };
     mockRouteEventService = {
       recordEvent: jest.fn().mockResolvedValue({ eventId: 'EVT-test' }),
     };
-    mockSse = { emitToTenant: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DriverEventService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: RouteEventService, useValue: mockRouteEventService },
-        { provide: SseService, useValue: mockSse },
       ],
     }).compile();
 
@@ -237,16 +234,51 @@ describe('DriverEventService', () => {
     });
   });
 
-  describe('checkAndCompletePlan', () => {
-    it('should mark plan completed when all segments done', async () => {
-      const plan = { id: 1, planId: 'RP-001' };
+  describe('plan auto-completion (via handleDeliveryComplete)', () => {
+    it('should NOT complete plan if segments remain', async () => {
+      const plan = {
+        id: 1, planId: 'RP-001',
+        segments: [
+          { id: 1, segmentId: 'seg-1', sequenceOrder: 1, status: 'completed', segmentType: 'drive' },
+          { id: 2, segmentId: 'seg-2', sequenceOrder: 2, status: 'in_progress', segmentType: 'dock', actionType: 'dropoff', stopId: 20 },
+          { id: 3, segmentId: 'seg-3', sequenceOrder: 3, status: 'planned', segmentType: 'drive' },
+        ],
+      };
+
+      mockPrisma.routePlanLoad.findMany.mockResolvedValue([]);
+      // Not all done — seg-3 still in_progress after being started
       mockPrisma.routeSegment.findMany.mockResolvedValue([
-        { status: 'completed' }, { status: 'completed' }, { status: 'skipped' },
+        { status: 'completed' }, { status: 'completed' }, { status: 'in_progress' },
       ]);
 
-      const completed = await service.checkAndCompletePlan(plan, 1);
+      await service.handleDeliveryComplete(plan, { segmentId: 'seg-2' }, 1);
 
-      expect(completed).toBe(true);
+      // Plan should NOT be marked completed
+      expect(mockPrisma.routePlan.update).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ status: 'completed' }),
+        }),
+      );
+    });
+
+    it('should complete plan with skipped segments', async () => {
+      const plan = {
+        id: 1, planId: 'RP-001',
+        segments: [
+          { id: 1, segmentId: 'seg-1', sequenceOrder: 1, status: 'completed', segmentType: 'drive' },
+          { id: 2, segmentId: 'seg-2', sequenceOrder: 2, status: 'in_progress', segmentType: 'dock', actionType: 'dropoff', stopId: 20 },
+        ],
+      };
+
+      mockPrisma.routePlanLoad.findMany.mockResolvedValue([]);
+      // All done (mix of completed + skipped)
+      mockPrisma.routeSegment.findMany.mockResolvedValue([
+        { status: 'completed' }, { status: 'skipped' },
+      ]);
+
+      await service.handleDeliveryComplete(plan, { segmentId: 'seg-2' }, 1);
+
+      // Plan should be marked completed
       expect(mockPrisma.routePlan.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ status: 'completed', isActive: false }),
@@ -255,18 +287,6 @@ describe('DriverEventService', () => {
       expect(mockRouteEventService.recordEvent).toHaveBeenCalledWith(
         expect.objectContaining({ eventType: 'ROUTE_COMPLETED', source: 'system' }),
       );
-    });
-
-    it('should NOT complete plan if segments remain', async () => {
-      const plan = { id: 1, planId: 'RP-001' };
-      mockPrisma.routeSegment.findMany.mockResolvedValue([
-        { status: 'completed' }, { status: 'in_progress' },
-      ]);
-
-      const completed = await service.checkAndCompletePlan(plan, 1);
-
-      expect(completed).toBe(false);
-      expect(mockPrisma.routePlan.update).not.toHaveBeenCalled();
     });
   });
 });

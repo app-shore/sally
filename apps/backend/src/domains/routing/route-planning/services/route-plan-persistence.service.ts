@@ -282,27 +282,27 @@ export class RoutePlanPersistenceService {
       throw new NotFoundException(`Route plan not found: ${planId}`);
     }
 
-    // Double-booking validation: check if any loads are already assigned to another active plan
-    for (const rpl of existingPlan.loads) {
-      if (rpl.load.status !== 'pending') {
-        const otherAssignment = await this.prisma.routePlanLoad.findFirst({
-          where: {
-            loadId: rpl.load.id,
-            plan: { isActive: true, status: 'active' },
-            planId: { not: existingPlan.id },
-          },
-          include: { plan: { select: { planId: true } } },
-        });
-        if (otherAssignment) {
-          throw new BadRequestException(
-            `Load ${rpl.load.loadId} is already assigned to active route ${otherAssignment.plan.planId}`,
-          );
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 1. Double-booking validation (inside transaction to prevent TOCTOU race)
+      for (const rpl of existingPlan.loads) {
+        if (rpl.load.status !== 'pending') {
+          const otherAssignment = await tx.routePlanLoad.findFirst({
+            where: {
+              loadId: rpl.load.id,
+              plan: { isActive: true, status: 'active' },
+              planId: { not: existingPlan.id },
+            },
+            include: { plan: { select: { planId: true } } },
+          });
+          if (otherAssignment) {
+            throw new BadRequestException(
+              `Load ${rpl.load.loadId} is already assigned to active route ${otherAssignment.plan.planId}`,
+            );
+          }
         }
       }
-    }
 
-    const result = await this.prisma.$transaction(async (tx) => {
-      // 1. Deactivate any existing active plan for the same driver
+      // 2. Deactivate any existing active plan for the same driver
       const previousActivePlans = await tx.routePlan.findMany({
         where: { driverId: existingPlan.driverId, isActive: true },
         include: { loads: { include: { load: true } } },
@@ -324,7 +324,7 @@ export class RoutePlanPersistenceService {
         }
       }
 
-      // 2. Activate the target plan
+      // 3. Activate the target plan
       const activated = await tx.routePlan.update({
         where: { planId },
         data: {
@@ -340,7 +340,7 @@ export class RoutePlanPersistenceService {
         },
       });
 
-      // 3. Update load statuses: pending → assigned
+      // 4. Update load statuses: pending → assigned
       for (const rpl of activated.loads) {
         if (rpl.load.status === 'pending') {
           await tx.load.update({
