@@ -262,10 +262,12 @@ export class UserInvitationsService {
           emailVerified: true,
           isActive: true,
           driverId: invitation.driverId,
+          customerId: invitation.customerId,
         },
         include: {
           tenant: true,
           driver: true,
+          customer: true,
         },
       });
 

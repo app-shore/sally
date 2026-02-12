@@ -56,11 +56,11 @@ export class MonitoringController {
     try {
       const gps = await this.integrationManager.getVehicleLocation(tenantId, plan.vehicle.vehicleId);
       driverPosition = {
-        lat: gps.gps.latitude,
-        lon: gps.gps.longitude,
-        speed: gps.gps.speedMilesPerHour,
-        heading: gps.gps.headingDegrees,
-        lastUpdated: gps.gps.time,
+        lat: gps.latitude,
+        lon: gps.longitude,
+        speed: gps.speed,
+        heading: gps.heading,
+        lastUpdated: gps.timestamp,
       };
     } catch { /* GPS unavailable */ }
 
