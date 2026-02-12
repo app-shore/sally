@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 
 // ============================================================================
@@ -273,27 +273,56 @@ export class RoutePlanPersistenceService {
    * @throws NotFoundException if the plan does not exist
    */
   async activatePlan(planId: string) {
-    // First, look up the plan to get the driverId
     const existingPlan = await this.prisma.routePlan.findUnique({
       where: { planId },
+      include: { loads: { include: { load: true } } },
     });
 
     if (!existingPlan) {
       throw new NotFoundException(`Route plan not found: ${planId}`);
     }
 
+    // Double-booking validation: check if any loads are already assigned to another active plan
+    for (const rpl of existingPlan.loads) {
+      if (rpl.load.status !== 'pending') {
+        const otherAssignment = await this.prisma.routePlanLoad.findFirst({
+          where: {
+            loadId: rpl.load.id,
+            plan: { isActive: true, status: 'active' },
+            planId: { not: existingPlan.id },
+          },
+          include: { plan: { select: { planId: true } } },
+        });
+        if (otherAssignment) {
+          throw new BadRequestException(
+            `Load ${rpl.load.loadId} is already assigned to active route ${otherAssignment.plan.planId}`,
+          );
+        }
+      }
+    }
+
     const result = await this.prisma.$transaction(async (tx) => {
       // 1. Deactivate any existing active plan for the same driver
-      await tx.routePlan.updateMany({
-        where: {
-          driverId: existingPlan.driverId,
-          isActive: true,
-        },
-        data: {
-          isActive: false,
-          status: 'superseded',
-        },
+      const previousActivePlans = await tx.routePlan.findMany({
+        where: { driverId: existingPlan.driverId, isActive: true },
+        include: { loads: { include: { load: true } } },
       });
+
+      for (const prevPlan of previousActivePlans) {
+        await tx.routePlan.update({
+          where: { id: prevPlan.id },
+          data: { isActive: false, status: 'superseded' },
+        });
+        // Revert assigned loads to pending (but NOT in_transit loads)
+        for (const rpl of prevPlan.loads) {
+          if (rpl.load.status === 'assigned') {
+            await tx.load.update({
+              where: { id: rpl.load.id },
+              data: { status: 'pending' },
+            });
+          }
+        }
+      }
 
       // 2. Activate the target plan
       const activated = await tx.routePlan.update({
@@ -304,23 +333,27 @@ export class RoutePlanPersistenceService {
           activatedAt: new Date(),
         },
         include: {
-          segments: {
-            orderBy: { sequenceOrder: 'asc' },
-          },
-          loads: {
-            include: { load: true },
-          },
+          segments: { orderBy: { sequenceOrder: 'asc' } },
+          loads: { include: { load: true } },
           driver: true,
           vehicle: true,
         },
       });
 
+      // 3. Update load statuses: pending → assigned
+      for (const rpl of activated.loads) {
+        if (rpl.load.status === 'pending') {
+          await tx.load.update({
+            where: { id: rpl.load.id },
+            data: { status: 'assigned' },
+          });
+        }
+      }
+
       return activated;
     });
 
-    this.logger.log(
-      `Route plan activated: ${planId} for driver ${existingPlan.driverId}`,
-    );
+    this.logger.log(`Route plan activated: ${planId} for driver ${existingPlan.driverId}`);
 
     return result;
   }
@@ -391,27 +424,38 @@ export class RoutePlanPersistenceService {
   async cancelPlan(planId: string) {
     const existingPlan = await this.prisma.routePlan.findUnique({
       where: { planId },
+      include: { loads: { include: { load: true } } },
     });
 
     if (!existingPlan) {
       throw new NotFoundException(`Route plan not found: ${planId}`);
     }
 
-    const cancelled = await this.prisma.routePlan.update({
-      where: { planId },
-      data: {
-        status: 'cancelled',
-        cancelledAt: new Date(),
-        isActive: false,
-      },
-      include: {
-        segments: {
-          orderBy: { sequenceOrder: 'asc' },
+    const cancelled = await this.prisma.$transaction(async (tx) => {
+      const plan = await tx.routePlan.update({
+        where: { planId },
+        data: {
+          status: 'cancelled',
+          cancelledAt: new Date(),
+          isActive: false,
         },
-        loads: {
-          include: { load: true },
+        include: {
+          segments: { orderBy: { sequenceOrder: 'asc' } },
+          loads: { include: { load: true } },
         },
-      },
+      });
+
+      // Revert assigned loads to pending (NOT in_transit loads)
+      for (const rpl of existingPlan.loads) {
+        if (rpl.load.status === 'assigned') {
+          await tx.load.update({
+            where: { id: rpl.load.id },
+            data: { status: 'pending' },
+          });
+        }
+      }
+
+      return plan;
     });
 
     this.logger.log(`Route plan cancelled: ${planId}`);
