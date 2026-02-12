@@ -81,7 +81,12 @@ export class RouteMonitoringService {
 
     // c. Update segment statuses based on GPS position
     const currentSegment = gpsData
-      ? await this.progressTracker.updateSegmentStatuses(plan.segments, gpsData)
+      ? await this.progressTracker.updateSegmentStatuses(
+          plan.segments,
+          gpsData,
+          this.routeEventService,
+          { planId: plan.id, planStringId: plan.planId, tenantId: plan.tenantId },
+        )
       : this.progressTracker.determineCurrentSegment(plan.segments);
 
     // d. Run all monitoring checks

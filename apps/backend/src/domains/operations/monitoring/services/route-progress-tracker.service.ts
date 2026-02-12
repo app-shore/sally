@@ -16,7 +16,12 @@ export class RouteProgressTrackerService {
     return sorted.find((s) => s.status === 'planned') ?? null;
   }
 
-  async updateSegmentStatuses(segments: any[], gpsData: any): Promise<any | null> {
+  async updateSegmentStatuses(
+    segments: any[],
+    gpsData: any,
+    routeEventService?: any,
+    planContext?: { planId: number; planStringId: string; tenantId: number },
+  ): Promise<any | null> {
     const sorted = [...segments].sort((a, b) => a.sequenceOrder - b.sequenceOrder);
     const driverLat = gpsData?.latitude;
     const driverLon = gpsData?.longitude;
@@ -29,15 +34,63 @@ export class RouteProgressTrackerService {
       const distToDestMiles = this.haversineDistance(driverLat, driverLon, segment.toLat, segment.toLon);
 
       if (distToDestMiles < 1) {
-        if (segment.status !== 'completed') {
-          await this.prisma.routeSegment.update({
-            where: { id: segment.id },
-            data: {
-              status: 'completed',
-              actualArrival: segment.actualArrival ?? new Date(),
-            },
-          });
-          segment.status = 'completed';
+        // GPS says driver is at/near destination
+        if (segment.segmentType === 'dock') {
+          // Dock segments: GPS can START them but NOT complete them
+          // Pickup/delivery completion requires driver confirmation
+          if (segment.status === 'planned') {
+            await this.prisma.routeSegment.update({
+              where: { id: segment.id },
+              data: { status: 'in_progress', actualArrival: segment.actualArrival ?? new Date() },
+            });
+            segment.status = 'in_progress';
+
+            if (routeEventService && planContext) {
+              await routeEventService.recordEvent({
+                ...planContext,
+                segmentId: segment.segmentId,
+                eventType: 'SEGMENT_ARRIVED',
+                source: 'monitoring',
+                eventData: {
+                  segmentType: segment.segmentType,
+                  actionType: segment.actionType,
+                  distanceToStopMiles: Math.round(distToDestMiles * 10) / 10,
+                },
+                location: { lat: driverLat, lon: driverLon },
+              });
+            }
+          }
+          // If already in_progress, do nothing — waiting for driver confirmation
+          return segment;
+        } else {
+          // Drive, rest, fuel segments: GPS auto-completes
+          if (segment.status !== 'completed') {
+            const wasPlanned = segment.status === 'planned';
+            await this.prisma.routeSegment.update({
+              where: { id: segment.id },
+              data: {
+                status: 'completed',
+                actualArrival: segment.actualArrival ?? new Date(),
+              },
+            });
+            segment.status = 'completed';
+
+            if (routeEventService && planContext) {
+              await routeEventService.recordEvent({
+                ...planContext,
+                segmentId: segment.segmentId,
+                eventType: wasPlanned ? 'SEGMENT_ARRIVED' : 'SEGMENT_DEPARTED',
+                source: 'monitoring',
+                eventData: {
+                  segmentType: segment.segmentType,
+                  newStatus: 'completed',
+                  distanceToStopMiles: Math.round(distToDestMiles * 10) / 10,
+                },
+                location: { lat: driverLat, lon: driverLon },
+              });
+            }
+          }
+          // Continue to check next segment
         }
       } else if (segment.status === 'planned') {
         await this.prisma.routeSegment.update({
@@ -57,7 +110,7 @@ export class RouteProgressTrackerService {
     return null;
   }
 
-  private haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     if (lat2 == null || lon2 == null) return Infinity;
     const R = 3959;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
