@@ -4,7 +4,7 @@ import { PrismaService } from '../../../../infrastructure/database/prisma.servic
 import { IntegrationManagerService } from '../../../integrations/services/integration-manager.service';
 import { MonitoringChecksService } from './monitoring-checks.service';
 import { RouteProgressTrackerService } from './route-progress-tracker.service';
-import { RouteUpdateHandlerService } from './route-update-handler.service';
+import { RouteEventService } from './route-event.service';
 import { SseService } from '../../../../infrastructure/sse/sse.service';
 import { DEFAULT_THRESHOLDS } from '../monitoring.types';
 
@@ -17,7 +17,7 @@ export class RouteMonitoringService {
     private readonly integrationManager: IntegrationManagerService,
     private readonly checks: MonitoringChecksService,
     private readonly progressTracker: RouteProgressTrackerService,
-    private readonly updateHandler: RouteUpdateHandlerService,
+    private readonly routeEventService: RouteEventService,
     private readonly sse: SseService,
   ) {}
 
@@ -97,7 +97,7 @@ export class RouteMonitoringService {
 
     // e. Handle triggers
     if (triggers.length > 0) {
-      await this.updateHandler.handleTriggers(
+      await this.routeEventService.handleMonitoringTriggers(
         triggers,
         { planId: plan.planId, id: plan.id, tenantId: plan.tenantId, planVersion: plan.planVersion },
         plan.driver.driverId,

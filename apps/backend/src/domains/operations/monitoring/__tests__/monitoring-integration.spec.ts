@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RouteMonitoringService } from '../services/route-monitoring.service';
 import { MonitoringChecksService } from '../services/monitoring-checks.service';
 import { RouteProgressTrackerService } from '../services/route-progress-tracker.service';
-import { RouteUpdateHandlerService } from '../services/route-update-handler.service';
+import { RouteEventService } from '../services/route-event.service';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { IntegrationManagerService } from '../../../integrations/services/integration-manager.service';
 import { AlertTriggersService } from '../../alerts/services/alert-triggers.service';
@@ -19,7 +19,7 @@ describe('Monitoring Integration', () => {
     mockPrisma = {
       routePlan: { findMany: jest.fn().mockResolvedValue([]) },
       routeSegment: { update: jest.fn().mockResolvedValue({}) },
-      routePlanUpdate: { create: jest.fn().mockResolvedValue({ id: 1 }) },
+      routeEvent: { create: jest.fn().mockResolvedValue({ id: 1 }) },
     };
     mockIntegration = {
       getDriverHOS: jest.fn(),
@@ -34,9 +34,9 @@ describe('Monitoring Integration', () => {
         MonitoringChecksService,
         RouteProgressTrackerService,
         {
-          provide: RouteUpdateHandlerService,
+          provide: RouteEventService,
           useFactory: () => {
-            const handler = Object.create(RouteUpdateHandlerService.prototype);
+            const handler = Object.create(RouteEventService.prototype);
             handler.prisma = mockPrisma;
             handler.alertTriggers = mockAlertTriggers;
             handler.sse = mockSse;
@@ -84,8 +84,8 @@ describe('Monitoring Integration', () => {
       'drv-1',
       expect.objectContaining({ hoursType: 'driving' }),
     );
-    expect(mockPrisma.routePlanUpdate.create).toHaveBeenCalled();
-    expect(mockSse.emitToTenant).toHaveBeenCalledWith(1, 'monitoring:trigger_fired', expect.any(Object));
+    expect(mockPrisma.routeEvent.create).toHaveBeenCalled();
+    expect(mockSse.emitToTenant).toHaveBeenCalledWith(1, 'route:event', expect.any(Object));
   });
 
   it('should emit cycle_complete after processing all routes', async () => {

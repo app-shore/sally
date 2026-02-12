@@ -3,7 +3,7 @@ import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { TenantDbId } from '../../../auth/decorators/tenant-db-id.decorator';
 import { RouteProgressTrackerService } from './services/route-progress-tracker.service';
 import { IntegrationManagerService } from '../../integrations/services/integration-manager.service';
-import { RouteUpdateHandlerService } from './services/route-update-handler.service';
+import { RouteEventService } from './services/route-event.service';
 import { ReportDockTimeSchema } from './dto/report-dock-time.dto';
 import { ReportDelaySchema } from './dto/report-delay.dto';
 
@@ -13,7 +13,7 @@ export class MonitoringController {
     private readonly prisma: PrismaService,
     private readonly progressTracker: RouteProgressTrackerService,
     private readonly integrationManager: IntegrationManagerService,
-    private readonly updateHandler: RouteUpdateHandlerService,
+    private readonly routeEventService: RouteEventService,
   ) {}
 
   @Get(':planId/monitoring')
@@ -27,7 +27,7 @@ export class MonitoringController {
         segments: { orderBy: { sequenceOrder: 'asc' } },
         driver: true,
         vehicle: true,
-        updates: { orderBy: { triggeredAt: 'desc' }, take: 10 },
+        events: { orderBy: { occurredAt: 'desc' }, take: 10 },
       },
     });
 
@@ -78,7 +78,7 @@ export class MonitoringController {
       totalSegments: plan.segments.length,
       activeAlerts,
       lastChecked: new Date().toISOString(),
-      recentUpdates: plan.updates,
+      recentEvents: plan.events,
     };
   }
 
@@ -93,9 +93,9 @@ export class MonitoringController {
     });
     if (!plan) throw new Error(`Route plan ${planId} not found`);
 
-    return this.prisma.routePlanUpdate.findMany({
+    return this.prisma.routeEvent.findMany({
       where: { planId: plan.id },
-      orderBy: { triggeredAt: 'desc' },
+      orderBy: { occurredAt: 'desc' },
       take: 50,
     });
   }
@@ -113,7 +113,7 @@ export class MonitoringController {
     });
     if (!plan) throw new Error(`Route plan ${planId} not found`);
 
-    await this.updateHandler.handleTriggers(
+    await this.routeEventService.handleMonitoringTriggers(
       [{ type: 'DOCK_TIME_EXCEEDED', severity: 'high', requiresReplan: true, etaImpactMinutes: Math.round(dto.actualDockHours * 60), params: { actualDockHours: dto.actualDockHours, driverName: plan.driver.name } }],
       { planId: plan.planId, id: plan.id, tenantId, planVersion: plan.planVersion },
       plan.driver.driverId,
@@ -135,7 +135,7 @@ export class MonitoringController {
     });
     if (!plan) throw new Error(`Route plan ${planId} not found`);
 
-    await this.updateHandler.handleTriggers(
+    await this.routeEventService.handleMonitoringTriggers(
       [{ type: 'ROUTE_DELAY', severity: dto.delayMinutes > 60 ? 'high' : 'medium', requiresReplan: dto.delayMinutes > 60, etaImpactMinutes: dto.delayMinutes, params: { delayMinutes: dto.delayMinutes, reason: dto.reason, driverName: plan.driver.name } }],
       { planId: plan.planId, id: plan.id, tenantId, planVersion: plan.planVersion },
       plan.driver.driverId,

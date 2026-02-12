@@ -3,7 +3,7 @@ import { MonitoringController } from './monitoring.controller';
 import { RouteMonitoringService } from './services/route-monitoring.service';
 import { MonitoringChecksService } from './services/monitoring-checks.service';
 import { RouteProgressTrackerService } from './services/route-progress-tracker.service';
-import { RouteUpdateHandlerService } from './services/route-update-handler.service';
+import { RouteEventService } from './services/route-event.service';
 import { AlertsModule } from '../alerts/alerts.module';
 import { IntegrationsModule } from '../../integrations/integrations.module';
 
@@ -14,8 +14,8 @@ import { IntegrationsModule } from '../../integrations/integrations.module';
     RouteMonitoringService,
     MonitoringChecksService,
     RouteProgressTrackerService,
-    RouteUpdateHandlerService,
+    RouteEventService,
   ],
-  exports: [RouteMonitoringService],
+  exports: [RouteMonitoringService, RouteEventService],
 })
 export class MonitoringModule {}
