@@ -7,5 +7,6 @@ export const theme = {
   alertRed: "#EF4444",
   alertYellow: "#EAB308",
   alertGreen: "#22C55E",
+  alertBlue: "#3B82F6",
   font: "Inter, system-ui, sans-serif",
 } as const;
