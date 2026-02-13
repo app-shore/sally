@@ -117,7 +117,7 @@ export default function DriverProfilePage({ params }: { params: Promise<{ driver
           </div>
         </div>
         <Button onClick={() => setEditOpen(true)}>
-          <Pencil className="h-4 w-4 mr-2" /> Edit
+          <Pencil className="h-4 w-4 mr-2" /> {driver.external_source ? 'Edit Details' : 'Edit'}
         </Button>
       </div>
 
@@ -402,6 +402,7 @@ export default function DriverProfilePage({ params }: { params: Promise<{ driver
           open={editOpen}
           onOpenChange={setEditOpen}
           driver={driver}
+          externalSource={driver.external_source || undefined}
         />
       )}
 

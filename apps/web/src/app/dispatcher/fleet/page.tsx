@@ -9,6 +9,7 @@ import {
   updateDriver,
   deleteDriver,
   InviteDriverDialog,
+  EditDriverDialog,
   type Driver,
   type CreateDriverRequest,
 } from '@/features/fleet/drivers';
@@ -184,6 +185,7 @@ function DriversTab({
   onInviteClick?: (driver: Driver) => void;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const { toast } = useToast();
@@ -204,16 +206,11 @@ function DriversTab({
 
   const handleEdit = (driver: Driver) => {
     setEditingDriver(driver);
-    setIsDialogOpen(true);
+    setEditDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
+  const handleCreateSuccess = async () => {
     setIsDialogOpen(false);
-    setEditingDriver(null);
-  };
-
-  const handleSuccess = async () => {
-    handleCloseDialog();
     await onRefresh();
   };
 
@@ -238,7 +235,7 @@ function DriversTab({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Drivers</CardTitle>
+        <CardTitle>Drivers{drivers.length > 0 ? ` (${drivers.length})` : ''}</CardTitle>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -251,8 +248,8 @@ function DriversTab({
               <DialogTitle>Add Driver</DialogTitle>
             </DialogHeader>
             <DriverForm
-              onSuccess={handleSuccess}
-              onCancel={handleCloseDialog}
+              onSuccess={handleCreateSuccess}
+              onCancel={() => setIsDialogOpen(false)}
             />
           </DialogContent>
         </Dialog>
@@ -316,12 +313,12 @@ function DriversTab({
                   <TableRow key={driver.id}>
                     <TableCell>
                       <div>
-                        <button
-                          className="font-medium text-foreground hover:underline text-left"
-                          onClick={() => router.push(`/dispatcher/fleet/drivers/${driver.driver_id}`)}
+                        <Link
+                          href={`/dispatcher/fleet/drivers/${driver.driver_id}`}
+                          className="font-medium text-foreground hover:underline"
                         >
                           {driver.name}
-                        </button>
+                        </Link>
                         {driver.phone && (
                           <div className="text-sm text-muted-foreground">{driver.phone}</div>
                         )}
@@ -368,17 +365,7 @@ function DriversTab({
                         <Badge variant="destructive">Deactivated</Badge>
                       )}
                       {(!driver.sally_access_status || driver.sally_access_status === 'NO_ACCESS') && (
-                        onInviteClick ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onInviteClick(driver)}
-                          >
-                            Invite
-                          </Button>
-                        ) : (
-                          <Badge variant="outline">No Access</Badge>
-                        )
+                        <Badge variant="outline">No Access</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -393,10 +380,14 @@ function DriversTab({
                             <Eye className="h-4 w-4 mr-2" />
                             View Profile
                           </DropdownMenuItem>
-                          {!driver.external_source && (
-                            <DropdownMenuItem onClick={() => handleEdit(driver)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              Edit
+                          <DropdownMenuItem onClick={() => handleEdit(driver)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            {driver.external_source ? 'Edit Details' : 'Edit'}
+                          </DropdownMenuItem>
+                          {(!driver.sally_access_status || driver.sally_access_status === 'NO_ACCESS') && onInviteClick && (
+                            <DropdownMenuItem onClick={() => onInviteClick(driver)}>
+                              <Mail className="h-4 w-4 mr-2" />
+                              Invite to SALLY
                             </DropdownMenuItem>
                           )}
                           {!driver.external_source && (
@@ -406,12 +397,6 @@ function DriversTab({
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete
-                            </DropdownMenuItem>
-                          )}
-                          {driver.external_source && (
-                            <DropdownMenuItem disabled>
-                              <Lock className="h-4 w-4 mr-2" />
-                              Read-only ({getSourceLabel(driver.external_source)})
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -444,6 +429,21 @@ function DriversTab({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {editingDriver && (
+        <EditDriverDialog
+          open={editDialogOpen}
+          onOpenChange={(open) => {
+            setEditDialogOpen(open);
+            if (!open) {
+              setEditingDriver(null);
+              onRefresh();
+            }
+          }}
+          driver={editingDriver}
+          externalSource={editingDriver.external_source ? getSourceLabel(editingDriver.external_source) : undefined}
+        />
+      )}
     </Card>
   );
 }
