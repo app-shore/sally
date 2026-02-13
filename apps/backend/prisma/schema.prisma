@@ -373,6 +373,21 @@ model Driver {
   @@map("drivers")
 }
 
+model ReferenceData {
+  id        Int      @id @default(autoincrement())
+  category  String   @db.VarChar(50)
+  code      String   @db.VarChar(50)
+  label     String   @db.VarChar(100)
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([category, code])
+  @@index([category, isActive])
+  @@map("reference_data")
+}
+
 enum VehicleStatus {
   AVAILABLE
   ASSIGNED
