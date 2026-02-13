@@ -53,6 +53,8 @@ import {
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog';
 import { formatRelativeTime } from '@/features/integrations';
+import { useReferenceData } from '@/features/platform/reference-data';
+import type { ReferenceItem } from '@/features/platform/reference-data';
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
 import {
   Select,
@@ -78,6 +80,7 @@ export default function FleetPage() {
   const [inviteDriver, setInviteDriver] = useState<Driver | null>(null);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const { isAuthenticated, user } = useAuthStore();
+  const { data: refData } = useReferenceData(['equipment_type', 'vehicle_status', 'us_state']);
 
   useEffect(() => {
     // Auth is handled by layout-client, just check role and load data
@@ -143,6 +146,7 @@ export default function FleetPage() {
             isLoading={isLoading}
             error={error}
             onRefresh={loadData}
+            refData={refData}
           />
         </TabsContent>
       </Tabs>
@@ -529,11 +533,13 @@ function AssetsTab({
   isLoading,
   error,
   onRefresh,
+  refData,
 }: {
   vehicles: Vehicle[];
   isLoading: boolean;
   error: string | null;
   onRefresh: () => Promise<void>;
+  refData?: Record<string, ReferenceItem[]>;
 }) {
   const [activeSubTab, setActiveSubTab] = useState<'trucks' | 'trailers' | 'equipment'>('trucks');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -615,6 +621,7 @@ function AssetsTab({
                   vehicle={editingVehicle}
                   onSuccess={handleSuccess}
                   onCancel={handleCloseDialog}
+                  refData={refData}
                 />
               </DialogContent>
             </Dialog>
@@ -713,7 +720,7 @@ function AssetsTab({
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-xs">
-                          {formatEquipmentType(vehicle.equipment_type)}
+                          {formatEquipmentType(vehicle.equipment_type, refData)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-foreground">
@@ -726,7 +733,7 @@ function AssetsTab({
                         {vehicle.mpg ? ` · ${vehicle.mpg} mpg` : ''}
                       </TableCell>
                       <TableCell>
-                        <VehicleStatusBadge status={vehicle.status} />
+                        <VehicleStatusBadge status={vehicle.status} refData={refData} />
                       </TableCell>
                       <TableCell>
                         {vehicle.external_source ? (
@@ -847,10 +854,12 @@ function VehicleForm({
   vehicle,
   onSuccess,
   onCancel,
+  refData,
 }: {
   vehicle: Vehicle | null;
   onSuccess: () => void;
   onCancel: () => void;
+  refData?: Record<string, ReferenceItem[]>;
 }) {
   const [formData, setFormData] = useState<CreateVehicleRequest>({
     unit_number: vehicle?.unit_number || '',
@@ -915,7 +924,10 @@ function VehicleForm({
     }
   };
 
-  const equipmentTypes = [
+  const equipmentTypes = refData?.equipment_type?.map((item) => ({
+    value: item.code,
+    label: item.label,
+  })) || [
     { value: 'DRY_VAN', label: 'Dry Van' },
     { value: 'FLATBED', label: 'Flatbed' },
     { value: 'REEFER', label: 'Reefer' },
@@ -924,7 +936,7 @@ function VehicleForm({
     { value: 'OTHER', label: 'Other' },
   ];
 
-  const usStates = [
+  const usStates = refData?.us_state?.map((item) => item.code) || [
     'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
     'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
     'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
@@ -1219,38 +1231,32 @@ function VehicleForm({
   );
 }
 
-function VehicleStatusBadge({ status }: { status: string }) {
-  switch (status) {
-    case 'AVAILABLE':
-      return (
-        <Badge variant="outline" className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-400">
-          Available
-        </Badge>
-      );
-    case 'ASSIGNED':
-      return (
-        <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-transparent">
-          Assigned
-        </Badge>
-      );
-    case 'IN_SHOP':
-      return (
-        <Badge variant="outline" className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400">
-          In Shop
-        </Badge>
-      );
-    case 'OUT_OF_SERVICE':
-      return (
-        <Badge variant="outline" className="border-red-300 dark:border-red-700 text-red-700 dark:text-red-400">
-          Out of Service
-        </Badge>
-      );
-    default:
-      return <Badge variant="outline">{status}</Badge>;
+function VehicleStatusBadge({ status, refData }: { status: string; refData?: Record<string, ReferenceItem[]> }) {
+  const statusItem = refData?.vehicle_status?.find((item) => item.code === status);
+  const label = statusItem?.label || status;
+  const color = (statusItem?.metadata as any)?.color;
+
+  const colorClasses: Record<string, string> = {
+    green: 'border-green-300 dark:border-green-700 text-green-700 dark:text-green-400',
+    blue: 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-transparent',
+    amber: 'border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400',
+    red: 'border-red-300 dark:border-red-700 text-red-700 dark:text-red-400',
+  };
+
+  if (color === 'blue') {
+    return <Badge className={colorClasses[color]}>{label}</Badge>;
   }
+
+  return (
+    <Badge variant="outline" className={colorClasses[color] || ''}>
+      {label}
+    </Badge>
+  );
 }
 
-function formatEquipmentType(type: string): string {
+function formatEquipmentType(type: string, refData?: Record<string, ReferenceItem[]>): string {
+  const item = refData?.equipment_type?.find((item) => item.code === type);
+  if (item) return item.label;
   const labels: Record<string, string> = {
     DRY_VAN: 'Dry Van',
     FLATBED: 'Flatbed',
