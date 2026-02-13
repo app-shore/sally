@@ -20,9 +20,9 @@ const flags = [
   // Fleet management
   { key: 'fleet_management_enabled', name: 'Fleet Management', description: 'CRUD interface for managing drivers, vehicles, and fleet settings', enabled: false, category: 'admin' },
 
-  // Financials
-  { key: 'invoicing_enabled', name: 'Invoicing', description: 'Create, send, and track invoices for completed loads with automatic rate calculation', enabled: false, category: 'dispatcher' },
-  { key: 'driver_settlements_enabled', name: 'Driver Settlements', description: 'Calculate and manage driver pay with per-mile, percentage, and flat rate support', enabled: false, category: 'dispatcher' },
+  // Money
+  { key: 'billing_enabled', name: 'Billing', description: 'Create, send, and track invoices for completed loads with automatic rate calculation', enabled: false, category: 'dispatcher' },
+  { key: 'driver_pay_enabled', name: 'Driver Pay', description: 'Calculate and manage driver pay with per-mile, percentage, flat rate, and hybrid support', enabled: false, category: 'dispatcher' },
   { key: 'quickbooks_integration_enabled', name: 'QuickBooks Integration', description: 'Sync invoices and settlements to QuickBooks for seamless accounting', enabled: false, category: 'admin' },
 
   // Analytics
