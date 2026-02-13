@@ -48,8 +48,15 @@ export function DriverSelector({ value, onChange }: DriverSelectorProps) {
                 driver.current_hos?.drive_remaining ?? 11;
               return (
                 <SelectItem key={driver.driver_id} value={driver.driver_id}>
-                  <div className="flex items-center gap-2">
-                    <span>{driver.name}</span>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      <span>{driver.name}</span>
+                      {driver.cdl_class && (
+                        <span className="text-xs font-medium bg-muted px-1.5 py-0.5 rounded">
+                          CDL-{driver.cdl_class}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1.5">
                       <div
                         className={`h-2 w-2 rounded-full ${getHosColor(driveRemaining)}`}

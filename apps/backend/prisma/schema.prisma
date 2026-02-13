@@ -290,6 +290,12 @@ enum SyncStatus {
   MANUAL_ENTRY
 }
 
+enum CdlClass {
+  A
+  B
+  C
+}
+
 model Driver {
   id                    Int           @id @default(autoincrement())
   driverId              String        @unique @map("driver_id") @db.VarChar(50)
@@ -302,6 +308,8 @@ model Driver {
   licenseState          String?       @map("license_state") @db.VarChar(2)
   phone                 String?       @db.VarChar(20)
   email                 String?       @db.VarChar(255)
+  cdlClass              CdlClass?     @map("cdl_class")
+  endorsements          String[]      @default([])
 
   // Status management
   status                DriverStatus  @default(PENDING_ACTIVATION)
@@ -351,6 +359,14 @@ model Driver {
   cycleDaysData           Json?     @map("cycle_days_data")
   lastRestartAt           DateTime? @map("last_restart_at") @db.Timestamptz
   homeTerminalTimezone    String    @default("America/New_York") @map("home_terminal_timezone") @db.VarChar(50)
+  homeTerminalCity        String?   @map("home_terminal_city") @db.VarChar(100)
+  homeTerminalState       String?   @map("home_terminal_state") @db.VarChar(2)
+
+  hireDate                DateTime? @map("hire_date") @db.Date
+  medicalCardExpiry       DateTime? @map("medical_card_expiry") @db.Date
+  emergencyContactName    String?   @map("emergency_contact_name") @db.VarChar(255)
+  emergencyContactPhone   String?   @map("emergency_contact_phone") @db.VarChar(20)
+  notes                   String?   @db.Text
 
   createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz

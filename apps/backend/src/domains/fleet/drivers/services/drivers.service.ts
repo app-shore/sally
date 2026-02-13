@@ -45,12 +45,39 @@ export class DriversService {
   /**
    * Find one driver by ID
    */
-  async findOne(driverId: string, tenantId: number): Promise<Driver> {
+  async findOne(driverId: string, tenantId: number): Promise<any> {
     const driver = await this.prisma.driver.findUnique({
       where: {
         driverId_tenantId: {
           driverId,
           tenantId,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            isActive: true,
+          },
+        },
+        loads: {
+          where: { status: { not: 'DELIVERED' } },
+          select: {
+            loadId: true,
+            referenceNumber: true,
+            status: true,
+          },
+          take: 1,
+          orderBy: { createdAt: 'desc' },
+        },
+        invitations: {
+          where: { status: 'PENDING' },
+          select: {
+            invitationId: true,
+            status: true,
+          },
+          take: 1,
+          orderBy: { createdAt: 'desc' },
         },
       },
     });
@@ -69,9 +96,11 @@ export class DriversService {
     tenantId: number,
     data: {
       name: string;
-      license_number?: string;
-      phone?: string;
-      email?: string;
+      phone: string;
+      email: string;
+      cdl_class: string;
+      license_number: string;
+      license_state?: string;
     },
   ): Promise<Driver> {
     const driverId = `DRV-${Date.now().toString(36).toUpperCase()}`;
@@ -81,9 +110,11 @@ export class DriversService {
         data: {
           driverId,
           name: data.name,
-          licenseNumber: data.license_number || null,
-          phone: data.phone || null,
-          email: data.email || null,
+          phone: data.phone,
+          email: data.email,
+          cdlClass: data.cdl_class as any,
+          licenseNumber: data.license_number,
+          licenseState: data.license_state || null,
           status: 'ACTIVE',
           isActive: true,
           tenantId,
@@ -109,9 +140,19 @@ export class DriversService {
     tenantId: number,
     data: {
       name?: string;
-      license_number?: string;
       phone?: string;
       email?: string;
+      cdl_class?: string;
+      license_number?: string;
+      license_state?: string;
+      endorsements?: string[];
+      hire_date?: string;
+      medical_card_expiry?: string;
+      home_terminal_city?: string;
+      home_terminal_state?: string;
+      emergency_contact_name?: string;
+      emergency_contact_phone?: string;
+      notes?: string;
     },
   ): Promise<Driver> {
     const driver = await this.prisma.driver.update({
@@ -123,9 +164,19 @@ export class DriversService {
       },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
-        ...(data.license_number !== undefined ? { licenseNumber: data.license_number } : {}),
         ...(data.phone !== undefined ? { phone: data.phone } : {}),
         ...(data.email !== undefined ? { email: data.email } : {}),
+        ...(data.cdl_class !== undefined ? { cdlClass: data.cdl_class as any } : {}),
+        ...(data.license_number !== undefined ? { licenseNumber: data.license_number } : {}),
+        ...(data.license_state !== undefined ? { licenseState: data.license_state } : {}),
+        ...(data.endorsements !== undefined ? { endorsements: data.endorsements } : {}),
+        ...(data.hire_date !== undefined ? { hireDate: data.hire_date ? new Date(data.hire_date) : null } : {}),
+        ...(data.medical_card_expiry !== undefined ? { medicalCardExpiry: data.medical_card_expiry ? new Date(data.medical_card_expiry) : null } : {}),
+        ...(data.home_terminal_city !== undefined ? { homeTerminalCity: data.home_terminal_city } : {}),
+        ...(data.home_terminal_state !== undefined ? { homeTerminalState: data.home_terminal_state } : {}),
+        ...(data.emergency_contact_name !== undefined ? { emergencyContactName: data.emergency_contact_name } : {}),
+        ...(data.emergency_contact_phone !== undefined ? { emergencyContactPhone: data.emergency_contact_phone } : {}),
+        ...(data.notes !== undefined ? { notes: data.notes } : {}),
       },
     });
 

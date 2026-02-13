@@ -21,6 +21,18 @@ const REFERENCE_DATA = [
   { category: 'driver_status', code: 'INACTIVE', label: 'Inactive', sortOrder: 3, metadata: { color: 'gray' } },
   { category: 'driver_status', code: 'SUSPENDED', label: 'Suspended', sortOrder: 4, metadata: { color: 'red' } },
 
+  // CDL Classes
+  { category: 'cdl_class', code: 'A', label: 'Class A', sortOrder: 1, metadata: { description: 'Combination vehicles (tractor-trailers)' } },
+  { category: 'cdl_class', code: 'B', label: 'Class B', sortOrder: 2, metadata: { description: 'Single vehicles over 26,001 lbs' } },
+  { category: 'cdl_class', code: 'C', label: 'Class C', sortOrder: 3, metadata: { description: 'Vehicles with 16+ passengers or hazmat' } },
+
+  // Endorsements
+  { category: 'endorsement', code: 'HAZMAT', label: 'Hazmat (H)', sortOrder: 1, metadata: { letter: 'H' } },
+  { category: 'endorsement', code: 'TANKER', label: 'Tanker (N)', sortOrder: 2, metadata: { letter: 'N' } },
+  { category: 'endorsement', code: 'DOUBLES_TRIPLES', label: 'Doubles/Triples (T)', sortOrder: 3, metadata: { letter: 'T' } },
+  { category: 'endorsement', code: 'PASSENGER', label: 'Passenger (P)', sortOrder: 4, metadata: { letter: 'P' } },
+  { category: 'endorsement', code: 'SCHOOL_BUS', label: 'School Bus (S)', sortOrder: 5, metadata: { letter: 'S' } },
+
   // US States
   { category: 'us_state', code: 'AL', label: 'Alabama', sortOrder: 1, metadata: {} },
   { category: 'us_state', code: 'AK', label: 'Alaska', sortOrder: 2, metadata: {} },
@@ -76,7 +88,7 @@ const REFERENCE_DATA = [
 
 export const seed = {
   name: 'Reference Data',
-  description: 'Seeds reference data lookup values (equipment types, statuses, US states)',
+  description: 'Seeds reference data lookup values (equipment types, statuses, CDL classes, endorsements, US states)',
 
   async run(prisma: PrismaClient): Promise<{ created: number; skipped: number }> {
     let created = 0;
