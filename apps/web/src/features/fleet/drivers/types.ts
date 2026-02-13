@@ -124,6 +124,7 @@ export function getSourceLabel(source: string): string {
     keeptruckin_eld: 'KeepTruckin',
     motive_eld: 'Motive',
     mcleod_tms: 'McLeod',
+    PROJECT44_TMS: 'Project44 TMS',
   };
   return labels[source] || source;
 }
