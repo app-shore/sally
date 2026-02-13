@@ -27,6 +27,7 @@ import {
   Mail,
   FileSpreadsheet,
   RefreshCw,
+  PenLine,
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
@@ -66,7 +67,7 @@ const showcaseScreens = [
     src: '/screenshots/loads.png',
     alt: 'SALLY Loads Board — Kanban view of drafts, pending, assigned, and in-transit loads',
     title: 'Loads Board',
-    subtitle: 'Loads flow in automatically from your email, CSV uploads, or TMS integration. No manual entry — just plan and dispatch.',
+    subtitle: 'Create loads manually, import from CSV, sync from your TMS, or just forward an email — SALLY picks up the details automatically.',
   },
   {
     src: '/screenshots/fleet.png',
@@ -151,9 +152,14 @@ const integrations = [
 
 const loadIngestionMethods = [
   {
+    icon: PenLine,
+    title: 'Manual Entry',
+    description: 'Full control when you need it. Create loads with a clean form — stops, weight, equipment, all in one place.',
+  },
+  {
     icon: Mail,
     title: 'Email',
-    description: 'Forward load confirmations to SALLY. Loads are created automatically — zero typing, zero copy-paste.',
+    description: 'Forward load confirmations to SALLY. Details are extracted automatically — zero retyping.',
   },
   {
     icon: FileSpreadsheet,
@@ -163,7 +169,7 @@ const loadIngestionMethods = [
   {
     icon: RefreshCw,
     title: 'TMS Sync',
-    description: 'Connect your TMS and loads flow in automatically. Always in sync, always up to date.',
+    description: 'Connect your TMS and loads flow in continuously. Always in sync, always up to date.',
   },
 ];
 
@@ -491,14 +497,14 @@ export default function ProductPage() {
               Zero Manual Entry
             </Badge>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">
-              Loads create themselves
+              Your loads, your way
             </h2>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Stop retyping load details. Forward an email, drop a CSV, or connect your TMS — SALLY handles the rest.
+              Enter loads manually when you need control, or let them flow in — forward an email, drop a CSV, or connect your TMS.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {loadIngestionMethods.map((method, i) => (
               <motion.div
                 key={method.title}
