@@ -103,23 +103,9 @@ export class VehiclesService {
   }
 
   /**
-   * TMS-owned identity fields — stripped when vehicle has an externalSource.
-   * These fields are managed by the TMS sync and should not be overwritten by dispatchers.
-   */
-  private static readonly TMS_OWNED_FIELDS = [
-    'unit_number',
-    'vin',
-    'make',
-    'model',
-    'year',
-    'license_plate',
-    'license_plate_state',
-  ] as const;
-
-  /**
    * Update vehicle info.
    * For TMS-synced vehicles (externalSource is set), identity fields are stripped
-   * so dispatchers can only update operational fields.
+   * so dispatchers can only update operational fields (status, equipment, fuel, etc.).
    */
   async update(
     vehicleId: string,
@@ -141,53 +127,63 @@ export class VehiclesService {
       current_fuel_gallons?: number;
     },
   ): Promise<Vehicle> {
-    // Look up the vehicle first to check external source ownership
-    const existing = await this.findOne(vehicleId, tenantId);
+    // Check if vehicle exists and whether it's TMS-synced
+    const existing = await this.prisma.vehicle.findUnique({
+      where: { vehicleId_tenantId: { vehicleId, tenantId } },
+      select: { externalSource: true },
+    });
 
-    let filteredData = { ...data };
+    if (!existing) {
+      throw new NotFoundException(`Vehicle not found: ${vehicleId}`);
+    }
 
-    // If TMS-synced, strip identity fields so only operational fields are updated
+    // For TMS-synced vehicles, destructure out identity fields (only operational fields pass through)
+    let filteredData = data;
     if (existing.externalSource) {
-      const strippedFields: string[] = [];
+      const {
+        unit_number,
+        vin,
+        make,
+        model,
+        year,
+        license_plate,
+        license_plate_state,
+        ...operationalFields
+      } = data;
+      filteredData = operationalFields;
 
-      for (const field of VehiclesService.TMS_OWNED_FIELDS) {
-        if (filteredData[field] !== undefined) {
-          strippedFields.push(field);
-          delete filteredData[field];
-        }
-      }
+      const attemptedTmsFields = [unit_number, vin, make, model, year, license_plate, license_plate_state]
+        .map((v, i) => v !== undefined ? ['unit_number', 'vin', 'make', 'model', 'year', 'license_plate', 'license_plate_state'][i] : null)
+        .filter(Boolean);
 
-      if (strippedFields.length > 0) {
-        this.logger.warn(
+      if (attemptedTmsFields.length > 0) {
+        this.logger.log(
           `Vehicle ${vehicleId} is TMS-synced (${existing.externalSource}). ` +
-          `Stripped identity fields from update: ${strippedFields.join(', ')}`,
+          `Filtered TMS-owned fields: ${attemptedTmsFields.join(', ')}`,
         );
       }
     }
 
     try {
       const vehicle = await this.prisma.vehicle.update({
-        where: {
-          vehicleId_tenantId: {
-            vehicleId,
-            tenantId,
-          },
-        },
+        where: { vehicleId_tenantId: { vehicleId, tenantId } },
         data: {
-          ...(filteredData.unit_number !== undefined ? { unitNumber: filteredData.unit_number } : {}),
-          ...(filteredData.vin !== undefined ? { vin: filteredData.vin } : {}),
+          // Operational fields (always allowed)
           ...(filteredData.equipment_type !== undefined ? { equipmentType: filteredData.equipment_type as any } : {}),
           ...(filteredData.fuel_capacity_gallons !== undefined ? { fuelCapacityGallons: filteredData.fuel_capacity_gallons } : {}),
           ...(filteredData.mpg !== undefined ? { mpg: filteredData.mpg } : {}),
           ...(filteredData.status !== undefined ? { status: filteredData.status as any } : {}),
-          ...(filteredData.make !== undefined ? { make: filteredData.make } : {}),
-          ...(filteredData.model !== undefined ? { model: filteredData.model } : {}),
-          ...(filteredData.year !== undefined ? { year: filteredData.year } : {}),
-          ...(filteredData.license_plate !== undefined ? { licensePlate: filteredData.license_plate } : {}),
-          ...(filteredData.license_plate_state !== undefined ? { licensePlateState: filteredData.license_plate_state } : {}),
           ...(filteredData.has_sleeper_berth !== undefined ? { hasSleeperBerth: filteredData.has_sleeper_berth } : {}),
           ...(filteredData.gross_weight_lbs !== undefined ? { grossWeightLbs: filteredData.gross_weight_lbs } : {}),
           ...(filteredData.current_fuel_gallons !== undefined ? { currentFuelGallons: filteredData.current_fuel_gallons } : {}),
+          // Identity fields (only for manual vehicles — defensive double-check)
+          ...(!existing.externalSource && filteredData.unit_number !== undefined ? { unitNumber: filteredData.unit_number } : {}),
+          ...(!existing.externalSource && filteredData.vin !== undefined ? { vin: filteredData.vin } : {}),
+          ...(!existing.externalSource && filteredData.make !== undefined ? { make: filteredData.make } : {}),
+          ...(!existing.externalSource && filteredData.model !== undefined ? { model: filteredData.model } : {}),
+          ...(!existing.externalSource && filteredData.year !== undefined ? { year: filteredData.year } : {}),
+          ...(!existing.externalSource && filteredData.license_plate !== undefined ? { licensePlate: filteredData.license_plate } : {}),
+          ...(!existing.externalSource && filteredData.license_plate_state !== undefined ? { licensePlateState: filteredData.license_plate_state } : {}),
         },
       });
 

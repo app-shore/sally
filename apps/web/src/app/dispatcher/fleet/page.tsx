@@ -10,6 +10,7 @@ import {
   deleteDriver,
   InviteDriverDialog,
   EditDriverDialog,
+  getSourceLabel,
   type Driver,
   type CreateDriverRequest,
 } from '@/features/fleet/drivers';
@@ -1475,17 +1476,3 @@ function formatEquipmentType(type: string, refData?: Record<string, ReferenceIte
   return labels[type] || type;
 }
 
-/**
- * Helper function to get human-readable source labels for drivers
- */
-function getSourceLabel(source: string): string {
-  const labels: Record<string, string> = {
-    mock_samsara: 'Samsara ELD',
-    mock_truckbase_tms: 'Truckbase TMS',
-    samsara_eld: 'Samsara ELD',
-    keeptruckin_eld: 'KeepTruckin',
-    motive_eld: 'Motive',
-    mcleod_tms: 'McLeod',
-  };
-  return labels[source] || source;
-}

@@ -112,3 +112,18 @@ export interface ActivateAndInviteResponse {
     status: string;
   };
 }
+
+/**
+ * Get human-readable label for external driver source
+ */
+export function getSourceLabel(source: string): string {
+  const labels: Record<string, string> = {
+    mock_samsara: 'Samsara ELD',
+    mock_truckbase_tms: 'Truckbase TMS',
+    samsara_eld: 'Samsara ELD',
+    keeptruckin_eld: 'KeepTruckin',
+    motive_eld: 'Motive',
+    mcleod_tms: 'McLeod',
+  };
+  return labels[source] || source;
+}

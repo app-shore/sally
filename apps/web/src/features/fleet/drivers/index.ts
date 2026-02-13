@@ -19,6 +19,9 @@ export type {
   ActivateAndInviteResponse,
 } from './types';
 
+// Utils
+export { getSourceLabel } from './types';
+
 // Hooks
 export {
   useDrivers,

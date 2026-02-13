@@ -8,6 +8,7 @@ import {
   useDriverHOS,
   InviteDriverDialog,
   EditDriverDialog,
+  getSourceLabel,
   type Driver,
 } from '@/features/fleet/drivers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -402,7 +403,7 @@ export default function DriverProfilePage({ params }: { params: Promise<{ driver
           open={editOpen}
           onOpenChange={setEditOpen}
           driver={driver}
-          externalSource={driver.external_source || undefined}
+          externalSource={driver.external_source ? getSourceLabel(driver.external_source) : undefined}
         />
       )}
 
