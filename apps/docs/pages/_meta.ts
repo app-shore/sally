@@ -1,4 +1,6 @@
-export default {
+const isPublic = process.env.DOCS_MODE === 'public'
+
+const meta: Record<string, any> = {
   "index": {
     "title": "Home",
     "type": "page",
@@ -24,14 +26,16 @@ export default {
     "title": "API Playground",
     "type": "page"
   },
-  "developer-guide": {
-    "title": "Developer Guide",
-    "type": "page"
-  },
-  "contributing": {
-    "title": "Contributing",
-    "type": "page"
-  },
+  ...(!isPublic ? {
+    "developer-guide": {
+      "title": "Developer Guide",
+      "type": "page"
+    },
+    "contributing": {
+      "title": "Contributing",
+      "type": "page"
+    },
+  } : {}),
   "resources": {
     "title": "Resources",
     "type": "page"
@@ -41,3 +45,5 @@ export default {
     "type": "page"
   }
 }
+
+export default meta
