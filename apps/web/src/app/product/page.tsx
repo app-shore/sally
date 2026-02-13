@@ -18,6 +18,9 @@ import {
   TrendingDown,
   Clock,
   Shield,
+  Mail,
+  FileSpreadsheet,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
@@ -57,7 +60,7 @@ const showcaseScreens = [
     src: '/screenshots/loads.png',
     alt: 'SALLY Loads Board — Kanban view of drafts, pending, assigned, and in-transit loads',
     title: 'Loads Board',
-    subtitle: 'Every load from draft to delivery. Drag, assign, and track in real time.',
+    subtitle: 'Loads flow in automatically from your email, CSV uploads, or TMS integration. No manual entry — just plan and dispatch.',
   },
   {
     src: '/screenshots/fleet.png',
@@ -138,6 +141,24 @@ const integrations = [
   { label: 'TMS', description: 'Load and dispatch sync' },
   { label: 'Fuel APIs', description: 'Real-time pricing' },
   { label: 'Weather', description: 'Route condition alerts' },
+];
+
+const loadIngestionMethods = [
+  {
+    icon: Mail,
+    title: 'Email',
+    description: 'Forward load confirmations to SALLY. Loads are created automatically — zero typing, zero copy-paste.',
+  },
+  {
+    icon: FileSpreadsheet,
+    title: 'CSV Import',
+    description: 'Drag and drop a spreadsheet. Hundreds of loads ingested in seconds with smart field mapping.',
+  },
+  {
+    icon: RefreshCw,
+    title: 'TMS Sync',
+    description: 'Connect your TMS and loads flow in automatically. Always in sync, always up to date.',
+  },
 ];
 
 /* ─── Animation Variants ─── */
@@ -336,6 +357,47 @@ export default function ProductPage() {
           {showcaseScreens.slice(1).map((screen, i) => (
             <ParallaxScreenshot key={screen.title} screen={screen} index={i} />
           ))}
+        </div>
+      </section>
+
+      {/* ━━━ Zero-Touch Load Creation ━━━ */}
+      <section className="px-4 md:px-6 lg:px-8 py-20 md:py-28 border-y border-border bg-muted/30">
+        <div className="max-w-5xl mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <Badge variant="muted" className="mb-4 text-xs tracking-wider uppercase">
+              Zero Manual Entry
+            </Badge>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">
+              Loads create themselves
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              Stop retyping load details. Forward an email, drop a CSV, or connect your TMS — SALLY handles the rest.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {loadIngestionMethods.map((method, i) => (
+              <motion.div
+                key={method.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.6, delay: i * 0.12, ease: easeOut }}
+              >
+                <Card className="h-full text-center group hover:shadow-md transition-shadow duration-300">
+                  <CardContent className="pt-8 pb-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-foreground text-background mb-5 group-hover:scale-105 transition-transform duration-300">
+                      <method.icon className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground mb-2">{method.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                      {method.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
