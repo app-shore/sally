@@ -1,14 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 
-interface ReferenceItem {
+export interface ReferenceItem {
   code: string;
   label: string;
   sort_order: number;
   metadata: any;
 }
 
-type ReferenceDataMap = Record<string, ReferenceItem[]>;
+export type ReferenceDataMap = Record<string, ReferenceItem[]>;
 
 @Injectable()
 export class ReferenceDataService {

@@ -458,6 +458,10 @@ function DriverForm({
   onSuccess: () => void;
   onCancel: () => void;
 }) {
+  const { data: refData } = useReferenceData(['cdl_class', 'us_state']);
+  const cdlClasses = refData?.cdl_class ?? [];
+  const usStates = refData?.us_state ?? [];
+
   const [formData, setFormData] = useState<CreateDriverRequest>({
     name: driver?.name || '',
     phone: driver?.phone || '',
@@ -533,9 +537,9 @@ function DriverForm({
               <SelectValue placeholder="Select CDL class" />
             </SelectTrigger>
             <SelectContent>
-              {CDL_CLASSES.map((cdl) => (
-                <SelectItem key={cdl.value} value={cdl.value}>
-                  {cdl.label} &mdash; {cdl.description}
+              {cdlClasses.map((cdl) => (
+                <SelectItem key={cdl.code} value={cdl.code}>
+                  {cdl.label} &mdash; {cdl.metadata?.description || ''}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -566,9 +570,9 @@ function DriverForm({
               <SelectValue placeholder="Select state" />
             </SelectTrigger>
             <SelectContent>
-              {US_STATES.map((state) => (
-                <SelectItem key={state.value} value={state.value}>
-                  {state.label} ({state.value})
+              {usStates.map((state) => (
+                <SelectItem key={state.code} value={state.code}>
+                  {state.label} ({state.code})
                 </SelectItem>
               ))}
             </SelectContent>

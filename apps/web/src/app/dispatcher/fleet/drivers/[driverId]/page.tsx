@@ -15,7 +15,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
 import { Separator } from '@/shared/components/ui/separator';
-import { ENDORSEMENT_OPTIONS, CDL_CLASSES } from '@/shared/lib/constants/us-states';
+import { useReferenceData } from '@/features/platform/reference-data';
 import {
   ArrowLeft,
   Pencil,
@@ -36,6 +36,9 @@ export default function DriverProfilePage({ params }: { params: Promise<{ driver
   const { driverId } = use(params);
   const { data: driver, isLoading, error } = useDriverById(driverId);
   const { data: hos } = useDriverHOS(driverId);
+  const { data: refData } = useReferenceData(['cdl_class', 'endorsement']);
+  const cdlClasses = refData?.cdl_class ?? [];
+  const endorsementOptions = refData?.endorsement ?? [];
   const [editOpen, setEditOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const router = useRouter();
@@ -93,7 +96,7 @@ export default function DriverProfilePage({ params }: { params: Promise<{ driver
     ? Math.ceil((new Date(driver.medical_card_expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
 
-  const cdlLabel = CDL_CLASSES.find((c) => c.value === driver.cdl_class);
+  const cdlLabel = cdlClasses.find((c) => c.code === driver.cdl_class);
 
   return (
     <div className="space-y-6">
@@ -219,7 +222,7 @@ export default function DriverProfilePage({ params }: { params: Promise<{ driver
                     <span className="text-muted-foreground">&mdash;</span>
                   )}
                   {cdlLabel && (
-                    <span className="text-xs text-muted-foreground">{cdlLabel.description}</span>
+                    <span className="text-xs text-muted-foreground">{cdlLabel.metadata?.description}</span>
                   )}
                 </div>
               </div>
@@ -239,7 +242,7 @@ export default function DriverProfilePage({ params }: { params: Promise<{ driver
               <div className="flex flex-wrap gap-1">
                 {driver.endorsements && driver.endorsements.length > 0 ? (
                   driver.endorsements.map((e) => {
-                    const opt = ENDORSEMENT_OPTIONS.find((o) => o.value === e);
+                    const opt = endorsementOptions.find((o) => o.code === e);
                     return (
                       <Badge key={e} variant="muted">
                         {opt?.label || e}

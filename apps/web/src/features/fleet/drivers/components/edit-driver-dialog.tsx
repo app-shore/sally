@@ -23,7 +23,7 @@ import { Checkbox } from '@/shared/components/ui/checkbox';
 import { Separator } from '@/shared/components/ui/separator';
 import { useUpdateDriver } from '../hooks/use-drivers';
 import type { Driver, UpdateDriverRequest } from '../types';
-import { US_STATES, CDL_CLASSES, ENDORSEMENT_OPTIONS } from '@/shared/lib/constants/us-states';
+import { useReferenceData } from '@/features/platform/reference-data';
 
 interface EditDriverDialogProps {
   open: boolean;
@@ -33,6 +33,10 @@ interface EditDriverDialogProps {
 
 export default function EditDriverDialog({ open, onOpenChange, driver }: EditDriverDialogProps) {
   const updateDriver = useUpdateDriver();
+  const { data: refData } = useReferenceData(['cdl_class', 'us_state', 'endorsement']);
+  const cdlClasses = refData?.cdl_class ?? [];
+  const usStates = refData?.us_state ?? [];
+  const endorsementOptions = refData?.endorsement ?? [];
 
   const [formData, setFormData] = useState<UpdateDriverRequest>({
     name: driver.name || '',
@@ -150,8 +154,8 @@ export default function EditDriverDialog({ open, onOpenChange, driver }: EditDri
                   <SelectValue placeholder="Select CDL class" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CDL_CLASSES.map((cdl) => (
-                    <SelectItem key={cdl.value} value={cdl.value}>
+                  {cdlClasses.map((cdl) => (
+                    <SelectItem key={cdl.code} value={cdl.code}>
                       {cdl.label}
                     </SelectItem>
                   ))}
@@ -180,9 +184,9 @@ export default function EditDriverDialog({ open, onOpenChange, driver }: EditDri
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
-                  {US_STATES.map((state) => (
-                    <SelectItem key={state.value} value={state.value}>
-                      {state.label} ({state.value})
+                  {usStates.map((state) => (
+                    <SelectItem key={state.code} value={state.code}>
+                      {state.label} ({state.code})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -196,14 +200,14 @@ export default function EditDriverDialog({ open, onOpenChange, driver }: EditDri
           <div>
             <Label>Endorsements</Label>
             <div className="flex flex-wrap gap-4 mt-2">
-              {ENDORSEMENT_OPTIONS.map((opt) => (
-                <div key={opt.value} className="flex items-center gap-2">
+              {endorsementOptions.map((opt) => (
+                <div key={opt.code} className="flex items-center gap-2">
                   <Checkbox
-                    id={`endorsement-${opt.value}`}
-                    checked={(formData.endorsements || []).includes(opt.value)}
-                    onCheckedChange={() => handleEndorsementToggle(opt.value)}
+                    id={`endorsement-${opt.code}`}
+                    checked={(formData.endorsements || []).includes(opt.code)}
+                    onCheckedChange={() => handleEndorsementToggle(opt.code)}
                   />
-                  <Label htmlFor={`endorsement-${opt.value}`} className="text-sm font-normal cursor-pointer">
+                  <Label htmlFor={`endorsement-${opt.code}`} className="text-sm font-normal cursor-pointer">
                     {opt.label}
                   </Label>
                 </div>
@@ -255,9 +259,9 @@ export default function EditDriverDialog({ open, onOpenChange, driver }: EditDri
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
-                  {US_STATES.map((state) => (
-                    <SelectItem key={state.value} value={state.value}>
-                      {state.label} ({state.value})
+                  {usStates.map((state) => (
+                    <SelectItem key={state.code} value={state.code}>
+                      {state.label} ({state.code})
                     </SelectItem>
                   ))}
                 </SelectContent>
