@@ -103,7 +103,23 @@ export class VehiclesService {
   }
 
   /**
-   * Update vehicle info
+   * TMS-owned identity fields — stripped when vehicle has an externalSource.
+   * These fields are managed by the TMS sync and should not be overwritten by dispatchers.
+   */
+  private static readonly TMS_OWNED_FIELDS = [
+    'unit_number',
+    'vin',
+    'make',
+    'model',
+    'year',
+    'license_plate',
+    'license_plate_state',
+  ] as const;
+
+  /**
+   * Update vehicle info.
+   * For TMS-synced vehicles (externalSource is set), identity fields are stripped
+   * so dispatchers can only update operational fields.
    */
   async update(
     vehicleId: string,
@@ -125,6 +141,30 @@ export class VehiclesService {
       current_fuel_gallons?: number;
     },
   ): Promise<Vehicle> {
+    // Look up the vehicle first to check external source ownership
+    const existing = await this.findOne(vehicleId, tenantId);
+
+    let filteredData = { ...data };
+
+    // If TMS-synced, strip identity fields so only operational fields are updated
+    if (existing.externalSource) {
+      const strippedFields: string[] = [];
+
+      for (const field of VehiclesService.TMS_OWNED_FIELDS) {
+        if (filteredData[field] !== undefined) {
+          strippedFields.push(field);
+          delete filteredData[field];
+        }
+      }
+
+      if (strippedFields.length > 0) {
+        this.logger.warn(
+          `Vehicle ${vehicleId} is TMS-synced (${existing.externalSource}). ` +
+          `Stripped identity fields from update: ${strippedFields.join(', ')}`,
+        );
+      }
+    }
+
     try {
       const vehicle = await this.prisma.vehicle.update({
         where: {
@@ -134,20 +174,20 @@ export class VehiclesService {
           },
         },
         data: {
-          ...(data.unit_number !== undefined ? { unitNumber: data.unit_number } : {}),
-          ...(data.vin !== undefined ? { vin: data.vin } : {}),
-          ...(data.equipment_type !== undefined ? { equipmentType: data.equipment_type as any } : {}),
-          ...(data.fuel_capacity_gallons !== undefined ? { fuelCapacityGallons: data.fuel_capacity_gallons } : {}),
-          ...(data.mpg !== undefined ? { mpg: data.mpg } : {}),
-          ...(data.status !== undefined ? { status: data.status as any } : {}),
-          ...(data.make !== undefined ? { make: data.make } : {}),
-          ...(data.model !== undefined ? { model: data.model } : {}),
-          ...(data.year !== undefined ? { year: data.year } : {}),
-          ...(data.license_plate !== undefined ? { licensePlate: data.license_plate } : {}),
-          ...(data.license_plate_state !== undefined ? { licensePlateState: data.license_plate_state } : {}),
-          ...(data.has_sleeper_berth !== undefined ? { hasSleeperBerth: data.has_sleeper_berth } : {}),
-          ...(data.gross_weight_lbs !== undefined ? { grossWeightLbs: data.gross_weight_lbs } : {}),
-          ...(data.current_fuel_gallons !== undefined ? { currentFuelGallons: data.current_fuel_gallons } : {}),
+          ...(filteredData.unit_number !== undefined ? { unitNumber: filteredData.unit_number } : {}),
+          ...(filteredData.vin !== undefined ? { vin: filteredData.vin } : {}),
+          ...(filteredData.equipment_type !== undefined ? { equipmentType: filteredData.equipment_type as any } : {}),
+          ...(filteredData.fuel_capacity_gallons !== undefined ? { fuelCapacityGallons: filteredData.fuel_capacity_gallons } : {}),
+          ...(filteredData.mpg !== undefined ? { mpg: filteredData.mpg } : {}),
+          ...(filteredData.status !== undefined ? { status: filteredData.status as any } : {}),
+          ...(filteredData.make !== undefined ? { make: filteredData.make } : {}),
+          ...(filteredData.model !== undefined ? { model: filteredData.model } : {}),
+          ...(filteredData.year !== undefined ? { year: filteredData.year } : {}),
+          ...(filteredData.license_plate !== undefined ? { licensePlate: filteredData.license_plate } : {}),
+          ...(filteredData.license_plate_state !== undefined ? { licensePlateState: filteredData.license_plate_state } : {}),
+          ...(filteredData.has_sleeper_berth !== undefined ? { hasSleeperBerth: filteredData.has_sleeper_berth } : {}),
+          ...(filteredData.gross_weight_lbs !== undefined ? { grossWeightLbs: filteredData.gross_weight_lbs } : {}),
+          ...(filteredData.current_fuel_gallons !== undefined ? { currentFuelGallons: filteredData.current_fuel_gallons } : {}),
         },
       });
 

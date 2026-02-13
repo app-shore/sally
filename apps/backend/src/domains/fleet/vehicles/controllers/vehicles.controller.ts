@@ -123,8 +123,6 @@ export class VehiclesController extends BaseTenantController {
 
   @Put(':vehicle_id')
   @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.DISPATCHER)
-  @UseGuards(ExternalSourceGuard)
-  @ExternalSourceCheck('vehicle')
   @ApiOperation({ summary: 'Update vehicle' })
   @ApiParam({ name: 'vehicle_id', description: 'Vehicle ID' })
   async updateVehicle(
