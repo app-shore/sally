@@ -10,6 +10,8 @@ import type { LoadListItem, Load, LoadCreate, LoadStopCreate } from '@/features/
 import type { Customer, CustomerCreate } from '@/features/fleet/customers/types';
 import { CustomerList } from '@/features/fleet/customers/components/customer-list';
 import { InviteCustomerDialog } from '@/features/fleet/customers/components/invite-customer-dialog';
+import { useReferenceData } from '@/features/platform/reference-data';
+import type { ReferenceDataMap } from '@/features/platform/reference-data';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
@@ -74,6 +76,7 @@ export default function LoadsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuthStore();
+  const { data: refData } = useReferenceData(['equipment_type', 'us_state']);
   const [loads, setLoads] = useState<LoadListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -259,6 +262,7 @@ export default function LoadsPage() {
                   <NewLoadForm
                     onSuccess={handleCreateSuccess}
                     onCancel={() => setIsNewLoadOpen(false)}
+                    refData={refData}
                   />
                 </DialogContent>
               </Dialog>
@@ -364,6 +368,7 @@ export default function LoadsPage() {
                   loads={delivered}
                   onRowClick={handleCardClick}
                   emptyMessage="No delivered loads"
+                  refData={refData}
                 />
               </TabsContent>
 
@@ -372,6 +377,7 @@ export default function LoadsPage() {
                   loads={cancelled}
                   onRowClick={handleCardClick}
                   emptyMessage="No cancelled loads"
+                  refData={refData}
                 />
               </TabsContent>
             </Tabs>
@@ -814,10 +820,12 @@ function LoadsTable({
   loads,
   onRowClick,
   emptyMessage,
+  refData,
 }: {
   loads: LoadListItem[];
   onRowClick: (load: LoadListItem) => void;
   emptyMessage: string;
+  refData?: ReferenceDataMap;
 }) {
   if (loads.length === 0) {
     return (
@@ -853,7 +861,8 @@ function LoadsTable({
               {load.weight_lbs?.toLocaleString()} lbs
             </TableCell>
             <TableCell className="text-foreground capitalize">
-              {load.equipment_type?.replace(/_/g, ' ') || '—'}
+              {refData?.equipment_type?.find(item => item.code.toLowerCase() === load.equipment_type?.toLowerCase())?.label
+                ?? load.equipment_type?.replace(/_/g, ' ') ?? '—'}
             </TableCell>
             <TableCell>
               <IntakeSourceBadge source={load.intake_source} />
@@ -869,7 +878,7 @@ function LoadsTable({
 // New Load Form (Enhanced)
 // ============================================================================
 
-const US_STATES = [
+const US_STATES_FALLBACK = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
   'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
   'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
@@ -877,12 +886,21 @@ const US_STATES = [
   'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY',
 ];
 
+const EQUIPMENT_TYPES_FALLBACK = [
+  { code: 'dry_van', label: 'Dry Van' },
+  { code: 'reefer', label: 'Reefer' },
+  { code: 'flatbed', label: 'Flatbed' },
+  { code: 'step_deck', label: 'Step Deck' },
+];
+
 function NewLoadForm({
   onSuccess,
   onCancel,
+  refData,
 }: {
   onSuccess: () => void;
   onCancel: () => void;
+  refData?: ReferenceDataMap;
 }) {
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -1086,10 +1104,9 @@ function NewLoadForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="dry_van">Dry Van</SelectItem>
-                <SelectItem value="reefer">Reefer</SelectItem>
-                <SelectItem value="flatbed">Flatbed</SelectItem>
-                <SelectItem value="step_deck">Step Deck</SelectItem>
+                {(refData?.equipment_type?.map(item => ({ code: item.code.toLowerCase(), label: item.label })) ?? EQUIPMENT_TYPES_FALLBACK).map((et) => (
+                  <SelectItem key={et.code} value={et.code}>{et.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -1297,8 +1314,8 @@ function NewLoadForm({
                             <SelectValue placeholder="—" />
                           </SelectTrigger>
                           <SelectContent>
-                            {US_STATES.map((s) => (
-                              <SelectItem key={s} value={s}>{s}</SelectItem>
+                            {(refData?.us_state?.map(item => ({ code: item.code, label: item.label })) ?? US_STATES_FALLBACK.map(s => ({ code: s, label: s }))).map((st) => (
+                              <SelectItem key={st.code} value={st.code}>{st.code}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
