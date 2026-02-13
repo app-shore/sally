@@ -697,27 +697,37 @@ function AssetsTab({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Unit Number</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Make/Model</TableHead>
-                    <TableHead>Year</TableHead>
-                    <TableHead>Fuel Capacity</TableHead>
-                    <TableHead>MPG</TableHead>
+                    <TableHead>Fuel / MPG</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Source</TableHead>
-                    <TableHead>Last Synced</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {vehicles.map((vehicle) => (
                     <TableRow key={vehicle.id}>
-                      <TableCell className="font-medium text-foreground">{vehicle.unit_number}</TableCell>
+                      <TableCell className="font-medium text-foreground">
+                        {vehicle.unit_number}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {formatEquipmentType(vehicle.equipment_type)}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-foreground">
                         {vehicle.make && vehicle.model
                           ? `${vehicle.make} ${vehicle.model}`
-                          : '-'}
+                          : vehicle.make || vehicle.model || '—'}
                       </TableCell>
-                      <TableCell className="text-foreground">{vehicle.year || '-'}</TableCell>
-                      <TableCell className="text-foreground">{vehicle.fuel_capacity_gallons} gal</TableCell>
-                      <TableCell className="text-foreground">{vehicle.mpg ? `${vehicle.mpg} mpg` : '-'}</TableCell>
+                      <TableCell className="text-foreground text-sm">
+                        {vehicle.fuel_capacity_gallons} gal
+                        {vehicle.mpg ? ` · ${vehicle.mpg} mpg` : ''}
+                      </TableCell>
+                      <TableCell>
+                        <VehicleStatusBadge status={vehicle.status} />
+                      </TableCell>
                       <TableCell>
                         {vehicle.external_source ? (
                           <Badge variant="muted" className="gap-1">
@@ -730,9 +740,6 @@ function AssetsTab({
                             Manual
                           </Badge>
                         )}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {vehicle.last_synced_at ? formatRelativeTime(vehicle.last_synced_at) : 'Never'}
                       </TableCell>
                       <TableCell className="text-right">
                         {vehicle.external_source ? (
@@ -1210,6 +1217,49 @@ function VehicleForm({
       </div>
     </form>
   );
+}
+
+function VehicleStatusBadge({ status }: { status: string }) {
+  switch (status) {
+    case 'AVAILABLE':
+      return (
+        <Badge variant="outline" className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-400">
+          Available
+        </Badge>
+      );
+    case 'ASSIGNED':
+      return (
+        <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-transparent">
+          Assigned
+        </Badge>
+      );
+    case 'IN_SHOP':
+      return (
+        <Badge variant="outline" className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400">
+          In Shop
+        </Badge>
+      );
+    case 'OUT_OF_SERVICE':
+      return (
+        <Badge variant="outline" className="border-red-300 dark:border-red-700 text-red-700 dark:text-red-400">
+          Out of Service
+        </Badge>
+      );
+    default:
+      return <Badge variant="outline">{status}</Badge>;
+  }
+}
+
+function formatEquipmentType(type: string): string {
+  const labels: Record<string, string> = {
+    DRY_VAN: 'Dry Van',
+    FLATBED: 'Flatbed',
+    REEFER: 'Reefer',
+    STEP_DECK: 'Step Deck',
+    POWER_ONLY: 'Power Only',
+    OTHER: 'Other',
+  };
+  return labels[type] || type;
 }
 
 /**
