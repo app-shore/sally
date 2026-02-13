@@ -40,6 +40,7 @@ jobs:
         working-directory: apps/docs
         env:
           GITHUB_PAGES: 'true'
+          NEXT_PUBLIC_DOCS_MODE: 'public'
         run: pnpm run build
 
       - name: Setup Pages

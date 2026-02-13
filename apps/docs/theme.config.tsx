@@ -41,9 +41,11 @@ const config = {
     extraContent: (
       <a
         href={APP_URL}
-        className="nx-text-sm nx-text-gray-500 hover:nx-text-gray-900 nx-transition-colors nx-flex nx-items-center nx-gap-1"
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 whitespace-nowrap px-2 py-1"
       >
-        &larr; Back to SALLY
+        <span aria-hidden="true">&larr;</span>
+        <span className="hidden sm:inline">Back to SALLY</span>
+        <span className="sm:hidden">SALLY</span>
       </a>
     )
   },

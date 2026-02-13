@@ -2,7 +2,7 @@ import { FeatureCard } from "@/components/FeatureCard"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-const isPublic = process.env.DOCS_MODE === 'public'
+const isPublic = process.env.NEXT_PUBLIC_DOCS_MODE === 'public'
 
 export function DocsHome() {
   return (
