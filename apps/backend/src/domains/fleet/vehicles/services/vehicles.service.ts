@@ -52,13 +52,19 @@ export class VehiclesService {
     tenantId: number,
     data: {
       unit_number: string;
+      vin: string;
+      equipment_type: string;
+      fuel_capacity_gallons: number;
+      mpg?: number;
+      status?: string;
       make?: string;
       model?: string;
       year?: number;
-      vin?: string;
-      fuel_capacity_gallons?: number;
+      license_plate?: string;
+      license_plate_state?: string;
+      has_sleeper_berth?: boolean;
+      gross_weight_lbs?: number;
       current_fuel_gallons?: number;
-      mpg?: number;
     },
   ): Promise<Vehicle> {
     const vehicleId = `VEH-${Date.now().toString(36).toUpperCase()}`;
@@ -68,13 +74,19 @@ export class VehiclesService {
         data: {
           vehicleId,
           unitNumber: data.unit_number,
+          vin: data.vin,
+          equipmentType: data.equipment_type as any,
+          fuelCapacityGallons: data.fuel_capacity_gallons,
+          mpg: data.mpg,
+          status: (data.status as any) || 'AVAILABLE',
           make: data.make || null,
           model: data.model || null,
           year: data.year || null,
-          vin: data.vin || null,
-          fuelCapacityGallons: data.fuel_capacity_gallons,
+          licensePlate: data.license_plate || null,
+          licensePlateState: data.license_plate_state || null,
+          hasSleeperBerth: data.has_sleeper_berth ?? true,
+          grossWeightLbs: data.gross_weight_lbs || null,
           currentFuelGallons: data.current_fuel_gallons,
-          mpg: data.mpg,
           isActive: true,
           tenantId,
         },
@@ -84,7 +96,7 @@ export class VehiclesService {
       return vehicle;
     } catch (error) {
       if (error.code === 'P2002') {
-        throw new ConflictException('Vehicle ID already exists');
+        throw new ConflictException('Vehicle with this VIN or ID already exists');
       }
       throw error;
     }
@@ -98,40 +110,55 @@ export class VehiclesService {
     tenantId: number,
     data: {
       unit_number?: string;
+      vin?: string;
+      equipment_type?: string;
+      fuel_capacity_gallons?: number;
+      mpg?: number;
+      status?: string;
       make?: string;
       model?: string;
       year?: number;
-      vin?: string;
-      fuel_capacity_gallons?: number;
+      license_plate?: string;
+      license_plate_state?: string;
+      has_sleeper_berth?: boolean;
+      gross_weight_lbs?: number;
       current_fuel_gallons?: number;
-      mpg?: number;
     },
   ): Promise<Vehicle> {
-    const vehicle = await this.prisma.vehicle.update({
-      where: {
-        vehicleId_tenantId: {
-          vehicleId,
-          tenantId,
+    try {
+      const vehicle = await this.prisma.vehicle.update({
+        where: {
+          vehicleId_tenantId: {
+            vehicleId,
+            tenantId,
+          },
         },
-      },
-      data: {
-        ...(data.unit_number !== undefined ? { unitNumber: data.unit_number } : {}),
-        ...(data.make !== undefined ? { make: data.make } : {}),
-        ...(data.model !== undefined ? { model: data.model } : {}),
-        ...(data.year !== undefined ? { year: data.year } : {}),
-        ...(data.vin !== undefined ? { vin: data.vin } : {}),
-        ...(data.fuel_capacity_gallons !== undefined
-          ? { fuelCapacityGallons: data.fuel_capacity_gallons }
-          : {}),
-        ...(data.current_fuel_gallons !== undefined
-          ? { currentFuelGallons: data.current_fuel_gallons }
-          : {}),
-        ...(data.mpg !== undefined ? { mpg: data.mpg } : {}),
-      },
-    });
+        data: {
+          ...(data.unit_number !== undefined ? { unitNumber: data.unit_number } : {}),
+          ...(data.vin !== undefined ? { vin: data.vin } : {}),
+          ...(data.equipment_type !== undefined ? { equipmentType: data.equipment_type as any } : {}),
+          ...(data.fuel_capacity_gallons !== undefined ? { fuelCapacityGallons: data.fuel_capacity_gallons } : {}),
+          ...(data.mpg !== undefined ? { mpg: data.mpg } : {}),
+          ...(data.status !== undefined ? { status: data.status as any } : {}),
+          ...(data.make !== undefined ? { make: data.make } : {}),
+          ...(data.model !== undefined ? { model: data.model } : {}),
+          ...(data.year !== undefined ? { year: data.year } : {}),
+          ...(data.license_plate !== undefined ? { licensePlate: data.license_plate } : {}),
+          ...(data.license_plate_state !== undefined ? { licensePlateState: data.license_plate_state } : {}),
+          ...(data.has_sleeper_berth !== undefined ? { hasSleeperBerth: data.has_sleeper_berth } : {}),
+          ...(data.gross_weight_lbs !== undefined ? { grossWeightLbs: data.gross_weight_lbs } : {}),
+          ...(data.current_fuel_gallons !== undefined ? { currentFuelGallons: data.current_fuel_gallons } : {}),
+        },
+      });
 
-    this.logger.log(`Vehicle updated: ${vehicleId}`);
-    return vehicle;
+      this.logger.log(`Vehicle updated: ${vehicleId}`);
+      return vehicle;
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ConflictException('Vehicle with this VIN already exists');
+      }
+      throw error;
+    }
   }
 
   /**
