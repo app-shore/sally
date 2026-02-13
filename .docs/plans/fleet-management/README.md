@@ -1,42 +1,33 @@
 # Fleet Management — Documentation Index
 
-## Subdomain References (Current State of Code)
+## Subdomain Documentation
 
-These documents reflect the **actual implemented state** of each subdomain. Update them when making significant changes.
+These are the **canonical design & implementation docs** for each fleet management subdomain. They consolidate all design decisions, data models, API endpoints, frontend architecture, and implementation details. Update them when making significant changes.
 
 | Document | Subdomain | What's Covered |
 |----------|-----------|----------------|
-| [drivers.md](./drivers.md) | Drivers | Data model, 11 API endpoints, lifecycle, TMS sync, HOS, SALLY access, UI components |
-| [vehicles.md](./vehicles.md) | Vehicles/Assets | Data model, 5 API endpoints, TMS field locking, trucks/trailers/equipment tabs |
-| [loads.md](./loads.md) | Loads | Data model, 7+ API endpoints, status lifecycle, stops, tracking, customer portal |
-| [customers.md](./customers.md) | Customers | Data model, 5 API endpoints, portal invitations, access flow |
+| [drivers.md](./drivers.md) | Drivers | Data model, 11 API endpoints, lifecycle, TMS partial edit, HOS, SALLY access derivation, profile page, design decisions |
+| [vehicles.md](./vehicles.md) | Vehicles/Assets | Data model, 5 API endpoints, TMS field locking, VIN validation, trucks/trailers/equipment tabs, design decisions |
+| [loads.md](./loads.md) | Loads | Data model, 7+ API endpoints, status lifecycle, intake sources, stops, TMS adapter pattern, sync process, dispatch board UX, tracking, design decisions |
+| [customers.md](./customers.md) | Customers | Data model, 5 API endpoints, portal invitations, visibility boundaries, tracking timeline, customer portal, design decisions |
 
-## Design & Implementation Plans (Historical)
+## Archived Plans
 
-These are design/implementation plans created during feature development. They document the **design intent** at the time of creation.
+Historical design and implementation plans from feature development are preserved in `_archive/`. These document the **design intent at the time of creation** — their unique content has been merged into the consolidated docs above.
 
-### Drivers
-| Document | Date | Notes |
-|----------|------|-------|
-| [driver-management-ux-redesign.md](./2026-02-13-driver-management-ux-redesign.md) | 2026-02-13 | PR #22: CDL badges, HOS bars, profile page, edit dialog |
-| [driver-management-implementation.md](./2026-02-13-driver-management-implementation.md) | 2026-02-13 | Implementation plan for PR #22 |
-| [driver-management-ux-fixes-design.md](./2026-02-13-driver-management-ux-fixes-design.md) | 2026-02-13 | Post-PR #22 audit: More Details, unified edit, TMS partial edit, SALLY column cleanup |
-| [driver-management-ux-fixes.md](./2026-02-13-driver-management-ux-fixes.md) | 2026-02-13 | Implementation plan for UX fixes |
-| [team-drivers-design.md](./team-drivers-design.md) | Earlier | Team drivers / activation lifecycle |
-| [team-drivers-implementation.md](./team-drivers-implementation.md) | Earlier | Implementation plan |
-
-### Loads
-| Document | Date | Notes |
-|----------|------|-------|
-| [loads-management-design.md](./loads-management-design.md) | Earlier | Core loads feature design |
-| [loads-management-implementation.md](./loads-management-implementation.md) | Earlier | Implementation plan |
-| [loads-dispatch-board-design.md](./loads-dispatch-board-design.md) | Earlier | Dispatch board UI design |
-| [loads-dispatch-board-implementation.md](./loads-dispatch-board-implementation.md) | Earlier | Implementation plan |
-| [load-creation-ux-review.md](./2026-02-12-load-creation-ux-review.md) | 2026-02-12 | UX audit of load creation |
-| [load-creation-ux-improvements.md](./2026-02-12-load-creation-ux-improvements.md) | 2026-02-12 | Implementation plan for UX fixes |
-
-### Customers
-| Document | Date | Notes |
-|----------|------|-------|
-| [customer-shipper-portal-design.md](./customer-shipper-portal-design.md) | Earlier | Customer portal design |
-| [customer-shipper-portal-implementation.md](./customer-shipper-portal-implementation.md) | Earlier | Implementation plan |
+| Document | Subdomain | Original Purpose |
+|----------|-----------|-----------------|
+| team-drivers-design.md | Drivers | SALLY access lifecycle design |
+| team-drivers-implementation.md | Drivers | Implementation plan |
+| 2026-02-13-driver-management-ux-redesign.md | Drivers | PR #22: CDL badges, HOS bars, profile page, edit dialog |
+| 2026-02-13-driver-management-implementation.md | Drivers | Implementation plan for PR #22 |
+| 2026-02-13-driver-management-ux-fixes-design.md | Drivers | Post-PR #22 audit: More Details, unified edit, TMS partial edit |
+| 2026-02-13-driver-management-ux-fixes.md | Drivers | Implementation plan for UX fixes |
+| loads-management-design.md | Loads | Core loads feature design |
+| loads-management-implementation.md | Loads | Implementation plan |
+| loads-dispatch-board-design.md | Loads | Dispatch board UI design |
+| loads-dispatch-board-implementation.md | Loads | Implementation plan |
+| 2026-02-12-load-creation-ux-review.md | Loads | UX audit of load creation |
+| 2026-02-12-load-creation-ux-improvements.md | Loads | Implementation plan for UX fixes |
+| customer-shipper-portal-design.md | Customers | Customer portal design |
+| customer-shipper-portal-implementation.md | Customers | Implementation plan |

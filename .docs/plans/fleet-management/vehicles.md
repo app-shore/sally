@@ -1,4 +1,4 @@
-# Vehicles / Assets — Design & Implementation Reference
+# Vehicles / Assets — Design & Implementation
 
 > **Last updated:** 2026-02-13 | **Status:** Implemented (Trucks only; Trailers & Equipment are Coming Soon)
 
@@ -148,6 +148,20 @@ Vehicles currently use imperative API calls (`listVehicles()`, `createVehicle()`
 - Fuel capacity: 1-500 gallons
 - MPG: 1-20
 - Status: AVAILABLE, IN_SHOP, OUT_OF_SERVICE only (ASSIGNED not allowed on create)
+
+---
+
+## Design Decisions
+
+1. **TMS field filtering on backend:** Even if frontend sends locked fields, the backend service strips identity fields from update payloads for TMS-synced vehicles. Defense in depth.
+
+2. **ASSIGNED status not allowed on create:** Vehicles are created as AVAILABLE, IN_SHOP, or OUT_OF_SERVICE. ASSIGNED status is set only by the load assignment flow.
+
+3. **VIN validation:** 17-char regex `^[A-HJ-NPR-Z0-9]{17}$` excludes I, O, Q (industry standard to avoid confusion with 1, 0). Auto-uppercased on input.
+
+4. **"More Details" progressive disclosure:** Matches the Driver form pattern — essential fields always visible, vehicle details and registration in a collapsible section that auto-expands when data exists.
+
+5. **Imperative API calls (no React Query):** Vehicles currently use `useState` + `loadData()` rather than React Query hooks. This is a legacy pattern that may be migrated in the future.
 
 ---
 

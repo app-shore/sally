@@ -1,4 +1,4 @@
-# Customers — Design & Implementation Reference
+# Customers — Design & Implementation
 
 > **Last updated:** 2026-02-13 | **Status:** Implemented (core CRUD + portal invitations)
 
@@ -138,14 +138,67 @@ Customer can submit load requests via portal
 ### Customer Portal (Partial)
 Backend endpoints exist:
 - `GET /customer-loads` — list loads for logged-in customer
-- `POST /customer-loads` — create load request (creates as draft)
+- `POST /customer-loads` — create load request (creates as draft with `intake_source: 'portal'`)
 - `GET /customer-loads/:load_id` — view specific load (ownership validated)
 
 Frontend portal UI is partially built (structure exists, full UI pending).
 
+### Customer Visibility Boundaries
+
+**What customers CAN see:**
+- Load number and status
+- Origin/destination city and state
+- Equipment type
+- Estimated delivery date (from active route plan)
+- Tracking timeline events
+- Carrier company name
+- Load weight
+
+**What customers CANNOT see:**
+- Driver name, phone, or personal details
+- Vehicle details
+- Route plan details (waypoints, rest stops, fuel stops)
+- Internal notes or dispatch comments
+- Pricing or rate information
+- Other customers' loads
+
+### Tracking Timeline
+
+The tracking timeline is built server-side from load state (`buildTrackingTimeline`):
+
+| Event | Condition | Status |
+|-------|-----------|--------|
+| "Order Confirmed" | Always (load exists) | completed |
+| "Driver Assigned" | status in [planned, active, in_transit, completed] | completed |
+| "Picked Up" | status in [active, in_transit, completed] and pickup has data | completed |
+| "In Transit" | status in [active, in_transit] | current |
+| "Delivered" | status = completed | completed (else upcoming) |
+
+The timeline uses the origin stop's city/state for pickup detail and the last delivery stop's city/state for delivery detail.
+
+---
+
+## Design Decisions
+
+1. **Separate route group for customer pages:** Customer pages live under `/customer/*` with distinct layouts, not mixed into dispatcher routes.
+
+2. **Public tracking is completely separate from auth:** The `/track/[token]` page uses a direct API fetch without the auth store, making it truly shareable.
+
+3. **Customer requests create drafts:** Load requests from the portal enter as `draft` status with `intake_source: 'portal'`, requiring dispatcher review before planning.
+
+4. **Denormalized customer name on loads:** `Load.customerName` allows displaying the customer name in load lists without joining the Customer table, optimizing the common read path.
+
+5. **Estimated delivery from route plan:** The customer dashboard and tracking page derive estimated delivery from the active RoutePlan's `estimatedArrival`, connecting loads to the route planning engine.
+
+6. **Invitation model shared with drivers:** The `UserInvitation` table has both `driverId` and `customerId` optional FKs, allowing the same invitation infrastructure for both.
+
+7. **POD as placeholder:** The tracking page shows a "Proof of Delivery" section but the actual POD table and upload functionality are not yet built. This sets the UX expectation for future implementation.
+
 ---
 
 ## Future Work (Not Yet Implemented)
+
+### Customer Management
 - Customer detail/profile page
 - Customer edit form (backend ready, frontend edit dialog not visible)
 - Billing email field in UI
@@ -153,6 +206,11 @@ Frontend portal UI is partially built (structure exists, full UI pending).
 - Notification preferences UI
 - Customer search/filter by company name, contact, city
 - Bulk customer operations
-- Full customer portal UI (load request submission, shipment tracking)
 - Customer-specific rate sheets / contracts
 - Customer load history view
+- Multi-contact support (currently one contact per customer; future: `CustomerContact` junction table with different notification preferences)
+
+### Customer Portal
+- Full customer portal UI (load request submission, shipment tracking dashboard)
+- Proof of Delivery (POD) — `ProofOfDelivery` table, photo upload for drivers, customer download from tracking page
+- Email notifications — status change notifications to customer email, configurable via `notificationPrefs` JSON field (requires email service: SendGrid, SES, etc.)
