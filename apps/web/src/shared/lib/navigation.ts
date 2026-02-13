@@ -1,4 +1,4 @@
-import { BarChart3, Building2, ClipboardList, FileText, Flag, Home, LucideIcon, Map, MessageSquare, Package, Plus, Rocket, Settings, Users, Wallet } from 'lucide-react';
+import { BarChart3, Building2, ClipboardList, Flag, Home, LucideIcon, Map, MessageSquare, Package, Plus, Receipt, Rocket, Settings, Users, Wallet } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -30,9 +30,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Loads', href: '/dispatcher/loads', icon: ClipboardList },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
-    { type: 'separator', label: 'Financials' } as NavSeparator,
-    { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
-    { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
+    { type: 'separator', label: 'Money' } as NavSeparator,
+    { label: 'Billing', href: '/dispatcher/billing', icon: Receipt },
+    { label: 'Pay', href: '/dispatcher/pay', icon: Wallet },
     { type: 'separator', label: 'Configuration' } as NavSeparator,
     { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
@@ -50,9 +50,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Loads', href: '/dispatcher/loads', icon: ClipboardList },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
-    { type: 'separator', label: 'Financials' } as NavSeparator,
-    { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
-    { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
+    { type: 'separator', label: 'Money' } as NavSeparator,
+    { label: 'Billing', href: '/dispatcher/billing', icon: Receipt },
+    { label: 'Pay', href: '/dispatcher/pay', icon: Wallet },
     { type: 'separator', label: 'Administration' } as NavSeparator,
     { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { label: 'Team', href: '/admin/team', icon: Users },
@@ -65,9 +65,9 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
     { label: 'Loads', href: '/dispatcher/loads', icon: ClipboardList },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
-    { type: 'separator', label: 'Financials' } as NavSeparator,
-    { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
-    { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
+    { type: 'separator', label: 'Money' } as NavSeparator,
+    { label: 'Billing', href: '/dispatcher/billing', icon: Receipt },
+    { label: 'Pay', href: '/dispatcher/pay', icon: Wallet },
     { type: 'separator', label: 'Administration' } as NavSeparator,
     { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { label: 'Team', href: '/admin/team', icon: Users },
