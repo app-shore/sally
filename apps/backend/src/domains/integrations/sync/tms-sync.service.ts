@@ -80,6 +80,8 @@ export class TmsSyncService {
           externalVehicleId: tmsVehicle.vehicle_id,
           vehicleId: tmsVehicle.vehicle_id,
           unitNumber: tmsVehicle.unit_number,
+          fuelCapacityGallons: 150,
+          equipmentType: 'DRY_VAN',
           tenantId,
           make: tmsVehicle.make,
           model: tmsVehicle.model,
