@@ -2,12 +2,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Menu, X, LogIn, LogOut, ArrowRight, UserPlus } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { Menu, X, LogIn, LogOut, ArrowRight, UserPlus, ExternalLink } from 'lucide-react';
 import { useAuthStore } from '@/features/auth';
 import { Button } from '@/shared/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
 import { getDefaultRouteForRole } from '@/shared/lib/navigation';
+
+const navItems = [
+  { label: 'Home', href: '/', external: false },
+  { label: 'Product', href: '/product', external: false },
+  { label: 'Developers', href: process.env.NEXT_PUBLIC_DOCS_URL || 'http://localhost:3001', external: true },
+  { label: 'Pricing', href: '/pricing', external: false },
+];
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -20,6 +27,7 @@ interface PublicLayoutProps {
 export function PublicLayout({ children }: PublicLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, user, signOut } = useAuthStore();
 
   const handleLogout = async () => {
@@ -54,6 +62,38 @@ export function PublicLayout({ children }: PublicLayoutProps) {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-2">
+            {/* Nav Links */}
+            <nav className="flex items-center gap-1 mr-4">
+              {navItems.map((item) => {
+                const isActive = !item.external && pathname === item.href;
+                if (item.external) {
+                  return (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md"
+                    >
+                      {item.label}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  );
+                }
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                      isActive
+                        ? 'text-foreground font-medium'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
             <ThemeToggle />
 
             {/* User info if authenticated */}
@@ -100,19 +140,55 @@ export function PublicLayout({ children }: PublicLayoutProps) {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-md hover:bg-muted transition-colors"
+            className="md:hidden"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          </Button>
         </div>
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-background">
             <div className="flex flex-col p-2 space-y-1">
+              {/* Nav links on mobile */}
+              <nav className="flex flex-col space-y-1 pb-2 border-b border-border mb-2">
+                {navItems.map((item) => {
+                  const isActive = !item.external && pathname === item.href;
+                  if (item.external) {
+                    return (
+                      <a
+                        key={item.label}
+                        href={item.href}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {item.label}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    );
+                  }
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                        isActive
+                          ? 'text-foreground font-medium bg-muted'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+
               {/* Theme toggle on mobile */}
               <div className="flex items-center justify-between px-4 py-3">
                 <span className="text-sm font-medium text-muted-foreground">
