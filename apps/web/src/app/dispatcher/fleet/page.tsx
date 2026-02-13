@@ -52,8 +52,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
+import { Progress } from '@/shared/components/ui/progress';
 import { formatRelativeTime } from '@/features/integrations';
-import { Lock, Plus, RefreshCw, Settings, Package } from 'lucide-react';
+import { US_STATES, CDL_CLASSES } from '@/shared/lib/constants/us-states';
+import { Lock, Plus, RefreshCw, Settings, Package, MoreHorizontal, Eye, Pencil, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/hooks/use-toast';
 
 export default function FleetPage() {
@@ -189,6 +205,7 @@ function DriversTab({
     await onRefresh();
   };
 
+  const router = useRouter();
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleSyncDrivers = async () => {
@@ -271,122 +288,129 @@ function DriversTab({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>License Number</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>SALLY Access</TableHead>
-                <TableHead>Last Synced</TableHead>
+                <TableHead>Driver</TableHead>
+                <TableHead>CDL</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden md:table-cell">HOS</TableHead>
+                <TableHead className="hidden lg:table-cell">Vehicle</TableHead>
+                <TableHead className="hidden lg:table-cell">Current Load</TableHead>
+                <TableHead className="hidden md:table-cell">SALLY</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {drivers.map((driver) => (
-                <TableRow key={driver.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium text-foreground">{driver.name}</div>
-                      {driver.phone && (
-                        <div className="text-sm text-muted-foreground">{driver.phone}</div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-foreground">{driver.license_number}</TableCell>
-                  <TableCell>
-                    {driver.external_source ? (
-                      <Badge variant="muted" className="gap-1">
-                        <span className="text-xs">🔗</span>
-                        {getSourceLabel(driver.external_source)}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="gap-1">
-                        <span className="text-xs">✋</span>
-                        Manual
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {driver.sally_access_status === 'ACTIVE' && (
-                      <Badge variant="default">Active</Badge>
-                    )}
-                    {driver.sally_access_status === 'INVITED' && (
-                      <div className="flex items-center gap-2">
-                        <Badge variant="muted">Invited</Badge>
-                        <Link
-                          href="/admin/team?tab=invitations"
-                          className="text-xs text-muted-foreground underline hover:text-foreground"
+              {drivers.map((driver) => {
+                const driveRemaining = driver.current_hos?.drive_remaining ?? (11 - (driver.current_hours_driven ?? 0));
+                const hosPercent = Math.max(0, Math.min(100, (driveRemaining / 11) * 100));
+
+                return (
+                  <TableRow key={driver.id}>
+                    <TableCell>
+                      <div>
+                        <button
+                          className="font-medium text-foreground hover:underline text-left"
+                          onClick={() => router.push(`/dispatcher/fleet/drivers/${driver.driver_id}`)}
                         >
-                          Manage invite
-                        </Link>
+                          {driver.name}
+                        </button>
+                        {driver.phone && (
+                          <div className="text-sm text-muted-foreground">{driver.phone}</div>
+                        )}
                       </div>
-                    )}
-                    {driver.sally_access_status === 'DEACTIVATED' && (
-                      <div className="flex items-center gap-2">
-                        <Badge variant="destructive">Deactivated</Badge>
-                      </div>
-                    )}
-                    {(!driver.sally_access_status || driver.sally_access_status === 'NO_ACCESS') && (
-                      onInviteClick ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onInviteClick(driver)}
-                        >
-                          Invite to SALLY
-                        </Button>
+                    </TableCell>
+                    <TableCell>
+                      {driver.cdl_class ? (
+                        <Badge variant="outline">{driver.cdl_class}</Badge>
                       ) : (
-                        <Badge variant="outline">No Access</Badge>
-                      )
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {driver.last_synced_at ? formatRelativeTime(driver.last_synced_at) : 'Never'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {driver.external_source ? (
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled
-                          className="opacity-50 cursor-not-allowed"
-                          title={`Read-only - synced from ${getSourceLabel(driver.external_source)}`}
-                        >
-                          <Lock className="h-3 w-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          disabled
-                          className="opacity-50 cursor-not-allowed"
-                          title={`Read-only - synced from ${getSourceLabel(driver.external_source)}`}
-                        >
-                          <Lock className="h-3 w-3 mr-1" />
-                          Delete
-                        </Button>
+                        <span className="text-muted-foreground">&mdash;</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={driver.status === 'ACTIVE' ? 'default' : driver.status === 'INACTIVE' ? 'muted' : 'outline'}>
+                        {driver.status || 'Unknown'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex items-center gap-2 min-w-[120px]">
+                        <Progress value={hosPercent} className="h-2 w-16" />
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {driveRemaining.toFixed(1)}h
+                        </span>
                       </div>
-                    ) : (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(driver)}
-                          className="mr-2"
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => setDeleteConfirm(driver.driver_id)}
-                        >
-                          Delete
-                        </Button>
-                      </>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
+                      Unassigned
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-sm">
+                      {driver.current_load ? (
+                        <span className="text-foreground">{driver.current_load.reference_number}</span>
+                      ) : (
+                        <span className="text-muted-foreground">&mdash;</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {driver.sally_access_status === 'ACTIVE' && (
+                        <Badge variant="default">Active</Badge>
+                      )}
+                      {driver.sally_access_status === 'INVITED' && (
+                        <Badge variant="muted">Invited</Badge>
+                      )}
+                      {driver.sally_access_status === 'DEACTIVATED' && (
+                        <Badge variant="destructive">Deactivated</Badge>
+                      )}
+                      {(!driver.sally_access_status || driver.sally_access_status === 'NO_ACCESS') && (
+                        onInviteClick ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onInviteClick(driver)}
+                          >
+                            Invite
+                          </Button>
+                        ) : (
+                          <Badge variant="outline">No Access</Badge>
+                        )
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => router.push(`/dispatcher/fleet/drivers/${driver.driver_id}`)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Profile
+                          </DropdownMenuItem>
+                          {!driver.external_source && (
+                            <DropdownMenuItem onClick={() => handleEdit(driver)}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                          )}
+                          {!driver.external_source && (
+                            <DropdownMenuItem
+                              onClick={() => setDeleteConfirm(driver.driver_id)}
+                              className="text-red-600 dark:text-red-400"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          )}
+                          {driver.external_source && (
+                            <DropdownMenuItem disabled>
+                              <Lock className="h-4 w-4 mr-2" />
+                              Read-only ({getSourceLabel(driver.external_source)})
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}
@@ -426,9 +450,11 @@ function DriverForm({
 }) {
   const [formData, setFormData] = useState<CreateDriverRequest>({
     name: driver?.name || '',
-    license_number: driver?.license_number || '',
     phone: driver?.phone || '',
     email: driver?.email || '',
+    cdl_class: driver?.cdl_class || '',
+    license_number: driver?.license_number || '',
+    license_state: driver?.license_state || '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -465,35 +491,79 @@ function DriverForm({
       </div>
 
       <div>
-        <Label htmlFor="license">License Number *</Label>
-        <Input
-          id="license"
-          value={formData.license_number}
-          onChange={(e) =>
-            setFormData({ ...formData, license_number: e.target.value })
-          }
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="phone">Phone</Label>
+        <Label htmlFor="phone">Phone *</Label>
         <Input
           id="phone"
           type="tel"
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          required
         />
       </div>
 
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">Email *</Label>
         <Input
           id="email"
           type="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          required
         />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="cdl_class">CDL Class *</Label>
+          <Select
+            value={formData.cdl_class}
+            onValueChange={(value) => setFormData({ ...formData, cdl_class: value })}
+          >
+            <SelectTrigger id="cdl_class">
+              <SelectValue placeholder="Select CDL class" />
+            </SelectTrigger>
+            <SelectContent>
+              {CDL_CLASSES.map((cdl) => (
+                <SelectItem key={cdl.value} value={cdl.value}>
+                  {cdl.label} &mdash; {cdl.description}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="license">License Number *</Label>
+          <Input
+            id="license"
+            value={formData.license_number}
+            onChange={(e) =>
+              setFormData({ ...formData, license_number: e.target.value })
+            }
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="license_state">License State</Label>
+          <Select
+            value={formData.license_state || ''}
+            onValueChange={(value) => setFormData({ ...formData, license_state: value })}
+          >
+            <SelectTrigger id="license_state">
+              <SelectValue placeholder="Select state" />
+            </SelectTrigger>
+            <SelectContent>
+              {US_STATES.map((state) => (
+                <SelectItem key={state.value} value={state.value}>
+                  {state.label} ({state.value})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}

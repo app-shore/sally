@@ -31,3 +31,4 @@ export {
 
 // Components
 export { default as InviteDriverDialog } from './components/invite-driver-dialog';
+export { default as EditDriverDialog } from './components/edit-driver-dialog';

@@ -73,10 +73,17 @@ export class DriversController extends BaseTenantController {
         driver_id: driver.driverId,
         name: driver.name,
         license_number: driver.licenseNumber,
+        license_state: driver.licenseState,
+        cdl_class: driver.cdlClass,
+        endorsements: driver.endorsements,
         phone: driver.phone,
         email: driver.email,
         status: driver.status,
         is_active: driver.isActive,
+        current_hours_driven: driver.currentHoursDriven,
+        current_on_duty_time: driver.currentOnDutyTime,
+        current_hours_since_break: driver.currentHoursSinceBreak,
+        cycle_hours_used: driver.cycleHoursUsed,
         external_driver_id: driver.externalDriverId,
         external_source: driver.externalSource,
         last_synced_at: driver.lastSyncedAt?.toISOString(),
@@ -100,18 +107,22 @@ export class DriversController extends BaseTenantController {
 
     const driver = await this.driversService.create(tenantDbId, {
       name: createDriverDto.name,
-      license_number: createDriverDto.license_number,
       phone: createDriverDto.phone,
       email: createDriverDto.email,
+      cdl_class: createDriverDto.cdl_class,
+      license_number: createDriverDto.license_number,
+      license_state: createDriverDto.license_state,
     });
 
     return {
       id: driver.id,
       driver_id: driver.driverId,
       name: driver.name,
-      license_number: driver.licenseNumber,
       phone: driver.phone,
       email: driver.email,
+      cdl_class: driver.cdlClass,
+      license_number: driver.licenseNumber,
+      license_state: driver.licenseState,
       is_active: driver.isActive,
       created_at: driver.createdAt,
       updated_at: driver.updatedAt,
@@ -133,18 +144,38 @@ export class DriversController extends BaseTenantController {
 
     const driver = await this.driversService.update(driverId, tenantDbId, {
       name: updateDriverDto.name,
-      license_number: updateDriverDto.license_number,
       phone: updateDriverDto.phone,
       email: updateDriverDto.email,
+      cdl_class: updateDriverDto.cdl_class,
+      license_number: updateDriverDto.license_number,
+      license_state: updateDriverDto.license_state,
+      endorsements: updateDriverDto.endorsements,
+      hire_date: updateDriverDto.hire_date,
+      medical_card_expiry: updateDriverDto.medical_card_expiry,
+      home_terminal_city: updateDriverDto.home_terminal_city,
+      home_terminal_state: updateDriverDto.home_terminal_state,
+      emergency_contact_name: updateDriverDto.emergency_contact_name,
+      emergency_contact_phone: updateDriverDto.emergency_contact_phone,
+      notes: updateDriverDto.notes,
     });
 
     return {
       id: driver.id,
       driver_id: driver.driverId,
       name: driver.name,
-      license_number: driver.licenseNumber,
       phone: driver.phone,
       email: driver.email,
+      cdl_class: driver.cdlClass,
+      license_number: driver.licenseNumber,
+      license_state: driver.licenseState,
+      endorsements: driver.endorsements,
+      hire_date: driver.hireDate,
+      medical_card_expiry: driver.medicalCardExpiry,
+      home_terminal_city: driver.homeTerminalCity,
+      home_terminal_state: driver.homeTerminalState,
+      emergency_contact_name: driver.emergencyContactName,
+      emergency_contact_phone: driver.emergencyContactPhone,
+      notes: driver.notes,
       is_active: driver.isActive,
       updated_at: driver.updatedAt,
     };
@@ -186,16 +217,60 @@ export class DriversController extends BaseTenantController {
     const tenantDbId = await this.getTenantDbId(user);
     const driver = await this.driversService.findOne(driverId, tenantDbId);
 
+    // Derive SALLY access status
+    let sallyAccessStatus: string = 'NO_ACCESS';
+    let linkedUserId: string | null = null;
+    let pendingInvitationId: string | null = null;
+
+    if (driver.user) {
+      linkedUserId = driver.user.userId;
+      sallyAccessStatus = driver.user.isActive ? 'ACTIVE' : 'DEACTIVATED';
+    } else if (driver.invitations?.length > 0) {
+      sallyAccessStatus = 'INVITED';
+      pendingInvitationId = driver.invitations[0].invitationId;
+    }
+
     return {
       id: driver.id,
       driver_id: driver.driverId,
       name: driver.name,
-      license_number: driver.licenseNumber,
       phone: driver.phone,
       email: driver.email,
+      cdl_class: driver.cdlClass,
+      license_number: driver.licenseNumber,
+      license_state: driver.licenseState,
+      endorsements: driver.endorsements,
+      status: driver.status,
       is_active: driver.isActive,
-      created_at: driver.createdAt,
-      updated_at: driver.updatedAt,
+      hire_date: driver.hireDate,
+      medical_card_expiry: driver.medicalCardExpiry,
+      home_terminal_city: driver.homeTerminalCity,
+      home_terminal_state: driver.homeTerminalState,
+      home_terminal_timezone: driver.homeTerminalTimezone,
+      emergency_contact_name: driver.emergencyContactName,
+      emergency_contact_phone: driver.emergencyContactPhone,
+      notes: driver.notes,
+      // External sync
+      external_driver_id: driver.externalDriverId,
+      external_source: driver.externalSource,
+      sync_status: driver.syncStatus,
+      last_synced_at: driver.lastSyncedAt?.toISOString(),
+      // HOS
+      current_hours_driven: driver.currentHoursDriven,
+      current_on_duty_time: driver.currentOnDutyTime,
+      current_hours_since_break: driver.currentHoursSinceBreak,
+      cycle_hours_used: driver.cycleHoursUsed,
+      // Relations
+      current_load: driver.loads?.[0] ? {
+        load_id: driver.loads[0].loadId,
+        reference_number: driver.loads[0].referenceNumber,
+        status: driver.loads[0].status,
+      } : null,
+      sally_access_status: sallyAccessStatus,
+      linked_user_id: linkedUserId,
+      pending_invitation_id: pendingInvitationId,
+      created_at: driver.createdAt.toISOString(),
+      updated_at: driver.updatedAt.toISOString(),
     };
   }
 
