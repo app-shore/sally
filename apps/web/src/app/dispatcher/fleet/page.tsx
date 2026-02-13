@@ -821,8 +821,14 @@ function AssetsTab({
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>
+                  <DialogTitle className="flex items-center gap-2">
                     {editingVehicle ? 'Edit Truck' : 'Add Truck'}
+                    {editingVehicle?.external_source && (
+                      <Badge variant="muted" className="text-xs font-normal gap-1">
+                        <Lock className="h-3 w-3" />
+                        Synced from {getSourceLabel(editingVehicle.external_source)}
+                      </Badge>
+                    )}
                   </DialogTitle>
                 </DialogHeader>
                 <VehicleForm
@@ -876,7 +882,7 @@ function AssetsTab({
             <AlertDescription className="text-sm text-blue-900 dark:text-blue-100 flex items-center justify-between">
               <span>
                 <span className="font-medium">🔗 TMS integration active</span>
-                {' '}— Some trucks are synced from your TMS. Synced trucks are read-only. You can still add trucks manually.
+                {' '}— Some trucks are synced from your TMS. Vehicle details are managed by your TMS — operational fields can be edited locally.
               </span>
               <Button
                 size="sm"
@@ -957,48 +963,34 @@ function AssetsTab({
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {vehicle.external_source ? (
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled
-                              className="opacity-50 cursor-not-allowed"
-                              title={`Read-only - synced from ${getSourceLabel(vehicle.external_source)}`}
-                            >
-                              <Lock className="h-3 w-3 mr-1" />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(vehicle)}>
+                              <Pencil className="h-4 w-4 mr-2" />
                               Edit
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              disabled
-                              className="opacity-50 cursor-not-allowed"
-                              title={`Read-only - synced from ${getSourceLabel(vehicle.external_source)}`}
-                            >
-                              <Lock className="h-3 w-3 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        ) : (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEdit(vehicle)}
-                              className="mr-2"
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => setDeleteConfirm(vehicle.vehicle_id)}
-                            >
-                              Delete
-                            </Button>
-                          </>
-                        )}
+                            </DropdownMenuItem>
+                            {!vehicle.external_source && (
+                              <DropdownMenuItem
+                                onClick={() => setDeleteConfirm(vehicle.vehicle_id)}
+                                className="text-red-600 dark:text-red-400"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            )}
+                            {vehicle.external_source && (
+                              <DropdownMenuItem disabled>
+                                <Lock className="h-4 w-4 mr-2" />
+                                Synced from {getSourceLabel(vehicle.external_source)}
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1069,6 +1061,8 @@ function VehicleForm({
   onCancel: () => void;
   refData?: Record<string, ReferenceItem[]>;
 }) {
+  const isTmsSynced = !!vehicle?.external_source;
+
   const [formData, setFormData] = useState<CreateVehicleRequest>({
     unit_number: vehicle?.unit_number || '',
     vin: vehicle?.vin || '',
@@ -1100,29 +1094,47 @@ function VehicleForm({
     setIsSubmitting(true);
     setError(null);
 
-    // VIN validation
-    const cleanVin = formData.vin?.toUpperCase().replace(/\s/g, '') || '';
-    if (cleanVin.length !== 17) {
-      setError('VIN must be exactly 17 characters');
-      setIsSubmitting(false);
-      return;
+    // VIN validation — only for manual vehicles (TMS-synced can't change VIN)
+    if (!isTmsSynced) {
+      const cleanVin = formData.vin?.toUpperCase().replace(/\s/g, '') || '';
+      if (cleanVin.length !== 17) {
+        setError('VIN must be exactly 17 characters');
+        setIsSubmitting(false);
+        return;
+      }
     }
-
-    const submitData = {
-      ...formData,
-      vin: cleanVin,
-      // Clean up empty optional strings
-      make: formData.make || undefined,
-      model: formData.model || undefined,
-      license_plate: formData.license_plate || undefined,
-      license_plate_state: formData.license_plate_state || undefined,
-    };
 
     try {
       if (vehicle) {
-        await updateVehicle(vehicle.vehicle_id, submitData);
+        if (isTmsSynced) {
+          // TMS-synced: only send operational fields (exclude identity fields managed by TMS)
+          await updateVehicle(vehicle.vehicle_id, {
+            equipment_type: formData.equipment_type,
+            fuel_capacity_gallons: formData.fuel_capacity_gallons,
+            mpg: formData.mpg,
+            status: formData.status,
+            has_sleeper_berth: formData.has_sleeper_berth,
+            gross_weight_lbs: formData.gross_weight_lbs,
+          });
+        } else {
+          await updateVehicle(vehicle.vehicle_id, {
+            ...formData,
+            vin: formData.vin?.toUpperCase().replace(/\s/g, ''),
+            make: formData.make || undefined,
+            model: formData.model || undefined,
+            license_plate: formData.license_plate || undefined,
+            license_plate_state: formData.license_plate_state || undefined,
+          });
+        }
       } else {
-        await createVehicle(submitData);
+        await createVehicle({
+          ...formData,
+          vin: formData.vin?.toUpperCase().replace(/\s/g, '') || '',
+          make: formData.make || undefined,
+          model: formData.model || undefined,
+          license_plate: formData.license_plate || undefined,
+          license_plate_state: formData.license_plate_state || undefined,
+        });
       }
       onSuccess();
     } catch (err) {
@@ -1165,6 +1177,7 @@ function VehicleForm({
           }
           placeholder="e.g. TRUCK-101"
           required
+          disabled={isTmsSynced}
         />
       </div>
 
@@ -1179,13 +1192,21 @@ function VehicleForm({
           placeholder="17-character VIN"
           maxLength={17}
           required
+          disabled={isTmsSynced}
         />
-        {formData.vin && formData.vin.length > 0 && formData.vin.length !== 17 && (
+        {!isTmsSynced && formData.vin && formData.vin.length > 0 && formData.vin.length !== 17 && (
           <p className="text-xs text-muted-foreground mt-1">
             {formData.vin.length}/17 characters
           </p>
         )}
       </div>
+
+      {isTmsSynced && (
+        <p className="text-xs text-muted-foreground flex items-center gap-1">
+          <Lock className="h-3 w-3" />
+          Unit number and VIN are managed by your TMS integration
+        </p>
+      )}
 
       <div>
         <Label htmlFor="equipment_type">Equipment Type *</Label>
@@ -1295,6 +1316,13 @@ function VehicleForm({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-4 pt-2">
+          {isTmsSynced && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Lock className="h-3 w-3" />
+              Vehicle info and registration are managed by your TMS integration
+            </p>
+          )}
+
           {/* Vehicle Info */}
           <div className="space-y-3">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -1310,6 +1338,7 @@ function VehicleForm({
                     setFormData({ ...formData, make: e.target.value })
                   }
                   placeholder="e.g. Freightliner"
+                  disabled={isTmsSynced}
                 />
               </div>
               <div>
@@ -1321,6 +1350,7 @@ function VehicleForm({
                     setFormData({ ...formData, model: e.target.value })
                   }
                   placeholder="e.g. Cascadia"
+                  disabled={isTmsSynced}
                 />
               </div>
             </div>
@@ -1339,6 +1369,7 @@ function VehicleForm({
                   })
                 }
                 placeholder="e.g. 2024"
+                disabled={isTmsSynced}
               />
             </div>
           </div>
@@ -1358,6 +1389,7 @@ function VehicleForm({
                     setFormData({ ...formData, license_plate: e.target.value })
                   }
                   placeholder="e.g. ABC-1234"
+                  disabled={isTmsSynced}
                 />
               </div>
               <div>
@@ -1367,6 +1399,7 @@ function VehicleForm({
                   onValueChange={(value) =>
                     setFormData({ ...formData, license_plate_state: value })
                   }
+                  disabled={isTmsSynced}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select state" />
