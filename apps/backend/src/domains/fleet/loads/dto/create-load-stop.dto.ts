@@ -85,4 +85,13 @@ export class CreateLoadStopDto {
   @IsString()
   @IsOptional()
   state?: string;
+
+  @ApiProperty({
+    example: '75201',
+    description: 'Stop ZIP code (for inline creation during manual entry)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  zip_code?: string;
 }

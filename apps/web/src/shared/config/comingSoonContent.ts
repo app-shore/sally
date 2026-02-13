@@ -18,19 +18,6 @@ export const comingSoonContent: Record<string, Omit<ComingSoonBannerProps, 'cate
     ],
   },
 
-  live_tracking_enabled: {
-    title: 'Live Route Tracking',
-    description:
-      'Real-time monitoring of active routes with automated progress tracking, ETA updates, and proactive alerts when intervention is needed.',
-    features: [
-      'Real-time route progress with visual timeline and current location',
-      'Automatic ETA updates based on actual driving progress',
-      'Proactive alerts for HOS violations, delays, and critical events',
-      'Stop-by-stop status tracking with arrival/departure times',
-      'Continuous monitoring of 14 trigger types running every 60 seconds',
-    ],
-  },
-
   command_center_enabled: {
     title: 'Dispatcher Command Center',
     description:
@@ -171,6 +158,18 @@ export const comingSoonContent: Record<string, Omit<ComingSoonBannerProps, 'cate
       'Settlement sync: driver pay and deductions flow directly to QuickBooks payroll',
       'Customer and vendor mapping between SALLY and QuickBooks',
       'Reconciliation dashboard showing sync status and any discrepancies',
+    ],
+  },
+  analytics_enabled: {
+    title: 'Business Analytics',
+    description:
+      'Comprehensive business intelligence dashboard giving you full visibility into revenue, fleet utilization, on-time performance, and operational costs across your entire operation.',
+    features: [
+      'Revenue analytics: revenue per mile, per load, and per driver with trend tracking',
+      'Fleet utilization: truck idle time, deadhead percentage, and capacity optimization',
+      'On-time delivery performance with breakdown by lane, customer, and driver',
+      'Cost analysis: fuel cost per mile, cost per load, and expense trending',
+      'Customizable date ranges with daily, weekly, and monthly roll-ups',
     ],
   },
 };

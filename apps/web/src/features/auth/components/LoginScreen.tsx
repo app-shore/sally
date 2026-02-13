@@ -64,7 +64,7 @@ export function LoginScreen() {
       if (response.user.role === 'DRIVER') {
         router.push('/driver/dashboard');
       } else {
-        router.push('/dispatcher/overview');
+        router.push('/dispatcher/command-center');
       }
     } catch (err: any) {
       setError(err.message || 'Login failed');

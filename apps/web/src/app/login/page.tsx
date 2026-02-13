@@ -17,7 +17,7 @@ export default function LoginPage() {
       const redirectMap = {
         SUPER_ADMIN: "/admin/tenants",
         ADMIN: "/users",
-        DISPATCHER: "/dispatcher/overview",
+        DISPATCHER: "/dispatcher/command-center",
         DRIVER: "/driver/dashboard",
       };
 

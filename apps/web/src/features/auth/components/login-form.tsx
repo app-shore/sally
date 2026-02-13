@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { useAuth } from '@/features/auth';
+import { getDefaultRouteForRole } from '@/shared/lib/navigation';
 
 const loginSchema = z.object({
   email: z.string().email('Valid email is required'),
@@ -115,16 +116,8 @@ export function LoginForm() {
         isInitialized: storedState.isInitialized,
       });
 
-      // Redirect based on role using client-side navigation
-      const redirectMap = {
-        SUPER_ADMIN: '/admin/tenants',
-        OWNER: '/admin/dashboard',
-        ADMIN: '/admin/dashboard',
-        DISPATCHER: '/dispatcher/overview',
-        DRIVER: '/driver/dashboard',
-      };
-
-      const redirectUrl = redirectMap[user.role as keyof typeof redirectMap] || '/onboarding';
+      // Redirect based on role using centralized navigation config
+      const redirectUrl = getDefaultRouteForRole(user.role as any);
       console.log('[LoginForm] Redirecting to:', redirectUrl, 'for role:', user.role);
 
       // Use Next.js router for client-side navigation

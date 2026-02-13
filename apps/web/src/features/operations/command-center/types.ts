@@ -9,6 +9,10 @@ export interface ActiveRoute {
     vehicle_id: string;
     identifier: string;
   };
+  load: {
+    load_id: string;
+    reference_number: string;
+  } | null;
   status: 'in_transit' | 'at_dock' | 'resting' | 'completed';
   progress: {
     completed_stops: number;

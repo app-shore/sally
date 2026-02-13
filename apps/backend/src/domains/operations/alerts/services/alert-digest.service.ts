@@ -65,7 +65,7 @@ export class AlertDigestService {
                 <li><strong>Currently unresolved:</strong> ${unresolvedCount}</li>
               </ul>
               ${categoryList ? `<p><strong>By category:</strong> ${categoryList}</p>` : ''}
-              <p><a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dispatcher/overview">View Command Center</a></p>
+              <p><a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dispatcher/command-center">View Command Center</a></p>
             `,
             text: `Daily Alert Digest — New: ${stats.total}, Resolved: ${stats.resolved}, Unresolved: ${unresolvedCount}`,
           });
@@ -125,7 +125,7 @@ export class AlertDigestService {
               <p>Hi ${dispatcher.firstName || 'Dispatcher'},</p>
               <p>The following <strong>${unresolvedAlerts.length}</strong> alerts need attention:</p>
               <ol>${alertList}</ol>
-              <p><a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dispatcher/overview">View Command Center</a></p>
+              <p><a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dispatcher/command-center">View Command Center</a></p>
             `,
             text: `Shift Handoff: ${unresolvedAlerts.length} unresolved alerts require attention.`,
           });

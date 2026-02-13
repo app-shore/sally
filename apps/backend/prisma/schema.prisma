@@ -636,6 +636,16 @@ model Load {
   commodityType         String       @map("commodity_type") @db.VarChar(100)
   specialRequirements   String?      @map("special_requirements") @db.Text
   customerName          String       @map("customer_name") @db.VarChar(200)
+
+  // Customer reference / PO number
+  referenceNumber       String?      @map("reference_number") @db.VarChar(100)
+
+  // Rate / revenue for this load (stored in cents)
+  rateCents             Int?         @map("rate_cents")
+
+  // Pieces / pallets count
+  pieces                Int?
+
   isActive              Boolean      @default(true) @map("is_active")
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz

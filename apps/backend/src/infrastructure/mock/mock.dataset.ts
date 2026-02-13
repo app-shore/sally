@@ -52,6 +52,23 @@ export const MOCK_VEHICLES = [
 ];
 
 // ---------------------------------------------------------------------------
+// Mock Loads (10) — for command center route card display
+// ---------------------------------------------------------------------------
+
+export const MOCK_LOADS = [
+  { id: 'LD-1001', refNumber: 'LD-1001' },
+  { id: 'LD-1002', refNumber: 'LD-1002' },
+  { id: 'LD-1003', refNumber: 'LD-1003' },
+  { id: 'LD-1004', refNumber: 'LD-1004' },
+  { id: 'LD-1005', refNumber: 'LD-1005' },
+  { id: 'LD-1006', refNumber: 'LD-1006' },
+  { id: 'LD-1007', refNumber: 'LD-1007' },
+  { id: 'LD-1008', refNumber: 'LD-1008' },
+  { id: 'LD-1009', refNumber: 'LD-1009' },
+  { id: 'LD-1010', refNumber: 'LD-1010' },
+];
+
+// ---------------------------------------------------------------------------
 // Mock Stops (15) — for command center runtime display
 // ---------------------------------------------------------------------------
 
@@ -162,11 +179,14 @@ export function generateMockActiveRoutes(tenantId: number): ActiveRouteDto[] {
 
     const startedAt = new Date(now.getTime() - (2 + rand() * 12) * 3600000);
 
+    const load = MOCK_LOADS[i % MOCK_LOADS.length];
+
     routes.push({
       route_id: `RT-${tenantId}-${String(i + 1).padStart(3, '0')}`,
       plan_id: `PLN-${tenantId}-${String(i + 1).padStart(3, '0')}`,
       driver: { driver_id: driver.id, name: driverName(driver) },
       vehicle: { vehicle_id: vehicle.id, identifier: vehicle.unitNumber },
+      load: { load_id: load.id, reference_number: load.refNumber },
       status,
       progress: {
         completed_stops: completedStops,

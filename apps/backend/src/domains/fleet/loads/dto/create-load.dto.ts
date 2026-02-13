@@ -6,11 +6,12 @@ import { CreateLoadStopDto } from './create-load-stop.dto';
 export class CreateLoadDto {
   @ApiProperty({
     example: 'LOAD-001',
-    description: 'Unique load number',
+    description: 'Unique load number (auto-generated if not provided)',
+    required: false,
   })
   @IsString()
-  @IsNotEmpty()
-  load_number: string;
+  @IsOptional()
+  load_number?: string;
 
   @ApiProperty({
     example: 40000,
@@ -48,6 +49,21 @@ export class CreateLoadDto {
   @IsString()
   @IsOptional()
   equipment_type?: string;
+
+  @ApiProperty({ example: 'PO-12345', description: 'Customer reference / PO number', required: false })
+  @IsString()
+  @IsOptional()
+  reference_number?: string;
+
+  @ApiProperty({ example: 245000, description: 'Rate in cents (e.g. $2450.00 = 245000)', required: false })
+  @IsNumber()
+  @IsOptional()
+  rate_cents?: number;
+
+  @ApiProperty({ example: 26, description: 'Number of pieces / pallets', required: false })
+  @IsNumber()
+  @IsOptional()
+  pieces?: number;
 
   @ApiProperty({ example: 'manual', required: false })
   @IsString()

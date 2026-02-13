@@ -1,4 +1,4 @@
-import { Activity, BarChart3, Building2, ClipboardList, FileText, Flag, Home, LucideIcon, Map, MessageSquare, Package, Plus, Rocket, Settings, Truck, Users, Wallet } from 'lucide-react';
+import { BarChart3, Building2, ClipboardList, FileText, Flag, Home, LucideIcon, Map, MessageSquare, Package, Plus, Rocket, Settings, Users, Wallet } from 'lucide-react';
 
 export interface NavItem {
   label: string;
@@ -26,13 +26,10 @@ export type NavigationItem = NavItem | NavSeparator;
  */
 export const navigationConfig: Record<string, NavigationItem[]> = {
   dispatcher: [
-    { label: 'Command Center', href: '/dispatcher/overview', icon: Home },
+    { label: 'Command Center', href: '/dispatcher/command-center', icon: Home },
     { label: 'Loads', href: '/dispatcher/loads', icon: ClipboardList },
-    { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
-    { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Truck },
-    { label: 'Monitoring', href: '/dispatcher/monitoring', icon: Activity },
-    // { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
+    { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { type: 'separator', label: 'Financials' } as NavSeparator,
     { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
     { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
@@ -49,40 +46,32 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
   ],
 
   admin: [
-    { label: 'Setup Hub', href: '/setup-hub', icon: Rocket },
-    { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { label: 'Team', href: '/admin/team', icon: Users },
-    { type: 'separator', label: 'Operations' } as NavSeparator,
-    { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
+    { label: 'Command Center', href: '/dispatcher/command-center', icon: Home },
     { label: 'Loads', href: '/dispatcher/loads', icon: ClipboardList },
-    { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
-    { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
-    { label: 'Monitoring', href: '/dispatcher/monitoring', icon: Activity },
-    // { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
+    { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { type: 'separator', label: 'Financials' } as NavSeparator,
     { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
     { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
-    { type: 'separator', label: 'Configuration' } as NavSeparator,
+    { type: 'separator', label: 'Administration' } as NavSeparator,
+    { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { label: 'Team', href: '/admin/team', icon: Users },
+    { label: 'Setup Hub', href: '/setup-hub', icon: Rocket },
     { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
 
   owner: [
-    { label: 'Setup Hub', href: '/setup-hub', icon: Rocket },
-    { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { label: 'Team', href: '/admin/team', icon: Users },
-    { type: 'separator', label: 'Operations' } as NavSeparator,
-    { label: 'Command Center', href: '/dispatcher/overview', icon: BarChart3 },
+    { label: 'Command Center', href: '/dispatcher/command-center', icon: Home },
     { label: 'Loads', href: '/dispatcher/loads', icon: ClipboardList },
-    { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
-    { label: 'Live Routes', href: '/dispatcher/active-routes', icon: Map },
-    { label: 'Monitoring', href: '/dispatcher/monitoring', icon: Activity },
-    // { label: 'Analytics', href: '/dispatcher/analytics', icon: BarChart3 },
+    { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { type: 'separator', label: 'Financials' } as NavSeparator,
     { label: 'Invoicing', href: '/dispatcher/invoicing', icon: FileText },
     { label: 'Settlements', href: '/dispatcher/settlements', icon: Wallet },
-    { type: 'separator', label: 'Configuration' } as NavSeparator,
+    { type: 'separator', label: 'Administration' } as NavSeparator,
+    { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { label: 'Team', href: '/admin/team', icon: Users },
+    { label: 'Setup Hub', href: '/setup-hub', icon: Rocket },
     { label: 'Settings', href: '/settings/general', icon: Settings },
   ],
 
@@ -150,11 +139,11 @@ export function getDefaultRouteForRole(role: 'DISPATCHER' | 'DRIVER' | 'ADMIN' |
     case 'SUPER_ADMIN':
       return '/admin/tenants';
     case 'OWNER':
-      return '/admin/dashboard';
+      return '/dispatcher/command-center';
     case 'ADMIN':
-      return '/admin/dashboard';
+      return '/dispatcher/command-center';
     case 'DISPATCHER':
-      return '/dispatcher/overview';
+      return '/dispatcher/command-center';
     case 'DRIVER':
       return '/driver/dashboard';
     case 'CUSTOMER':

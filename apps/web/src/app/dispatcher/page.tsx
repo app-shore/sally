@@ -7,8 +7,8 @@ export default function DispatcherPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to overview page
-    router.replace("/dispatcher/overview");
+    // Redirect to command center
+    router.replace("/dispatcher/command-center");
   }, [router]);
 
   return null;

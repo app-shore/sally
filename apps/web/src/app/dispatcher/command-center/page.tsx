@@ -17,6 +17,7 @@ import {
   X,
   Pin,
   Send,
+  Search,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -38,8 +39,9 @@ import {
   useCreateShiftNote,
   useTogglePinShiftNote,
   useDeleteShiftNote,
+  RouteDetailSheet,
 } from "@/features/operations/command-center";
-import type { ActiveRoute, DriverHOSChip, ShiftNote } from "@/features/operations/command-center";
+import type { ActiveRoute, ShiftNote } from "@/features/operations/command-center";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -81,12 +83,6 @@ const ROUTE_STATUS_DOT: Record<string, string> = {
   completed: "bg-gray-300 dark:bg-gray-600",
 };
 
-const HOS_STATUS_DOT: Record<string, string> = {
-  driving: "bg-green-500",
-  on_duty: "bg-blue-500",
-  sleeper: "bg-gray-400",
-  off_duty: "bg-gray-400",
-};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -113,10 +109,10 @@ function formatTime(dateStr: string): string {
   });
 }
 
-function hosBarColor(hours: number): string {
-  if (hours >= 6) return "bg-green-500 dark:bg-green-400";
-  if (hours >= 2) return "bg-yellow-500 dark:bg-yellow-400";
-  return "bg-red-500 dark:bg-red-400";
+function hosTextColor(hours: number): string {
+  if (hours >= 6) return "text-green-600 dark:text-green-400";
+  if (hours >= 2) return "text-yellow-600 dark:text-yellow-400";
+  return "text-red-600 dark:text-red-400";
 }
 
 // ---------------------------------------------------------------------------
@@ -140,6 +136,8 @@ function CommandCenterContent() {
   const { data: alerts = [], isLoading: alertsLoading } = useAlerts({ status: "active" });
   const acknowledgeMutation = useAcknowledgeAlert();
   const resolveMutation = useResolveAlert();
+  const [selectedRoute, setSelectedRoute] = useState<ActiveRoute | null>(null);
+  const [routeDetailOpen, setRouteDetailOpen] = useState(false);
 
   const topAlerts = useMemo(() => {
     const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -163,11 +161,17 @@ function CommandCenterContent() {
       {/* KPI Strip */}
       <KPIStrip kpis={overview?.kpis} isLoading={overviewLoading} />
 
-      {/* Driver HOS Strip — safety-critical, always visible without scrolling */}
-      <HOSDriverStrip
-        drivers={overview?.driver_hos_strip}
-        isLoading={overviewLoading}
-      />
+      {/* Monitoring Pulse */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+        </span>
+        <span>
+          Monitoring Active
+          {overview?.kpis ? ` · ${overview.kpis.active_routes} route${overview.kpis.active_routes !== 1 ? "s" : ""}` : ""}
+        </span>
+      </div>
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -176,6 +180,10 @@ function CommandCenterContent() {
           <ActiveRoutesFeed
             routes={overview?.active_routes}
             isLoading={overviewLoading}
+            onRouteSelect={(route) => {
+              setSelectedRoute(route);
+              setRouteDetailOpen(true);
+            }}
           />
         </div>
 
@@ -234,6 +242,16 @@ function CommandCenterContent() {
           <ShiftNotesPanel />
         </div>
       </div>
+
+      {/* Route Detail Slide-Over */}
+      <RouteDetailSheet
+        route={selectedRoute}
+        open={routeDetailOpen}
+        onOpenChange={(open) => {
+          setRouteDetailOpen(open);
+          if (!open) setSelectedRoute(null);
+        }}
+      />
     </div>
   );
 }
@@ -352,40 +370,66 @@ function KPICard({
 function ActiveRoutesFeed({
   routes,
   isLoading,
+  onRouteSelect,
 }: {
   routes: ActiveRoute[] | undefined;
   isLoading: boolean;
+  onRouteSelect?: (route: ActiveRoute) => void;
 }) {
   const [filter, setFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredRoutes = useMemo(() => {
     if (!routes) return [];
-    switch (filter) {
-      case "at_risk":
-        return routes.filter(
-          (r) => r.eta_status === "late" || r.eta_status === "at_risk" || r.hos.drive_hours_remaining < 2 || r.active_alert_count > 0
-        );
-      case "on_time":
-        return routes.filter((r) => r.eta_status === "on_time" && r.status !== "completed");
-      case "completed":
-        return routes.filter((r) => r.status === "completed");
-      default:
-        return routes;
+
+    // Step 1: filter by tab
+    let result: ActiveRoute[];
+    if (filter === "at_risk") {
+      result = routes.filter(
+        (r) =>
+          r.status !== "completed" &&
+          (r.eta_status === "late" || r.eta_status === "at_risk" || r.hos.drive_hours_remaining < 2 || r.active_alert_count > 0)
+      );
+    } else {
+      result = routes.filter((r) => r.status !== "completed");
     }
-  }, [routes, filter]);
+
+    // Step 2: filter by search query
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter((r) =>
+        r.driver.name.toLowerCase().includes(q) ||
+        r.vehicle.identifier.toLowerCase().includes(q) ||
+        (r.load?.reference_number?.toLowerCase().includes(q)) ||
+        (r.next_stop?.name.toLowerCase().includes(q)) ||
+        (r.next_stop?.location.toLowerCase().includes(q))
+      );
+    }
+
+    return result;
+  }, [routes, filter, searchQuery]);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">Active Routes</h2>
-        <Tabs value={filter} onValueChange={setFilter}>
-          <TabsList className="h-8">
-            <TabsTrigger value="all" className="text-xs px-2.5 h-6">All</TabsTrigger>
-            <TabsTrigger value="at_risk" className="text-xs px-2.5 h-6">At Risk</TabsTrigger>
-            <TabsTrigger value="on_time" className="text-xs px-2.5 h-6">On Time</TabsTrigger>
-            <TabsTrigger value="completed" className="text-xs px-2.5 h-6">Completed</TabsTrigger>
-          </TabsList>
-        </Tabs>
+      <div className="flex items-center gap-3">
+        <h2 className="text-lg font-semibold text-foreground shrink-0">Active Routes</h2>
+        <div className="relative flex-1 max-w-[220px]">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search driver, load, location..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-8 pl-8 text-xs"
+          />
+        </div>
+        <div className="ml-auto shrink-0">
+          <Tabs value={filter} onValueChange={setFilter}>
+            <TabsList className="h-8">
+              <TabsTrigger value="all" className="text-xs px-2.5 h-6">All</TabsTrigger>
+              <TabsTrigger value="at_risk" className="text-xs px-2.5 h-6">At Risk</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       {isLoading ? (
@@ -414,7 +458,11 @@ function ActiveRoutesFeed({
       ) : (
         <div className="space-y-3">
           {filteredRoutes.map((route) => (
-            <RouteCard key={route.route_id} route={route} />
+            <RouteCard
+              key={route.route_id}
+              route={route}
+              onClick={() => onRouteSelect?.(route)}
+            />
           ))}
         </div>
       )}
@@ -426,20 +474,27 @@ function ActiveRoutesFeed({
 // Route Card
 // ---------------------------------------------------------------------------
 
-function RouteCard({ route }: { route: ActiveRoute }) {
-  const progressPercent = route.progress.total_stops > 0
-    ? (route.progress.completed_stops / route.progress.total_stops) * 100
-    : 0;
-
-  const hosPercent = Math.min((route.hos.drive_hours_remaining / 11) * 100, 100);
+function RouteCard({ route, onClick }: { route: ActiveRoute; onClick?: () => void }) {
   const etaStyle = ETA_STATUS_STYLES[route.eta_status];
+  const hosColor = hosTextColor(route.hos.drive_hours_remaining);
 
   return (
-    <Card>
+    <Card
+      className="cursor-pointer hover:bg-muted/50 transition-colors"
+      onClick={onClick}
+    >
       <CardContent className="p-4">
-        {/* Row 1: Driver + Status */}
-        <div className="flex items-center justify-between mb-3">
+        {/* Row 1: Load # + Driver + Vehicle + Status */}
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 min-w-0">
+            {route.load && (
+              <>
+                <span className="text-xs font-mono text-muted-foreground shrink-0">
+                  {route.load.reference_number}
+                </span>
+                <span className="text-muted-foreground/40">·</span>
+              </>
+            )}
             <span className="text-sm font-semibold text-foreground truncate">
               {route.driver.name}
             </span>
@@ -455,25 +510,7 @@ function RouteCard({ route }: { route: ActiveRoute }) {
           </div>
         </div>
 
-        {/* Row 2: Route progress */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">
-              {route.progress.completed_stops}/{route.progress.total_stops} stops
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {route.progress.distance_completed_miles}/{route.progress.total_distance_miles} mi
-            </span>
-          </div>
-          <div className="h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-foreground rounded-full transition-all"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Row 3: Next stop + ETA status */}
+        {/* Row 2: Next stop + ETA badge */}
         {route.next_stop && (
           <div className="flex items-start justify-between mb-2">
             <div className="min-w-0">
@@ -489,36 +526,32 @@ function RouteCard({ route }: { route: ActiveRoute }) {
             </div>
             <Badge
               variant={route.eta_status === "late" ? "destructive" : "outline"}
-              className={`shrink-0 text-xs ${etaStyle.className}`}
+              className={`shrink-0 text-xs ${route.eta_status !== "late" ? etaStyle.className : ""}`}
             >
               {etaStyle.label}
             </Badge>
           </div>
         )}
 
-        {/* Row 4: HOS bar */}
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground shrink-0 w-8">HOS</span>
-          <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${hosBarColor(route.hos.drive_hours_remaining)}`}
-              style={{ width: `${hosPercent}%` }}
-            />
-          </div>
-          <span className="text-xs font-medium text-foreground shrink-0 w-12 text-right">
-            {route.hos.drive_hours_remaining}h
+        {/* Row 3: Stats line — replaces progress + HOS bars */}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span>{route.progress.completed_stops}/{route.progress.total_stops} stops</span>
+          <span>&middot;</span>
+          <span>{route.progress.distance_completed_miles}/{route.progress.total_distance_miles} mi</span>
+          <span>&middot;</span>
+          <span className={`font-medium ${hosColor}`}>
+            HOS {route.hos.drive_hours_remaining}h
           </span>
+          {route.active_alert_count > 0 && (
+            <>
+              <span>&middot;</span>
+              <span className="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
+                <AlertTriangle className="h-3 w-3" />
+                {route.active_alert_count}
+              </span>
+            </>
+          )}
         </div>
-
-        {/* Row 5: Alert badge (if any) */}
-        {route.active_alert_count > 0 && (
-          <div className="mt-2 flex items-center gap-1.5">
-            <AlertTriangle className="h-3 w-3 text-yellow-500 dark:text-yellow-400" />
-            <span className="text-xs text-yellow-600 dark:text-yellow-400">
-              {route.active_alert_count} active alert{route.active_alert_count > 1 ? "s" : ""}
-            </span>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
@@ -791,72 +824,3 @@ function ShiftNotesPanel() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// HOS Driver Strip
-// ---------------------------------------------------------------------------
-
-function HOSDriverStrip({
-  drivers,
-  isLoading,
-}: {
-  drivers: DriverHOSChip[] | undefined;
-  isLoading: boolean;
-}) {
-  const approachingLimit = drivers?.filter((d) => d.drive_hours_remaining < 2).length ?? 0;
-  const activeCount = drivers?.length ?? 0;
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-foreground">Driver HOS</h2>
-        <span className="text-xs text-muted-foreground">
-          {activeCount} active{approachingLimit > 0 && (
-            <> &middot; <span className="text-red-600 dark:text-red-400">{approachingLimit} approaching limit</span></>
-          )}
-        </span>
-      </div>
-
-      {isLoading ? (
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-16 w-24 shrink-0 rounded-lg" />
-          ))}
-        </div>
-      ) : drivers && drivers.length > 0 ? (
-        <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2">
-          {drivers.map((driver) => (
-            <DriverChip key={driver.driver_id} driver={driver} />
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="py-6 text-center">
-            <p className="text-sm text-muted-foreground">No active drivers</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
-
-function DriverChip({ driver }: { driver: DriverHOSChip }) {
-  const hosPercent = Math.min((driver.drive_hours_remaining / 11) * 100, 100);
-
-  return (
-    <Card className="shrink-0 w-[100px] md:w-[110px]">
-      <CardContent className="p-2.5">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-bold text-foreground">{driver.initials}</span>
-          <span className={`h-2 w-2 rounded-full ${HOS_STATUS_DOT[driver.status]}`} />
-        </div>
-        <div className="h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden mb-1">
-          <div
-            className={`h-full rounded-full ${hosBarColor(driver.drive_hours_remaining)}`}
-            style={{ width: `${hosPercent}%` }}
-          />
-        </div>
-        <span className="text-xs text-muted-foreground">{driver.drive_hours_remaining}h</span>
-      </CardContent>
-    </Card>
-  );
-}

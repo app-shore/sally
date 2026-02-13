@@ -9,6 +9,9 @@ export type {
   ShiftNote,
 } from './types';
 
+// Components
+export { RouteDetailSheet } from './components/RouteDetailSheet';
+
 // Hooks
 export { useCommandCenterOverview } from './hooks/use-command-center';
 export {
