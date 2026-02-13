@@ -1,10 +1,12 @@
 {
-  "name": "@sally/product-video",
+  "name": "@sally/studio",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "render": "remotion render src/index.ts SallyLaunchVideo out/sally-launch.mp4",
+    "render:webm": "remotion render src/index.ts SallyLaunchVideo out/sally-launch.webm --codec vp8",
+    "publish": "cp out/sally-launch.mp4 ../web/public/videos/sally-launch.mp4 && cp out/sally-launch.webm ../web/public/videos/sally-launch.webm",
     "preview": "remotion preview src/index.ts"
   },
   "dependencies": {
