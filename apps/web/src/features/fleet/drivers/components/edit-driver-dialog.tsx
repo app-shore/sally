@@ -21,6 +21,8 @@ import {
 } from '@/shared/components/ui/select';
 import { Checkbox } from '@/shared/components/ui/checkbox';
 import { Separator } from '@/shared/components/ui/separator';
+import { Alert, AlertDescription } from '@/shared/components/ui/alert';
+import { Lock } from 'lucide-react';
 import { useUpdateDriver } from '../hooks/use-drivers';
 import type { Driver, UpdateDriverRequest } from '../types';
 import { useReferenceData } from '@/features/platform/reference-data';
@@ -29,9 +31,10 @@ interface EditDriverDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   driver: Driver;
+  externalSource?: string;
 }
 
-export default function EditDriverDialog({ open, onOpenChange, driver }: EditDriverDialogProps) {
+export default function EditDriverDialog({ open, onOpenChange, driver, externalSource }: EditDriverDialogProps) {
   const updateDriver = useUpdateDriver();
   const { data: refData } = useReferenceData(['cdl_class', 'us_state', 'endorsement']);
   const cdlClasses = refData?.cdl_class ?? [];
@@ -110,45 +113,65 @@ export default function EditDriverDialog({ open, onOpenChange, driver }: EditDri
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {externalSource && (
+            <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+              <AlertDescription className="text-sm text-blue-900 dark:text-blue-100">
+                <Lock className="h-3 w-3 inline mr-1" />
+                Some fields are managed by <span className="font-medium">{externalSource}</span> and cannot be edited here.
+              </AlertDescription>
+            </Alert>
+          )}
           {/* Name (full width) */}
-          <div>
-            <Label htmlFor="edit-name">Name</Label>
+          <div className={externalSource ? 'opacity-60' : ''}>
+            <Label htmlFor="edit-name">
+              Name {externalSource && <Lock className="h-3 w-3 inline ml-1 text-muted-foreground" />}
+            </Label>
             <Input
               id="edit-name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              disabled={!!externalSource}
             />
           </div>
 
           {/* Phone | Email */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-phone">Phone</Label>
+            <div className={externalSource ? 'opacity-60' : ''}>
+              <Label htmlFor="edit-phone">
+                Phone {externalSource && <Lock className="h-3 w-3 inline ml-1 text-muted-foreground" />}
+              </Label>
               <Input
                 id="edit-phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                disabled={!!externalSource}
               />
             </div>
-            <div>
-              <Label htmlFor="edit-email">Email</Label>
+            <div className={externalSource ? 'opacity-60' : ''}>
+              <Label htmlFor="edit-email">
+                Email {externalSource && <Lock className="h-3 w-3 inline ml-1 text-muted-foreground" />}
+              </Label>
               <Input
                 id="edit-email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled={!!externalSource}
               />
             </div>
           </div>
 
           {/* CDL Class | License # */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-cdl">CDL Class</Label>
+            <div className={externalSource ? 'opacity-60' : ''}>
+              <Label htmlFor="edit-cdl">
+                CDL Class {externalSource && <Lock className="h-3 w-3 inline ml-1 text-muted-foreground" />}
+              </Label>
               <Select
                 value={formData.cdl_class || ''}
                 onValueChange={(value) => setFormData({ ...formData, cdl_class: value })}
+                disabled={!!externalSource}
               >
                 <SelectTrigger id="edit-cdl">
                   <SelectValue placeholder="Select CDL class" />
@@ -162,23 +185,29 @@ export default function EditDriverDialog({ open, onOpenChange, driver }: EditDri
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="edit-license">License Number</Label>
+            <div className={externalSource ? 'opacity-60' : ''}>
+              <Label htmlFor="edit-license">
+                License Number {externalSource && <Lock className="h-3 w-3 inline ml-1 text-muted-foreground" />}
+              </Label>
               <Input
                 id="edit-license"
                 value={formData.license_number}
                 onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
+                disabled={!!externalSource}
               />
             </div>
           </div>
 
           {/* License State */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-license-state">License State</Label>
+            <div className={externalSource ? 'opacity-60' : ''}>
+              <Label htmlFor="edit-license-state">
+                License State {externalSource && <Lock className="h-3 w-3 inline ml-1 text-muted-foreground" />}
+              </Label>
               <Select
                 value={formData.license_state || ''}
                 onValueChange={(value) => setFormData({ ...formData, license_state: value })}
+                disabled={!!externalSource}
               >
                 <SelectTrigger id="edit-license-state">
                   <SelectValue placeholder="Select state" />
