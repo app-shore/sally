@@ -373,11 +373,27 @@ model Driver {
   @@map("drivers")
 }
 
+enum VehicleStatus {
+  AVAILABLE
+  ASSIGNED
+  IN_SHOP
+  OUT_OF_SERVICE
+}
+
+enum EquipmentType {
+  DRY_VAN
+  FLATBED
+  REEFER
+  STEP_DECK
+  POWER_ONLY
+  OTHER
+}
+
 model Vehicle {
   id                    Int          @id @default(autoincrement())
   vehicleId             String       @map("vehicle_id") @db.VarChar(50)
   unitNumber            String       @db.VarChar(50) @map("unit_number")
-  fuelCapacityGallons   Float?       @map("fuel_capacity_gallons")
+  fuelCapacityGallons   Float        @map("fuel_capacity_gallons")
   currentFuelGallons    Float?       @map("current_fuel_gallons")
   mpg                   Float?
   isActive              Boolean      @default(true) @map("is_active")
@@ -393,14 +409,18 @@ model Vehicle {
   make                  String?      @db.VarChar(50)
   model                 String?      @db.VarChar(50)
   year                  Int?
-  vin                   String?      @db.VarChar(50)
+  vin                   String       @db.VarChar(17)
   licensePlate          String?      @map("license_plate") @db.VarChar(20)
+  licensePlateState     String?      @map("license_plate_state") @db.VarChar(2)
 
   // ELD Telematics Metadata (JSONB - vendor agnostic)
   eldTelematicsMetadata Json?        @map("eld_telematics_metadata")
 
   hasSleeperBerth         Boolean   @default(true) @map("has_sleeper_berth")
   grossWeightLbs          Float?    @map("gross_weight_lbs")
+
+  status                VehicleStatus @default(AVAILABLE)
+  equipmentType         EquipmentType @map("equipment_type")
 
   tenant                Tenant       @relation(fields: [tenantId], references: [id])
   tenantId              Int          @map("tenant_id")
@@ -411,6 +431,7 @@ model Vehicle {
 
   @@unique([vehicleId, tenantId])
   @@unique([externalVehicleId, tenantId])
+  @@unique([vin, tenantId])
   @@index([tenantId])
   @@index([vin])
   @@index([licensePlate])
