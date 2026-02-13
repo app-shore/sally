@@ -53,7 +53,21 @@ import {
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog';
 import { formatRelativeTime } from '@/features/integrations';
-import { Lock, Plus, RefreshCw, Settings, Package } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/shared/components/ui/collapsible';
+import { Checkbox } from '@/shared/components/ui/checkbox';
+import { ChevronDown, Lock, Plus, RefreshCw, Settings, Package } from 'lucide-react';
 import { useToast } from '@/shared/hooks/use-toast';
 
 export default function FleetPage() {
@@ -834,26 +848,57 @@ function VehicleForm({
   const [formData, setFormData] = useState<CreateVehicleRequest>({
     unit_number: vehicle?.unit_number || '',
     vin: vehicle?.vin || '',
+    equipment_type: vehicle?.equipment_type || undefined as any,
+    fuel_capacity_gallons: vehicle?.fuel_capacity_gallons || ('' as any),
+    mpg: vehicle?.mpg || undefined,
+    status: vehicle?.status || 'AVAILABLE',
     make: vehicle?.make || '',
     model: vehicle?.model || '',
     year: vehicle?.year || undefined,
-    fuel_capacity_gallons: vehicle?.fuel_capacity_gallons || 0,
-    current_fuel_gallons: vehicle?.current_fuel_gallons || undefined,
-    mpg: vehicle?.mpg || undefined,
+    license_plate: vehicle?.license_plate || '',
+    license_plate_state: vehicle?.license_plate_state || '',
+    has_sleeper_berth: vehicle?.has_sleeper_berth ?? true,
+    gross_weight_lbs: vehicle?.gross_weight_lbs || undefined,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showMore, setShowMore] = useState(false);
+
+  // Auto-expand "More Details" when editing a vehicle that has optional fields filled
+  useEffect(() => {
+    if (vehicle && (vehicle.make || vehicle.model || vehicle.license_plate)) {
+      setShowMore(true);
+    }
+  }, [vehicle]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
+    // VIN validation
+    const cleanVin = formData.vin?.toUpperCase().replace(/\s/g, '') || '';
+    if (cleanVin.length !== 17) {
+      setError('VIN must be exactly 17 characters');
+      setIsSubmitting(false);
+      return;
+    }
+
+    const submitData = {
+      ...formData,
+      vin: cleanVin,
+      // Clean up empty optional strings
+      make: formData.make || undefined,
+      model: formData.model || undefined,
+      license_plate: formData.license_plate || undefined,
+      license_plate_state: formData.license_plate_state || undefined,
+    };
+
     try {
       if (vehicle) {
-        await updateVehicle(vehicle.vehicle_id, formData);
+        await updateVehicle(vehicle.vehicle_id, submitData);
       } else {
-        await createVehicle(formData);
+        await createVehicle(submitData);
       }
       onSuccess();
     } catch (err) {
@@ -863,8 +908,26 @@ function VehicleForm({
     }
   };
 
+  const equipmentTypes = [
+    { value: 'DRY_VAN', label: 'Dry Van' },
+    { value: 'FLATBED', label: 'Flatbed' },
+    { value: 'REEFER', label: 'Reefer' },
+    { value: 'STEP_DECK', label: 'Step Deck' },
+    { value: 'POWER_ONLY', label: 'Power Only' },
+    { value: 'OTHER', label: 'Other' },
+  ];
+
+  const usStates = [
+    'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
+    'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
+    'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+    'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
+    'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY',
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* === Essential Fields === */}
       <div>
         <Label htmlFor="unit_number">Unit Number *</Label>
         <Input
@@ -873,70 +936,68 @@ function VehicleForm({
           onChange={(e) =>
             setFormData({ ...formData, unit_number: e.target.value })
           }
+          placeholder="e.g. TRUCK-101"
           required
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="make">Make</Label>
-          <Input
-            id="make"
-            value={formData.make}
-            onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="model">Model</Label>
-          <Input
-            id="model"
-            value={formData.model}
-            onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-          />
-        </div>
+      <div>
+        <Label htmlFor="vin">VIN *</Label>
+        <Input
+          id="vin"
+          value={formData.vin}
+          onChange={(e) =>
+            setFormData({ ...formData, vin: e.target.value.toUpperCase().replace(/\s/g, '') })
+          }
+          placeholder="17-character VIN"
+          maxLength={17}
+          required
+        />
+        {formData.vin && formData.vin.length > 0 && formData.vin.length !== 17 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {formData.vin.length}/17 characters
+          </p>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="year">Year</Label>
-          <Input
-            id="year"
-            type="number"
-            value={formData.year || ''}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                year: e.target.value ? parseInt(e.target.value) : undefined,
-              })
-            }
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="vin">VIN</Label>
-          <Input
-            id="vin"
-            value={formData.vin}
-            onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
-          />
-        </div>
+      <div>
+        <Label htmlFor="equipment_type">Equipment Type *</Label>
+        <Select
+          value={formData.equipment_type}
+          onValueChange={(value) =>
+            setFormData({ ...formData, equipment_type: value as any })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select equipment type" />
+          </SelectTrigger>
+          <SelectContent>
+            {equipmentTypes.map((type) => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="fuel_capacity">Fuel Capacity (gal) *</Label>
           <Input
             id="fuel_capacity"
             type="number"
-            step="0.1"
+            step="1"
+            min="1"
+            max="500"
             value={formData.fuel_capacity_gallons || ''}
             onChange={(e) =>
               setFormData({
                 ...formData,
-                fuel_capacity_gallons: parseFloat(e.target.value) || 0,
+                fuel_capacity_gallons: parseFloat(e.target.value) || ('' as any),
               })
             }
+            placeholder="e.g. 150"
             required
           />
         </div>
@@ -947,6 +1008,8 @@ function VehicleForm({
             id="mpg"
             type="number"
             step="0.1"
+            min="1"
+            max="20"
             value={formData.mpg || ''}
             onChange={(e) =>
               setFormData({
@@ -954,9 +1017,186 @@ function VehicleForm({
                 mpg: e.target.value ? parseFloat(e.target.value) : undefined,
               })
             }
+            placeholder="e.g. 6.5"
           />
         </div>
       </div>
+
+      <div>
+        <Label className="mb-3 block">Status</Label>
+        <RadioGroup
+          value={formData.status || 'AVAILABLE'}
+          onValueChange={(value) =>
+            setFormData({ ...formData, status: value as any })
+          }
+          className="flex gap-4"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="AVAILABLE" id="status-available" />
+            <Label htmlFor="status-available" className="font-normal cursor-pointer">
+              Available
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="IN_SHOP" id="status-in-shop" />
+            <Label htmlFor="status-in-shop" className="font-normal cursor-pointer">
+              In Shop
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="OUT_OF_SERVICE" id="status-oos" />
+            <Label htmlFor="status-oos" className="font-normal cursor-pointer">
+              Out of Service
+            </Label>
+          </div>
+        </RadioGroup>
+      </div>
+
+      {/* === More Details (Collapsible) === */}
+      <Collapsible open={showMore} onOpenChange={setShowMore}>
+        <CollapsibleTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="w-full justify-between text-muted-foreground hover:text-foreground"
+          >
+            More Details
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${showMore ? 'rotate-180' : ''}`}
+            />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-4 pt-2">
+          {/* Vehicle Info */}
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Vehicle Info
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="make">Make</Label>
+                <Input
+                  id="make"
+                  value={formData.make}
+                  onChange={(e) =>
+                    setFormData({ ...formData, make: e.target.value })
+                  }
+                  placeholder="e.g. Freightliner"
+                />
+              </div>
+              <div>
+                <Label htmlFor="model">Model</Label>
+                <Input
+                  id="model"
+                  value={formData.model}
+                  onChange={(e) =>
+                    setFormData({ ...formData, model: e.target.value })
+                  }
+                  placeholder="e.g. Cascadia"
+                />
+              </div>
+            </div>
+            <div className="w-1/2 pr-2">
+              <Label htmlFor="year">Year</Label>
+              <Input
+                id="year"
+                type="number"
+                min="1990"
+                max={new Date().getFullYear() + 1}
+                value={formData.year || ''}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    year: e.target.value ? parseInt(e.target.value) : undefined,
+                  })
+                }
+                placeholder="e.g. 2024"
+              />
+            </div>
+          </div>
+
+          {/* Registration */}
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Registration
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="license_plate">License Plate</Label>
+                <Input
+                  id="license_plate"
+                  value={formData.license_plate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, license_plate: e.target.value })
+                  }
+                  placeholder="e.g. ABC-1234"
+                />
+              </div>
+              <div>
+                <Label htmlFor="license_plate_state">State</Label>
+                <Select
+                  value={formData.license_plate_state}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, license_plate_state: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {usStates.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Specifications */}
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Specifications
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2 pt-6">
+                <Checkbox
+                  id="has_sleeper_berth"
+                  checked={formData.has_sleeper_berth ?? true}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, has_sleeper_berth: !!checked })
+                  }
+                />
+                <Label htmlFor="has_sleeper_berth" className="font-normal cursor-pointer">
+                  Has Sleeper Berth
+                </Label>
+              </div>
+              <div>
+                <Label htmlFor="gross_weight_lbs">GVW (lbs)</Label>
+                <Input
+                  id="gross_weight_lbs"
+                  type="number"
+                  min="10000"
+                  max="80000"
+                  value={formData.gross_weight_lbs || ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      gross_weight_lbs: e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  placeholder="e.g. 80000"
+                />
+              </div>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
 
