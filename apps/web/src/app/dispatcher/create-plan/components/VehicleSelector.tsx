@@ -45,35 +45,45 @@ export function VehicleSelector({ value, onChange }: VehicleSelectorProps) {
         </SelectTrigger>
         <SelectContent>
           {vehicles && vehicles.length > 0 ? (
-            vehicles.map((vehicle) => {
-              const fuelPct = getFuelPercent(
-                vehicle.current_fuel_gallons,
-                vehicle.fuel_capacity_gallons
-              );
-              const label = [vehicle.make, vehicle.model]
-                .filter(Boolean)
-                .join(" ");
-              return (
-                <SelectItem
-                  key={vehicle.vehicle_id}
-                  value={vehicle.vehicle_id}
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{vehicle.unit_number}</span>
-                    {label && (
-                      <span className="text-xs text-muted-foreground">
-                        {label}
-                      </span>
-                    )}
-                    {fuelPct !== null && (
-                      <span className="text-xs text-muted-foreground">
-                        {fuelPct}% fuel
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
-              );
-            })
+            vehicles
+              .filter((v) => v.status === 'AVAILABLE' || v.status === undefined)
+              .map((vehicle) => {
+                const fuelPct = getFuelPercent(
+                  vehicle.current_fuel_gallons,
+                  vehicle.fuel_capacity_gallons
+                );
+                const label = [vehicle.make, vehicle.model]
+                  .filter(Boolean)
+                  .join(" ");
+                const eqType = vehicle.equipment_type
+                  ? vehicle.equipment_type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())
+                  : '';
+                return (
+                  <SelectItem
+                    key={vehicle.vehicle_id}
+                    value={vehicle.vehicle_id}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>{vehicle.unit_number}</span>
+                      {eqType && (
+                        <span className="text-xs text-muted-foreground">
+                          {eqType}
+                        </span>
+                      )}
+                      {label && (
+                        <span className="text-xs text-muted-foreground">
+                          ({label})
+                        </span>
+                      )}
+                      {fuelPct !== null && (
+                        <span className="text-xs text-muted-foreground">
+                          {fuelPct}% fuel
+                        </span>
+                      )}
+                    </div>
+                  </SelectItem>
+                );
+              })
           ) : (
             <div className="p-2 text-sm text-muted-foreground text-center">
               No vehicles available

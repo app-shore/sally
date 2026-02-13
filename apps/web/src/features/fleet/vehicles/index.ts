@@ -9,7 +9,7 @@ export {
 } from './api';
 
 // Types
-export type { Vehicle, CreateVehicleRequest, UpdateVehicleRequest } from './types';
+export type { Vehicle, CreateVehicleRequest, UpdateVehicleRequest, VehicleStatus, EquipmentType } from './types';
 
 // Hooks
 export {

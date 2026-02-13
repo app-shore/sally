@@ -7,6 +7,7 @@ import { FeatureFlagsModule } from './feature-flags/feature-flags.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
 import { SallyAiModule } from './sally-ai/sally-ai.module';
+import { ReferenceDataModule } from './reference-data/reference-data.module';
 
 /**
  * PlatformModule aggregates all platform/infrastructure modules:
@@ -18,6 +19,7 @@ import { SallyAiModule } from './sally-ai/sally-ai.module';
  * - Onboarding: User onboarding flows
  * - API Keys: API key management for external developers
  * - Sally AI: AI assistant conversations and chat history
+ * - Reference Data: Lookup values (equipment types, statuses, US states)
  */
 @Module({
   imports: [
@@ -29,6 +31,7 @@ import { SallyAiModule } from './sally-ai/sally-ai.module';
     OnboardingModule,
     ApiKeysModule,
     SallyAiModule,
+    ReferenceDataModule,
   ],
   exports: [
     TenantsModule,
@@ -39,6 +42,7 @@ import { SallyAiModule } from './sally-ai/sally-ai.module';
     OnboardingModule,
     ApiKeysModule,
     SallyAiModule,
+    ReferenceDataModule,
   ],
 })
 export class PlatformModule {}

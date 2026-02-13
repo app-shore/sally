@@ -1,5 +1,7 @@
 import { useConfig } from 'nextra-theme-docs';
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
 const config = {
   // Logo in minimal navbar
   logo: <span className="font-bold">SALLY Developer Portal</span>,
@@ -34,11 +36,23 @@ const config = {
     title: 'On This Page'
   },
 
+  // Extra content in navbar — "Back to SALLY" link
+  navbar: {
+    extraContent: (
+      <a
+        href={APP_URL}
+        className="nx-text-sm nx-text-gray-500 hover:nx-text-gray-900 nx-transition-colors nx-flex nx-items-center nx-gap-1"
+      >
+        &larr; Back to SALLY
+      </a>
+    )
+  },
+
   // Footer
   footer: {
     text: (
       <span>
-        {new Date().getFullYear()} © SALLY - Your Fleet Operations Assistant
+        {new Date().getFullYear()} &copy; SALLY - Your Fleet Operations Assistant
       </span>
     )
   },
