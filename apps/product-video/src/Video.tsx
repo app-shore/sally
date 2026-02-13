@@ -1,32 +1,36 @@
 import React from "react";
 import { Series } from "remotion";
-import { LogoReveal } from "./scenes/LogoReveal";
-import { TheProblem } from "./scenes/TheProblem";
+import { Stillness } from "./scenes/Stillness";
+import { Signals } from "./scenes/Signals";
+import { Awakening } from "./scenes/Awakening";
 import { RoutePlanning } from "./scenes/RoutePlanning";
-import { Monitoring } from "./scenes/Monitoring";
-import { Compliance } from "./scenes/Compliance";
-import { CallToAction } from "./scenes/CallToAction";
+import { TheNerve } from "./scenes/TheNerve";
+import { Certainty } from "./scenes/Certainty";
+import { Invitation } from "./scenes/Invitation";
 
 export const SallyLaunchVideo: React.FC = () => {
   return (
     <Series>
-      <Series.Sequence durationInFrames={120}>
-        <LogoReveal />
+      <Series.Sequence durationInFrames={150}>
+        <Stillness />
+      </Series.Sequence>
+      <Series.Sequence durationInFrames={300}>
+        <Signals />
       </Series.Sequence>
       <Series.Sequence durationInFrames={150}>
-        <TheProblem />
+        <Awakening />
       </Series.Sequence>
-      <Series.Sequence durationInFrames={240}>
+      <Series.Sequence durationInFrames={360}>
         <RoutePlanning />
       </Series.Sequence>
-      <Series.Sequence durationInFrames={210}>
-        <Monitoring />
+      <Series.Sequence durationInFrames={360}>
+        <TheNerve />
       </Series.Sequence>
-      <Series.Sequence durationInFrames={180}>
-        <Compliance />
+      <Series.Sequence durationInFrames={240}>
+        <Certainty />
       </Series.Sequence>
-      <Series.Sequence durationInFrames={150}>
-        <CallToAction />
+      <Series.Sequence durationInFrames={240}>
+        <Invitation />
       </Series.Sequence>
     </Series>
   );
