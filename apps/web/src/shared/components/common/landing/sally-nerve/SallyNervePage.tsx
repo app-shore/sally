@@ -12,6 +12,7 @@ import { SignalSources } from './SignalSources';
 import { CountUp } from './CountUp';
 import './sally-nerve.css';
 import { SignalFlicker } from './SignalFlicker';
+import { VideoLightbox } from './VideoLightbox';
 
 /**
  * Sally Nerve: "The Nervous System"
@@ -67,6 +68,16 @@ export function SallyNerveLanding() {
           >
             Your fleet is already speaking. SALLY listens.
           </motion.p>
+
+          {/* Video CTA */}
+          <motion.div
+            className="mt-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 3.5 }}
+          >
+            <VideoLightbox />
+          </motion.div>
 
           {/* Scroll prompt */}
           <motion.div
@@ -187,6 +198,68 @@ export function SallyNerveLanding() {
                   {item.number}
                 </div>
                 <h3 className="text-xl md:text-2xl font-bold tracking-tight mb-4 text-foreground">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {item.body}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pulse transition */}
+      <div className="py-12">
+        <Pulse className="h-20" />
+      </div>
+
+      {/* ============================================================
+          4.5. THE BRAIN — AI-powered route planning
+          ============================================================ */}
+      <section className="relative min-h-screen flex items-center justify-center py-24">
+        <div className="relative z-10 max-w-5xl mx-auto px-4">
+          <FlowText
+            as="h2"
+            className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-center mb-6"
+          >
+            A nervous system needs a brain
+          </FlowText>
+
+          <FlowText delay={0.3}>
+            <p className="text-sm md:text-base text-muted-foreground text-center max-w-lg mx-auto mb-20">
+              SALLY doesn&apos;t just sense signals — it thinks. AI-powered route planning
+              that optimizes every mile, every stop, every hour.
+            </p>
+          </FlowText>
+
+          <div className="grid md:grid-cols-2 gap-16 md:gap-12">
+            {[
+              {
+                title: 'Intelligent Route Optimization',
+                body: 'AI plans the fastest, most compliant route across every stop. Rest breaks, fuel stops, dock schedules — all factored in before the wheels turn.',
+              },
+              {
+                title: 'HOS-Aware Planning',
+                body: 'Every route respects Hours of Service from the start. SALLY simulates the entire journey segment by segment, inserting rest stops exactly where needed.',
+              },
+              {
+                title: 'Smart Fuel Strategy',
+                body: 'Real-time fuel prices meet route intelligence. SALLY finds the cheapest fuel along the route, factoring in tank range and time constraints.',
+              },
+              {
+                title: 'Dynamic Re-Planning',
+                body: 'When conditions change — weather, traffic, delays — SALLY re-plans the entire route in seconds. New plan. Still compliant. No dispatcher intervention.',
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
+                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: i * 0.15, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                <h3 className="text-lg md:text-xl font-bold tracking-tight mb-3 text-foreground">
                   {item.title}
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
