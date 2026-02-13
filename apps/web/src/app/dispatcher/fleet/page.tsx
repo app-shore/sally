@@ -76,7 +76,9 @@ import {
   CollapsibleTrigger,
 } from '@/shared/components/ui/collapsible';
 import { Checkbox } from '@/shared/components/ui/checkbox';
-import { ChevronDown, Lock, Plus, RefreshCw, Settings, Package, MoreHorizontal, Eye, Pencil, Trash2 } from 'lucide-react';
+import { Textarea } from '@/shared/components/ui/textarea';
+import { Separator } from '@/shared/components/ui/separator';
+import { ChevronDown, Lock, Mail, Plus, RefreshCw, Settings, Package, MoreHorizontal, Eye, Pencil, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/hooks/use-toast';
 
@@ -239,19 +241,16 @@ function DriversTab({
         <CardTitle>Drivers</CardTitle>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingDriver(null)}>
+            <Button>
               <Plus className="h-4 w-4 mr-2" />
               Add Driver
             </Button>
           </DialogTrigger>
           <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
-                {editingDriver ? 'Edit Driver' : 'Add Driver'}
-              </DialogTitle>
+              <DialogTitle>Add Driver</DialogTitle>
             </DialogHeader>
             <DriverForm
-              driver={editingDriver}
               onSuccess={handleSuccess}
               onCancel={handleCloseDialog}
             />
@@ -450,26 +449,34 @@ function DriversTab({
 }
 
 function DriverForm({
-  driver,
   onSuccess,
   onCancel,
 }: {
-  driver: Driver | null;
   onSuccess: () => void;
   onCancel: () => void;
 }) {
-  const { data: refData } = useReferenceData(['cdl_class', 'us_state']);
+  const { data: refData } = useReferenceData(['cdl_class', 'us_state', 'endorsement']);
   const cdlClasses = refData?.cdl_class ?? [];
   const usStates = refData?.us_state ?? [];
+  const endorsementOptions = refData?.endorsement ?? [];
 
   const [formData, setFormData] = useState<CreateDriverRequest>({
-    name: driver?.name || '',
-    phone: driver?.phone || '',
-    email: driver?.email || '',
-    cdl_class: driver?.cdl_class || '',
-    license_number: driver?.license_number || '',
-    license_state: driver?.license_state || '',
+    name: '',
+    phone: '',
+    email: '',
+    cdl_class: '',
+    license_number: '',
+    license_state: '',
+    endorsements: [],
+    hire_date: '',
+    medical_card_expiry: '',
+    home_terminal_city: '',
+    home_terminal_state: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+    notes: '',
   });
+  const [showMore, setShowMore] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -479,16 +486,21 @@ function DriverForm({
     setError(null);
 
     try {
-      if (driver) {
-        await updateDriver(driver.driver_id, formData);
-      } else {
-        await createDriver(formData);
-      }
+      await createDriver(formData);
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save driver');
+      setError(err instanceof Error ? err.message : 'Failed to create driver');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEndorsementToggle = (value: string) => {
+    const current = formData.endorsements || [];
+    if (current.includes(value)) {
+      setFormData({ ...formData, endorsements: current.filter((e) => e !== value) });
+    } else {
+      setFormData({ ...formData, endorsements: [...current, value] });
     }
   };
 
@@ -580,6 +592,135 @@ function DriverForm({
         </div>
       </div>
 
+      <Collapsible open={showMore} onOpenChange={setShowMore}>
+        <CollapsibleTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="w-full justify-between text-muted-foreground hover:text-foreground"
+          >
+            More Details
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${showMore ? 'rotate-180' : ''}`}
+            />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-4 pt-2">
+          {/* Endorsements */}
+          <div>
+            <Label>Endorsements</Label>
+            <div className="flex flex-wrap gap-4 mt-2">
+              {endorsementOptions.map((opt) => (
+                <div key={opt.code} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`create-endorsement-${opt.code}`}
+                    checked={(formData.endorsements || []).includes(opt.code)}
+                    onCheckedChange={() => handleEndorsementToggle(opt.code)}
+                  />
+                  <Label htmlFor={`create-endorsement-${opt.code}`} className="text-sm font-normal cursor-pointer">
+                    {opt.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Compliance Dates */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="create-hire-date">Hire Date</Label>
+              <Input
+                id="create-hire-date"
+                type="date"
+                value={formData.hire_date || ''}
+                onChange={(e) => setFormData({ ...formData, hire_date: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="create-medical">Medical Card Expiry</Label>
+              <Input
+                id="create-medical"
+                type="date"
+                value={formData.medical_card_expiry || ''}
+                onChange={(e) => setFormData({ ...formData, medical_card_expiry: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Home Terminal */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="create-city">Home Terminal City</Label>
+              <Input
+                id="create-city"
+                value={formData.home_terminal_city || ''}
+                onChange={(e) => setFormData({ ...formData, home_terminal_city: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="create-terminal-state">Home Terminal State</Label>
+              <Select
+                value={formData.home_terminal_state || ''}
+                onValueChange={(value) => setFormData({ ...formData, home_terminal_state: value })}
+              >
+                <SelectTrigger id="create-terminal-state">
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {usStates.map((state) => (
+                    <SelectItem key={state.code} value={state.code}>
+                      {state.label} ({state.code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Emergency Contact */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="create-ec-name">Emergency Contact Name</Label>
+              <Input
+                id="create-ec-name"
+                value={formData.emergency_contact_name || ''}
+                onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="create-ec-phone">Emergency Contact Phone</Label>
+              <Input
+                id="create-ec-phone"
+                type="tel"
+                value={formData.emergency_contact_phone || ''}
+                onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Notes */}
+          <div>
+            <Label htmlFor="create-notes">Notes</Label>
+            <Textarea
+              id="create-notes"
+              value={formData.notes || ''}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={3}
+              placeholder="Add notes about this driver..."
+            />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
       {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
 
       <div className="flex justify-end gap-2">
@@ -587,7 +728,7 @@ function DriverForm({
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : driver ? 'Update' : 'Create'}
+          {isSubmitting ? 'Saving...' : 'Create'}
         </Button>
       </div>
     </form>

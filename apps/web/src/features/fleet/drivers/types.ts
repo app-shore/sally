@@ -59,6 +59,15 @@ export interface CreateDriverRequest {
   cdl_class: string;
   license_number: string;
   license_state?: string;
+  // Optional profile fields (from "More Details" section)
+  endorsements?: string[];
+  hire_date?: string;
+  medical_card_expiry?: string;
+  home_terminal_city?: string;
+  home_terminal_state?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  notes?: string;
 }
 
 export interface UpdateDriverRequest {
