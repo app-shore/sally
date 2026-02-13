@@ -4,7 +4,7 @@ import {
   useCurrentFrame,
   interpolate,
 } from "remotion";
-import { NeuralNetwork } from "../components/NeuralNetwork";
+import { NervousSystemSVG } from "../components/NervousSystemSVG";
 import { AnimatedText } from "../components/AnimatedText";
 import { FadeIn } from "../components/FadeIn";
 import { theme } from "../lib/theme";
@@ -33,11 +33,18 @@ export const Signals: React.FC = () => {
         alignItems: "center",
       }}
     >
-      {/* Neural network in background */}
-      <div style={{ position: "absolute", opacity: 0.4 }}>
-        <NeuralNetwork
-          width={800}
-          height={800}
+      {/* Nervous system in background */}
+      <div
+        style={{
+          position: "absolute",
+          opacity: 0.4,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <NervousSystemSVG
+          size={800}
           activationDelay={10}
           intensity="low"
         />

@@ -4,7 +4,7 @@ import {
   useCurrentFrame,
   interpolate,
 } from "remotion";
-import { NeuralNetwork } from "../components/NeuralNetwork";
+import { NervousSystemSVG } from "../components/NervousSystemSVG";
 import { AnimatedText } from "../components/AnimatedText";
 import { theme } from "../lib/theme";
 
@@ -36,11 +36,17 @@ export const Awakening: React.FC = () => {
         }}
       />
 
-      {/* Neural network — HIGH intensity */}
-      <div style={{ position: "absolute" }}>
-        <NeuralNetwork
-          width={900}
-          height={900}
+      {/* Nervous system — HIGH intensity */}
+      <div
+        style={{
+          position: "absolute",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <NervousSystemSVG
+          size={900}
           activationDelay={5}
           intensity="high"
         />

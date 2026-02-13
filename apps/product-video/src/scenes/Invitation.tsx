@@ -82,7 +82,7 @@ export const Invitation: React.FC = () => {
               letterSpacing: "0.05em",
             }}
           >
-            Request a demo → sally.dev
+            Request a demo → sally.appshore.in
           </div>
         </div>
       </div>

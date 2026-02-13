@@ -1,3 +1,5 @@
+import { fontFamily } from "./fonts";
+
 export const theme = {
   bg: "#000000",
   text: "#FFFFFF",
@@ -8,5 +10,5 @@ export const theme = {
   alertYellow: "#EAB308",
   alertGreen: "#22C55E",
   alertBlue: "#3B82F6",
-  font: "Inter, system-ui, sans-serif",
+  font: fontFamily,
 } as const;

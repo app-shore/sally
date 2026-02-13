@@ -1,5 +1,6 @@
 import React from "react";
-import { Series } from "remotion";
+import { TransitionSeries, linearTiming } from "@remotion/transitions";
+import { fade } from "@remotion/transitions/fade";
 import { Stillness } from "./scenes/Stillness";
 import { Signals } from "./scenes/Signals";
 import { Awakening } from "./scenes/Awakening";
@@ -8,30 +9,56 @@ import { TheNerve } from "./scenes/TheNerve";
 import { Certainty } from "./scenes/Certainty";
 import { Invitation } from "./scenes/Invitation";
 
+const FADE_DURATION = 15; // frames for cross-fade transitions
+
 export const SallyLaunchVideo: React.FC = () => {
   return (
-    <Series>
-      <Series.Sequence durationInFrames={150}>
+    <TransitionSeries>
+      <TransitionSeries.Sequence durationInFrames={165}>
         <Stillness />
-      </Series.Sequence>
-      <Series.Sequence durationInFrames={300}>
+      </TransitionSeries.Sequence>
+      <TransitionSeries.Transition
+        presentation={fade()}
+        timing={linearTiming({ durationInFrames: FADE_DURATION })}
+      />
+      <TransitionSeries.Sequence durationInFrames={315}>
         <Signals />
-      </Series.Sequence>
-      <Series.Sequence durationInFrames={150}>
+      </TransitionSeries.Sequence>
+      <TransitionSeries.Transition
+        presentation={fade()}
+        timing={linearTiming({ durationInFrames: FADE_DURATION })}
+      />
+      <TransitionSeries.Sequence durationInFrames={165}>
         <Awakening />
-      </Series.Sequence>
-      <Series.Sequence durationInFrames={360}>
+      </TransitionSeries.Sequence>
+      <TransitionSeries.Transition
+        presentation={fade()}
+        timing={linearTiming({ durationInFrames: FADE_DURATION })}
+      />
+      <TransitionSeries.Sequence durationInFrames={375}>
         <RoutePlanning />
-      </Series.Sequence>
-      <Series.Sequence durationInFrames={360}>
+      </TransitionSeries.Sequence>
+      <TransitionSeries.Transition
+        presentation={fade()}
+        timing={linearTiming({ durationInFrames: FADE_DURATION })}
+      />
+      <TransitionSeries.Sequence durationInFrames={375}>
         <TheNerve />
-      </Series.Sequence>
-      <Series.Sequence durationInFrames={240}>
+      </TransitionSeries.Sequence>
+      <TransitionSeries.Transition
+        presentation={fade()}
+        timing={linearTiming({ durationInFrames: FADE_DURATION })}
+      />
+      <TransitionSeries.Sequence durationInFrames={255}>
         <Certainty />
-      </Series.Sequence>
-      <Series.Sequence durationInFrames={240}>
+      </TransitionSeries.Sequence>
+      <TransitionSeries.Transition
+        presentation={fade()}
+        timing={linearTiming({ durationInFrames: FADE_DURATION })}
+      />
+      <TransitionSeries.Sequence durationInFrames={240}>
         <Invitation />
-      </Series.Sequence>
-    </Series>
+      </TransitionSeries.Sequence>
+    </TransitionSeries>
   );
 };
