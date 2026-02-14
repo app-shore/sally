@@ -14,6 +14,18 @@ import { useSSE } from '@/shared/hooks/use-sse';
 import { useAlertSound } from '@/shared/hooks/use-alert-sound';
 import { useTabTitle } from '@/shared/hooks/use-tab-title';
 
+const FULL_PAGE_ROUTES = [
+  '/dispatcher/plans/create',
+];
+
+function isFullPageRoute(pathname: string | null): boolean {
+  if (!pathname) return false;
+  if (FULL_PAGE_ROUTES.includes(pathname)) return true;
+  // Match /dispatcher/plans/{planId} but NOT /dispatcher/plans itself
+  if (/^\/dispatcher\/plans\/[^/]+$/.test(pathname) && pathname !== '/dispatcher/plans') return true;
+  return false;
+}
+
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -84,6 +96,8 @@ export function AppLayout({ children }: AppLayoutProps) {
     (user?.role === 'OWNER' || user?.role === 'ADMIN') &&
     pathname !== '/setup-hub';
 
+  const fullPage = isFullPageRoute(pathname);
+
   if (!isAuthenticated) {
     return null;
   }
@@ -104,25 +118,26 @@ export function AppLayout({ children }: AppLayoutProps) {
         />
       )}
 
-      {/* Content area with sidebar */}
+      {/* Content area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Below header */}
-        <AppSidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
+        {/* Sidebar - hidden on full-page routes */}
+        {!fullPage && (
+          <AppSidebar
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+            isCollapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+        )}
 
-        {/* Main content - Adjust margin based on sidebar state */}
+        {/* Main content */}
         <main
           className={cn(
             'flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300',
-            sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
+            fullPage ? 'md:ml-0' : sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
           )}
         >
-          {/* Remove max-w-7xl constraint - let pages control their own width */}
-          <div className="p-4 md:p-8">
+          <div className={fullPage ? '' : 'p-4 md:p-8'}>
             {children}
           </div>
         </main>
