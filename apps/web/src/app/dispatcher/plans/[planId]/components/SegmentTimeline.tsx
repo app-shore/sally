@@ -1,0 +1,247 @@
+"use client";
+
+import { MapPin, Moon, Fuel, Coffee, Clock } from "lucide-react";
+import { Badge } from "@/shared/components/ui/badge";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { HOSProgressBars } from "./HOSProgressBars";
+import type { RouteSegment } from "@/features/routing/route-planning";
+
+interface SegmentTimelineProps {
+  segments: RouteSegment[];
+}
+
+function formatTime(isoString: string): string {
+  return new Date(isoString).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+function formatDate(isoString: string): string {
+  return new Date(isoString).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatDuration(hours: number): string {
+  if (hours < 1) return `${Math.round(hours * 60)}m`;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+function SegmentIcon({ type }: { type: string }) {
+  const cls = "h-4 w-4";
+  switch (type) {
+    case "dock": return <MapPin className={cls} />;
+    case "rest": return <Moon className={cls} />;
+    case "fuel": return <Fuel className={cls} />;
+    case "break": return <Coffee className={cls} />;
+    default: return <Clock className={cls} />;
+  }
+}
+
+function getIconBg(type: string): string {
+  switch (type) {
+    case "dock": return "bg-foreground text-background";
+    case "rest": return "bg-gray-600 dark:bg-gray-400 text-white dark:text-black";
+    case "fuel": return "bg-gray-500 dark:bg-gray-500 text-white";
+    case "break": return "bg-gray-400 dark:bg-gray-600 text-white dark:text-gray-200";
+    default: return "bg-muted text-muted-foreground";
+  }
+}
+
+function DriveConnector({ segment }: { segment: RouteSegment }) {
+  return (
+    <div className="flex items-center gap-2 py-3 ml-[88px] text-xs text-muted-foreground">
+      <div className="flex-1 border-t border-dashed border-border" />
+      <span>
+        {segment.distanceMiles?.toLocaleString(undefined, { maximumFractionDigits: 0 })} mi
+      </span>
+      <span>&middot;</span>
+      <span>{formatDuration(segment.driveTimeHours || 0)}</span>
+      <div className="flex-1 border-t border-dashed border-border" />
+    </div>
+  );
+}
+
+function StopSegment({
+  segment,
+  isLast,
+  showCycleHours,
+}: {
+  segment: RouteSegment;
+  isLast: boolean;
+  showCycleHours: boolean;
+}) {
+  const time = segment.estimatedArrival ? formatTime(segment.estimatedArrival) : "";
+  const date = segment.estimatedArrival ? formatDate(segment.estimatedArrival) : "";
+  const isRest = segment.segmentType === "rest";
+  const isBreak = segment.segmentType === "break";
+
+  return (
+    <div className="flex items-start gap-3 py-3 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+      {/* Time column */}
+      <div className="w-[64px] flex-shrink-0 text-right pt-0.5">
+        <div className="text-xs font-medium text-foreground tabular-nums">{time}</div>
+        <div className="text-[10px] text-muted-foreground">{date}</div>
+      </div>
+
+      {/* Icon */}
+      <div
+        className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${getIconBg(segment.segmentType)}`}
+      >
+        <SegmentIcon type={segment.segmentType} />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        {/* Dock segments */}
+        {segment.segmentType === "dock" && (
+          <>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 uppercase tracking-wider">
+                {segment.actionType || "stop"}
+              </Badge>
+              <span className="text-sm font-medium text-foreground">{segment.toLocation}</span>
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {segment.customerName && `${segment.customerName} · `}
+              {formatDuration(segment.dockDurationHours || 0)} dock
+              {segment.isDocktimeConverted && (
+                <Badge variant="muted" className="text-[10px] px-1 py-0 ml-2">
+                  counts as rest
+                </Badge>
+              )}
+            </div>
+            {segment.isDocktimeConverted && (
+              <div className="text-xs text-muted-foreground mt-1 italic border-l-2 border-border pl-2">
+                SALLY: Dock time qualifies as off-duty. Credited toward rest requirements.
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Rest segments */}
+        {segment.segmentType === "rest" && (
+          <>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">
+                {formatDuration(segment.restDurationHours || 0)} Rest
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {segment.toLocation || "Rest Area"}
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {segment.restType?.replace(/_/g, " ")}
+            </div>
+            {segment.restReason && (
+              <div className="text-xs text-muted-foreground mt-1 italic border-l-2 border-border pl-2">
+                SALLY: {segment.restReason}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Fuel segments */}
+        {segment.segmentType === "fuel" && (
+          <>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">
+                {segment.fuelStationName || segment.toLocation || "Fuel Stop"}
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {segment.fuelGallons} gal · ${segment.fuelPricePerGallon?.toFixed(2)}/gal · $
+              {segment.fuelCostEstimate?.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+              {segment.detourMiles != null && segment.detourMiles > 0 && (
+                <span> · {segment.detourMiles.toFixed(1)} mi detour</span>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Break segments */}
+        {segment.segmentType === "break" && (
+          <>
+            <div className="text-sm font-medium text-foreground">Mandatory Break</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {formatDuration(segment.restDurationHours || 0.5)}
+            </div>
+            {segment.restReason && (
+              <div className="text-xs text-muted-foreground mt-1 italic border-l-2 border-border pl-2">
+                SALLY: {segment.restReason}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Final stop indicator */}
+        {isLast && segment.segmentType === "dock" && (
+          <div className="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
+            Route complete
+          </div>
+        )}
+
+        {/* HOS bars — shown on every non-drive segment */}
+        {segment.hosStateAfter && (
+          <HOSProgressBars
+            hosState={segment.hosStateAfter}
+            segmentType={segment.segmentType}
+            isReset={isRest || isBreak}
+            showCycle={showCycleHours}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function SegmentTimeline({ segments }: SegmentTimelineProps) {
+  // Build interleaved display: stop, drive, stop, drive...
+  const items: Array<{ type: "stop" | "drive"; segment: RouteSegment; isLast: boolean; showCycle: boolean }> = [];
+
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    const isLast = i === segments.length - 1 ||
+      (seg.segmentType !== "drive" && segments.slice(i + 1).every(s => s.segmentType === "drive"));
+    const showCycle = seg.segmentType === "rest" || isLast;
+
+    if (seg.segmentType === "drive") {
+      items.push({ type: "drive", segment: seg, isLast: false, showCycle: false });
+    } else {
+      items.push({ type: "stop", segment: seg, isLast, showCycle });
+    }
+  }
+
+  return (
+    <Card>
+      <CardContent className="py-4 px-2 md:px-4">
+        <div className="relative">
+          {/* Vertical timeline line */}
+          <div className="absolute left-[99px] top-0 bottom-0 w-px bg-border" />
+
+          {items.map((item) =>
+            item.type === "drive" ? (
+              <DriveConnector key={item.segment.segmentId} segment={item.segment} />
+            ) : (
+              <StopSegment
+                key={item.segment.segmentId}
+                segment={item.segment}
+                isLast={item.isLast}
+                showCycleHours={item.showCycle}
+              />
+            )
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
