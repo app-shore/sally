@@ -1,6 +1,5 @@
 "use client";
 
-import { MapPin, Moon, Fuel, Coffee } from "lucide-react";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import type { RouteSegment } from "@/features/routing/route-planning";
 
@@ -8,24 +7,20 @@ interface RouteGlanceProps {
   segments: RouteSegment[];
 }
 
-function GlanceIcon({ type }: { type: string }) {
-  const cls = "h-3.5 w-3.5";
+function getDotColor(type: string): string {
   switch (type) {
-    case "dock": return <MapPin className={cls} />;
-    case "rest": return <Moon className={cls} />;
-    case "fuel": return <Fuel className={cls} />;
-    case "break": return <Coffee className={cls} />;
-    default: return <MapPin className={cls} />;
+    case "dock": return "bg-foreground";
+    case "rest": return "bg-gray-500 dark:bg-gray-400";
+    case "fuel": return "bg-gray-400 dark:bg-gray-500";
+    case "break": return "bg-gray-400 dark:bg-gray-500";
+    default: return "bg-muted-foreground";
   }
 }
 
-function getNodeStyle(type: string): string {
+function getDotRing(type: string): string {
   switch (type) {
-    case "dock": return "bg-foreground text-background";
-    case "rest": return "bg-gray-500 dark:bg-gray-400 text-white dark:text-black";
-    case "fuel": return "bg-gray-400 dark:bg-gray-500 text-white";
-    case "break": return "bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200";
-    default: return "bg-muted text-muted-foreground";
+    case "dock": return "ring-2 ring-foreground/20";
+    default: return "";
   }
 }
 
@@ -70,7 +65,6 @@ function getDriveBetween(
   let miles = 0;
   let hours = 0;
 
-  // Sum all drive segments between these two node indices in the original array
   const allNonDrive = segments.filter((s) => s.segmentType !== "drive");
   const currentSeg = allNonDrive[currentNodeIndex];
   const nextSeg = allNonDrive[nextNodeIndex];
@@ -91,7 +85,6 @@ function getDriveBetween(
 }
 
 export function RouteGlance({ segments }: RouteGlanceProps) {
-  // Filter to only non-drive segments (the "nodes")
   const nodes = segments.filter((s) => s.segmentType !== "drive");
 
   if (nodes.length === 0) return null;
@@ -122,14 +115,12 @@ export function RouteGlance({ segments }: RouteGlanceProps) {
                   </div>
                 )}
 
-                {/* Node */}
+                {/* Node — small dot matching timeline style */}
                 <div className="flex flex-col items-center flex-shrink-0">
                   <div
-                    className={`h-7 w-7 rounded-full flex items-center justify-center ${getNodeStyle(node.segmentType)}`}
-                  >
-                    <GlanceIcon type={node.segmentType} />
-                  </div>
-                  <span className="text-[10px] md:text-xs font-medium text-foreground mt-1 max-w-[80px] text-center truncate">
+                    className={`h-3 w-3 rounded-full ${getDotColor(node.segmentType)} ${getDotRing(node.segmentType)}`}
+                  />
+                  <span className="text-[10px] md:text-xs font-medium text-foreground mt-1.5 max-w-[80px] text-center truncate">
                     {getLabel(node)}
                   </span>
                   <span className="text-[9px] md:text-[10px] text-muted-foreground">

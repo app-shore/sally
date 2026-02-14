@@ -50,12 +50,25 @@ function getDotRing(type: string): string {
   }
 }
 
+/**
+ * Layout uses CSS grid with 3 columns: [time] [dot+line] [content]
+ * The middle column is a fixed 12px wide column that contains the dot and the vertical line.
+ * This ensures perfect alignment — the line always runs through dot centers.
+ */
+
 function DriveConnector({ segment }: { segment: RouteSegment }) {
   return (
-    <div className="relative flex items-center gap-2 py-1.5 pl-[68px] text-xs text-muted-foreground">
-      {/* Timeline continuation */}
-      <div className="absolute left-[79px] top-0 bottom-0 w-px bg-border" />
-      <div className="ml-[24px] flex items-center gap-2 w-full">
+    <div className="grid grid-cols-[60px_12px_1fr] gap-x-3 items-center py-1.5 px-3">
+      {/* Empty time column */}
+      <div />
+
+      {/* Timeline line through center */}
+      <div className="flex justify-center h-full">
+        <div className="w-px bg-border" />
+      </div>
+
+      {/* Drive info */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <div className="flex-1 border-t border-dashed border-border" />
         <span>
           {segment.distanceMiles?.toLocaleString(undefined, { maximumFractionDigits: 0 })} mi
@@ -70,11 +83,13 @@ function DriveConnector({ segment }: { segment: RouteSegment }) {
 
 function StopSegment({
   segment,
+  isFirst,
   isLast,
   showCycleHours,
   planStatus,
 }: {
   segment: RouteSegment;
+  isFirst: boolean;
   isLast: boolean;
   showCycleHours: boolean;
   planStatus?: string;
@@ -89,20 +104,24 @@ function StopSegment({
   const showFullBars = hosState && (isHOSMeaningful(hosState) || isRest || isBreak);
 
   return (
-    <div className="relative flex items-start gap-3 py-3 px-3 rounded-lg hover:bg-muted/30 transition-colors">
-      {/* Timeline line — behind the dot */}
-      <div className="absolute left-[79px] top-0 bottom-0 w-px bg-border" />
-
-      {/* Time column */}
-      <div className="w-[56px] flex-shrink-0 text-right pt-0.5">
-        <div className="text-xs font-medium text-foreground tabular-nums">{time}</div>
-        <div className="text-[10px] text-muted-foreground">{date}</div>
+    <div className="grid grid-cols-[60px_12px_1fr] gap-x-3 py-3 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+      {/* Time column — align top of text with dot */}
+      <div className="flex-shrink-0 text-right pt-px">
+        <div className="text-xs font-medium text-foreground tabular-nums leading-none">{time}</div>
+        <div className="text-[10px] text-muted-foreground mt-1">{date}</div>
       </div>
 
-      {/* Dot — sits on the timeline */}
-      <div
-        className={`relative z-10 mt-1.5 h-3 w-3 rounded-full flex-shrink-0 ${getDotColor(segment.segmentType)} ${getDotRing(segment.segmentType)}`}
-      />
+      {/* Dot + timeline line */}
+      <div className="flex flex-col items-center">
+        {/* Line above dot (hidden for first item) */}
+        <div className={`flex-1 w-px ${isFirst ? "bg-transparent" : "bg-border"}`} />
+        {/* Dot — aligned with first line of text */}
+        <div
+          className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${getDotColor(segment.segmentType)} ${getDotRing(segment.segmentType)}`}
+        />
+        {/* Line below dot (hidden for last item) */}
+        <div className={`flex-1 w-px ${isLast ? "bg-transparent" : "bg-border"}`} />
+      </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
@@ -216,39 +235,44 @@ function StopSegment({
 }
 
 export function SegmentTimeline({ segments, planStatus }: SegmentTimelineProps) {
-  const items: Array<{ type: "stop" | "drive"; segment: RouteSegment; isLast: boolean; showCycle: boolean }> = [];
+  const items: Array<{ type: "stop" | "drive"; segment: RouteSegment; isFirst: boolean; isLast: boolean; showCycle: boolean }> = [];
+
+  // Build items from non-drive perspective to track first/last stop
+  const stopIndices: number[] = [];
+  for (let i = 0; i < segments.length; i++) {
+    if (segments[i].segmentType !== "drive") stopIndices.push(i);
+  }
 
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
-    const isLast = i === segments.length - 1 ||
-      (seg.segmentType !== "drive" && segments.slice(i + 1).every(s => s.segmentType === "drive"));
-    const showCycle = seg.segmentType === "rest" || isLast;
+    const isLastStop = seg.segmentType !== "drive" && i === stopIndices[stopIndices.length - 1];
+    const isFirstStop = seg.segmentType !== "drive" && i === stopIndices[0];
+    const showCycle = seg.segmentType === "rest" || isLastStop;
 
     if (seg.segmentType === "drive") {
-      items.push({ type: "drive", segment: seg, isLast: false, showCycle: false });
+      items.push({ type: "drive", segment: seg, isFirst: false, isLast: false, showCycle: false });
     } else {
-      items.push({ type: "stop", segment: seg, isLast, showCycle });
+      items.push({ type: "stop", segment: seg, isFirst: isFirstStop, isLast: isLastStop, showCycle });
     }
   }
 
   return (
     <Card>
       <CardContent className="py-4 px-2 md:px-4">
-        <div className="relative">
-          {items.map((item) =>
-            item.type === "drive" ? (
-              <DriveConnector key={item.segment.segmentId} segment={item.segment} />
-            ) : (
-              <StopSegment
-                key={item.segment.segmentId}
-                segment={item.segment}
-                isLast={item.isLast}
-                showCycleHours={item.showCycle}
-                planStatus={planStatus}
-              />
-            )
-          )}
-        </div>
+        {items.map((item) =>
+          item.type === "drive" ? (
+            <DriveConnector key={item.segment.segmentId} segment={item.segment} />
+          ) : (
+            <StopSegment
+              key={item.segment.segmentId}
+              segment={item.segment}
+              isFirst={item.isFirst}
+              isLast={item.isLast}
+              showCycleHours={item.showCycle}
+              planStatus={planStatus}
+            />
+          )
+        )}
       </CardContent>
     </Card>
   );
