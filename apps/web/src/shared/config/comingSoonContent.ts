@@ -122,28 +122,28 @@ export const comingSoonContent: Record<string, Omit<ComingSoonBannerProps, 'cate
     ],
   },
 
-  invoicing_enabled: {
-    title: 'Load Invoicing',
+  billing_enabled: {
+    title: 'Billing',
     description:
-      'Create, send, and track invoices for completed loads. Automatically calculate rates from load data and get paid faster with professional invoice templates.',
+      'Create, send, and track invoices for completed loads. Automatically calculate rates from load data and get paid faster with professional invoices.',
     features: [
       'One-click invoice generation from completed loads with automatic rate calculation',
-      'Professional invoice templates with your company branding and terms',
+      'Line item management with accessorials, detention, and lumper charges',
       'Invoice status tracking: draft, sent, paid, overdue with aging reports',
       'Bulk invoicing for multiple loads to the same customer',
       'QuickBooks sync to eliminate double-entry and keep your books current',
     ],
   },
 
-  driver_settlements_enabled: {
-    title: 'Driver Settlements',
+  driver_pay_enabled: {
+    title: 'Driver Pay',
     description:
-      'Calculate and manage driver pay with support for per-mile, percentage, and flat rate structures. Generate settlement statements and sync to accounting.',
+      'Calculate and manage driver pay with support for per-mile, percentage, flat rate, and hybrid structures. Generate settlement statements and sync to accounting.',
     features: [
       'Flexible pay structures: per-mile, percentage of load, flat rate, or hybrid',
       'Automatic settlement calculation from completed routes and loads',
       'Deduction management: advances, fuel cards, insurance, equipment leases',
-      'Settlement statement generation with detailed breakdown for drivers',
+      'Settlement statement generation with detailed pay breakdown',
       'QuickBooks sync for seamless payroll and expense tracking',
     ],
   },

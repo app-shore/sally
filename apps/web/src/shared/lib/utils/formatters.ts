@@ -69,6 +69,17 @@ export function formatCurrency(amount: number, currency: string = 'USD'): string
   }
 }
 
+/**
+ * Format an amount in cents as a currency string.
+ * Converts cents to dollars and formats with Intl.NumberFormat.
+ * @param cents - Amount in cents (integer)
+ * @param currency - Currency code (default: 'USD')
+ * @returns Formatted currency string like "$1,234.56"
+ */
+export function formatCents(cents: number, currency: string = 'USD'): string {
+  return formatCurrency(cents / 100, currency);
+}
+
 // ============================================================================
 // TEMPERATURE FORMATTING
 // ============================================================================
