@@ -2,14 +2,25 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Route, Search } from "lucide-react";
+import { Plus, Route, Search, X } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Skeleton } from "@/shared/components/ui/skeleton";
-import { useRoutePlans } from "@/features/routing/route-planning";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/shared/components/ui/alert-dialog";
+import { useRoutePlans, useCancelRoute } from "@/features/routing/route-planning";
 import type { RoutePlanListItem } from "@/features/routing/route-planning";
 
 function formatDate(iso: string) {
@@ -63,64 +74,101 @@ function getLoadNumbers(plan: RoutePlanListItem): string[] {
   return plan.loads.map((l) => l.load.loadNumber);
 }
 
-function PlanRow({ plan, onClick }: { plan: RoutePlanListItem; onClick: () => void }) {
+function PlanRow({ plan, onClick, onDiscard }: { plan: RoutePlanListItem; onClick: () => void; onDiscard?: () => void }) {
   const customers = getCustomerNames(plan);
   const route = getRoute(plan);
   const loadNumbers = getLoadNumbers(plan);
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full p-4 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-left"
-    >
-      {/* Row 1: Customer(s) + Status + Cost */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0 flex-wrap">
-          <span className="text-sm font-semibold text-foreground truncate">
-            {customers.length > 0 ? customers.join(", ") : "No customer"}
+    <div className="relative">
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full p-4 pr-12 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-left"
+      >
+        {/* Row 1: Customer(s) + Status + Cost */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+            <span className="text-sm font-semibold text-foreground truncate">
+              {customers.length > 0 ? customers.join(", ") : "No customer"}
+            </span>
+            <Badge variant={statusVariant(plan.status)} className="text-[10px] px-1.5 py-0">
+              {plan.status}
+            </Badge>
+            {!plan.isFeasible && (
+              <Badge variant="destructive" className="text-[10px] px-1.5 py-0">infeasible</Badge>
+            )}
+          </div>
+          <span className="text-sm font-semibold text-foreground flex-shrink-0">
+            ${plan.totalCostEstimate.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </span>
-          <Badge variant={statusVariant(plan.status)} className="text-[10px] px-1.5 py-0">
-            {plan.status}
-          </Badge>
-          {!plan.isFeasible && (
-            <Badge variant="destructive" className="text-[10px] px-1.5 py-0">infeasible</Badge>
+        </div>
+
+        {/* Row 2: Origin → Dest | Load numbers */}
+        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
+          {route && (
+            <>
+              <span>{route.origin} → {route.destination}</span>
+              <span>&middot;</span>
+            </>
+          )}
+          {loadNumbers.length > 0 && (
+            <span>{loadNumbers.join(", ")}</span>
           )}
         </div>
-        <span className="text-sm font-semibold text-foreground flex-shrink-0">
-          ${plan.totalCostEstimate.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-        </span>
-      </div>
 
-      {/* Row 2: Origin → Dest | Load numbers */}
-      <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
-        {route && (
-          <>
-            <span>{route.origin} → {route.destination}</span>
-            <span>&middot;</span>
-          </>
-        )}
-        {loadNumbers.length > 0 && (
-          <span>{loadNumbers.join(", ")}</span>
-        )}
-      </div>
-
-      {/* Row 3: Driver · Vehicle · Distance · Time · Departure → Arrival */}
-      <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
-        <span>{plan.driver.name}</span>
-        <span>&middot;</span>
-        <span>#{plan.vehicle.unitNumber}</span>
-        <span>&middot;</span>
-        <span>{formatDistance(plan.totalDistanceMiles)}</span>
-        <span>&middot;</span>
-        <span>{formatHours(plan.totalTripTimeHours)}</span>
-        <span>&middot;</span>
-        <span>
-          {formatDate(plan.departureTime)}
-          {plan.estimatedArrival && ` → ${formatDate(plan.estimatedArrival)}`}
-        </span>
-      </div>
-    </button>
+        {/* Row 3: Driver · Vehicle · Distance · Time · Departure → Arrival */}
+        <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
+          <span>{plan.driver.name}</span>
+          <span>&middot;</span>
+          <span>#{plan.vehicle.unitNumber}</span>
+          <span>&middot;</span>
+          <span>{formatDistance(plan.totalDistanceMiles)}</span>
+          <span>&middot;</span>
+          <span>{formatHours(plan.totalTripTimeHours)}</span>
+          <span>&middot;</span>
+          <span>
+            {formatDate(plan.departureTime)}
+            {plan.estimatedArrival && ` → ${formatDate(plan.estimatedArrival)}`}
+          </span>
+        </div>
+      </button>
+      {plan.status === "draft" && onDiscard && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-red-600 dark:hover:text-red-400"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Discard this plan?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will cancel route {plan.planId}. The loads will remain
+                available for a new plan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep Plan</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDiscard();
+                }}
+                className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+              >
+                Discard
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </div>
   );
 }
 
@@ -131,6 +179,7 @@ export default function PlansListPage() {
   const { data, isLoading } = useRoutePlans(
     statusFilter === "all" ? undefined : { status: statusFilter }
   );
+  const cancelRoute = useCancelRoute();
 
   const plans = data?.plans ?? [];
 
@@ -189,6 +238,7 @@ export default function PlansListPage() {
             <TabsTrigger value="draft">Drafts</TabsTrigger>
             <TabsTrigger value="active">Active</TabsTrigger>
             <TabsTrigger value="completed">Completed</TabsTrigger>
+            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -230,6 +280,7 @@ export default function PlansListPage() {
               key={plan.planId}
               plan={plan}
               onClick={() => router.push(`/dispatcher/plans/${plan.planId}`)}
+              onDiscard={() => cancelRoute.mutate(plan.planId)}
             />
           ))}
         </div>

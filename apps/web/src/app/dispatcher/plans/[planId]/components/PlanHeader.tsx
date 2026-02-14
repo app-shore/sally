@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, User, Truck, Clock, Gauge } from "lucide-react";
+import { ArrowLeft, User, Truck, Clock, Gauge, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/shared/components/ui/button";
@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/components/ui/alert-dialog";
-import { useActivateRoute } from "@/features/routing/route-planning";
+import { useActivateRoute, useCancelRoute } from "@/features/routing/route-planning";
 import type { RoutePlanResult } from "@/features/routing/route-planning";
 
 interface PlanHeaderProps {
@@ -61,6 +61,7 @@ function formatHours(hours: number) {
 export function PlanHeader({ plan }: PlanHeaderProps) {
   const router = useRouter();
   const activateRoute = useActivateRoute();
+  const cancelRoute = useCancelRoute();
   const [isActivated, setIsActivated] = useState(false);
 
   const currentStatus = isActivated ? "active" : plan.status;
@@ -70,6 +71,15 @@ export function PlanHeader({ plan }: PlanHeaderProps) {
     try {
       await activateRoute.mutateAsync(plan.planId);
       setIsActivated(true);
+    } catch {
+      // Error handled by mutation state
+    }
+  };
+
+  const handleDiscard = async () => {
+    try {
+      await cancelRoute.mutateAsync(plan.planId);
+      router.push("/dispatcher/plans");
     } catch {
       // Error handled by mutation state
     }
@@ -98,33 +108,77 @@ export function PlanHeader({ plan }: PlanHeaderProps) {
             Activated
           </Badge>
         ) : currentStatus === "draft" ? (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button disabled={activateRoute.isPending}>
-                {activateRoute.isPending ? (
-                  <div className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Activating...
-                  </div>
-                ) : (
-                  "Activate Route"
-                )}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Activate this route?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will activate route {plan.planId} and deactivate any
-                  currently active route for this driver.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleActivate}>Activate</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="flex items-center gap-2">
+            {/* Discard */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950"
+                  disabled={cancelRoute.isPending}
+                >
+                  {cancelRoute.isPending ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Discarding...
+                    </div>
+                  ) : (
+                    <>
+                      <X className="h-4 w-4 mr-1" />
+                      Discard
+                    </>
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Discard this plan?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will cancel route {plan.planId}. The loads will remain
+                    available for a new plan.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep Plan</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDiscard}
+                    className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+                  >
+                    Discard
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Activate */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button disabled={activateRoute.isPending}>
+                  {activateRoute.isPending ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Activating...
+                    </div>
+                  ) : (
+                    "Activate Route"
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Activate this route?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will activate route {plan.planId} and deactivate any
+                    currently active route for this driver.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleActivate}>Activate</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         ) : null}
       </div>
 
