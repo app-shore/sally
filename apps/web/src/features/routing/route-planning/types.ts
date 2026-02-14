@@ -202,6 +202,18 @@ export interface RoutePlanListItem {
   createdAt: string;
   driver: { driverId: string; name: string };
   vehicle: { vehicleId: string; unitNumber: string };
+  loads: Array<{
+    load: {
+      loadId: string;
+      loadNumber: string;
+      customerName: string;
+    };
+  }>;
+  segments: Array<{
+    sequenceOrder: number;
+    toLocation: string;
+    actionType: string;
+  }>;
   _count: { segments: number; loads: number };
 }
 

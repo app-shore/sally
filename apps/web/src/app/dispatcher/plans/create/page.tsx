@@ -40,7 +40,7 @@ export default function CreatePlanPage() {
       {phase === "form" && (
         <div className="py-6 px-4 md:px-6">
           {/* Back navigation */}
-          <div className="mb-6">
+          <div className="mb-6 max-w-2xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
@@ -53,7 +53,7 @@ export default function CreatePlanPage() {
           </div>
 
           {/* Form card */}
-          <Card className="max-w-3xl">
+          <Card className="max-w-2xl mx-auto">
             <CardContent className="pt-6">
               <div className="mb-6">
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">

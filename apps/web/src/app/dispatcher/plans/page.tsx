@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Route, Clock, CheckCircle2, XCircle, FileText } from "lucide-react";
+import { Plus, Route, Search } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { Input } from "@/shared/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useRoutePlans } from "@/features/routing/route-planning";
@@ -39,46 +40,85 @@ function statusVariant(status: string): "default" | "muted" | "destructive" | "o
   }
 }
 
-function StatusIcon({ status }: { status: string }) {
-  switch (status) {
-    case "active": return <Route className="h-4 w-4 text-green-600 dark:text-green-400" />;
-    case "completed": return <CheckCircle2 className="h-4 w-4 text-muted-foreground" />;
-    case "cancelled": return <XCircle className="h-4 w-4 text-destructive" />;
-    default: return <FileText className="h-4 w-4 text-muted-foreground" />;
-  }
+/** Extract unique customer names from plan loads */
+function getCustomerNames(plan: RoutePlanListItem): string[] {
+  if (!plan.loads || plan.loads.length === 0) return [];
+  const names = [...new Set(plan.loads.map((l) => l.load.customerName))];
+  return names;
+}
+
+/** Get origin → destination from dock segments */
+function getRoute(plan: RoutePlanListItem): { origin: string; destination: string } | null {
+  if (!plan.segments || plan.segments.length === 0) return null;
+  const sorted = [...plan.segments].sort((a, b) => a.sequenceOrder - b.sequenceOrder);
+  const origin = sorted[0]?.toLocation?.split(",")[0] || "";
+  const destination = sorted[sorted.length - 1]?.toLocation?.split(",")[0] || "";
+  if (!origin && !destination) return null;
+  return { origin, destination };
+}
+
+/** Get load numbers for display */
+function getLoadNumbers(plan: RoutePlanListItem): string[] {
+  if (!plan.loads || plan.loads.length === 0) return [];
+  return plan.loads.map((l) => l.load.loadNumber);
 }
 
 function PlanRow({ plan, onClick }: { plan: RoutePlanListItem; onClick: () => void }) {
+  const customers = getCustomerNames(plan);
+  const route = getRoute(plan);
+  const loadNumbers = getLoadNumbers(plan);
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center gap-4 p-4 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-left"
+      className="w-full p-4 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors text-left"
     >
-      <StatusIcon status={plan.status} />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-foreground">{plan.planId}</span>
-          <Badge variant={statusVariant(plan.status)} className="text-xs">
+      {/* Row 1: Customer(s) + Status + Cost */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+          <span className="text-sm font-semibold text-foreground truncate">
+            {customers.length > 0 ? customers.join(", ") : "No customer"}
+          </span>
+          <Badge variant={statusVariant(plan.status)} className="text-[10px] px-1.5 py-0">
             {plan.status}
           </Badge>
           {!plan.isFeasible && (
-            <Badge variant="destructive" className="text-xs">infeasible</Badge>
+            <Badge variant="destructive" className="text-[10px] px-1.5 py-0">infeasible</Badge>
           )}
         </div>
-        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-          <span>{plan.driver.name}</span>
-          <span>&middot;</span>
-          <span>{plan.vehicle.unitNumber}</span>
-          <span>&middot;</span>
-          <span>{formatDistance(plan.totalDistanceMiles)}</span>
-          <span>&middot;</span>
-          <span>{formatHours(plan.totalTripTimeHours)}</span>
-        </div>
+        <span className="text-sm font-semibold text-foreground flex-shrink-0">
+          ${plan.totalCostEstimate.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        </span>
       </div>
-      <div className="text-xs text-muted-foreground text-right flex-shrink-0">
-        <div>{formatDate(plan.departureTime)}</div>
-        <div className="mt-0.5">{plan._count.loads} load{plan._count.loads !== 1 ? "s" : ""}</div>
+
+      {/* Row 2: Origin → Dest | Load numbers */}
+      <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
+        {route && (
+          <>
+            <span>{route.origin} → {route.destination}</span>
+            <span>&middot;</span>
+          </>
+        )}
+        {loadNumbers.length > 0 && (
+          <span>{loadNumbers.join(", ")}</span>
+        )}
+      </div>
+
+      {/* Row 3: Driver · Vehicle · Distance · Time · Departure → Arrival */}
+      <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
+        <span>{plan.driver.name}</span>
+        <span>&middot;</span>
+        <span>#{plan.vehicle.unitNumber}</span>
+        <span>&middot;</span>
+        <span>{formatDistance(plan.totalDistanceMiles)}</span>
+        <span>&middot;</span>
+        <span>{formatHours(plan.totalTripTimeHours)}</span>
+        <span>&middot;</span>
+        <span>
+          {formatDate(plan.departureTime)}
+          {plan.estimatedArrival && ` → ${formatDate(plan.estimatedArrival)}`}
+        </span>
       </div>
     </button>
   );
@@ -87,11 +127,33 @@ function PlanRow({ plan, onClick }: { plan: RoutePlanListItem; onClick: () => vo
 export default function PlansListPage() {
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const { data, isLoading } = useRoutePlans(
     statusFilter === "all" ? undefined : { status: statusFilter }
   );
 
   const plans = data?.plans ?? [];
+
+  // Client-side search across customer, driver, load number, plan ID, vehicle
+  const filteredPlans = useMemo(() => {
+    if (!searchQuery.trim()) return plans;
+    const q = searchQuery.toLowerCase();
+    return plans.filter((plan) => {
+      // Plan ID
+      if (plan.planId.toLowerCase().includes(q)) return true;
+      // Driver name
+      if (plan.driver.name.toLowerCase().includes(q)) return true;
+      // Vehicle unit number
+      if (plan.vehicle.unitNumber.toLowerCase().includes(q)) return true;
+      // Customer names
+      const customers = getCustomerNames(plan);
+      if (customers.some((c) => c.toLowerCase().includes(q))) return true;
+      // Load numbers
+      const loads = getLoadNumbers(plan);
+      if (loads.some((l) => l.toLowerCase().includes(q))) return true;
+      return false;
+    });
+  }, [plans, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -110,31 +172,45 @@ export default function PlansListPage() {
         </Button>
       </div>
 
-      <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="draft">Drafts</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {/* Search + Tabs row */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search customer, driver, load..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="draft">Drafts</TabsTrigger>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="completed">Completed</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-lg" />
+            <Skeleton key={i} className="h-24 w-full rounded-lg" />
           ))}
         </div>
-      ) : plans.length === 0 ? (
+      ) : filteredPlans.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Route className="h-10 w-10 text-muted-foreground mb-3" />
             <p className="text-sm text-muted-foreground">
-              {statusFilter === "all"
-                ? "No route plans yet. Create your first plan to get started."
-                : `No ${statusFilter} plans.`}
+              {searchQuery
+                ? `No plans match "${searchQuery}"`
+                : statusFilter === "all"
+                  ? "No route plans yet. Create your first plan to get started."
+                  : `No ${statusFilter} plans.`}
             </p>
-            {statusFilter === "all" && (
+            {!searchQuery && statusFilter === "all" && (
               <Button
                 variant="outline"
                 size="sm"
@@ -149,7 +225,7 @@ export default function PlansListPage() {
         </Card>
       ) : (
         <div className="space-y-2">
-          {plans.map((plan) => (
+          {filteredPlans.map((plan) => (
             <PlanRow
               key={plan.planId}
               plan={plan}
