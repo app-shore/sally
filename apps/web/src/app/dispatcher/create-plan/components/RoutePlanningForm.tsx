@@ -81,18 +81,21 @@ export function RoutePlanningForm({
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
       {/* Load Selection */}
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Select Loads</div>
       <LoadSelector
         selectedLoadIds={selectedLoadIds}
         onSelectionChange={setSelectedLoadIds}
       />
 
       {/* Driver + Vehicle row */}
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Assign Driver & Vehicle</div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <DriverSelector value={driverId} onChange={setDriverId} />
         <VehicleSelector value={vehicleId} onChange={setVehicleId} />
       </div>
 
-      {/* Departure Time */}
+      {/* Departure & Priority */}
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Departure & Priority</div>
       <div className="space-y-2">
         <Label className="text-sm font-medium text-foreground">
           Departure Time
