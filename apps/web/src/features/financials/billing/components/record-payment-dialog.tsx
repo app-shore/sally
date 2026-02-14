@@ -19,19 +19,13 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { useRecordPayment } from "../hooks/use-invoices";
+import { formatCents } from "@/shared/lib/utils/formatters";
 
 interface RecordPaymentDialogProps {
   invoiceId: string;
   balanceCents: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-function formatCurrency(cents: number): string {
-  return (cents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
 }
 
 export function RecordPaymentDialog({
@@ -83,7 +77,7 @@ export function RecordPaymentDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="text-sm text-muted-foreground">
-            Balance due: <span className="font-semibold text-foreground">{formatCurrency(balanceCents)}</span>
+            Balance due: <span className="font-semibold text-foreground">{formatCents(balanceCents)}</span>
           </div>
           <div className="space-y-2">
             <Label htmlFor="payment-amount">Amount ($)</Label>

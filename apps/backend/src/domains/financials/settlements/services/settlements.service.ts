@@ -174,24 +174,25 @@ export class SettlementsService {
     const settlement = await this.findOne(tenantId, settlementId);
     if (settlement.status !== 'DRAFT') throw new BadRequestException('Can only add deductions to draft settlements');
 
-    const deduction = await this.prisma.settlementDeduction.create({
-      data: {
-        settlementId: settlement.id,
-        type: data.type as any,
-        description: data.description,
-        amountCents: data.amount_cents,
-      },
-    });
-
-    // Recalculate
     const totalDeductions = settlement.deductionsCents + data.amount_cents;
-    await this.prisma.settlement.update({
-      where: { id: settlement.id },
-      data: {
-        deductionsCents: totalDeductions,
-        netPayCents: settlement.grossPayCents - totalDeductions,
-      },
-    });
+
+    const [deduction] = await this.prisma.$transaction([
+      this.prisma.settlementDeduction.create({
+        data: {
+          settlementId: settlement.id,
+          type: data.type as any,
+          description: data.description,
+          amountCents: data.amount_cents,
+        },
+      }),
+      this.prisma.settlement.update({
+        where: { id: settlement.id },
+        data: {
+          deductionsCents: totalDeductions,
+          netPayCents: settlement.grossPayCents - totalDeductions,
+        },
+      }),
+    ]);
 
     return deduction;
   }
@@ -204,16 +205,18 @@ export class SettlementsService {
     const deduction = settlement.deductions.find(d => d.id === deductionId);
     if (!deduction) throw new NotFoundException('Deduction not found');
 
-    await this.prisma.settlementDeduction.delete({ where: { id: deductionId } });
-
     const totalDeductions = settlement.deductionsCents - deduction.amountCents;
-    await this.prisma.settlement.update({
-      where: { id: settlement.id },
-      data: {
-        deductionsCents: totalDeductions,
-        netPayCents: settlement.grossPayCents - totalDeductions,
-      },
-    });
+
+    await this.prisma.$transaction([
+      this.prisma.settlementDeduction.delete({ where: { id: deductionId } }),
+      this.prisma.settlement.update({
+        where: { id: settlement.id },
+        data: {
+          deductionsCents: totalDeductions,
+          netPayCents: settlement.grossPayCents - totalDeductions,
+        },
+      }),
+    ]);
   }
 
   /** Approve settlement */
@@ -280,12 +283,18 @@ export class SettlementsService {
     };
   }
 
-  /** Generate settlement number: STL-YYYY-WNN-LASTNAME */
+  /** Generate settlement number: STL-YYYY-WNN-LASTNAME-SEQ */
   private async generateSettlementNumber(tenantId: number, driverLastName: string, periodStart: Date): Promise<string> {
     const year = periodStart.getFullYear();
     const weekNum = Math.ceil(((periodStart.getTime() - new Date(year, 0, 1).getTime()) / 86400000 + 1) / 7);
     const weekStr = `W${String(weekNum).padStart(2, '0')}`;
     const nameStr = driverLastName.toUpperCase().slice(0, 6);
-    return `STL-${year}-${weekStr}-${nameStr}`;
+    const prefix = `STL-${year}-${weekStr}-${nameStr}`;
+
+    const count = await this.prisma.settlement.count({
+      where: { tenantId, settlementNumber: { startsWith: prefix } },
+    });
+
+    return count > 0 ? `${prefix}-${count + 1}` : prefix;
   }
 }

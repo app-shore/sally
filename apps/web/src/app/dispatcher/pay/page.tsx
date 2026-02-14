@@ -4,7 +4,6 @@ import { useState } from "react";
 import { FeatureGuard } from "@/features/platform/feature-flags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
-import { Badge } from "@/shared/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -32,26 +31,10 @@ import { Label } from "@/shared/components/ui/label";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useSettlements, useSettlementSummary, useCalculateSettlement } from "@/features/financials/pay";
 import { SettlementDetailDialog } from "@/features/financials/pay/components/settlement-detail-dialog";
-import type { Settlement, SettlementStatus } from "@/features/financials/pay/types";
+import type { Settlement } from "@/features/financials/pay/types";
 import { Calculator, Users, DollarSign, Clock } from "lucide-react";
-
-function formatCurrency(cents: number): string {
-  return (cents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
-}
-
-function getStatusBadge(status: SettlementStatus) {
-  const variants: Record<SettlementStatus, { className: string; label: string }> = {
-    DRAFT: { className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300", label: "Draft" },
-    APPROVED: { className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300", label: "Approved" },
-    PAID: { className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300", label: "Paid" },
-    VOID: { className: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500", label: "Void" },
-  };
-  const v = variants[status];
-  return <Badge className={v.className}>{v.label}</Badge>;
-}
+import { formatCents } from "@/shared/lib/utils/formatters";
+import { SettlementStatusBadge } from "@/features/financials/pay/components/settlement-status-badge";
 
 export default function PayPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -180,7 +163,7 @@ export default function PayPage() {
             <CardContent>
               {summaryLoading ? <Skeleton className="h-8 w-24" /> : (
                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {formatCurrency(summary?.paid_this_month_cents ?? 0)}
+                  {formatCents(summary?.paid_this_month_cents ?? 0)}
                 </div>
               )}
             </CardContent>
@@ -257,15 +240,15 @@ export default function PayPage() {
                           {new Date(s.period_start).toLocaleDateString()} - {new Date(s.period_end).toLocaleDateString()}
                         </TableCell>
                         <TableCell className="text-foreground">
-                          {formatCurrency(s.gross_pay_cents)}
+                          {formatCents(s.gross_pay_cents)}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-red-600 dark:text-red-400">
-                          {s.deductions_cents > 0 ? `-${formatCurrency(s.deductions_cents)}` : "$0.00"}
+                          {s.deductions_cents > 0 ? `-${formatCents(s.deductions_cents)}` : "$0.00"}
                         </TableCell>
                         <TableCell className="font-semibold text-foreground">
-                          {formatCurrency(s.net_pay_cents)}
+                          {formatCents(s.net_pay_cents)}
                         </TableCell>
-                        <TableCell>{getStatusBadge(s.status)}</TableCell>
+                        <TableCell><SettlementStatusBadge status={s.status} /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

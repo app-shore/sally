@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class QuickBooksService {
@@ -34,17 +35,23 @@ export class QuickBooksService {
 
     await this.prisma.integrationConfig.upsert({
       where: {
-        tenantId_provider: { tenantId, provider: 'quickbooks' },
+        tenantId_integrationType_vendor: { tenantId, integrationType: 'ACCOUNTING', vendor: 'QUICKBOOKS' },
       },
       update: {
-        config: tokenData as any,
-        enabled: true,
+        credentials: tokenData as any,
+        isEnabled: true,
+        status: 'ACTIVE',
+        lastSuccessAt: new Date(),
       },
       create: {
+        integrationId: `int_${randomUUID().replace(/-/g, '').slice(0, 12)}`,
         tenantId,
-        provider: 'quickbooks',
-        config: tokenData as any,
-        enabled: true,
+        integrationType: 'ACCOUNTING',
+        vendor: 'QUICKBOOKS',
+        displayName: 'QuickBooks Online',
+        credentials: tokenData as any,
+        isEnabled: true,
+        status: 'ACTIVE',
       },
     });
 
@@ -55,8 +62,8 @@ export class QuickBooksService {
   /** Disconnect QuickBooks */
   async disconnect(tenantId: number) {
     await this.prisma.integrationConfig.updateMany({
-      where: { tenantId, provider: 'quickbooks' },
-      data: { enabled: false },
+      where: { tenantId, integrationType: 'ACCOUNTING', vendor: 'QUICKBOOKS' },
+      data: { isEnabled: false, status: 'CONFIGURED' },
     });
     this.logger.log(`QuickBooks disconnected for tenant ${tenantId}`);
     return { connected: false };
@@ -65,16 +72,16 @@ export class QuickBooksService {
   /** Get connection status */
   async getStatus(tenantId: number) {
     const config = await this.prisma.integrationConfig.findFirst({
-      where: { tenantId, provider: 'quickbooks', enabled: true },
+      where: { tenantId, integrationType: 'ACCOUNTING', vendor: 'QUICKBOOKS', isEnabled: true },
     });
 
     if (!config) return { connected: false };
 
-    const configData = config.config as any;
+    const creds = config.credentials as any;
     return {
       connected: true,
-      realm_id: configData?.realm_id,
-      last_synced: configData?.last_synced || null,
+      realm_id: creds?.realm_id,
+      last_synced: config.lastSyncAt?.toISOString() || null,
     };
   }
 

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { FeatureGuard } from "@/features/platform/feature-flags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
-import { Badge } from "@/shared/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -32,30 +31,10 @@ import { Label } from "@/shared/components/ui/label";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useInvoices, useInvoiceSummary, useGenerateInvoice } from "@/features/financials/billing";
 import { InvoiceDetailDialog } from "@/features/financials/billing/components/invoice-detail-dialog";
-import type { Invoice, InvoiceStatus } from "@/features/financials/billing/types";
+import type { Invoice } from "@/features/financials/billing/types";
 import { DollarSign, FileText, AlertTriangle, Clock } from "lucide-react";
-
-function formatCurrency(cents: number): string {
-  return (cents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
-}
-
-function getStatusBadge(status: InvoiceStatus) {
-  const variants: Record<InvoiceStatus, { className: string; label: string }> = {
-    DRAFT: { className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300", label: "Draft" },
-    SENT: { className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300", label: "Sent" },
-    VIEWED: { className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300", label: "Viewed" },
-    PARTIAL: { className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300", label: "Partial" },
-    PAID: { className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300", label: "Paid" },
-    OVERDUE: { className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300", label: "Overdue" },
-    VOID: { className: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500", label: "Void" },
-    FACTORED: { className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300", label: "Factored" },
-  };
-  const v = variants[status];
-  return <Badge className={v.className}>{v.label}</Badge>;
-}
+import { formatCents } from "@/shared/lib/utils/formatters";
+import { InvoiceStatusBadge } from "@/features/financials/billing/components/invoice-status-badge";
 
 export default function BillingPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -140,7 +119,7 @@ export default function BillingPage() {
                 <Skeleton className="h-8 w-24" />
               ) : (
                 <div className="text-2xl font-bold text-foreground">
-                  {formatCurrency(summary?.outstanding_cents ?? 0)}
+                  {formatCents(summary?.outstanding_cents ?? 0)}
                 </div>
               )}
             </CardContent>
@@ -155,7 +134,7 @@ export default function BillingPage() {
                 <Skeleton className="h-8 w-24" />
               ) : (
                 <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                  {formatCurrency(summary?.overdue_cents ?? 0)}
+                  {formatCents(summary?.overdue_cents ?? 0)}
                 </div>
               )}
             </CardContent>
@@ -170,7 +149,7 @@ export default function BillingPage() {
                 <Skeleton className="h-8 w-24" />
               ) : (
                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {formatCurrency(summary?.paid_this_month_cents ?? 0)}
+                  {formatCents(summary?.paid_this_month_cents ?? 0)}
                 </div>
               )}
             </CardContent>
@@ -253,15 +232,15 @@ export default function BillingPage() {
                           {invoice.load?.load_number ?? "—"}
                         </TableCell>
                         <TableCell className="text-foreground">
-                          {formatCurrency(invoice.total_cents)}
+                          {formatCents(invoice.total_cents)}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-foreground">
-                          {formatCurrency(invoice.balance_cents)}
+                          {formatCents(invoice.balance_cents)}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell text-muted-foreground">
                           {new Date(invoice.due_date).toLocaleDateString()}
                         </TableCell>
-                        <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                        <TableCell><InvoiceStatusBadge status={invoice.status} /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

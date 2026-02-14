@@ -756,6 +756,7 @@ model Load {
   isActive              Boolean      @default(true) @map("is_active")
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  deliveredAt           DateTime?    @map("delivered_at") @db.Timestamptz
 
   // Equipment type (dry_van, reefer, flatbed, step_deck)
   equipmentType         String?      @map("equipment_type") @db.VarChar(50)
@@ -985,6 +986,7 @@ enum IntegrationType {
   FUEL_PRICE
   WEATHER
   TELEMATICS
+  ACCOUNTING
 }
 
 enum IntegrationVendor {
@@ -997,6 +999,7 @@ enum IntegrationVendor {
   GASBUDDY_FUEL
   FUELFINDER_FUEL
   OPENWEATHER
+  QUICKBOOKS
 }
 
 enum IntegrationStatus {
@@ -1464,6 +1467,7 @@ model Invoice {
   @@index([loadId])
   @@index([status])
   @@index([dueDate])
+  @@unique([tenantId, invoiceNumber])
   @@map("invoices")
 }
 
@@ -1572,6 +1576,7 @@ model Settlement {
   @@index([driverId])
   @@index([status])
   @@index([periodStart, periodEnd])
+  @@unique([tenantId, settlementNumber])
   @@map("settlements")
 }
 

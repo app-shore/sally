@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CalculateSettlementDto {
   @ApiProperty({ example: 'DRV-001', description: 'Driver ID' })
@@ -16,6 +16,7 @@ export class CalculateSettlementDto {
 
   @ApiProperty({ example: false, required: false, description: 'If true, return preview without creating' })
   @IsOptional()
+  @IsBoolean()
   preview?: boolean;
 }
 

@@ -26,34 +26,34 @@ export class PaymentsService {
       throw new BadRequestException(`Payment amount ($${(data.amount_cents / 100).toFixed(2)}) exceeds balance ($${(invoice.balanceCents / 100).toFixed(2)})`);
     }
 
-    const payment = await this.prisma.payment.create({
-      data: {
-        paymentId: `pay_${randomUUID().replace(/-/g, '').slice(0, 12)}`,
-        invoiceId: invoice.id,
-        amountCents: data.amount_cents,
-        paymentMethod: data.payment_method || null,
-        referenceNumber: data.reference_number || null,
-        paymentDate: new Date(data.payment_date),
-        notes: data.notes || null,
-        tenantId,
-        createdBy: userId || null,
-      },
-    });
-
-    // Update invoice
     const newPaidCents = invoice.paidCents + data.amount_cents;
     const newBalanceCents = invoice.totalCents - newPaidCents;
     const newStatus = newBalanceCents <= 0 ? 'PAID' : 'PARTIAL';
 
-    await this.prisma.invoice.update({
-      where: { id: invoice.id },
-      data: {
-        paidCents: newPaidCents,
-        balanceCents: newBalanceCents,
-        status: newStatus,
-        paidDate: newStatus === 'PAID' ? new Date() : null,
-      },
-    });
+    const [payment] = await this.prisma.$transaction([
+      this.prisma.payment.create({
+        data: {
+          paymentId: `pay_${randomUUID().replace(/-/g, '').slice(0, 12)}`,
+          invoiceId: invoice.id,
+          amountCents: data.amount_cents,
+          paymentMethod: data.payment_method || null,
+          referenceNumber: data.reference_number || null,
+          paymentDate: new Date(data.payment_date),
+          notes: data.notes || null,
+          tenantId,
+          createdBy: userId || null,
+        },
+      }),
+      this.prisma.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          paidCents: newPaidCents,
+          balanceCents: newBalanceCents,
+          status: newStatus,
+          paidDate: newStatus === 'PAID' ? new Date() : null,
+        },
+      }),
+    ]);
 
     this.logger.log(`Recorded payment of $${(data.amount_cents / 100).toFixed(2)} on invoice ${invoice.invoiceNumber}`);
     return payment;

@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
-import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
 import {
   Table,
@@ -20,30 +19,10 @@ import {
 } from "@/shared/components/ui/table";
 import { useSendInvoice, useVoidInvoice } from "../hooks/use-invoices";
 import { RecordPaymentDialog } from "./record-payment-dialog";
-import type { Invoice, InvoiceStatus } from "../types";
+import type { Invoice } from "../types";
 import { Send, Ban, DollarSign } from "lucide-react";
-
-function formatCurrency(cents: number): string {
-  return (cents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
-}
-
-function getStatusBadge(status: InvoiceStatus) {
-  const variants: Record<InvoiceStatus, { className: string; label: string }> = {
-    DRAFT: { className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300", label: "Draft" },
-    SENT: { className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300", label: "Sent" },
-    VIEWED: { className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300", label: "Viewed" },
-    PARTIAL: { className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300", label: "Partial" },
-    PAID: { className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300", label: "Paid" },
-    OVERDUE: { className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300", label: "Overdue" },
-    VOID: { className: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500", label: "Void" },
-    FACTORED: { className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300", label: "Factored" },
-  };
-  const v = variants[status];
-  return <Badge className={v.className}>{v.label}</Badge>;
-}
+import { formatCents } from "@/shared/lib/utils/formatters";
+import { InvoiceStatusBadge } from "./invoice-status-badge";
 
 interface InvoiceDetailDialogProps {
   invoice: Invoice;
@@ -69,7 +48,7 @@ export function InvoiceDetailDialog({
               <DialogTitle className="text-foreground">
                 {invoice.invoice_number}
               </DialogTitle>
-              {getStatusBadge(invoice.status)}
+              <InvoiceStatusBadge status={invoice.status} />
             </div>
             <div className="text-sm text-muted-foreground">
               {invoice.customer?.company_name} &middot; Load #{invoice.load?.load_number}
@@ -128,10 +107,10 @@ export function InvoiceDetailDialog({
                           {item.quantity}
                         </TableCell>
                         <TableCell className="text-right text-foreground">
-                          {formatCurrency(item.unit_price_cents)}
+                          {formatCents(item.unit_price_cents)}
                         </TableCell>
                         <TableCell className="text-right font-medium text-foreground">
-                          {formatCurrency(item.total_cents)}
+                          {formatCents(item.total_cents)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -146,25 +125,25 @@ export function InvoiceDetailDialog({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-muted-foreground">
                 <span>Subtotal</span>
-                <span className="text-foreground">{formatCurrency(invoice.subtotal_cents)}</span>
+                <span className="text-foreground">{formatCents(invoice.subtotal_cents)}</span>
               </div>
               {invoice.adjustment_cents !== 0 && (
                 <div className="flex justify-between text-muted-foreground">
                   <span>Adjustments</span>
-                  <span className="text-foreground">{formatCurrency(invoice.adjustment_cents)}</span>
+                  <span className="text-foreground">{formatCents(invoice.adjustment_cents)}</span>
                 </div>
               )}
               <div className="flex justify-between font-semibold text-foreground">
                 <span>Total</span>
-                <span>{formatCurrency(invoice.total_cents)}</span>
+                <span>{formatCents(invoice.total_cents)}</span>
               </div>
               <div className="flex justify-between text-green-600 dark:text-green-400">
                 <span>Paid</span>
-                <span>{formatCurrency(invoice.paid_cents)}</span>
+                <span>{formatCents(invoice.paid_cents)}</span>
               </div>
               <div className="flex justify-between font-bold text-foreground text-base">
                 <span>Balance Due</span>
-                <span>{formatCurrency(invoice.balance_cents)}</span>
+                <span>{formatCents(invoice.balance_cents)}</span>
               </div>
             </div>
 
@@ -196,7 +175,7 @@ export function InvoiceDetailDialog({
                             {payment.reference_number ?? "—"}
                           </TableCell>
                           <TableCell className="text-right font-medium text-green-600 dark:text-green-400">
-                            {formatCurrency(payment.amount_cents)}
+                            {formatCents(payment.amount_cents)}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -238,7 +217,11 @@ export function InvoiceDetailDialog({
               {invoice.status !== "VOID" && invoice.status !== "PAID" && (
                 <Button
                   variant="destructive"
-                  onClick={() => voidInvoice.mutate(invoice.invoice_id)}
+                  onClick={() => {
+                    if (window.confirm(`Are you sure you want to void invoice ${invoice.invoice_number}? This action cannot be undone.`)) {
+                      voidInvoice.mutate(invoice.invoice_id);
+                    }
+                  }}
                   disabled={voidInvoice.isPending}
                 >
                   <Ban className="mr-2 h-4 w-4" />

@@ -7,6 +7,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
 import { Link2, Unlink, RefreshCw } from "lucide-react";
+import { useToast } from "@/shared/hooks/use-toast";
 
 interface QBStatus {
   connected: boolean;
@@ -16,6 +17,7 @@ interface QBStatus {
 
 export function QuickBooksSettings() {
   const qc = useQueryClient();
+  const { toast } = useToast();
 
   const { data: status, isLoading } = useQuery<QBStatus>({
     queryKey: ["quickbooks", "status"],
@@ -27,6 +29,7 @@ export function QuickBooksSettings() {
       const result = await apiClient<{ auth_url: string }>("/quickbooks/connect");
       window.location.href = result.auth_url;
     },
+    onError: (error: Error) => { toast({ title: 'Failed to connect QuickBooks', description: error.message, variant: 'destructive' }); },
   });
 
   const disconnect = useMutation({
@@ -34,6 +37,7 @@ export function QuickBooksSettings() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["quickbooks"] });
     },
+    onError: (error: Error) => { toast({ title: 'Failed to disconnect QuickBooks', description: error.message, variant: 'destructive' }); },
   });
 
   return (

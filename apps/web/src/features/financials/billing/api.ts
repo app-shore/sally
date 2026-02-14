@@ -1,5 +1,5 @@
 import { apiClient } from '@/shared/lib/api';
-import type { Invoice, InvoiceSummary } from './types';
+import type { Invoice, InvoiceSummary, InvoicePayment } from './types';
 
 export const invoicesApi = {
   list: async (params?: { status?: string; customer_id?: number; overdue_only?: boolean; limit?: number; offset?: number }): Promise<Invoice[]> => {
@@ -24,7 +24,7 @@ export const invoicesApi = {
     });
   },
 
-  update: async (invoiceId: string, data: any): Promise<Invoice> => {
+  update: async (invoiceId: string, data: { payment_terms_days?: number; notes?: string; internal_notes?: string; adjustment_cents?: number; line_items?: Array<{ type: string; description: string; quantity: number; unit_price_cents: number }> }): Promise<Invoice> => {
     return apiClient<Invoice>(`/invoices/${invoiceId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -39,7 +39,7 @@ export const invoicesApi = {
     return apiClient<Invoice>(`/invoices/${invoiceId}/void`, { method: 'POST' });
   },
 
-  recordPayment: async (invoiceId: string, data: { amount_cents: number; payment_method?: string; reference_number?: string; payment_date: string; notes?: string }): Promise<any> => {
+  recordPayment: async (invoiceId: string, data: { amount_cents: number; payment_method?: string; reference_number?: string; payment_date: string; notes?: string }): Promise<InvoicePayment> => {
     return apiClient(`/invoices/${invoiceId}/payments`, {
       method: 'POST',
       body: JSON.stringify(data),

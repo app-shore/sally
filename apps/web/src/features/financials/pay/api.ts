@@ -1,5 +1,5 @@
 import { apiClient } from '@/shared/lib/api';
-import type { Settlement, SettlementSummary, DriverPayStructure } from './types';
+import type { Settlement, SettlementSummary, DriverPayStructure, SettlementDeduction, PayStructureType } from './types';
 
 export const settlementsApi = {
   list: async (params?: { status?: string; driver_id?: string; limit?: number; offset?: number }): Promise<Settlement[]> => {
@@ -16,14 +16,14 @@ export const settlementsApi = {
     return apiClient<Settlement>(`/settlements/${settlementId}`);
   },
 
-  calculate: async (data: { driver_id: string; period_start: string; period_end: string; preview?: boolean }): Promise<any> => {
+  calculate: async (data: { driver_id: string; period_start: string; period_end: string; preview?: boolean }): Promise<Settlement> => {
     return apiClient(`/settlements/calculate`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   },
 
-  addDeduction: async (settlementId: string, data: { type: string; description: string; amount_cents: number }): Promise<any> => {
+  addDeduction: async (settlementId: string, data: { type: string; description: string; amount_cents: number }): Promise<SettlementDeduction> => {
     return apiClient(`/settlements/${settlementId}/deductions`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -57,7 +57,7 @@ export const payStructuresApi = {
   },
 
   upsert: async (driverId: string, data: {
-    type: string;
+    type: PayStructureType;
     rate_per_mile_cents?: number;
     percentage?: number;
     flat_rate_cents?: number;

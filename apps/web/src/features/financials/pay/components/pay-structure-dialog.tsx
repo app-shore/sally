@@ -53,10 +53,10 @@ export function PayStructureDialog({
       setEffectiveDate(existing.effective_date.split("T")[0]);
       setNotes(existing.notes ?? "");
     }
-  }, [existing]);
+  }, [existing, open]);
 
   const handleSave = () => {
-    const data: any = {
+    const data: { type: PayStructureType; effective_date: string; notes?: string; rate_per_mile_cents?: number; percentage?: number; flat_rate_cents?: number; hybrid_base_cents?: number; hybrid_percent?: number } = {
       type,
       effective_date: effectiveDate,
       notes: notes || undefined,

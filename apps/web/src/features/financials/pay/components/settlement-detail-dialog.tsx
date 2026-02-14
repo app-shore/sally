@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
-import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
 import {
   Table,
@@ -20,26 +19,10 @@ import {
 } from "@/shared/components/ui/table";
 import { useApproveSettlement, useMarkSettlementPaid, useVoidSettlement, useRemoveDeduction } from "../hooks/use-settlements";
 import { AddDeductionDialog } from "./add-deduction-dialog";
-import type { Settlement, SettlementStatus } from "../types";
+import type { Settlement } from "../types";
 import { CheckCircle, DollarSign, Ban, Plus, Trash2 } from "lucide-react";
-
-function formatCurrency(cents: number): string {
-  return (cents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
-}
-
-function getStatusBadge(status: SettlementStatus) {
-  const variants: Record<SettlementStatus, { className: string; label: string }> = {
-    DRAFT: { className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300", label: "Draft" },
-    APPROVED: { className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300", label: "Approved" },
-    PAID: { className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300", label: "Paid" },
-    VOID: { className: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500", label: "Void" },
-  };
-  const v = variants[status];
-  return <Badge className={v.className}>{v.label}</Badge>;
-}
+import { formatCents } from "@/shared/lib/utils/formatters";
+import { SettlementStatusBadge } from "./settlement-status-badge";
 
 interface SettlementDetailDialogProps {
   settlement: Settlement;
@@ -67,7 +50,7 @@ export function SettlementDetailDialog({
               <DialogTitle className="text-foreground">
                 {settlement.settlement_number}
               </DialogTitle>
-              {getStatusBadge(settlement.status)}
+              <SettlementStatusBadge status={settlement.status} />
             </div>
             <div className="text-sm text-muted-foreground">
               {settlement.driver?.first_name} {settlement.driver?.last_name} &middot;{" "}
@@ -104,10 +87,10 @@ export function SettlementDetailDialog({
                           {item.miles?.toFixed(0) ?? "—"}
                         </TableCell>
                         <TableCell className="text-right text-muted-foreground hidden sm:table-cell">
-                          {item.load_revenue_cents ? formatCurrency(item.load_revenue_cents) : "—"}
+                          {item.load_revenue_cents ? formatCents(item.load_revenue_cents) : "—"}
                         </TableCell>
                         <TableCell className="text-right font-medium text-foreground">
-                          {formatCurrency(item.pay_amount_cents)}
+                          {formatCents(item.pay_amount_cents)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -147,7 +130,7 @@ export function SettlementDetailDialog({
                         </TableCell>
                         <TableCell className="text-foreground">{d.description}</TableCell>
                         <TableCell className="text-right text-red-600 dark:text-red-400 font-medium">
-                          -{formatCurrency(d.amount_cents)}
+                          -{formatCents(d.amount_cents)}
                         </TableCell>
                         {settlement.status === "DRAFT" && (
                           <TableCell>
@@ -181,16 +164,16 @@ export function SettlementDetailDialog({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-foreground">
                 <span>Gross Pay</span>
-                <span className="font-medium">{formatCurrency(settlement.gross_pay_cents)}</span>
+                <span className="font-medium">{formatCents(settlement.gross_pay_cents)}</span>
               </div>
               <div className="flex justify-between text-red-600 dark:text-red-400">
                 <span>Deductions</span>
-                <span>-{formatCurrency(settlement.deductions_cents)}</span>
+                <span>-{formatCents(settlement.deductions_cents)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-foreground text-base">
                 <span>Net Pay</span>
-                <span>{formatCurrency(settlement.net_pay_cents)}</span>
+                <span>{formatCents(settlement.net_pay_cents)}</span>
               </div>
             </div>
 
@@ -218,7 +201,11 @@ export function SettlementDetailDialog({
               {settlement.status !== "VOID" && settlement.status !== "PAID" && (
                 <Button
                   variant="destructive"
-                  onClick={() => voidSettlement.mutate(settlement.settlement_id)}
+                  onClick={() => {
+                    if (window.confirm(`Are you sure you want to void settlement ${settlement.settlement_number}? This action cannot be undone.`)) {
+                      voidSettlement.mutate(settlement.settlement_id);
+                    }
+                  }}
                   disabled={voidSettlement.isPending}
                 >
                   <Ban className="mr-2 h-4 w-4" />
