@@ -28,7 +28,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
   dispatcher: [
     { label: 'Command Center', href: '/dispatcher/command-center', icon: Home },
     { label: 'Loads', href: '/dispatcher/loads', icon: ClipboardList },
-    { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
+    { label: 'Route Plans', href: '/dispatcher/plans', icon: Map },
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { type: 'separator', label: 'Money' } as NavSeparator,
     { label: 'Billing', href: '/dispatcher/billing', icon: Receipt },
@@ -48,7 +48,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
   admin: [
     { label: 'Command Center', href: '/dispatcher/command-center', icon: Home },
     { label: 'Loads', href: '/dispatcher/loads', icon: ClipboardList },
-    { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
+    { label: 'Route Plans', href: '/dispatcher/plans', icon: Map },
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { type: 'separator', label: 'Money' } as NavSeparator,
     { label: 'Billing', href: '/dispatcher/billing', icon: Receipt },
@@ -63,7 +63,7 @@ export const navigationConfig: Record<string, NavigationItem[]> = {
   owner: [
     { label: 'Command Center', href: '/dispatcher/command-center', icon: Home },
     { label: 'Loads', href: '/dispatcher/loads', icon: ClipboardList },
-    { label: 'Plan Route', href: '/dispatcher/create-plan', icon: Plus },
+    { label: 'Route Plans', href: '/dispatcher/plans', icon: Map },
     { label: 'Fleet', href: '/dispatcher/fleet', icon: Package },
     { type: 'separator', label: 'Money' } as NavSeparator,
     { label: 'Billing', href: '/dispatcher/billing', icon: Receipt },

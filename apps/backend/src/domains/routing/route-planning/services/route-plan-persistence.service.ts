@@ -396,6 +396,26 @@ export class RoutePlanPersistenceService {
           vehicle: {
             select: { vehicleId: true, unitNumber: true },
           },
+          loads: {
+            include: {
+              load: {
+                select: {
+                  loadId: true,
+                  loadNumber: true,
+                  customerName: true,
+                },
+              },
+            },
+          },
+          segments: {
+            where: { segmentType: 'dock' },
+            orderBy: { sequenceOrder: 'asc' },
+            select: {
+              sequenceOrder: true,
+              toLocation: true,
+              actionType: true,
+            },
+          },
           _count: {
             select: { segments: true, loads: true },
           },

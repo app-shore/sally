@@ -88,7 +88,7 @@ export function LoadSelector({
         />
       </div>
 
-      <ScrollArea className="h-[220px] rounded-md border border-border">
+      <ScrollArea className="h-[280px] rounded-md border border-border">
         {isLoading ? (
           <div className="p-3 space-y-3">
             {[1, 2, 3].map((i) => (

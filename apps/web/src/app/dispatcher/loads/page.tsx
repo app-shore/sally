@@ -191,7 +191,7 @@ export default function LoadsPage() {
   };
 
   const handlePlanRoute = (loadId: string) => {
-    router.push(`/dispatcher/create-plan?load_id=${loadId}`);
+    router.push(`/dispatcher/plans/create?load_id=${loadId}`);
   };
 
   const handleCreateSuccess = async () => {

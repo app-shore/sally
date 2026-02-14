@@ -10,6 +10,7 @@ export type {
   WeatherAlert,
   DayBreakdown,
   HOSState,
+  RoutePlanLoad,
   RoutePlanListItem,
   RoutePlanListResponse,
 } from './types';

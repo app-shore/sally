@@ -640,7 +640,7 @@ function QuickActionsPanel({
       <h2 className="text-lg font-semibold text-foreground mb-3">Quick Actions</h2>
       <div className="space-y-2">
         <Link
-          href="/dispatcher/create-plan"
+          href="/dispatcher/plans/create"
           className="flex items-center justify-between py-2.5 px-3 rounded-md border border-input bg-background hover:bg-muted transition-colors"
         >
           <div className="flex items-center gap-2.5">
