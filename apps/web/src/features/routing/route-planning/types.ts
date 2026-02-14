@@ -55,9 +55,32 @@ export interface RoutePlanResult {
   };
   optimizationPriority?: 'minimize_time' | 'minimize_cost' | 'balance';
   segments: RouteSegment[];
+  loads?: RoutePlanLoad[];
   complianceReport: ComplianceReport;
   weatherAlerts: WeatherAlert[];
   dailyBreakdown: DayBreakdown[];
+}
+
+export interface RoutePlanLoad {
+  id: number;
+  load: {
+    loadId: string;
+    loadNumber: string;
+    customerName: string;
+    commodityType: string;
+    weightLbs: number;
+    rateCents?: number;
+    pieces?: number;
+    equipmentType?: string;
+    status: string;
+    stops?: Array<{
+      actionType: string;
+      stop: {
+        city: string;
+        state: string;
+      };
+    }>;
+  };
 }
 
 export interface RouteSegment {

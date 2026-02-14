@@ -1,10 +1,12 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, User, Truck, Clock, Gauge } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { Separator } from "@/shared/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +51,13 @@ function formatRestType(type?: string) {
   }
 }
 
+function formatHours(hours: number) {
+  if (hours < 1) return `${Math.round(hours * 60)}m`;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
 export function PlanHeader({ plan }: PlanHeaderProps) {
   const router = useRouter();
   const activateRoute = useActivateRoute();
@@ -67,7 +76,7 @@ export function PlanHeader({ plan }: PlanHeaderProps) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Top row: back + plan ID + status + activate */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
@@ -119,36 +128,94 @@ export function PlanHeader({ plan }: PlanHeaderProps) {
         ) : null}
       </div>
 
-      {/* Context row: driver, vehicle, departure, priority */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        {plan.driver && (
-          <span>Driver: <span className="text-foreground">{plan.driver.name}</span></span>
-        )}
-        {plan.vehicle && (
-          <span>Vehicle: <span className="text-foreground">#{plan.vehicle.unitNumber}</span></span>
-        )}
-        <span>
-          Departure:{" "}
-          <span className="text-foreground">
-            {new Date(plan.departureTime).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            })}
-          </span>
-        </span>
-        <span>Priority: <span className="text-foreground">{formatPriority(plan.optimizationPriority)}</span></span>
-      </div>
+      {/* Context card: driver, vehicle, departure, priority, preferences + stats */}
+      <Card>
+        <CardContent className="py-3 px-4">
+          {/* Row 1: Driver · Vehicle · Departure · Priority */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            {plan.driver && (
+              <div className="flex items-center gap-1.5 text-foreground">
+                <User className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>{plan.driver.name}</span>
+              </div>
+            )}
+            {plan.vehicle && (
+              <div className="flex items-center gap-1.5 text-foreground">
+                <Truck className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>#{plan.vehicle.unitNumber}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 text-foreground">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>
+                {new Date(plan.departureTime).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-foreground">
+              <Gauge className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>{formatPriority(plan.optimizationPriority)}</span>
+            </div>
+          </div>
 
-      {/* Preferences row */}
-      {params && (
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground uppercase tracking-wider">
-          <span>{formatRestType(params.preferredRestType)}</span>
-          {params.avoidTollRoads && <span>· Avoid tolls</span>}
-          {params.maxDetourMilesForFuel && <span>· Max {params.maxDetourMilesForFuel}mi fuel detour</span>}
-        </div>
-      )}
+          {/* Preferences pills */}
+          {params && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              <Badge variant="outline" className="text-[10px] px-2 py-0 font-normal">
+                {formatRestType(params.preferredRestType)}
+              </Badge>
+              {params.avoidTollRoads && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0 font-normal">
+                  Avoid tolls
+                </Badge>
+              )}
+              {params.maxDetourMilesForFuel && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0 font-normal">
+                  Max {params.maxDetourMilesForFuel}mi fuel detour
+                </Badge>
+              )}
+            </div>
+          )}
+
+          <Separator className="my-3" />
+
+          {/* Stats strip */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
+            <div>
+              <span className="font-semibold text-foreground">
+                {plan.totalDistanceMiles.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </span>
+              <span className="text-muted-foreground ml-1">mi</span>
+            </div>
+            <div>
+              <span className="font-semibold text-foreground">
+                {formatHours(plan.totalTripTimeHours)}
+              </span>
+              <span className="text-muted-foreground ml-1">trip</span>
+            </div>
+            <div>
+              <span className="font-semibold text-foreground">
+                {plan.totalDrivingDays}
+              </span>
+              <span className="text-muted-foreground ml-1">
+                {plan.totalDrivingDays === 1 ? "day" : "days"}
+              </span>
+            </div>
+            {plan.totalCostEstimate > 0 && (
+              <div>
+                <span className="font-semibold text-foreground">
+                  ${plan.totalCostEstimate.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </span>
+                <span className="text-muted-foreground ml-1">est.</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

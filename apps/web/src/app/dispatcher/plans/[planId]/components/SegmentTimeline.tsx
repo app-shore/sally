@@ -3,11 +3,12 @@
 import { MapPin, Moon, Fuel, Coffee, Clock } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
-import { HOSProgressBars } from "./HOSProgressBars";
+import { HOSProgressBars, HOSSummary, isHOSMeaningful } from "./HOSProgressBars";
 import type { RouteSegment } from "@/features/routing/route-planning";
 
 interface SegmentTimelineProps {
   segments: RouteSegment[];
+  planStatus?: string;
 }
 
 function formatTime(isoString: string): string {
@@ -56,14 +57,18 @@ function getIconBg(type: string): string {
 
 function DriveConnector({ segment }: { segment: RouteSegment }) {
   return (
-    <div className="flex items-center gap-2 py-3 ml-[88px] text-xs text-muted-foreground">
-      <div className="flex-1 border-t border-dashed border-border" />
-      <span>
-        {segment.distanceMiles?.toLocaleString(undefined, { maximumFractionDigits: 0 })} mi
-      </span>
-      <span>&middot;</span>
-      <span>{formatDuration(segment.driveTimeHours || 0)}</span>
-      <div className="flex-1 border-t border-dashed border-border" />
+    <div className="relative flex items-center gap-2 py-2 pl-[80px] text-xs text-muted-foreground">
+      {/* Timeline continuation */}
+      <div className="absolute left-[95px] top-0 bottom-0 w-0.5 bg-border" />
+      <div className="ml-[30px] flex items-center gap-2 w-full">
+        <div className="flex-1 border-t border-dashed border-border" />
+        <span>
+          {segment.distanceMiles?.toLocaleString(undefined, { maximumFractionDigits: 0 })} mi
+        </span>
+        <span>&middot;</span>
+        <span>{formatDuration(segment.driveTimeHours || 0)}</span>
+        <div className="flex-1 border-t border-dashed border-border" />
+      </div>
     </div>
   );
 }
@@ -72,27 +77,36 @@ function StopSegment({
   segment,
   isLast,
   showCycleHours,
+  planStatus,
 }: {
   segment: RouteSegment;
   isLast: boolean;
   showCycleHours: boolean;
+  planStatus?: string;
 }) {
   const time = segment.estimatedArrival ? formatTime(segment.estimatedArrival) : "";
   const date = segment.estimatedArrival ? formatDate(segment.estimatedArrival) : "";
   const isRest = segment.segmentType === "rest";
   const isBreak = segment.segmentType === "break";
 
+  // Decide whether to show full HOS bars or compact summary
+  const hosState = segment.hosStateAfter;
+  const showFullBars = hosState && (isHOSMeaningful(hosState) || isRest || isBreak);
+
   return (
-    <div className="flex items-start gap-3 py-3 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+    <div className="relative flex items-start gap-3 py-3 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+      {/* Timeline line — behind the icon */}
+      <div className="absolute left-[95px] top-0 bottom-0 w-0.5 bg-border" />
+
       {/* Time column */}
       <div className="w-[64px] flex-shrink-0 text-right pt-0.5">
         <div className="text-xs font-medium text-foreground tabular-nums">{time}</div>
         <div className="text-[10px] text-muted-foreground">{date}</div>
       </div>
 
-      {/* Icon */}
+      {/* Icon — sits on the timeline */}
       <div
-        className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${getIconBg(segment.segmentType)}`}
+        className={`relative z-10 h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${getIconBg(segment.segmentType)}`}
       >
         <SegmentIcon type={segment.segmentType} />
       </div>
@@ -186,26 +200,29 @@ function StopSegment({
         {/* Final stop indicator */}
         {isLast && segment.segmentType === "dock" && (
           <div className="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
-            Route complete
+            {planStatus === "completed" ? "Route complete" : "Final stop"}
           </div>
         )}
 
-        {/* HOS bars — shown on every non-drive segment */}
-        {segment.hosStateAfter && (
-          <HOSProgressBars
-            hosState={segment.hosStateAfter}
-            segmentType={segment.segmentType}
-            isReset={isRest || isBreak}
-            showCycle={showCycleHours}
-          />
+        {/* HOS — full bars when meaningful, compact summary otherwise */}
+        {hosState && (
+          showFullBars ? (
+            <HOSProgressBars
+              hosState={hosState}
+              segmentType={segment.segmentType}
+              isReset={isRest || isBreak}
+              showCycle={showCycleHours}
+            />
+          ) : (
+            <HOSSummary hosState={hosState} />
+          )
         )}
       </div>
     </div>
   );
 }
 
-export function SegmentTimeline({ segments }: SegmentTimelineProps) {
-  // Build interleaved display: stop, drive, stop, drive...
+export function SegmentTimeline({ segments, planStatus }: SegmentTimelineProps) {
   const items: Array<{ type: "stop" | "drive"; segment: RouteSegment; isLast: boolean; showCycle: boolean }> = [];
 
   for (let i = 0; i < segments.length; i++) {
@@ -225,9 +242,6 @@ export function SegmentTimeline({ segments }: SegmentTimelineProps) {
     <Card>
       <CardContent className="py-4 px-2 md:px-4">
         <div className="relative">
-          {/* Vertical timeline line */}
-          <div className="absolute left-[99px] top-0 bottom-0 w-px bg-border" />
-
           {items.map((item) =>
             item.type === "drive" ? (
               <DriveConnector key={item.segment.segmentId} segment={item.segment} />
@@ -237,6 +251,7 @@ export function SegmentTimeline({ segments }: SegmentTimelineProps) {
                 segment={item.segment}
                 isLast={item.isLast}
                 showCycleHours={item.showCycle}
+                planStatus={planStatus}
               />
             )
           )}

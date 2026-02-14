@@ -9,10 +9,24 @@ interface HOSProgressBarsProps {
   showCycle?: boolean;
 }
 
+/** Compact one-liner for low-usage HOS state */
+interface HOSSummaryProps {
+  hosState: HOSState;
+}
+
 const DRIVE_LIMIT = 11;
 const DUTY_LIMIT = 14;
 const BREAK_LIMIT = 8;
 const CYCLE_LIMIT = 70;
+
+/** Returns true if any HOS clock is above 50% — worth showing bars */
+export function isHOSMeaningful(hosState: HOSState): boolean {
+  return (
+    hosState.hoursDriven / DRIVE_LIMIT >= 0.5 ||
+    hosState.onDutyTime / DUTY_LIMIT >= 0.5 ||
+    hosState.hoursSinceBreak / BREAK_LIMIT >= 0.5
+  );
+}
 
 function formatHOS(used: number, limit: number): string {
   return `${used.toFixed(1)}/${limit}h`;
@@ -67,6 +81,19 @@ function HOSBar({
           {warning}
         </span>
       )}
+    </div>
+  );
+}
+
+/** Compact one-liner shown when HOS clocks are all below 50% */
+export function HOSSummary({ hosState }: HOSSummaryProps) {
+  const driveRemaining = DRIVE_LIMIT - hosState.hoursDriven;
+  const dutyRemaining = DUTY_LIMIT - hosState.onDutyTime;
+  const available = Math.min(driveRemaining, dutyRemaining);
+
+  return (
+    <div className="mt-1.5 text-[10px] text-muted-foreground">
+      HOS: {available.toFixed(1)}h drive available
     </div>
   );
 }

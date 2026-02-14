@@ -36,11 +36,11 @@ export default function CreatePlanPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-[calc(100vh-64px)]">
       {phase === "form" && (
         <div className="py-6 px-4 md:px-6">
           {/* Back navigation */}
-          <div className="max-w-2xl mx-auto mb-6">
+          <div className="mb-6">
             <Button
               variant="ghost"
               size="sm"
@@ -52,8 +52,8 @@ export default function CreatePlanPage() {
             </Button>
           </div>
 
-          {/* Centered card */}
-          <Card className="max-w-2xl mx-auto">
+          {/* Form card */}
+          <Card className="max-w-3xl">
             <CardContent className="pt-6">
               <div className="mb-6">
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
