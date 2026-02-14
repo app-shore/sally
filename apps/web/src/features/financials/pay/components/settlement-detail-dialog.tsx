@@ -48,14 +48,14 @@ export function SettlementDetailDialog({
           <DialogHeader>
             <div className="flex items-center gap-3">
               <DialogTitle className="text-foreground">
-                {settlement.settlement_number}
+                {settlement.settlementNumber}
               </DialogTitle>
               <SettlementStatusBadge status={settlement.status} />
             </div>
             <div className="text-sm text-muted-foreground">
-              {settlement.driver?.first_name} {settlement.driver?.last_name} &middot;{" "}
-              {new Date(settlement.period_start).toLocaleDateString()} -{" "}
-              {new Date(settlement.period_end).toLocaleDateString()}
+              {settlement.driver?.name} &middot;{" "}
+              {new Date(settlement.periodStart).toLocaleDateString()} -{" "}
+              {new Date(settlement.periodEnd).toLocaleDateString()}
             </div>
           </DialogHeader>
 
@@ -75,10 +75,10 @@ export function SettlementDetailDialog({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {settlement.line_items?.map((item) => (
+                    {settlement.lineItems?.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="text-foreground">
-                          {item.load?.load_number ?? `#${item.load_id}`}
+                          {item.load?.loadNumber ?? `#${item.loadId}`}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {item.description}
@@ -87,10 +87,10 @@ export function SettlementDetailDialog({
                           {item.miles?.toFixed(0) ?? "—"}
                         </TableCell>
                         <TableCell className="text-right text-muted-foreground hidden sm:table-cell">
-                          {item.load_revenue_cents ? formatCents(item.load_revenue_cents) : "—"}
+                          {item.loadRevenueCents ? formatCents(item.loadRevenueCents) : "—"}
                         </TableCell>
                         <TableCell className="text-right font-medium text-foreground">
-                          {formatCents(item.pay_amount_cents)}
+                          {formatCents(item.payAmountCents)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -130,7 +130,7 @@ export function SettlementDetailDialog({
                         </TableCell>
                         <TableCell className="text-foreground">{d.description}</TableCell>
                         <TableCell className="text-right text-red-600 dark:text-red-400 font-medium">
-                          -{formatCents(d.amount_cents)}
+                          -{formatCents(d.amountCents)}
                         </TableCell>
                         {settlement.status === "DRAFT" && (
                           <TableCell>
@@ -140,7 +140,7 @@ export function SettlementDetailDialog({
                               className="h-8 w-8"
                               onClick={() =>
                                 removeDeduction.mutate({
-                                  settlementId: settlement.settlement_id,
+                                  settlementId: settlement.settlementId,
                                   deductionId: d.id,
                                 })
                               }
@@ -164,16 +164,16 @@ export function SettlementDetailDialog({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-foreground">
                 <span>Gross Pay</span>
-                <span className="font-medium">{formatCents(settlement.gross_pay_cents)}</span>
+                <span className="font-medium">{formatCents(settlement.grossPayCents)}</span>
               </div>
               <div className="flex justify-between text-red-600 dark:text-red-400">
                 <span>Deductions</span>
-                <span>-{formatCents(settlement.deductions_cents)}</span>
+                <span>-{formatCents(settlement.deductionsCents)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-foreground text-base">
                 <span>Net Pay</span>
-                <span>{formatCents(settlement.net_pay_cents)}</span>
+                <span>{formatCents(settlement.netPayCents)}</span>
               </div>
             </div>
 
@@ -182,7 +182,7 @@ export function SettlementDetailDialog({
             <div className="flex flex-wrap gap-2">
               {settlement.status === "DRAFT" && (
                 <Button
-                  onClick={() => approveSettlement.mutate(settlement.settlement_id)}
+                  onClick={() => approveSettlement.mutate(settlement.settlementId)}
                   disabled={approveSettlement.isPending}
                 >
                   <CheckCircle className="mr-2 h-4 w-4" />
@@ -191,7 +191,7 @@ export function SettlementDetailDialog({
               )}
               {settlement.status === "APPROVED" && (
                 <Button
-                  onClick={() => markPaid.mutate(settlement.settlement_id)}
+                  onClick={() => markPaid.mutate(settlement.settlementId)}
                   disabled={markPaid.isPending}
                 >
                   <DollarSign className="mr-2 h-4 w-4" />
@@ -202,8 +202,8 @@ export function SettlementDetailDialog({
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    if (window.confirm(`Are you sure you want to void settlement ${settlement.settlement_number}? This action cannot be undone.`)) {
-                      voidSettlement.mutate(settlement.settlement_id);
+                    if (window.confirm(`Are you sure you want to void settlement ${settlement.settlementNumber}? This action cannot be undone.`)) {
+                      voidSettlement.mutate(settlement.settlementId);
                     }
                   }}
                   disabled={voidSettlement.isPending}
@@ -218,7 +218,7 @@ export function SettlementDetailDialog({
       </Dialog>
 
       <AddDeductionDialog
-        settlementId={settlement.settlement_id}
+        settlementId={settlement.settlementId}
         open={deductionOpen}
         onOpenChange={setDeductionOpen}
       />

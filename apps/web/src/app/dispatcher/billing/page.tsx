@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { FeatureGuard } from "@/features/platform/feature-flags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -26,7 +27,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/components/ui/dialog";
-import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useInvoices, useInvoiceSummary, useGenerateInvoice } from "@/features/financials/billing";
@@ -35,6 +35,7 @@ import type { Invoice } from "@/features/financials/billing/types";
 import { DollarSign, FileText, AlertTriangle, Clock } from "lucide-react";
 import { formatCents } from "@/shared/lib/utils/formatters";
 import { InvoiceStatusBadge } from "@/features/financials/billing/components/invoice-status-badge";
+import { apiClient } from "@/shared/lib/api";
 
 export default function BillingPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -47,6 +48,12 @@ export default function BillingPage() {
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
   const generateInvoice = useGenerateInvoice();
+
+  const { data: deliveredLoads } = useQuery({
+    queryKey: ['loads', 'delivered'],
+    queryFn: () => apiClient<Array<{ loadId: string; loadNumber: string; customerName: string; rateCents: number | null }>>('/loads/?status=delivered&limit=100'),
+    enabled: generateOpen,
+  });
 
   const handleGenerate = () => {
     if (!loadIdInput.trim()) return;
@@ -87,13 +94,20 @@ export default function BillingPage() {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="load-id">Load ID</Label>
-                  <Input
-                    id="load-id"
-                    placeholder="e.g. LD-20260213-001"
-                    value={loadIdInput}
-                    onChange={(e) => setLoadIdInput(e.target.value)}
-                  />
+                  <Label>Select Delivered Load</Label>
+                  <Select value={loadIdInput} onValueChange={setLoadIdInput}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a delivered load..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {deliveredLoads?.map((load) => (
+                        <SelectItem key={load.loadId} value={load.loadId}>
+                          {load.loadNumber} — {load.customerName}
+                          {load.rateCents ? ` (${formatCents(load.rateCents)})` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Button
                   className="w-full"
@@ -218,27 +232,27 @@ export default function BillingPage() {
                   <TableBody>
                     {invoices.map((invoice) => (
                       <TableRow
-                        key={invoice.invoice_id}
+                        key={invoice.invoiceId}
                         className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
                         onClick={() => setSelectedInvoice(invoice)}
                       >
                         <TableCell className="font-medium text-foreground">
-                          {invoice.invoice_number}
+                          {invoice.invoiceNumber}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-muted-foreground">
-                          {invoice.customer?.company_name ?? "—"}
+                          {invoice.customer?.companyName ?? "—"}
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-muted-foreground">
-                          {invoice.load?.load_number ?? "—"}
+                          {invoice.load?.loadNumber ?? "—"}
                         </TableCell>
                         <TableCell className="text-foreground">
-                          {formatCents(invoice.total_cents)}
+                          {formatCents(invoice.totalCents)}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-foreground">
-                          {formatCents(invoice.balance_cents)}
+                          {formatCents(invoice.balanceCents)}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell text-muted-foreground">
-                          {new Date(invoice.due_date).toLocaleDateString()}
+                          {new Date(invoice.dueDate).toLocaleDateString()}
                         </TableCell>
                         <TableCell><InvoiceStatusBadge status={invoice.status} /></TableCell>
                       </TableRow>

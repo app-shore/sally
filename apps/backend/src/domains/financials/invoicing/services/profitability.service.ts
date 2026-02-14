@@ -29,7 +29,7 @@ export class ProfitabilityService {
       include: {
         invoices: { where: { status: { not: 'VOID' } }, select: { totalCents: true }, take: 1 },
         settlementLineItems: { select: { payAmountCents: true } },
-        routePlanLoads: { include: { plan: { select: { totalMiles: true } } } },
+        routePlanLoads: { include: { plan: { select: { totalDistanceMiles: true } } } },
       },
     });
 
@@ -39,7 +39,7 @@ export class ProfitabilityService {
     const driverCostCents = load.settlementLineItems.reduce((sum, li) => sum + li.payAmountCents, 0);
 
     // Estimate fuel cost: miles / 6.5 mpg * $3.50/gal
-    const routeMiles = load.routePlanLoads?.[0]?.plan?.totalMiles ?? 0;
+    const routeMiles = load.routePlanLoads?.[0]?.plan?.totalDistanceMiles ?? 0;
     const estimatedMpg = 6.5;
     const estimatedFuelPricePerGalCents = 350;
     const fuelCostCents = routeMiles > 0 ? Math.round((routeMiles / estimatedMpg) * estimatedFuelPricePerGalCents) : 0;
@@ -65,7 +65,7 @@ export class ProfitabilityService {
       include: {
         invoices: { where: { status: { not: 'VOID' } }, select: { totalCents: true }, take: 1 },
         settlementLineItems: { select: { payAmountCents: true } },
-        routePlanLoads: { include: { plan: { select: { totalMiles: true } } } },
+        routePlanLoads: { include: { plan: { select: { totalDistanceMiles: true } } } },
       },
       orderBy: { deliveredAt: 'desc' },
       take: limit,
@@ -74,7 +74,7 @@ export class ProfitabilityService {
     return loads.map(load => {
       const revenueCents = load.invoices[0]?.totalCents ?? load.rateCents ?? 0;
       const driverCostCents = load.settlementLineItems.reduce((sum, li) => sum + li.payAmountCents, 0);
-      const routeMiles = load.routePlanLoads?.[0]?.plan?.totalMiles ?? 0;
+      const routeMiles = load.routePlanLoads?.[0]?.plan?.totalDistanceMiles ?? 0;
       const fuelCostCents = routeMiles > 0 ? Math.round((routeMiles / 6.5) * 350) : 0;
       const marginCents = revenueCents - driverCostCents - fuelCostCents;
       const marginPercent = revenueCents > 0 ? (marginCents / revenueCents) * 100 : 0;

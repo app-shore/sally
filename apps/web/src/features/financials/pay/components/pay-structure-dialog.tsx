@@ -45,12 +45,12 @@ export function PayStructureDialog({
   useEffect(() => {
     if (existing) {
       setType(existing.type);
-      if (existing.rate_per_mile_cents) setRatePerMile((existing.rate_per_mile_cents / 100).toString());
+      if (existing.ratePerMileCents) setRatePerMile((existing.ratePerMileCents / 100).toString());
       if (existing.percentage) setPercentage(existing.percentage.toString());
-      if (existing.flat_rate_cents) setFlatRate((existing.flat_rate_cents / 100).toString());
-      if (existing.hybrid_base_cents) setHybridBase((existing.hybrid_base_cents / 100).toString());
-      if (existing.hybrid_percent) setHybridPercent(existing.hybrid_percent.toString());
-      setEffectiveDate(existing.effective_date.split("T")[0]);
+      if (existing.flatRateCents) setFlatRate((existing.flatRateCents / 100).toString());
+      if (existing.hybridBaseCents) setHybridBase((existing.hybridBaseCents / 100).toString());
+      if (existing.hybridPercent) setHybridPercent(existing.hybridPercent.toString());
+      setEffectiveDate(existing.effectiveDate.split("T")[0]);
       setNotes(existing.notes ?? "");
     }
   }, [existing, open]);

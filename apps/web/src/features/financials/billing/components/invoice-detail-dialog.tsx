@@ -46,12 +46,12 @@ export function InvoiceDetailDialog({
           <DialogHeader>
             <div className="flex items-center gap-3">
               <DialogTitle className="text-foreground">
-                {invoice.invoice_number}
+                {invoice.invoiceNumber}
               </DialogTitle>
               <InvoiceStatusBadge status={invoice.status} />
             </div>
             <div className="text-sm text-muted-foreground">
-              {invoice.customer?.company_name} &middot; Load #{invoice.load?.load_number}
+              {invoice.customer?.companyName} &middot; Load #{invoice.load?.loadNumber}
             </div>
           </DialogHeader>
 
@@ -61,19 +61,19 @@ export function InvoiceDetailDialog({
               <div>
                 <span className="text-muted-foreground">Issue Date</span>
                 <p className="font-medium text-foreground">
-                  {new Date(invoice.issue_date).toLocaleDateString()}
+                  {new Date(invoice.issueDate).toLocaleDateString()}
                 </p>
               </div>
               <div>
                 <span className="text-muted-foreground">Due Date</span>
                 <p className="font-medium text-foreground">
-                  {new Date(invoice.due_date).toLocaleDateString()}
+                  {new Date(invoice.dueDate).toLocaleDateString()}
                 </p>
               </div>
               <div>
                 <span className="text-muted-foreground">Terms</span>
                 <p className="font-medium text-foreground">
-                  Net {invoice.payment_terms_days}
+                  Net {invoice.paymentTermsDays}
                 </p>
               </div>
             </div>
@@ -95,7 +95,7 @@ export function InvoiceDetailDialog({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {invoice.line_items?.map((item) => (
+                    {invoice.lineItems?.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="text-muted-foreground text-xs">
                           {item.type.replace(/_/g, " ")}
@@ -107,10 +107,10 @@ export function InvoiceDetailDialog({
                           {item.quantity}
                         </TableCell>
                         <TableCell className="text-right text-foreground">
-                          {formatCents(item.unit_price_cents)}
+                          {formatCents(item.unitPriceCents)}
                         </TableCell>
                         <TableCell className="text-right font-medium text-foreground">
-                          {formatCents(item.total_cents)}
+                          {formatCents(item.totalCents)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -125,25 +125,25 @@ export function InvoiceDetailDialog({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-muted-foreground">
                 <span>Subtotal</span>
-                <span className="text-foreground">{formatCents(invoice.subtotal_cents)}</span>
+                <span className="text-foreground">{formatCents(invoice.subtotalCents)}</span>
               </div>
-              {invoice.adjustment_cents !== 0 && (
+              {invoice.adjustmentCents !== 0 && (
                 <div className="flex justify-between text-muted-foreground">
                   <span>Adjustments</span>
-                  <span className="text-foreground">{formatCents(invoice.adjustment_cents)}</span>
+                  <span className="text-foreground">{formatCents(invoice.adjustmentCents)}</span>
                 </div>
               )}
               <div className="flex justify-between font-semibold text-foreground">
                 <span>Total</span>
-                <span>{formatCents(invoice.total_cents)}</span>
+                <span>{formatCents(invoice.totalCents)}</span>
               </div>
               <div className="flex justify-between text-green-600 dark:text-green-400">
                 <span>Paid</span>
-                <span>{formatCents(invoice.paid_cents)}</span>
+                <span>{formatCents(invoice.paidCents)}</span>
               </div>
               <div className="flex justify-between font-bold text-foreground text-base">
                 <span>Balance Due</span>
-                <span>{formatCents(invoice.balance_cents)}</span>
+                <span>{formatCents(invoice.balanceCents)}</span>
               </div>
             </div>
 
@@ -164,18 +164,18 @@ export function InvoiceDetailDialog({
                     </TableHeader>
                     <TableBody>
                       {invoice.payments.map((payment) => (
-                        <TableRow key={payment.payment_id}>
+                        <TableRow key={payment.paymentId}>
                           <TableCell className="text-foreground">
-                            {new Date(payment.payment_date).toLocaleDateString()}
+                            {new Date(payment.paymentDate).toLocaleDateString()}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {payment.payment_method ?? "—"}
+                            {payment.paymentMethod ?? "—"}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {payment.reference_number ?? "—"}
+                            {payment.referenceNumber ?? "—"}
                           </TableCell>
                           <TableCell className="text-right font-medium text-green-600 dark:text-green-400">
-                            {formatCents(payment.amount_cents)}
+                            {formatCents(payment.amountCents)}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -201,7 +201,7 @@ export function InvoiceDetailDialog({
             <div className="flex flex-wrap gap-2">
               {invoice.status === "DRAFT" && (
                 <Button
-                  onClick={() => sendInvoice.mutate(invoice.invoice_id)}
+                  onClick={() => sendInvoice.mutate(invoice.invoiceId)}
                   disabled={sendInvoice.isPending}
                 >
                   <Send className="mr-2 h-4 w-4" />
@@ -218,8 +218,8 @@ export function InvoiceDetailDialog({
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    if (window.confirm(`Are you sure you want to void invoice ${invoice.invoice_number}? This action cannot be undone.`)) {
-                      voidInvoice.mutate(invoice.invoice_id);
+                    if (window.confirm(`Are you sure you want to void invoice ${invoice.invoiceNumber}? This action cannot be undone.`)) {
+                      voidInvoice.mutate(invoice.invoiceId);
                     }
                   }}
                   disabled={voidInvoice.isPending}
@@ -234,8 +234,8 @@ export function InvoiceDetailDialog({
       </Dialog>
 
       <RecordPaymentDialog
-        invoiceId={invoice.invoice_id}
-        balanceCents={invoice.balance_cents}
+        invoiceId={invoice.invoiceId}
+        balanceCents={invoice.balanceCents}
         open={paymentOpen}
         onOpenChange={setPaymentOpen}
       />

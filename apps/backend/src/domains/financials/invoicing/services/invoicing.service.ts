@@ -33,7 +33,7 @@ export class InvoicingService {
     const invoiceNumber = await this.generateInvoiceNumber(tenantId);
 
     // Build line items
-    const lineItems: Array<{ type: string; description: string; quantity: number; unitPriceCents: number; totalCents: number; sequenceOrder: number }> = [];
+    const lineItems: Array<{ type: 'LINEHAUL' | 'FUEL_SURCHARGE' | 'DETENTION_PICKUP' | 'DETENTION_DELIVERY' | 'LAYOVER' | 'LUMPER' | 'TONU' | 'ACCESSORIAL' | 'ADJUSTMENT'; description: string; quantity: number; unitPriceCents: number; totalCents: number; sequenceOrder: number }> = [];
 
     // Linehaul
     lineItems.push({
