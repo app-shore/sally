@@ -1,6 +1,5 @@
 "use client";
 
-import { MapPin, Moon, Fuel, Coffee, Clock } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { HOSProgressBars, HOSSummary, isHOSMeaningful } from "./HOSProgressBars";
@@ -34,33 +33,29 @@ function formatDuration(hours: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function SegmentIcon({ type }: { type: string }) {
-  const cls = "h-4 w-4";
+function getDotColor(type: string): string {
   switch (type) {
-    case "dock": return <MapPin className={cls} />;
-    case "rest": return <Moon className={cls} />;
-    case "fuel": return <Fuel className={cls} />;
-    case "break": return <Coffee className={cls} />;
-    default: return <Clock className={cls} />;
+    case "dock": return "bg-foreground";
+    case "rest": return "bg-gray-500 dark:bg-gray-400";
+    case "fuel": return "bg-gray-400 dark:bg-gray-500";
+    case "break": return "bg-gray-400 dark:bg-gray-500";
+    default: return "bg-muted-foreground";
   }
 }
 
-function getIconBg(type: string): string {
+function getDotRing(type: string): string {
   switch (type) {
-    case "dock": return "bg-foreground text-background";
-    case "rest": return "bg-gray-600 dark:bg-gray-400 text-white dark:text-black";
-    case "fuel": return "bg-gray-500 dark:bg-gray-500 text-white";
-    case "break": return "bg-gray-400 dark:bg-gray-600 text-white dark:text-gray-200";
-    default: return "bg-muted text-muted-foreground";
+    case "dock": return "ring-2 ring-foreground/20";
+    default: return "";
   }
 }
 
 function DriveConnector({ segment }: { segment: RouteSegment }) {
   return (
-    <div className="relative flex items-center gap-2 py-2 pl-[80px] text-xs text-muted-foreground">
+    <div className="relative flex items-center gap-2 py-1.5 pl-[68px] text-xs text-muted-foreground">
       {/* Timeline continuation */}
-      <div className="absolute left-[95px] top-0 bottom-0 w-0.5 bg-border" />
-      <div className="ml-[30px] flex items-center gap-2 w-full">
+      <div className="absolute left-[79px] top-0 bottom-0 w-px bg-border" />
+      <div className="ml-[24px] flex items-center gap-2 w-full">
         <div className="flex-1 border-t border-dashed border-border" />
         <span>
           {segment.distanceMiles?.toLocaleString(undefined, { maximumFractionDigits: 0 })} mi
@@ -95,21 +90,19 @@ function StopSegment({
 
   return (
     <div className="relative flex items-start gap-3 py-3 px-3 rounded-lg hover:bg-muted/30 transition-colors">
-      {/* Timeline line — behind the icon */}
-      <div className="absolute left-[95px] top-0 bottom-0 w-0.5 bg-border" />
+      {/* Timeline line — behind the dot */}
+      <div className="absolute left-[79px] top-0 bottom-0 w-px bg-border" />
 
       {/* Time column */}
-      <div className="w-[64px] flex-shrink-0 text-right pt-0.5">
+      <div className="w-[56px] flex-shrink-0 text-right pt-0.5">
         <div className="text-xs font-medium text-foreground tabular-nums">{time}</div>
         <div className="text-[10px] text-muted-foreground">{date}</div>
       </div>
 
-      {/* Icon — sits on the timeline */}
+      {/* Dot — sits on the timeline */}
       <div
-        className={`relative z-10 h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${getIconBg(segment.segmentType)}`}
-      >
-        <SegmentIcon type={segment.segmentType} />
-      </div>
+        className={`relative z-10 mt-1.5 h-3 w-3 rounded-full flex-shrink-0 ${getDotColor(segment.segmentType)} ${getDotRing(segment.segmentType)}`}
+      />
 
       {/* Content */}
       <div className="flex-1 min-w-0">

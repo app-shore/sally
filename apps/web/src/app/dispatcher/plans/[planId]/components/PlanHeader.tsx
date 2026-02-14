@@ -131,51 +131,63 @@ export function PlanHeader({ plan }: PlanHeaderProps) {
       {/* Context card: driver, vehicle, departure, priority, preferences + stats */}
       <Card>
         <CardContent className="py-3 px-4">
-          {/* Row 1: Driver · Vehicle · Departure · Priority */}
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+          {/* Row 1: Driver · Vehicle · Departure → Arrival · Priority — spread across */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             {plan.driver && (
-              <div className="flex items-center gap-1.5 text-foreground">
-                <User className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>{plan.driver.name}</span>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Driver</div>
+                <div className="flex items-center gap-1.5 text-foreground">
+                  <User className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>{plan.driver.name}</span>
+                </div>
               </div>
             )}
             {plan.vehicle && (
-              <div className="flex items-center gap-1.5 text-foreground">
-                <Truck className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>#{plan.vehicle.unitNumber}</span>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Vehicle</div>
+                <div className="flex items-center gap-1.5 text-foreground">
+                  <Truck className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>#{plan.vehicle.unitNumber}</span>
+                </div>
               </div>
             )}
-            <div className="flex items-center gap-1.5 text-foreground">
-              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>
-                {new Date(plan.departureTime).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-                {plan.estimatedArrival && (
-                  <>
-                    {" → "}
-                    {new Date(plan.estimatedArrival).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </>
-                )}
-              </span>
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Schedule</div>
+              <div className="flex items-center gap-1.5 text-foreground">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>
+                  {new Date(plan.departureTime).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                  {plan.estimatedArrival && (
+                    <>
+                      {" → "}
+                      {new Date(plan.estimatedArrival).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </>
+                  )}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 text-foreground">
-              <Gauge className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>{formatPriority(plan.optimizationPriority)}</span>
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Priority</div>
+              <div className="flex items-center gap-1.5 text-foreground">
+                <Gauge className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>{formatPriority(plan.optimizationPriority)}</span>
+              </div>
             </div>
           </div>
 
           {/* Preferences pills */}
           {params && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="flex flex-wrap gap-1.5 mt-3">
               <Badge variant="outline" className="text-[10px] px-2 py-0 font-normal">
                 {formatRestType(params.preferredRestType)}
               </Badge>
@@ -194,8 +206,8 @@ export function PlanHeader({ plan }: PlanHeaderProps) {
 
           <Separator className="my-3" />
 
-          {/* Stats strip */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
+          {/* Stats strip — spread across */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="font-semibold text-foreground">
                 {plan.totalDistanceMiles.toLocaleString(undefined, { maximumFractionDigits: 0 })}

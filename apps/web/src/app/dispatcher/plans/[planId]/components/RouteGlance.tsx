@@ -96,48 +96,6 @@ export function RouteGlance({ segments }: RouteGlanceProps) {
 
   if (nodes.length === 0) return null;
 
-  // For ≤3 nodes, render as a simple inline breadcrumb without card wrapper
-  if (nodes.length <= 3) {
-    return (
-      <div className="py-2 px-1 overflow-x-auto">
-        <div className="flex items-center gap-0">
-          {nodes.map((node, index) => {
-            const drive = index > 0 ? getDriveBetween(segments, index - 1, index) : null;
-
-            return (
-              <div key={node.segmentId} className="flex items-center">
-                {index > 0 && drive && (
-                  <div className="flex flex-col items-center flex-shrink-0 mx-2">
-                    <div className="text-[9px] text-muted-foreground tabular-nums whitespace-nowrap">
-                      {drive.miles > 0 && `${Math.round(drive.miles)} mi`}
-                    </div>
-                    <div className="w-10 md:w-16 h-px bg-border" />
-                    <div className="text-[9px] text-muted-foreground tabular-nums whitespace-nowrap">
-                      {drive.hours > 0 && formatDuration(drive.hours)}
-                    </div>
-                  </div>
-                )}
-                <div className="flex flex-col items-center flex-shrink-0">
-                  <div
-                    className={`h-7 w-7 rounded-full flex items-center justify-center ${getNodeStyle(node.segmentType)}`}
-                  >
-                    <GlanceIcon type={node.segmentType} />
-                  </div>
-                  <span className="text-[10px] md:text-xs font-medium text-foreground mt-1 max-w-[80px] text-center truncate">
-                    {getLabel(node)}
-                  </span>
-                  <span className="text-[9px] md:text-[10px] text-muted-foreground">
-                    {getSubLabel(node)}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <Card>
       <CardContent className="py-4 px-4 overflow-x-auto">
