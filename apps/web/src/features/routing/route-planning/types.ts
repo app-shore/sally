@@ -37,6 +37,23 @@ export interface RoutePlanResult {
   totalCostEstimate: number;
   departureTime: string;
   estimatedArrival: string;
+  driver?: {
+    driverId: string;
+    name: string;
+  };
+  vehicle?: {
+    vehicleId: string;
+    unitNumber: string;
+    equipmentType?: string;
+    make?: string;
+    model?: string;
+  };
+  dispatcherParams?: {
+    preferredRestType?: 'auto' | 'full' | 'split_8_2' | 'split_7_3';
+    avoidTollRoads?: boolean;
+    maxDetourMilesForFuel?: number;
+  };
+  optimizationPriority?: 'minimize_time' | 'minimize_cost' | 'balance';
   segments: RouteSegment[];
   complianceReport: ComplianceReport;
   weatherAlerts: WeatherAlert[];
@@ -87,6 +104,13 @@ export interface RouteSegment {
   // HOS state after segment
   hosStateAfter?: HOSState;
 
+  // Fuel state after segment
+  fuelStateAfter?: {
+    currentFuelGallons: number;
+    fuelCapacityGallons: number;
+    rangeRemainingMiles: number;
+  };
+
   // Weather
   weatherAlerts?: WeatherAlert[];
 }
@@ -96,6 +120,13 @@ export interface HOSState {
   onDutyTime: number;
   hoursSinceBreak: number;
   cycleHoursUsed: number;
+  cycleDaysData?: Array<{ date: string; hoursWorked: number }>;
+  splitRestState?: {
+    inSplit: boolean;
+    firstPortionType: 'sleeper_7' | 'sleeper_8' | 'offduty_2' | 'offduty_3' | null;
+    firstPortionCompleted: boolean;
+    pausedDutyWindow: number;
+  };
 }
 
 export interface ComplianceReport {
