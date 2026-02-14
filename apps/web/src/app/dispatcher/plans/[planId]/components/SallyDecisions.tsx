@@ -107,7 +107,7 @@ export function SallyDecisions({ plan }: SallyDecisionsProps) {
         </div>
 
         {/* Weather */}
-        {plan.weatherAlerts.length > 0 && (
+        {plan.weatherAlerts && plan.weatherAlerts.length > 0 && (
           <div>
             <div className="font-medium text-foreground mb-1">Weather</div>
             <div className="space-y-0.5 text-muted-foreground">

@@ -97,7 +97,7 @@ export default function PlanDetailPage({
       <PlanHeader plan={plan} />
 
       {/* Feasibility warning */}
-      {!plan.isFeasible && (
+      {!plan.isFeasible && plan.feasibilityIssues?.length > 0 && (
         <Alert variant="destructive">
           <AlertDescription>
             <strong>Feasibility Issues:</strong>
