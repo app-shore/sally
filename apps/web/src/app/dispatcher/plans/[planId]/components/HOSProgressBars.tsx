@@ -35,7 +35,13 @@ function formatHOS(used: number, limit: number): string {
 function getBarColor(ratio: number): string {
   if (ratio >= 0.9) return "bg-red-500 dark:bg-red-400";
   if (ratio >= 0.75) return "bg-yellow-500 dark:bg-yellow-400";
+  if (ratio >= 0.5) return "bg-gray-600 dark:bg-gray-400";
   return "bg-foreground";
+}
+
+function getWarningTextColor(ratio: number): string {
+  if (ratio >= 0.9) return "text-red-600 dark:text-red-400";
+  return "text-yellow-600 dark:text-yellow-400";
 }
 
 function HOSBar({
@@ -77,7 +83,7 @@ function HOSBar({
         )}
       </span>
       {warning && (
-        <span className="text-[10px] text-yellow-600 dark:text-yellow-400 flex-shrink-0">
+        <span className={`text-[10px] flex-shrink-0 ${getWarningTextColor(ratio)}`}>
           {warning}
         </span>
       )}
@@ -104,12 +110,16 @@ export function HOSProgressBars({
   isReset,
   showCycle,
 }: HOSProgressBarsProps) {
+  const driveRatio = hosState.hoursDriven / DRIVE_LIMIT;
+  const dutyRatio = hosState.onDutyTime / DUTY_LIMIT;
+  const breakRatio = hosState.hoursSinceBreak / BREAK_LIMIT;
+
   const driveWarning =
-    hosState.hoursDriven / DRIVE_LIMIT >= 0.8 && !isReset ? "!" : undefined;
+    driveRatio >= 0.9 && !isReset ? "limit!" : driveRatio >= 0.75 && !isReset ? "!" : undefined;
   const dutyWarning =
-    hosState.onDutyTime / DUTY_LIMIT >= 0.8 && !isReset ? "!" : undefined;
+    dutyRatio >= 0.9 && !isReset ? "limit!" : dutyRatio >= 0.75 && !isReset ? "!" : undefined;
   const breakWarning =
-    hosState.hoursSinceBreak / BREAK_LIMIT >= 0.8 && !isReset
+    breakRatio >= 0.9 && !isReset ? "break now!" : breakRatio >= 0.75 && !isReset
       ? "break soon"
       : undefined;
 

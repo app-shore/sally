@@ -30,15 +30,16 @@ export function LoadDetails({ loads }: LoadDetailsProps) {
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm font-medium text-foreground truncate">
-                    {load.loadNumber}
+                  <span className="text-sm font-semibold text-foreground truncate">
+                    {load.customerName}
                   </span>
+                  <span className="text-xs text-muted-foreground">{load.loadNumber}</span>
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex-shrink-0">
                     {load.status}
                   </Badge>
                 </div>
                 {load.rateCents != null && load.rateCents > 0 && (
-                  <span className="text-sm font-medium text-foreground flex-shrink-0">
+                  <span className="text-sm font-semibold text-foreground flex-shrink-0">
                     ${(load.rateCents / 100).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                   </span>
                 )}
@@ -46,8 +47,6 @@ export function LoadDetails({ loads }: LoadDetailsProps) {
 
               <div className="text-xs text-muted-foreground space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span>{load.customerName}</span>
-                  <span>&middot;</span>
                   <span>{load.commodityType}</span>
                   <span>&middot;</span>
                   <span>{load.weightLbs?.toLocaleString()} lbs</span>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import type { RouteSegment, RoutePlanResult } from "@/features/routing/route-planning";
 
@@ -58,8 +59,28 @@ function formatDuration(hours: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
+function formatRestType(type?: string): string {
+  switch (type) {
+    case "auto": return "Auto";
+    case "full": return "Full rest only";
+    case "split_8_2": return "Split 8+2";
+    case "split_7_3": return "Split 7+3";
+    default: return "Auto";
+  }
+}
+
+function formatPriority(priority?: string): string {
+  switch (priority) {
+    case "minimize_time": return "Fastest";
+    case "minimize_cost": return "Cheapest";
+    case "balance": return "Balanced";
+    default: return "Balanced";
+  }
+}
+
 export function SallyDecisions({ plan }: SallyDecisionsProps) {
   const decisions = computeDecisions(plan.segments);
+  const params = plan.dispatcherParams;
 
   return (
     <Card>
@@ -125,6 +146,35 @@ export function SallyDecisions({ plan }: SallyDecisionsProps) {
                   {fuel.detour > 0 && ` (${fuel.detour.toFixed(1)}mi detour)`}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Your Preferences — confirmed honored */}
+        {params && (
+          <div>
+            <div className="font-medium text-foreground mb-1">Your Preferences</div>
+            <div className="space-y-0.5 text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <span className="text-green-600 dark:text-green-400">✓</span>
+                <span>Priority: {formatPriority(plan.optimizationPriority)}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-green-600 dark:text-green-400">✓</span>
+                <span>Rest type: {formatRestType(params.preferredRestType)}</span>
+              </div>
+              {params.avoidTollRoads && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-green-600 dark:text-green-400">✓</span>
+                  <span>Avoiding toll roads</span>
+                </div>
+              )}
+              {params.maxDetourMilesForFuel && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-green-600 dark:text-green-400">✓</span>
+                  <span>Max {params.maxDetourMilesForFuel}mi fuel detour</span>
+                </div>
+              )}
             </div>
           </div>
         )}

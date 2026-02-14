@@ -154,6 +154,17 @@ export function PlanHeader({ plan }: PlanHeaderProps) {
                   hour: "numeric",
                   minute: "2-digit",
                 })}
+                {plan.estimatedArrival && (
+                  <>
+                    {" → "}
+                    {new Date(plan.estimatedArrival).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </>
+                )}
               </span>
             </div>
             <div className="flex items-center gap-1.5 text-foreground">
@@ -205,14 +216,12 @@ export function PlanHeader({ plan }: PlanHeaderProps) {
                 {plan.totalDrivingDays === 1 ? "day" : "days"}
               </span>
             </div>
-            {plan.totalCostEstimate > 0 && (
-              <div>
-                <span className="font-semibold text-foreground">
-                  ${plan.totalCostEstimate.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </span>
-                <span className="text-muted-foreground ml-1">est.</span>
-              </div>
-            )}
+            <div>
+              <span className="font-semibold text-foreground">
+                ${plan.totalCostEstimate.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </span>
+              <span className="text-muted-foreground ml-1">est.</span>
+            </div>
           </div>
         </CardContent>
       </Card>

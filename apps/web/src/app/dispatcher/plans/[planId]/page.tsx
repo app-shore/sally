@@ -61,6 +61,11 @@ export default function PlanDetailPage({
         </Alert>
       )}
 
+      {/* Load details — the "why" of the route */}
+      {plan.loads && plan.loads.length > 0 && (
+        <LoadDetails loads={plan.loads} />
+      )}
+
       {/* Route Glance — at-a-glance node path */}
       <RouteGlance segments={plan.segments} />
 
@@ -70,7 +75,7 @@ export default function PlanDetailPage({
         <SegmentTimeline segments={plan.segments} planStatus={plan.status} />
       </div>
 
-      {/* Bottom section: Map + Loads + SALLY decisions */}
+      {/* Bottom section: Map + SALLY decisions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Map placeholder */}
         <Card className="lg:col-span-2">
@@ -82,11 +87,6 @@ export default function PlanDetailPage({
         {/* SALLY decisions */}
         <SallyDecisions plan={plan} />
       </div>
-
-      {/* Load details */}
-      {plan.loads && plan.loads.length > 0 && (
-        <LoadDetails loads={plan.loads} />
-      )}
     </div>
   );
 }
