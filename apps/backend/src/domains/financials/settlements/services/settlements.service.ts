@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import { PayStructureType } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -38,7 +39,7 @@ export class SettlementsService {
       },
       include: {
         routePlanLoads: {
-          include: { plan: { select: { totalMiles: true } } },
+          include: { plan: { select: { totalDistanceMiles: true } } },
         },
       },
     });
@@ -47,17 +48,17 @@ export class SettlementsService {
 
     // Calculate pay for each load
     const lineItems: Array<{
-      loadId: number;
+      load: { connect: { id: number } };
       description: string;
       miles: number | null;
       loadRevenueCents: number | null;
       payAmountCents: number;
-      payStructureType: string;
+      payStructureType: PayStructureType;
     }> = [];
 
     const ps = driver.payStructure;
     for (const load of loads) {
-      const routeMiles = load.routePlanLoads?.[0]?.plan?.totalMiles ?? null;
+      const routeMiles = load.routePlanLoads?.[0]?.plan?.totalDistanceMiles ?? null;
       const loadRevenueCents = load.rateCents ?? 0;
       let payAmountCents = 0;
 
@@ -77,7 +78,7 @@ export class SettlementsService {
       }
 
       lineItems.push({
-        loadId: load.id,
+        load: { connect: { id: load.id } },
         description: `Load #${load.loadNumber} - ${ps.type.replace(/_/g, ' ').toLowerCase()}`,
         miles: routeMiles,
         loadRevenueCents,
@@ -92,7 +93,7 @@ export class SettlementsService {
     if (data.preview) {
       return {
         driver_id: data.driver_id,
-        driver_name: `${driver.firstName} ${driver.lastName}`,
+        driver_name: driver.name,
         period_start: data.period_start,
         period_end: data.period_end,
         line_items: lineItems,
@@ -104,7 +105,8 @@ export class SettlementsService {
     }
 
     // Create settlement
-    const settlementNumber = await this.generateSettlementNumber(tenantId, driver.lastName, periodStart);
+    const lastName = driver.name.split(' ').pop() || driver.name;
+    const settlementNumber = await this.generateSettlementNumber(tenantId, lastName, periodStart);
 
     const settlement = await this.prisma.settlement.create({
       data: {
@@ -141,7 +143,7 @@ export class SettlementsService {
     return this.prisma.settlement.findMany({
       where,
       include: {
-        driver: { select: { driverId: true, firstName: true, lastName: true } },
+        driver: { select: { driverId: true, name: true } },
         lineItems: true,
         deductions: true,
       },
@@ -156,7 +158,7 @@ export class SettlementsService {
     const settlement = await this.prisma.settlement.findFirst({
       where: { settlementId, tenantId },
       include: {
-        driver: { select: { driverId: true, firstName: true, lastName: true } },
+        driver: { select: { driverId: true, name: true } },
         lineItems: { include: { load: { select: { loadNumber: true, loadId: true } } } },
         deductions: true,
       },

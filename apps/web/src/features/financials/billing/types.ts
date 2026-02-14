@@ -6,45 +6,45 @@ export interface InvoiceLineItem {
   type: LineItemType;
   description: string;
   quantity: number;
-  unit_price_cents: number;
-  total_cents: number;
-  sequence_order: number;
+  unitPriceCents: number;
+  totalCents: number;
+  sequenceOrder: number;
 }
 
 export interface InvoicePayment {
   id: number;
-  payment_id: string;
-  amount_cents: number;
-  payment_method: string | null;
-  reference_number: string | null;
-  payment_date: string;
+  paymentId: string;
+  amountCents: number;
+  paymentMethod: string | null;
+  referenceNumber: string | null;
+  paymentDate: string;
   notes: string | null;
 }
 
 export interface Invoice {
   id: number;
-  invoice_id: string;
-  invoice_number: string;
+  invoiceId: string;
+  invoiceNumber: string;
   status: InvoiceStatus;
-  customer_id: number;
-  customer: { company_name: string; billing_email?: string };
-  load_id: number;
-  load: { load_number: string; load_id: string };
-  subtotal_cents: number;
-  adjustment_cents: number;
-  total_cents: number;
-  paid_cents: number;
-  balance_cents: number;
-  issue_date: string;
-  due_date: string;
-  paid_date: string | null;
-  payment_terms_days: number;
+  customerId: number;
+  customer: { companyName: string; billingEmail?: string };
+  loadId: number;
+  load: { loadNumber: string; loadId: string };
+  subtotalCents: number;
+  adjustmentCents: number;
+  totalCents: number;
+  paidCents: number;
+  balanceCents: number;
+  issueDate: string;
+  dueDate: string;
+  paidDate: string | null;
+  paymentTermsDays: number;
   notes: string | null;
-  internal_notes: string | null;
-  qb_invoice_id: string | null;
-  qb_synced_at: string | null;
-  created_at: string;
-  line_items: InvoiceLineItem[];
+  internalNotes: string | null;
+  qbInvoiceId: string | null;
+  qbSyncedAt: string | null;
+  createdAt: string;
+  lineItems: InvoiceLineItem[];
   payments?: InvoicePayment[];
 }
 
