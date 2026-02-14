@@ -84,7 +84,7 @@ export function CommandPalette() {
           {/* Quick Actions */}
           <CommandGroup heading="Quick Actions">
             <CommandItem
-              onSelect={() => runCommand(() => router.push('/dispatcher/create-plan'))}
+              onSelect={() => runCommand(() => router.push('/dispatcher/plans/create'))}
             >
               <svg
                 className="mr-2 h-4 w-4"
