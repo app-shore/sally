@@ -60,38 +60,58 @@ export class TmsSyncService {
 
     // Upsert each vehicle
     for (const tmsVehicle of tmsVehicles) {
-      await this.prisma.vehicle.upsert({
+      // Try matching by externalVehicleId first, fall back to VIN match
+      // if a vehicle with same VIN already exists (e.g. created by ELD sync)
+      const existingByExternal = await this.prisma.vehicle.findUnique({
         where: {
           externalVehicleId_tenantId: {
             externalVehicleId: tmsVehicle.vehicle_id,
             tenantId,
           },
         },
-        update: {
-          make: tmsVehicle.make,
-          model: tmsVehicle.model,
-          year: tmsVehicle.year,
-          vin: tmsVehicle.vin,
-          licensePlate: tmsVehicle.license_plate,
-          externalSource: vendor,
-          lastSyncedAt: new Date(),
-        },
-        create: {
-          externalVehicleId: tmsVehicle.vehicle_id,
-          vehicleId: tmsVehicle.vehicle_id,
-          unitNumber: tmsVehicle.unit_number,
-          fuelCapacityGallons: 150,
-          equipmentType: 'DRY_VAN',
-          tenantId,
-          make: tmsVehicle.make,
-          model: tmsVehicle.model,
-          year: tmsVehicle.year,
-          vin: tmsVehicle.vin,
-          licensePlate: tmsVehicle.license_plate,
-          externalSource: vendor,
-          lastSyncedAt: new Date(),
-        },
       });
+
+      const existingByVin = !existingByExternal && tmsVehicle.vin
+        ? await this.prisma.vehicle.findUnique({
+            where: { vin_tenantId: { vin: tmsVehicle.vin, tenantId } },
+          })
+        : null;
+
+      const existing = existingByExternal || existingByVin;
+
+      if (existing) {
+        await this.prisma.vehicle.update({
+          where: { id: existing.id },
+          data: {
+            externalVehicleId: tmsVehicle.vehicle_id,
+            make: tmsVehicle.make,
+            model: tmsVehicle.model,
+            year: tmsVehicle.year,
+            vin: tmsVehicle.vin,
+            licensePlate: tmsVehicle.license_plate,
+            externalSource: vendor,
+            lastSyncedAt: new Date(),
+          },
+        });
+      } else {
+        await this.prisma.vehicle.create({
+          data: {
+            externalVehicleId: tmsVehicle.vehicle_id,
+            vehicleId: tmsVehicle.vehicle_id,
+            unitNumber: tmsVehicle.unit_number,
+            fuelCapacityGallons: 150,
+            equipmentType: 'DRY_VAN',
+            tenantId,
+            make: tmsVehicle.make,
+            model: tmsVehicle.model,
+            year: tmsVehicle.year,
+            vin: tmsVehicle.vin,
+            licensePlate: tmsVehicle.license_plate,
+            externalSource: vendor,
+            lastSyncedAt: new Date(),
+          },
+        });
+      }
     }
 
     await this.prisma.integrationConfig.update({
