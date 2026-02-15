@@ -21,7 +21,7 @@ export class RateconController {
   @Roles(UserRole.DISPATCHER, UserRole.ADMIN, UserRole.OWNER)
   @ApiOperation({ summary: 'Parse a rate confirmation PDF and extract load data' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
   async parseRatecon(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('No file provided');

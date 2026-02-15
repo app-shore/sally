@@ -312,18 +312,16 @@ export function RateconReviewForm({ data, fileName, onSuccess, onCancel, onBack 
                 </div>
               </div>
 
-              {stop.earliest_arrival && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Appointment</Label>
-                    <Input className="h-8 text-sm" type="datetime-local" value={stop.earliest_arrival} onChange={(e) => updateStop(index, 'earliest_arrival', e.target.value)} />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Est. Dock Hours</Label>
-                    <Input className="h-8 text-sm" type="number" step="0.5" value={stop.estimated_dock_hours} onChange={(e) => updateStop(index, 'estimated_dock_hours', Number(e.target.value))} />
-                  </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Appointment</Label>
+                  <Input className="h-8 text-sm" type="datetime-local" value={stop.earliest_arrival} onChange={(e) => updateStop(index, 'earliest_arrival', e.target.value)} />
                 </div>
-              )}
+                <div>
+                  <Label className="text-xs text-muted-foreground">Est. Dock Hours</Label>
+                  <Input className="h-8 text-sm" type="number" step="0.5" value={stop.estimated_dock_hours} onChange={(e) => updateStop(index, 'estimated_dock_hours', Number(e.target.value))} />
+                </div>
+              </div>
             </div>
           ))}
         </div>

@@ -12,14 +12,18 @@ interface RateconUploadZoneProps {
 
 export function RateconUploadZone({ onFileSelected, isUploading, error }: RateconUploadZoneProps) {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateAndSelect = useCallback(
     (file: File) => {
+      setValidationError(null);
       if (file.type !== 'application/pdf') {
+        setValidationError('Only PDF files are accepted. Please select a .pdf file.');
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
+        setValidationError('File is too large. Maximum size is 10MB.');
         return;
       }
       onFileSelected(file);
@@ -71,10 +75,10 @@ export function RateconUploadZone({ onFileSelected, isUploading, error }: Rateco
 
   return (
     <div className="space-y-3">
-      {error && (
+      {(error || validationError) && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{validationError || error}</AlertDescription>
         </Alert>
       )}
 
