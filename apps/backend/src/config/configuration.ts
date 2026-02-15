@@ -46,6 +46,7 @@ const configSchema = z.object({
   hereApiKey: z.string().optional(),
   routingProvider: z.enum(['osrm', 'here']).default('osrm'),
   openWeatherApiKey: z.string().optional(),
+  anthropicApiKey: z.string().optional(),
 });
 
 export type Configuration = z.infer<typeof configSchema>;
@@ -101,6 +102,7 @@ export default (): Configuration => {
     hereApiKey: process.env.HERE_API_KEY,
     routingProvider: process.env.ROUTING_PROVIDER,
     openWeatherApiKey: process.env.OPENWEATHER_API_KEY,
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
   };
 
   // Remove undefined values so zod defaults kick in

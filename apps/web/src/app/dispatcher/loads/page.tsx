@@ -8,6 +8,7 @@ import { loadsApi } from '@/features/fleet/loads/api';
 import { customersApi } from '@/features/fleet/customers/api';
 import type { LoadListItem, Load, LoadCreate, LoadStopCreate } from '@/features/fleet/loads/types';
 import type { Customer, CustomerCreate } from '@/features/fleet/customers/types';
+import { ImportRateconDialog } from '@/features/fleet/loads/components/import-ratecon-dialog';
 import { CustomerList } from '@/features/fleet/customers/components/customer-list';
 import { InviteCustomerDialog } from '@/features/fleet/customers/components/invite-customer-dialog';
 import { useReferenceData } from '@/features/platform/reference-data';
@@ -87,6 +88,7 @@ export default function LoadsPage() {
 
   // New load dialog
   const [isNewLoadOpen, setIsNewLoadOpen] = useState(false);
+  const [isRateconImportOpen, setIsRateconImportOpen] = useState(false);
 
   // Top-level view: loads vs customers (like Fleet has Drivers | Assets)
   const [activeView, setActiveView] = useState<'loads' | 'customers'>('loads');
@@ -242,7 +244,9 @@ export default function LoadsPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem disabled>CSV/Excel Import (Phase 2)</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsRateconImportOpen(true)}>
+                    Rate Confirmation (PDF)
+                  </DropdownMenuItem>
                   <DropdownMenuItem disabled>Email-to-Load (Phase 2)</DropdownMenuItem>
                   <DropdownMenuItem disabled>DAT Search (Phase 2)</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -490,6 +494,12 @@ export default function LoadsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportRateconDialog
+        open={isRateconImportOpen}
+        onOpenChange={setIsRateconImportOpen}
+        onSuccess={() => fetchLoads()}
+      />
     </div>
   );
 }

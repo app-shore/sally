@@ -3,7 +3,9 @@
  */
 
 import { apiClient } from '@/shared/lib/api';
+import { useAuthStore } from '@/features/auth';
 import type { Load, LoadListItem, LoadCreate } from './types';
+import type { ParseRateconResponse } from './types/ratecon';
 
 export const loadsApi = {
   list: async (params?: {
@@ -51,6 +53,29 @@ export const loadsApi = {
 
   generateTrackingToken: async (loadId: string): Promise<{ tracking_token: string; tracking_url: string }> => {
     return apiClient(`/loads/${loadId}/tracking-token`, { method: 'POST' });
+  },
+
+  parseRatecon: async (file: File): Promise<ParseRateconResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const token = useAuthStore.getState().accessToken;
+
+    const response = await fetch(`${baseUrl}/ai/documents/parse-ratecon`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Failed to parse file' }));
+      throw new Error(error.detail || error.message || 'Failed to parse rate confirmation');
+    }
+
+    return response.json();
   },
 };
 

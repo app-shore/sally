@@ -18,6 +18,7 @@ import { IntegrationsModule } from './domains/integrations/integrations.module';
 import { OperationsModule } from './domains/operations/operations.module';
 import { RoutingModule } from './domains/routing/routing.module';
 import { FinancialsModule } from './domains/financials/financials.module';
+import { AiModule } from './domains/ai/ai.module';
 
 
 // Controllers (to be migrated)
@@ -59,6 +60,7 @@ import { WebSocketModule } from './infrastructure/websocket/websocket.module';
     OperationsModule,
     RoutingModule,
     FinancialsModule,
+    AiModule,
   ],
   providers: [
     // Global exception filter
