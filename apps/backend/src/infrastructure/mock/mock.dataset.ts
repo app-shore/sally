@@ -1,275 +1,412 @@
 /**
- * Mock Dataset — Single Source of Truth
+ * Unified Mock Dataset — Single Source of Truth
  *
- * All mock entity data lives here. Every service that needs mock data
+ * All mock entity data lives here. Every adapter and service that needs mock data
  * imports from this file instead of maintaining its own inline data.
  *
- * Used by:
- * - Command center service (runtime mock routes, KPIs, HOS)
- * - Seed scripts (sample alerts, notifications)
+ * DRIVERS and VEHICLES: Can be auto-synced from Samsara API via:
+ *   pnpm run sync-mock
  *
- * NOT used by:
- * - TMS adapters (they simulate external API responses in their own format)
+ * LOADS: Hand-crafted Boston/NY corridor loads (edit manually).
+ *
+ * When SAMSARA_API_TOKEN is configured, running sync-mock will overwrite
+ * this file with real Samsara driver/vehicle data while preserving loads.
  */
 
-import type {
-  ActiveRouteDto,
-  DriverHOSChipDto,
-} from '../../domains/operations/command-center/command-center.types';
+import type { DriverData, VehicleData, LoadData } from '../../domains/integrations/adapters/tms/tms-adapter.interface';
 
 // ---------------------------------------------------------------------------
-// Mock Drivers (10)
+// Mock TMS Drivers (10 drivers)
+//
+// These use phone numbers, license numbers, and names that can be matched
+// by ELD sync when Samsara data is synced.
 // ---------------------------------------------------------------------------
 
-export const MOCK_DRIVERS = [
-  { id: 'DRV-001', firstName: 'Mike', lastName: 'Johnson', phone: '555-0101', email: 'mike.johnson@carrier.com', licenseNumber: 'TX-CDL-20198', licenseState: 'TX' },
-  { id: 'DRV-002', firstName: 'Sarah', lastName: 'Chen', phone: '555-0102', email: 'sarah.chen@carrier.com', licenseNumber: 'IL-CDL-31045', licenseState: 'IL' },
-  { id: 'DRV-003', firstName: 'James', lastName: 'Williams', phone: '555-0103', email: 'james.williams@carrier.com', licenseNumber: 'GA-CDL-42587', licenseState: 'GA' },
-  { id: 'DRV-004', firstName: 'Maria', lastName: 'Garcia', phone: '555-0104', email: 'maria.garcia@carrier.com', licenseNumber: 'CA-CDL-53219', licenseState: 'CA' },
-  { id: 'DRV-005', firstName: 'Robert', lastName: 'Davis', phone: '555-0105', email: 'robert.davis@carrier.com', licenseNumber: 'FL-CDL-64873', licenseState: 'FL' },
-  { id: 'DRV-006', firstName: 'Emily', lastName: 'Wilson', phone: '555-0106', email: 'emily.wilson@carrier.com', licenseNumber: 'OH-CDL-75634', licenseState: 'OH' },
-  { id: 'DRV-007', firstName: 'David', lastName: 'Martinez', phone: '555-0107', email: 'david.martinez@carrier.com', licenseNumber: 'TN-CDL-86492', licenseState: 'TN' },
-  { id: 'DRV-008', firstName: 'Lisa', lastName: 'Anderson', phone: '555-0108', email: 'lisa.anderson@carrier.com', licenseNumber: 'PA-CDL-97358', licenseState: 'PA' },
-  { id: 'DRV-009', firstName: 'Thomas', lastName: 'Brown', phone: '555-0109', email: 'thomas.brown@carrier.com', licenseNumber: 'NC-CDL-08216', licenseState: 'NC' },
-  { id: 'DRV-010', firstName: 'Jennifer', lastName: 'Taylor', phone: '555-0110', email: 'jennifer.taylor@carrier.com', licenseNumber: 'MO-CDL-19074', licenseState: 'MO' },
+export const MOCK_TMS_DRIVERS: DriverData[] = [
+  {
+    driver_id: 'TMS-DRV-001',
+    first_name: 'Mike',
+    last_name: 'Johnson',
+    phone: '555-0101',
+    email: 'mike.johnson@carrier.com',
+    license_number: 'TX-CDL-20198',
+    license_state: 'TX',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    driver_id: 'TMS-DRV-002',
+    first_name: 'Sarah',
+    last_name: 'Chen',
+    phone: '555-0102',
+    email: 'sarah.chen@carrier.com',
+    license_number: 'IL-CDL-31045',
+    license_state: 'IL',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    driver_id: 'TMS-DRV-003',
+    first_name: 'James',
+    last_name: 'Williams',
+    phone: '555-0103',
+    email: 'james.williams@carrier.com',
+    license_number: 'GA-CDL-42587',
+    license_state: 'GA',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    driver_id: 'TMS-DRV-004',
+    first_name: 'Maria',
+    last_name: 'Garcia',
+    phone: '555-0104',
+    email: 'maria.garcia@carrier.com',
+    license_number: 'CA-CDL-53219',
+    license_state: 'CA',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    driver_id: 'TMS-DRV-005',
+    first_name: 'Robert',
+    last_name: 'Davis',
+    phone: '555-0105',
+    email: 'robert.davis@carrier.com',
+    license_number: 'FL-CDL-64873',
+    license_state: 'FL',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    driver_id: 'TMS-DRV-006',
+    first_name: 'Emily',
+    last_name: 'Wilson',
+    phone: '555-0106',
+    email: 'emily.wilson@carrier.com',
+    license_number: 'OH-CDL-75634',
+    license_state: 'OH',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    driver_id: 'TMS-DRV-007',
+    first_name: 'David',
+    last_name: 'Martinez',
+    phone: '555-0107',
+    email: 'david.martinez@carrier.com',
+    license_number: 'TN-CDL-86492',
+    license_state: 'TN',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    driver_id: 'TMS-DRV-008',
+    first_name: 'Lisa',
+    last_name: 'Anderson',
+    phone: '555-0108',
+    email: 'lisa.anderson@carrier.com',
+    license_number: 'PA-CDL-97358',
+    license_state: 'PA',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    driver_id: 'TMS-DRV-009',
+    first_name: 'Thomas',
+    last_name: 'Brown',
+    phone: '555-0109',
+    email: 'thomas.brown@carrier.com',
+    license_number: 'NC-CDL-08216',
+    license_state: 'NC',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    driver_id: 'TMS-DRV-010',
+    first_name: 'Jennifer',
+    last_name: 'Taylor',
+    phone: '555-0110',
+    email: 'jennifer.taylor@carrier.com',
+    license_number: 'MO-CDL-19074',
+    license_state: 'MO',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
 ];
 
 // ---------------------------------------------------------------------------
-// Mock Vehicles (10)
+// Mock TMS Vehicles (10 vehicles)
+//
+// These use VINs and license plates that can be matched by ELD sync
+// when Samsara data is synced.
 // ---------------------------------------------------------------------------
 
-export const MOCK_VEHICLES = [
-  { id: 'VH-TRK-001', unitNumber: 'TRK-001' },
-  { id: 'VH-TRK-002', unitNumber: 'TRK-002' },
-  { id: 'VH-TRK-003', unitNumber: 'TRK-003' },
-  { id: 'VH-TRK-004', unitNumber: 'TRK-004' },
-  { id: 'VH-TRK-005', unitNumber: 'TRK-005' },
-  { id: 'VH-TRK-006', unitNumber: 'TRK-006' },
-  { id: 'VH-TRK-007', unitNumber: 'TRK-007' },
-  { id: 'VH-TRK-008', unitNumber: 'TRK-008' },
-  { id: 'VH-TRK-009', unitNumber: 'TRK-009' },
-  { id: 'VH-TRK-010', unitNumber: 'TRK-010' },
+export const MOCK_TMS_VEHICLES: VehicleData[] = [
+  {
+    vehicle_id: 'TMS-VEH-001',
+    unit_number: 'TRK-001',
+    make: 'Freightliner',
+    model: 'Cascadia',
+    year: 2023,
+    vin: '1FUJHHDR8NLNN0001',
+    license_plate: 'TX-CDL-001',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    vehicle_id: 'TMS-VEH-002',
+    unit_number: 'TRK-002',
+    make: 'Kenworth',
+    model: 'T680',
+    year: 2022,
+    vin: '1XKYD49X6NJ100002',
+    license_plate: 'IL-CDL-002',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    vehicle_id: 'TMS-VEH-003',
+    unit_number: 'TRK-003',
+    make: 'Peterbilt',
+    model: '579',
+    year: 2023,
+    vin: '1XPBD49X7ND400003',
+    license_plate: 'GA-CDL-003',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    vehicle_id: 'TMS-VEH-004',
+    unit_number: 'TRK-004',
+    make: 'Volvo',
+    model: 'VNL 860',
+    year: 2022,
+    vin: '4V4NC9EH9NN200004',
+    license_plate: 'CA-CDL-004',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    vehicle_id: 'TMS-VEH-005',
+    unit_number: 'TRK-005',
+    make: 'International',
+    model: 'LT Series',
+    year: 2023,
+    vin: '3HSDJAPR5NN100005',
+    license_plate: 'FL-CDL-005',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    vehicle_id: 'TMS-VEH-006',
+    unit_number: 'TRK-006',
+    make: 'Mack',
+    model: 'Anthem',
+    year: 2022,
+    vin: '1M1AN07Y5NM000006',
+    license_plate: 'OH-CDL-006',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    vehicle_id: 'TMS-VEH-007',
+    unit_number: 'TRK-007',
+    make: 'Freightliner',
+    model: 'Cascadia',
+    year: 2023,
+    vin: '1FUJHHDR0NLNN0007',
+    license_plate: 'TN-CDL-007',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    vehicle_id: 'TMS-VEH-008',
+    unit_number: 'TRK-008',
+    make: 'Kenworth',
+    model: 'W990',
+    year: 2022,
+    vin: '1XKYD49X8NJ100008',
+    license_plate: 'PA-CDL-008',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    vehicle_id: 'TMS-VEH-009',
+    unit_number: 'TRK-009',
+    make: 'Peterbilt',
+    model: '389',
+    year: 2023,
+    vin: '1XPBD49X9ND400009',
+    license_plate: 'NC-CDL-009',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
+  {
+    vehicle_id: 'TMS-VEH-010',
+    unit_number: 'TRK-010',
+    make: 'Volvo',
+    model: 'VNR 640',
+    year: 2022,
+    vin: '4V4NC9EH0NN200010',
+    license_plate: 'MO-CDL-010',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+  },
 ];
 
 // ---------------------------------------------------------------------------
-// Mock Loads (10) — for command center route card display
+// Mock TMS Loads — Boston/NY Corridor (hand-crafted)
+//
+// Edit these manually. The sync script preserves this section.
 // ---------------------------------------------------------------------------
 
-export const MOCK_LOADS = [
-  { id: 'LD-1001', refNumber: 'LD-1001' },
-  { id: 'LD-1002', refNumber: 'LD-1002' },
-  { id: 'LD-1003', refNumber: 'LD-1003' },
-  { id: 'LD-1004', refNumber: 'LD-1004' },
-  { id: 'LD-1005', refNumber: 'LD-1005' },
-  { id: 'LD-1006', refNumber: 'LD-1006' },
-  { id: 'LD-1007', refNumber: 'LD-1007' },
-  { id: 'LD-1008', refNumber: 'LD-1008' },
-  { id: 'LD-1009', refNumber: 'LD-1009' },
-  { id: 'LD-1010', refNumber: 'LD-1010' },
+export const MOCK_TMS_LOADS: LoadData[] = [
+  {
+    load_id: 'LD-2001',
+    load_number: 'LD-2001',
+    customer_name: 'Boston Distribution Co',
+    weight_lbs: 42000,
+    commodity_type: 'General Freight',
+    pickup_location: {
+      address: '100 Produce Market Way',
+      city: 'Boston',
+      state: 'MA',
+      zip: '02118',
+      latitude: 42.3401,
+      longitude: -71.0589,
+    },
+    delivery_location: {
+      address: '500 Food Center Dr',
+      city: 'New York',
+      state: 'NY',
+      zip: '10474',
+      latitude: 40.8128,
+      longitude: -73.8803,
+    },
+    pickup_appointment: new Date(Date.now() + 2 * 3600000).toISOString(),
+    delivery_appointment: new Date(Date.now() + 8 * 3600000).toISOString(),
+    status: 'ASSIGNED',
+    total_miles: 215,
+    data_source: 'mock_tms',
+  },
+  {
+    load_id: 'LD-2002',
+    load_number: 'LD-2002',
+    customer_name: 'Metro NY Logistics',
+    weight_lbs: 38500,
+    commodity_type: 'Consumer Goods',
+    pickup_location: {
+      address: '1 Meadowlands Pkwy',
+      city: 'East Rutherford',
+      state: 'NJ',
+      zip: '07073',
+      latitude: 40.8128,
+      longitude: -74.0730,
+    },
+    delivery_location: {
+      address: '200 Terminal Rd',
+      city: 'New Haven',
+      state: 'CT',
+      zip: '06519',
+      latitude: 41.2982,
+      longitude: -72.9291,
+    },
+    pickup_appointment: new Date(Date.now() + 4 * 3600000).toISOString(),
+    delivery_appointment: new Date(Date.now() + 10 * 3600000).toISOString(),
+    status: 'UNASSIGNED',
+    total_miles: 88,
+    data_source: 'mock_tms',
+  },
+  {
+    load_id: 'LD-2003',
+    load_number: 'LD-2003',
+    customer_name: 'Northeast Pharma Supply',
+    weight_lbs: 28000,
+    commodity_type: 'Pharmaceuticals',
+    special_requirements: 'Temperature controlled - maintain 2-8°C',
+    pickup_location: {
+      address: '75 Industrial Park Dr',
+      city: 'Hartford',
+      state: 'CT',
+      zip: '06114',
+      latitude: 41.7489,
+      longitude: -72.6884,
+    },
+    delivery_location: {
+      address: '400 Pharmacy Distribution Blvd',
+      city: 'Brooklyn',
+      state: 'NY',
+      zip: '11232',
+      latitude: 40.6570,
+      longitude: -74.0060,
+    },
+    pickup_appointment: new Date(Date.now() + 3 * 3600000).toISOString(),
+    delivery_appointment: new Date(Date.now() + 9 * 3600000).toISOString(),
+    assigned_driver_id: 'TMS-DRV-001',
+    assigned_vehicle_id: 'TMS-VEH-001',
+    status: 'ASSIGNED',
+    total_miles: 118,
+    data_source: 'mock_tms',
+  },
+  {
+    load_id: 'LD-2004',
+    load_number: 'LD-2004',
+    customer_name: 'Providence Building Supply',
+    weight_lbs: 44500,
+    commodity_type: 'Building Materials',
+    special_requirements: 'Flatbed required',
+    pickup_location: {
+      address: '300 Port Access Rd',
+      city: 'Providence',
+      state: 'RI',
+      zip: '02905',
+      latitude: 41.8005,
+      longitude: -71.4128,
+    },
+    delivery_location: {
+      address: '150 Construction Way',
+      city: 'Stamford',
+      state: 'CT',
+      zip: '06902',
+      latitude: 41.0534,
+      longitude: -73.5387,
+    },
+    pickup_appointment: new Date(Date.now() + 5 * 3600000).toISOString(),
+    delivery_appointment: new Date(Date.now() + 11 * 3600000).toISOString(),
+    assigned_driver_id: 'TMS-DRV-002',
+    assigned_vehicle_id: 'TMS-VEH-002',
+    status: 'IN_TRANSIT',
+    total_miles: 95,
+    data_source: 'mock_tms',
+  },
+  {
+    load_id: 'LD-2005',
+    load_number: 'LD-2005',
+    customer_name: 'Long Island Fresh Foods',
+    weight_lbs: 35000,
+    commodity_type: 'Refrigerated Produce',
+    special_requirements: 'Reefer unit required - maintain 34°F',
+    pickup_location: {
+      address: '50 Wholesale Market St',
+      city: 'Worcester',
+      state: 'MA',
+      zip: '01608',
+      latitude: 42.2626,
+      longitude: -71.8023,
+    },
+    delivery_location: {
+      address: '800 Fresh Market Blvd',
+      city: 'Hicksville',
+      state: 'NY',
+      zip: '11801',
+      latitude: 40.7682,
+      longitude: -73.5251,
+    },
+    pickup_appointment: new Date(Date.now() + 1 * 3600000).toISOString(),
+    delivery_appointment: new Date(Date.now() + 7 * 3600000).toISOString(),
+    status: 'ASSIGNED',
+    total_miles: 178,
+    data_source: 'mock_tms',
+  },
 ];
-
-// ---------------------------------------------------------------------------
-// Mock Stops (15) — for command center runtime display
-// ---------------------------------------------------------------------------
-
-export const MOCK_STOPS = [
-  { name: 'Dallas Distribution Center', location: 'Dallas, TX' },
-  { name: 'Houston Warehouse', location: 'Houston, TX' },
-  { name: 'Atlanta Hub', location: 'Atlanta, GA' },
-  { name: 'Chicago Terminal', location: 'Chicago, IL' },
-  { name: 'Memphis Depot', location: 'Memphis, TN' },
-  { name: 'Nashville Yard', location: 'Nashville, TN' },
-  { name: 'Denver Freight Center', location: 'Denver, CO' },
-  { name: 'Phoenix Distribution', location: 'Phoenix, AZ' },
-  { name: 'Kansas City Hub', location: 'Kansas City, MO' },
-  { name: 'St. Louis Terminal', location: 'St. Louis, MO' },
-  { name: 'Indianapolis Depot', location: 'Indianapolis, IN' },
-  { name: 'Columbus Warehouse', location: 'Columbus, OH' },
-  { name: 'Charlotte Hub', location: 'Charlotte, NC' },
-  { name: 'Jacksonville Port', location: 'Jacksonville, FL' },
-  { name: 'San Antonio Yard', location: 'San Antonio, TX' },
-];
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Helper to get full name from a mock driver */
-export function driverName(driver: (typeof MOCK_DRIVERS)[number]): string {
-  return `${driver.firstName} ${driver.lastName}`;
-}
-
-// ---------------------------------------------------------------------------
-// Deterministic pseudo-random based on tenant + current 30-second window
-// ---------------------------------------------------------------------------
-
-function seededRandom(seed: number): () => number {
-  let s = seed;
-  return () => {
-    s = (s * 1664525 + 1013904223) & 0xffffffff;
-    return (s >>> 0) / 0xffffffff;
-  };
-}
-
-function getSeed(tenantId: number): number {
-  const timeSlot = Math.floor(Date.now() / 30000);
-  return tenantId * 100000 + timeSlot;
-}
-
-// ---------------------------------------------------------------------------
-// Runtime Generators (for command center)
-// ---------------------------------------------------------------------------
-
-export function generateMockActiveRoutes(tenantId: number): ActiveRouteDto[] {
-  const rand = seededRandom(getSeed(tenantId));
-  const routeCount = 8 + Math.floor(rand() * 4);
-  const routes: ActiveRouteDto[] = [];
-
-  for (let i = 0; i < routeCount; i++) {
-    const driver = MOCK_DRIVERS[i % MOCK_DRIVERS.length];
-    const vehicle = MOCK_VEHICLES[i % MOCK_VEHICLES.length];
-    const totalStops = 4 + Math.floor(rand() * 7);
-    const completedStops = Math.floor(rand() * totalStops);
-    const totalDistance = 200 + Math.floor(rand() * 800);
-    const distanceCompleted = Math.floor((completedStops / totalStops) * totalDistance);
-
-    const statusRoll = rand();
-    let status: ActiveRouteDto['status'];
-    if (statusRoll < 0.50) status = 'in_transit';
-    else if (statusRoll < 0.70) status = 'at_dock';
-    else if (statusRoll < 0.85) status = 'resting';
-    else status = 'completed';
-
-    const driveHours = status === 'completed' ? 0 : 0.5 + rand() * 10;
-    const dutyHours = driveHours + 1 + rand() * 3;
-    const cycleHours = dutyHours + 10 + rand() * 30;
-    const breakHours = rand() * 8;
-
-    let hosStatus: ActiveRouteDto['hos']['status'];
-    if (status === 'in_transit') hosStatus = 'driving';
-    else if (status === 'at_dock') hosStatus = 'on_duty';
-    else if (status === 'resting') hosStatus = rand() > 0.5 ? 'sleeper' : 'off_duty';
-    else hosStatus = 'off_duty';
-
-    const now = new Date();
-    const hoursToNext = 1 + rand() * 6;
-    const hoursToFinal = hoursToNext + 2 + rand() * 10;
-    const nextEta = new Date(now.getTime() + hoursToNext * 3600000);
-    const finalEta = new Date(now.getTime() + hoursToFinal * 3600000);
-
-    const etaRoll = rand();
-    let etaStatus: ActiveRouteDto['eta_status'];
-    if (status === 'completed') etaStatus = 'on_time';
-    else if (etaRoll < 0.60) etaStatus = 'on_time';
-    else if (etaRoll < 0.85) etaStatus = 'at_risk';
-    else etaStatus = 'late';
-
-    const hasAppointment = rand() > 0.3;
-    const appointmentStart = new Date(nextEta.getTime() - 30 * 60000);
-    const appointmentEnd = new Date(nextEta.getTime() + 60 * 60000);
-
-    const alertRoll = rand();
-    let alertCount = 0;
-    if (alertRoll > 0.7) alertCount = 1;
-    if (alertRoll > 0.9) alertCount = 2;
-
-    const nextStopIdx = Math.floor(rand() * MOCK_STOPS.length);
-    let finalStopIdx = Math.floor(rand() * MOCK_STOPS.length);
-    if (finalStopIdx === nextStopIdx) finalStopIdx = (finalStopIdx + 1) % MOCK_STOPS.length;
-
-    const startedAt = new Date(now.getTime() - (2 + rand() * 12) * 3600000);
-
-    const load = MOCK_LOADS[i % MOCK_LOADS.length];
-
-    routes.push({
-      route_id: `RT-${tenantId}-${String(i + 1).padStart(3, '0')}`,
-      plan_id: `PLN-${tenantId}-${String(i + 1).padStart(3, '0')}`,
-      driver: { driver_id: driver.id, name: driverName(driver) },
-      vehicle: { vehicle_id: vehicle.id, identifier: vehicle.unitNumber },
-      load: { load_id: load.id, reference_number: load.refNumber },
-      status,
-      progress: {
-        completed_stops: completedStops,
-        total_stops: totalStops,
-        distance_completed_miles: distanceCompleted,
-        total_distance_miles: totalDistance,
-      },
-      next_stop: status === 'completed' ? null : {
-        name: MOCK_STOPS[nextStopIdx].name,
-        location: MOCK_STOPS[nextStopIdx].location,
-        eta: nextEta.toISOString(),
-        ...(hasAppointment ? {
-          appointment_window: {
-            start: appointmentStart.toISOString(),
-            end: appointmentEnd.toISOString(),
-          },
-        } : {}),
-      },
-      final_destination: {
-        name: MOCK_STOPS[finalStopIdx].name,
-        location: MOCK_STOPS[finalStopIdx].location,
-        eta: finalEta.toISOString(),
-      },
-      eta_status: etaStatus,
-      hos: {
-        drive_hours_remaining: Math.round(driveHours * 10) / 10,
-        duty_hours_remaining: Math.round(dutyHours * 10) / 10,
-        cycle_hours_remaining: Math.round(cycleHours * 10) / 10,
-        break_hours_remaining: Math.round(breakHours * 10) / 10,
-        status: hosStatus,
-      },
-      active_alert_count: alertCount,
-      started_at: startedAt.toISOString(),
-      updated_at: new Date(now.getTime() - rand() * 300000).toISOString(),
-    });
-  }
-
-  return routes;
-}
-
-export function generateMockKPIs(
-  routes: ActiveRouteDto[],
-  realAlertStats: { active: number; avgResponseTimeMinutes: number; hosViolations: number },
-) {
-  const activeRoutes = routes.filter((r) => r.status !== 'completed');
-  const onTimeRoutes = activeRoutes.filter((r) => r.eta_status === 'on_time');
-  const onTimePercentage = activeRoutes.length > 0
-    ? Math.round((onTimeRoutes.length / activeRoutes.length) * 100)
-    : 100;
-
-  return {
-    active_routes: activeRoutes.length,
-    on_time_percentage: onTimePercentage,
-    hos_violations: realAlertStats.hosViolations,
-    active_alerts: realAlertStats.active,
-    avg_response_time_minutes: realAlertStats.avgResponseTimeMinutes,
-  };
-}
-
-export function generateMockDriverHOS(routes: ActiveRouteDto[]): DriverHOSChipDto[] {
-  const activeRoutes = routes.filter((r) => r.status !== 'completed');
-
-  return activeRoutes.map((route) => {
-    const nameParts = route.driver.name.split(' ');
-    const initials = nameParts.map((p) => p[0]).join('').toUpperCase();
-
-    return {
-      driver_id: route.driver.driver_id,
-      name: route.driver.name,
-      initials,
-      drive_hours_remaining: route.hos.drive_hours_remaining,
-      duty_hours_remaining: route.hos.duty_hours_remaining,
-      status: route.hos.status,
-      vehicle_id: route.vehicle.vehicle_id,
-      active_route_id: route.route_id,
-    };
-  }).sort((a, b) => a.drive_hours_remaining - b.drive_hours_remaining);
-}
-
-export function generateMockQuickActionCounts(tenantId: number): { unassigned_loads: number; available_drivers: number } {
-  const rand = seededRandom(getSeed(tenantId) + 999);
-  return {
-    unassigned_loads: Math.floor(rand() * 6),
-    available_drivers: 2 + Math.floor(rand() * 6),
-  };
-}
