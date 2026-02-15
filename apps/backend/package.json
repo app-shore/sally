@@ -33,7 +33,8 @@
     "setup:reset": "prisma migrate reset --force && ts-node prisma/seeds/index.ts --profile base",
     "setup:status": "ts-node prisma/seeds/index.ts --status",
     "firebase:create-users": "ts-node scripts/create-firebase-users.ts",
-    "firebase:link-uids": "ts-node scripts/link-firebase-uids.ts"
+    "firebase:link-uids": "ts-node scripts/link-firebase-uids.ts",
+    "sync-mock": "ts-node scripts/sync-samsara-mock.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

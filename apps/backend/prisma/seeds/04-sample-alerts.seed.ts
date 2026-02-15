@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { MOCK_DRIVERS, driverName } from '../../src/infrastructure/mock/mock.dataset';
+import { MOCK_TMS_DRIVERS } from '../../src/infrastructure/mock/mock.dataset';
 
 /**
  * Sample alerts for demo/testing.
@@ -126,7 +126,10 @@ export const seed = {
 
     const drivers = dbDrivers.length > 0
       ? dbDrivers.map((d) => ({ id: d.driverId, name: d.name }))
-      : MOCK_DRIVERS.map((d) => ({ id: d.id, name: driverName(d) }));
+      : MOCK_TMS_DRIVERS.map((d) => ({
+          id: d.driver_id,
+          name: `${d.first_name} ${d.last_name}`,
+        }));
 
     // Find a tenant to associate alerts with
     const tenant = await prisma.tenant.findFirst();

@@ -2,13 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
-import type { CommandCenterOverviewDto, ShiftNoteDto } from './command-center.types';
-import {
-  generateMockActiveRoutes,
-  generateMockKPIs,
-  generateMockDriverHOS,
-  generateMockQuickActionCounts,
-} from '../../../infrastructure/mock/mock.dataset';
+import type { CommandCenterOverviewDto, ShiftNoteDto, ActiveRouteDto, DriverHOSChipDto } from './command-center.types';
 
 @Injectable()
 export class CommandCenterService {
@@ -31,25 +25,44 @@ export class CommandCenterService {
     // Get real alert stats from DB
     const realAlertStats = await this.getRealAlertStats(tenantId);
 
-    // Generate mock data for routes, HOS (replace with real queries later)
-    const activeRoutes = generateMockActiveRoutes(tenantId);
-    const kpis = generateMockKPIs(activeRoutes, realAlertStats);
-    const driverHosStrip = generateMockDriverHOS(activeRoutes);
-    const quickActionCounts = generateMockQuickActionCounts(tenantId);
+    // Query real drivers and loads from DB
+    const [drivers, unassignedLoads] = await Promise.all([
+      this.prisma.driver.findMany({
+        where: { tenantId, isActive: true },
+      }),
+      this.prisma.load.count({
+        where: { tenantId, status: 'UNASSIGNED' },
+      }),
+    ]);
 
-    // Sort routes by urgency: late first, then at_risk, then on_time, then completed
-    const urgencyOrder = { late: 0, at_risk: 1, on_time: 2 };
-    const sortedRoutes = [...activeRoutes].sort((a, b) => {
-      const aUrgency = a.status === 'completed' ? 3 : (urgencyOrder[a.eta_status] ?? 2);
-      const bUrgency = b.status === 'completed' ? 3 : (urgencyOrder[b.eta_status] ?? 2);
-      if (aUrgency !== bUrgency) return aUrgency - bUrgency;
-      // Secondary sort: more alerts first
-      return b.active_alert_count - a.active_alert_count;
-    });
+    // Build active routes from real data (loads with assigned drivers)
+    // For now, return empty routes — route plans will populate this when created
+    // The key change is: no more fake data generation
+    const activeRoutes: ActiveRouteDto[] = [];
+
+    const availableDrivers = drivers.filter(
+      (d) => d.status === 'ACTIVE',
+    ).length;
+
+    const kpis = {
+      active_routes: activeRoutes.length,
+      on_time_percentage: 100,
+      hos_violations: realAlertStats.hosViolations,
+      active_alerts: realAlertStats.active,
+      avg_response_time_minutes: realAlertStats.avgResponseTimeMinutes,
+    };
+
+    const quickActionCounts = {
+      unassigned_loads: unassignedLoads,
+      available_drivers: availableDrivers,
+    };
+
+    // HOS strip will be populated from real Samsara HOS data when drivers exist
+    const driverHosStrip: DriverHOSChipDto[] = [];
 
     const result: CommandCenterOverviewDto = {
       kpis,
-      active_routes: sortedRoutes,
+      active_routes: activeRoutes,
       quick_action_counts: quickActionCounts,
       driver_hos_strip: driverHosStrip,
     };
