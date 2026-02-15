@@ -33,12 +33,14 @@
     "setup:reset": "prisma migrate reset --force && ts-node prisma/seeds/index.ts --profile base",
     "setup:status": "ts-node prisma/seeds/index.ts --status",
     "firebase:create-users": "ts-node scripts/create-firebase-users.ts",
-    "firebase:link-uids": "ts-node scripts/link-firebase-uids.ts"
+    "firebase:link-uids": "ts-node scripts/link-firebase-uids.ts",
+    "sync-mock": "ts-node scripts/sync-samsara-mock.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.44",
     "@nestjs/cache-manager": "3.1.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "4.0.2",
@@ -54,6 +56,7 @@
     "@prisma/client": "7.3.0",
     "@sally/shared-types": "workspace:*",
     "@types/nodemailer": "7.0.9",
+    "ai": "^6.0.86",
     "axios": "1.13.4",
     "bcrypt": "6.0.0",
     "cache-manager": "7.2.8",
@@ -95,6 +98,7 @@
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.6",
     "@types/jest": "30.0.0",
+    "@types/multer": "^2.0.0",
     "@types/node": "22.19.7",
     "@types/passport-jwt": "4.0.1",
     "@types/pg": "8.16.0",

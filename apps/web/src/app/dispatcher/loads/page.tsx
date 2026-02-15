@@ -8,8 +8,11 @@ import { loadsApi } from '@/features/fleet/loads/api';
 import { customersApi } from '@/features/fleet/customers/api';
 import type { LoadListItem, Load, LoadCreate, LoadStopCreate } from '@/features/fleet/loads/types';
 import type { Customer, CustomerCreate } from '@/features/fleet/customers/types';
+import { ImportRateconDialog } from '@/features/fleet/loads/components/import-ratecon-dialog';
 import { CustomerList } from '@/features/fleet/customers/components/customer-list';
 import { InviteCustomerDialog } from '@/features/fleet/customers/components/invite-customer-dialog';
+import { useReferenceData } from '@/features/platform/reference-data';
+import type { ReferenceDataMap } from '@/features/platform/reference-data';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
@@ -49,6 +52,11 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/shared/components/ui/collapsible';
+import {
   Plus,
   Trash2,
   Copy,
@@ -58,6 +66,7 @@ import {
   RefreshCw,
   Upload,
   ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 
 // ============================================================================
@@ -68,6 +77,7 @@ export default function LoadsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuthStore();
+  const { data: refData } = useReferenceData(['equipment_type', 'us_state']);
   const [loads, setLoads] = useState<LoadListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +88,7 @@ export default function LoadsPage() {
 
   // New load dialog
   const [isNewLoadOpen, setIsNewLoadOpen] = useState(false);
+  const [isRateconImportOpen, setIsRateconImportOpen] = useState(false);
 
   // Top-level view: loads vs customers (like Fleet has Drivers | Assets)
   const [activeView, setActiveView] = useState<'loads' | 'customers'>('loads');
@@ -182,7 +193,7 @@ export default function LoadsPage() {
   };
 
   const handlePlanRoute = (loadId: string) => {
-    router.push(`/dispatcher/create-plan?load_id=${loadId}`);
+    router.push(`/dispatcher/plans/create?load_id=${loadId}`);
   };
 
   const handleCreateSuccess = async () => {
@@ -233,7 +244,9 @@ export default function LoadsPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem disabled>CSV/Excel Import (Phase 2)</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsRateconImportOpen(true)}>
+                    Rate Confirmation (PDF)
+                  </DropdownMenuItem>
                   <DropdownMenuItem disabled>Email-to-Load (Phase 2)</DropdownMenuItem>
                   <DropdownMenuItem disabled>DAT Search (Phase 2)</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -246,13 +259,14 @@ export default function LoadsPage() {
                     New Load
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Create Load</DialogTitle>
                   </DialogHeader>
                   <NewLoadForm
                     onSuccess={handleCreateSuccess}
                     onCancel={() => setIsNewLoadOpen(false)}
+                    refData={refData}
                   />
                 </DialogContent>
               </Dialog>
@@ -358,6 +372,7 @@ export default function LoadsPage() {
                   loads={delivered}
                   onRowClick={handleCardClick}
                   emptyMessage="No delivered loads"
+                  refData={refData}
                 />
               </TabsContent>
 
@@ -366,6 +381,7 @@ export default function LoadsPage() {
                   loads={cancelled}
                   onRowClick={handleCardClick}
                   emptyMessage="No cancelled loads"
+                  refData={refData}
                 />
               </TabsContent>
             </Tabs>
@@ -405,7 +421,7 @@ export default function LoadsPage() {
 
       {/* New customer dialog */}
       <Dialog open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Customer</DialogTitle>
             <DialogDescription>
@@ -478,6 +494,12 @@ export default function LoadsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportRateconDialog
+        open={isRateconImportOpen}
+        onOpenChange={setIsRateconImportOpen}
+        onSuccess={() => fetchLoads()}
+      />
     </div>
   );
 }
@@ -567,8 +589,14 @@ function LoadCard({
           <IntakeSourceBadge source={load.intake_source} />
         </div>
         <p className="text-sm font-medium text-foreground truncate">{load.customer_name}</p>
+        {load.reference_number && (
+          <p className="text-xs text-muted-foreground font-mono truncate">
+            Ref: {load.reference_number}
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">
           {load.stop_count} stops &middot; {load.weight_lbs?.toLocaleString()} lbs
+          {load.rate_cents ? ` · $${(load.rate_cents / 100).toLocaleString()}` : ''}
         </p>
         {load.equipment_type && (
           <p className="text-xs text-muted-foreground capitalize">
@@ -651,6 +679,15 @@ function LoadDetailPanel({
             label="Equipment"
             value={load.equipment_type?.replace(/_/g, ' ') || '—'}
           />
+          {load.reference_number && (
+            <InfoItem label="Reference / PO" value={load.reference_number} />
+          )}
+          {load.rate_cents != null && (
+            <InfoItem label="Rate" value={`$${(load.rate_cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
+          )}
+          {load.pieces != null && (
+            <InfoItem label="Pieces" value={String(load.pieces)} />
+          )}
           <InfoItem label="Intake" value={load.intake_source || 'manual'} />
           <InfoItem label="Stops" value={String(load.stops.length)} />
         </div>
@@ -793,10 +830,12 @@ function LoadsTable({
   loads,
   onRowClick,
   emptyMessage,
+  refData,
 }: {
   loads: LoadListItem[];
   onRowClick: (load: LoadListItem) => void;
   emptyMessage: string;
+  refData?: ReferenceDataMap;
 }) {
   if (loads.length === 0) {
     return (
@@ -832,7 +871,8 @@ function LoadsTable({
               {load.weight_lbs?.toLocaleString()} lbs
             </TableCell>
             <TableCell className="text-foreground capitalize">
-              {load.equipment_type?.replace(/_/g, ' ') || '—'}
+              {refData?.equipment_type?.find(item => item.code.toLowerCase() === load.equipment_type?.toLowerCase())?.label
+                ?? load.equipment_type?.replace(/_/g, ' ') ?? '—'}
             </TableCell>
             <TableCell>
               <IntakeSourceBadge source={load.intake_source} />
@@ -848,20 +888,39 @@ function LoadsTable({
 // New Load Form (Enhanced)
 // ============================================================================
 
+const US_STATES_FALLBACK = [
+  'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
+  'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
+  'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+  'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
+  'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY',
+];
+
+const EQUIPMENT_TYPES_FALLBACK = [
+  { code: 'dry_van', label: 'Dry Van' },
+  { code: 'reefer', label: 'Reefer' },
+  { code: 'flatbed', label: 'Flatbed' },
+  { code: 'step_deck', label: 'Step Deck' },
+];
+
 function NewLoadForm({
   onSuccess,
   onCancel,
+  refData,
 }: {
   onSuccess: () => void;
   onCancel: () => void;
+  refData?: ReferenceDataMap;
 }) {
   const [formData, setFormData] = useState({
-    load_number: '',
     customer_name: '',
     weight_lbs: 0,
+    equipment_type: 'dry_van',
+    reference_number: '',
     commodity_type: 'general',
-    equipment_type: '',
     special_requirements: '',
+    rate_cents: undefined as number | undefined,
+    pieces: undefined as number | undefined,
   });
 
   const [stops, setStops] = useState<LoadStopCreate[]>([
@@ -870,18 +929,24 @@ function NewLoadForm({
       sequence_order: 1,
       action_type: 'pickup',
       estimated_dock_hours: 2,
+      earliest_arrival: '',
+      latest_arrival: '',
       name: '',
       city: '',
       state: '',
+      zip_code: '',
     },
     {
       stop_id: `STOP-${(Date.now() + 1).toString(36)}`,
       sequence_order: 2,
       action_type: 'delivery',
       estimated_dock_hours: 2,
+      earliest_arrival: '',
+      latest_arrival: '',
       name: '',
       city: '',
       state: '',
+      zip_code: '',
     },
   ]);
 
@@ -912,9 +977,12 @@ function NewLoadForm({
         sequence_order: stops.length + 1,
         action_type: 'delivery',
         estimated_dock_hours: 2,
+        earliest_arrival: '',
+        latest_arrival: '',
         name: '',
         city: '',
         state: '',
+        zip_code: '',
       },
     ]);
   };
@@ -937,17 +1005,48 @@ function NewLoadForm({
     setFormError(null);
 
     try {
+      // Resolve customer — create new Customer record if needed
+      let customerId: number | undefined;
+      let customerName = formData.customer_name;
+
+      if (selectedCustomerId === 'new') {
+        if (!formData.customer_name.trim()) {
+          setFormError('Please enter a customer name');
+          setIsSubmitting(false);
+          return;
+        }
+        // Create actual Customer record so it appears in Customers tab
+        const newCustomer = await customersApi.create({
+          company_name: formData.customer_name.trim(),
+        });
+        customerId = newCustomer.id;
+        customerName = newCustomer.company_name;
+      } else if (selectedCustomerId) {
+        customerId = parseInt(selectedCustomerId);
+        const customer = customers.find((c) => String(c.id) === selectedCustomerId);
+        customerName = customer?.company_name || '';
+      } else {
+        setFormError('Please select a customer');
+        setIsSubmitting(false);
+        return;
+      }
+
       const loadData: LoadCreate = {
-        load_number: formData.load_number,
-        customer_name: formData.customer_name,
+        customer_name: customerName,
         weight_lbs: formData.weight_lbs,
         commodity_type: formData.commodity_type,
         equipment_type: formData.equipment_type || undefined,
         special_requirements: formData.special_requirements || undefined,
-        customer_id: selectedCustomerId && selectedCustomerId !== 'new'
-          ? parseInt(selectedCustomerId)
-          : undefined,
-        stops,
+        reference_number: formData.reference_number || undefined,
+        rate_cents: formData.rate_cents || undefined,
+        pieces: formData.pieces || undefined,
+        customer_id: customerId,
+        stops: stops.map((s) => ({
+          ...s,
+          earliest_arrival: s.earliest_arrival || undefined,
+          latest_arrival: s.latest_arrival || undefined,
+          zip_code: s.zip_code || undefined,
+        })),
       };
       await loadsApi.create(loadData);
       onSuccess();
@@ -958,241 +1057,383 @@ function NewLoadForm({
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Load Details */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-foreground">Load Details</h4>
+  const [expandedStop, setExpandedStop] = useState<number | null>(null);
 
-        <div className="grid grid-cols-2 gap-4">
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Core Details */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="load_number">Load Number *</Label>
-            <Input
-              id="load_number"
-              value={formData.load_number}
-              onChange={(e) => setFormData({ ...formData, load_number: e.target.value })}
-              placeholder="e.g. LD-001"
-              required
-            />
-          </div>
-          <div>
-            <Label>Customer *</Label>
-            {customers.length > 0 ? (
-              <Select value={selectedCustomerId} onValueChange={handleCustomerChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select customer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.company_name}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="new">+ New customer</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
+            <Label className="text-xs text-muted-foreground">Customer *</Label>
+            <Select value={selectedCustomerId} onValueChange={handleCustomerChange}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select or add customer" />
+              </SelectTrigger>
+              <SelectContent>
+                {customers.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    {c.company_name}
+                  </SelectItem>
+                ))}
+                <SelectItem value="new">+ Add new customer</SelectItem>
+              </SelectContent>
+            </Select>
+            {selectedCustomerId === 'new' && (
               <Input
-                value={formData.customer_name}
-                onChange={(e) =>
-                  setFormData({ ...formData, customer_name: e.target.value })
-                }
-                placeholder="Customer name"
-                required
-              />
-            )}
-            {(selectedCustomerId === 'new' || (customers.length > 0 && !selectedCustomerId)) && (
-              <Input
-                className="mt-2"
+                className="mt-1.5 h-9"
                 value={formData.customer_name}
                 onChange={(e) =>
                   setFormData({ ...formData, customer_name: e.target.value })
                 }
                 placeholder="Enter customer name"
-                required={!selectedCustomerId || selectedCustomerId === 'new'}
+                required
+                autoFocus
               />
             )}
           </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Reference / PO #</Label>
+            <Input
+              className="h-9"
+              value={formData.reference_number}
+              onChange={(e) => setFormData({ ...formData, reference_number: e.target.value })}
+              placeholder="PO-12345"
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           <div>
-            <Label htmlFor="weight_lbs">Weight (lbs) *</Label>
+            <Label className="text-xs text-muted-foreground">Equipment *</Label>
+            <Select
+              value={formData.equipment_type}
+              onValueChange={(v) => setFormData({ ...formData, equipment_type: v })}
+            >
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(refData?.equipment_type?.map(item => ({ code: item.code.toLowerCase(), label: item.label })) ?? EQUIPMENT_TYPES_FALLBACK).map((et) => (
+                  <SelectItem key={et.code} value={et.code}>{et.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Weight (lbs) *</Label>
             <Input
-              id="weight_lbs"
+              className="h-9"
               type="number"
               value={formData.weight_lbs || ''}
               onChange={(e) =>
                 setFormData({ ...formData, weight_lbs: parseInt(e.target.value) || 0 })
               }
-              placeholder="40000"
+              placeholder="40,000"
               required
             />
           </div>
           <div>
-            <Label>Commodity</Label>
-            <Select
-              value={formData.commodity_type}
-              onValueChange={(v) => setFormData({ ...formData, commodity_type: v })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="general">General</SelectItem>
-                <SelectItem value="hazmat">Hazmat</SelectItem>
-                <SelectItem value="refrigerated">Refrigerated</SelectItem>
-                <SelectItem value="fragile">Fragile</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Equipment Type</Label>
-            <Select
-              value={formData.equipment_type}
-              onValueChange={(v) => setFormData({ ...formData, equipment_type: v })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select equipment" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="dry_van">Dry Van</SelectItem>
-                <SelectItem value="reefer">Reefer</SelectItem>
-                <SelectItem value="flatbed">Flatbed</SelectItem>
-                <SelectItem value="step_deck">Step Deck</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Special Req.</Label>
+            <Label className="text-xs text-muted-foreground">Rate ($)</Label>
             <Input
-              value={formData.special_requirements}
-              onChange={(e) =>
-                setFormData({ ...formData, special_requirements: e.target.value })
-              }
-              placeholder="Optional"
+              className="h-9"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="2,450.00"
+              value={formData.rate_cents !== undefined ? (formData.rate_cents / 100).toFixed(2) : ''}
+              onChange={(e) => {
+                const dollars = parseFloat(e.target.value);
+                setFormData({
+                  ...formData,
+                  rate_cents: isNaN(dollars) ? undefined : Math.round(dollars * 100),
+                });
+              }}
             />
           </div>
         </div>
       </div>
 
-      {/* Stops */}
-      <div className="space-y-3">
+      {/* Separator */}
+      <div className="border-t border-border" />
+
+      {/* Route — Compact Stops */}
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium text-foreground">Stops ({stops.length})</h4>
-          <Button type="button" variant="outline" size="sm" onClick={addStop}>
+          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Route</h4>
+          <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={addStop}>
             <Plus className="h-3 w-3 mr-1" />
             Add Stop
           </Button>
         </div>
 
-        {stops.map((stop, index) => (
-          <div key={index} className="p-3 rounded-lg border border-border space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+        <div className="relative">
+          {/* Vertical connector line */}
+          {stops.length > 1 && (
+            <div className="absolute left-[15px] top-[20px] bottom-[20px] w-px bg-border z-0" />
+          )}
+
+          <div className="space-y-1.5 relative z-10">
+            {stops.map((stop, index) => (
+              <div key={index}>
+                {/* Compact stop row */}
                 <div
-                  className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
-                    stop.action_type === 'pickup'
-                      ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
-                      : 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300'
+                  className={`flex items-center gap-2.5 px-2 py-1.5 rounded-md transition-colors cursor-pointer group ${
+                    expandedStop === index
+                      ? 'bg-accent/70'
+                      : 'hover:bg-accent/40'
                   }`}
+                  onClick={() => setExpandedStop(expandedStop === index ? null : index)}
                 >
-                  {index + 1}
+                  {/* Stop number dot */}
+                  <div
+                    className={`flex-shrink-0 flex items-center justify-center w-[30px] h-[30px] rounded-full text-xs font-bold ${
+                      stop.action_type === 'pickup'
+                        ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                        : stop.action_type === 'both'
+                        ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300'
+                        : 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300'
+                    }`}
+                  >
+                    {index + 1}
+                  </div>
+
+                  {/* Stop summary — inline */}
+                  <div className="flex-1 min-w-0 flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] px-1.5 py-0 h-5 flex-shrink-0 ${
+                        stop.action_type === 'pickup'
+                          ? 'border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300'
+                          : stop.action_type === 'both'
+                          ? 'border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300'
+                          : 'border-green-300 dark:border-green-800 text-green-700 dark:text-green-300'
+                      }`}
+                    >
+                      {stop.action_type === 'pickup' ? 'P' : stop.action_type === 'both' ? 'P/D' : 'D'}
+                    </Badge>
+                    <span className="text-sm text-foreground truncate">
+                      {stop.name || <span className="text-muted-foreground italic">No location</span>}
+                    </span>
+                    {(stop.city || stop.state) && (
+                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                        {[stop.city, stop.state].filter(Boolean).join(', ')}
+                      </span>
+                    )}
+                    {(stop.earliest_arrival || stop.latest_arrival) && (
+                      <span className="text-[10px] text-muted-foreground flex-shrink-0 font-mono">
+                        {stop.earliest_arrival || '?'}–{stop.latest_arrival || '?'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Expand indicator + delete */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {stops.length > 2 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => { e.stopPropagation(); removeStop(index); }}
+                        className="h-6 w-6 p-0 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-red-600 dark:hover:text-red-400 transition-opacity"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                    <ChevronRight
+                      className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${
+                        expandedStop === index ? 'rotate-90' : ''
+                      }`}
+                    />
+                  </div>
                 </div>
-                <span className="text-sm font-medium text-foreground">
-                  Stop {index + 1}
-                </span>
-              </div>
-              {stops.length > 2 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeStop(index)}
-                  className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600 dark:hover:text-red-400"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              )}
-            </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label className="text-xs">Type</Label>
-                <Select
-                  value={stop.action_type}
-                  onValueChange={(v) => updateStop(index, 'action_type', v)}
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pickup">Pickup</SelectItem>
-                    <SelectItem value="delivery">Delivery</SelectItem>
-                    <SelectItem value="both">Both</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Location Name *</Label>
-                <Input
-                  className="h-8 text-xs"
-                  value={stop.name || ''}
-                  onChange={(e) => updateStop(index, 'name', e.target.value)}
-                  placeholder="Warehouse name"
-                  required
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Dock Hours</Label>
-                <Input
-                  className="h-8 text-xs"
-                  type="number"
-                  step="0.5"
-                  value={stop.estimated_dock_hours}
-                  onChange={(e) =>
-                    updateStop(index, 'estimated_dock_hours', parseFloat(e.target.value) || 0)
-                  }
-                />
-              </div>
-            </div>
+                {/* Expanded stop details */}
+                {expandedStop === index && (
+                  <div className="ml-[42px] mt-1 mb-2 p-3 rounded-md border border-border bg-card space-y-3">
+                    {/* Row 1: Location + Type */}
+                    <div className="grid grid-cols-5 gap-2">
+                      <div className="col-span-2">
+                        <Label className="text-[11px] text-muted-foreground">Location name *</Label>
+                        <Input
+                          className="h-8 text-sm"
+                          value={stop.name || ''}
+                          onChange={(e) => updateStop(index, 'name', e.target.value)}
+                          placeholder="Walmart DC #4523"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[11px] text-muted-foreground">Type</Label>
+                        <Select
+                          value={stop.action_type}
+                          onValueChange={(v) => updateStop(index, 'action_type', v)}
+                        >
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pickup">Pickup</SelectItem>
+                            <SelectItem value="delivery">Delivery</SelectItem>
+                            <SelectItem value="both">Both</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-[11px] text-muted-foreground">Dock hrs</Label>
+                        <Input
+                          className="h-8 text-sm"
+                          type="number"
+                          step="0.5"
+                          value={stop.estimated_dock_hours}
+                          onChange={(e) =>
+                            updateStop(index, 'estimated_dock_hours', parseFloat(e.target.value) || 0)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[11px] text-muted-foreground">ZIP</Label>
+                        <Input
+                          className="h-8 text-sm"
+                          value={stop.zip_code || ''}
+                          onChange={(e) => updateStop(index, 'zip_code', e.target.value)}
+                          placeholder="75201"
+                          maxLength={10}
+                        />
+                      </div>
+                    </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label className="text-xs">Address</Label>
-                <Input
-                  className="h-8 text-xs"
-                  value={stop.address || ''}
-                  onChange={(e) => updateStop(index, 'address', e.target.value)}
-                  placeholder="Street address"
-                />
+                    {/* Row 2: City, State, Appointment */}
+                    <div className="grid grid-cols-5 gap-2">
+                      <div>
+                        <Label className="text-[11px] text-muted-foreground">City</Label>
+                        <Input
+                          className="h-8 text-sm"
+                          value={stop.city || ''}
+                          onChange={(e) => updateStop(index, 'city', e.target.value)}
+                          placeholder="Dallas"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[11px] text-muted-foreground">State</Label>
+                        <Select
+                          value={stop.state || ''}
+                          onValueChange={(v) => updateStop(index, 'state', v)}
+                        >
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue placeholder="—" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(refData?.us_state?.map(item => ({ code: item.code, label: item.label })) ?? US_STATES_FALLBACK.map(s => ({ code: s, label: s }))).map((st) => (
+                              <SelectItem key={st.code} value={st.code}>{st.code}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-2">
+                        <Label className="text-[11px] text-muted-foreground">Appointment window</Label>
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            className="h-8 text-sm font-mono"
+                            value={stop.earliest_arrival || ''}
+                            onChange={(e) => updateStop(index, 'earliest_arrival', e.target.value)}
+                            placeholder="06:00"
+                            maxLength={5}
+                          />
+                          <span className="text-muted-foreground text-xs">–</span>
+                          <Input
+                            className="h-8 text-sm font-mono"
+                            value={stop.latest_arrival || ''}
+                            onChange={(e) => updateStop(index, 'latest_arrival', e.target.value)}
+                            placeholder="14:00"
+                            maxLength={5}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-[11px] text-muted-foreground">Address</Label>
+                        <Input
+                          className="h-8 text-sm"
+                          value={stop.address || ''}
+                          onChange={(e) => updateStop(index, 'address', e.target.value)}
+                          placeholder="123 Main St"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div>
-                <Label className="text-xs">City</Label>
-                <Input
-                  className="h-8 text-xs"
-                  value={stop.city || ''}
-                  onChange={(e) => updateStop(index, 'city', e.target.value)}
-                  placeholder="City"
-                />
-              </div>
-              <div>
-                <Label className="text-xs">State</Label>
-                <Input
-                  className="h-8 text-xs"
-                  value={stop.state || ''}
-                  onChange={(e) => updateStop(index, 'state', e.target.value)}
-                  placeholder="State"
-                />
-              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Separator */}
+      <div className="border-t border-border" />
+
+      {/* More Details — collapsed by default */}
+      <Collapsible>
+        <CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors group uppercase tracking-wide font-medium">
+          <ChevronRight className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-90" />
+          More Details
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-3 pt-3">
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Commodity</Label>
+              <Select
+                value={formData.commodity_type}
+                onValueChange={(v) => setFormData({ ...formData, commodity_type: v })}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="dry_goods">Dry Goods</SelectItem>
+                  <SelectItem value="refrigerated">Refrigerated</SelectItem>
+                  <SelectItem value="frozen">Frozen</SelectItem>
+                  <SelectItem value="hazmat">Hazmat</SelectItem>
+                  <SelectItem value="fragile">Fragile</SelectItem>
+                  <SelectItem value="oversized">Oversized</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Pieces / Pallets</Label>
+              <Input
+                className="h-9"
+                type="number"
+                min="0"
+                placeholder="26"
+                value={formData.pieces ?? ''}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    pieces: e.target.value ? parseInt(e.target.value) : undefined,
+                  })
+                }
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Special Requirements</Label>
+              <Input
+                className="h-9"
+                value={formData.special_requirements}
+                onChange={(e) =>
+                  setFormData({ ...formData, special_requirements: e.target.value })
+                }
+                placeholder="Temp controlled, team"
+              />
             </div>
           </div>
-        ))}
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {formError && <div className="text-sm text-red-600 dark:text-red-400">{formError}</div>}
 
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 pt-1">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>

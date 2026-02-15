@@ -60,7 +60,6 @@ INSERT INTO
 	feature_flags (id, key, name, description, enabled, category, created_at, updated_at)
 VALUES
 	('ff_route_planning', 'route_planning_enabled', 'Route Planning', 'Intelligent route planning with HOS compliance and automatic rest/fuel stop insertion', FALSE, 'dispatcher', NOW(), NOW()),
-	('ff_live_tracking', 'live_tracking_enabled', 'Live Route Tracking', 'Real-time monitoring of active routes with progress tracking and status updates', FALSE, 'dispatcher', NOW(), NOW()),
 	('ff_command_center', 'command_center_enabled', 'Dispatcher Command Center', 'Mission control dashboard with fleet overview, quick actions, and activity feed', FALSE, 'dispatcher', NOW(), NOW()),
 	('ff_alerts_system', 'alerts_system_enabled', 'Automated Alert System', 'Proactive dispatcher notifications for HOS, delays, and critical events', FALSE, 'dispatcher', NOW(), NOW()),
 	('ff_continuous_monitoring', 'continuous_monitoring_enabled', 'Continuous Monitoring', 'Background service monitoring 14 trigger types every 60 seconds', FALSE, 'dispatcher', NOW(), NOW())
@@ -78,7 +77,8 @@ ON CONFLICT (key) DO NOTHING;
 INSERT INTO feature_flags (id, key, name, description, enabled, category, created_at, updated_at)
 VALUES
     ('ff_external_integrations', 'external_integrations_enabled', 'External Integrations', 'Connect to Samsara ELD, TMS, fuel price APIs, and weather services', false, 'admin', NOW(), NOW()),
-    ('ff_fleet_management', 'fleet_management_enabled', 'Fleet Management', 'CRUD interface for managing drivers, vehicles, and fleet settings', false, 'admin', NOW(), NOW())
+    ('ff_fleet_management', 'fleet_management_enabled', 'Fleet Management', 'CRUD interface for managing drivers, vehicles, and fleet settings', false, 'admin', NOW(), NOW()),
+    ('ff_analytics', 'analytics_enabled', 'Analytics Dashboard', 'Business intelligence with revenue, utilization, and operational performance metrics', false, 'admin', NOW(), NOW())
 ON CONFLICT (key) DO NOTHING;
 
 -- ============================================================================

@@ -37,10 +37,50 @@ export interface RoutePlanResult {
   totalCostEstimate: number;
   departureTime: string;
   estimatedArrival: string;
+  driver?: {
+    driverId: string;
+    name: string;
+  };
+  vehicle?: {
+    vehicleId: string;
+    unitNumber: string;
+    equipmentType?: string;
+    make?: string;
+    model?: string;
+  };
+  dispatcherParams?: {
+    preferredRestType?: 'auto' | 'full' | 'split_8_2' | 'split_7_3';
+    avoidTollRoads?: boolean;
+    maxDetourMilesForFuel?: number;
+  };
+  optimizationPriority?: 'minimize_time' | 'minimize_cost' | 'balance';
   segments: RouteSegment[];
+  loads?: RoutePlanLoad[];
   complianceReport: ComplianceReport;
   weatherAlerts: WeatherAlert[];
   dailyBreakdown: DayBreakdown[];
+}
+
+export interface RoutePlanLoad {
+  id: number;
+  load: {
+    loadId: string;
+    loadNumber: string;
+    customerName: string;
+    commodityType: string;
+    weightLbs: number;
+    rateCents?: number;
+    pieces?: number;
+    equipmentType?: string;
+    status: string;
+    stops?: Array<{
+      actionType: string;
+      stop: {
+        city: string;
+        state: string;
+      };
+    }>;
+  };
 }
 
 export interface RouteSegment {
@@ -87,6 +127,13 @@ export interface RouteSegment {
   // HOS state after segment
   hosStateAfter?: HOSState;
 
+  // Fuel state after segment
+  fuelStateAfter?: {
+    currentFuelGallons: number;
+    fuelCapacityGallons: number;
+    rangeRemainingMiles: number;
+  };
+
   // Weather
   weatherAlerts?: WeatherAlert[];
 }
@@ -96,6 +143,13 @@ export interface HOSState {
   onDutyTime: number;
   hoursSinceBreak: number;
   cycleHoursUsed: number;
+  cycleDaysData?: Array<{ date: string; hoursWorked: number }>;
+  splitRestState?: {
+    inSplit: boolean;
+    firstPortionType: 'sleeper_7' | 'sleeper_8' | 'offduty_2' | 'offduty_3' | null;
+    firstPortionCompleted: boolean;
+    pausedDutyWindow: number;
+  };
 }
 
 export interface ComplianceReport {
@@ -148,6 +202,18 @@ export interface RoutePlanListItem {
   createdAt: string;
   driver: { driverId: string; name: string };
   vehicle: { vehicleId: string; unitNumber: string };
+  loads: Array<{
+    load: {
+      loadId: string;
+      loadNumber: string;
+      customerName: string;
+    };
+  }>;
+  segments: Array<{
+    sequenceOrder: number;
+    toLocation: string;
+    actionType: string;
+  }>;
   _count: { segments: number; loads: number };
 }
 

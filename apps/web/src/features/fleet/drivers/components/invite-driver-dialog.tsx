@@ -74,7 +74,7 @@ export function InviteDriverDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Invite {driver.name} to SALLY</DialogTitle>
           <DialogDescription>

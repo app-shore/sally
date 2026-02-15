@@ -46,6 +46,8 @@ describe('Vehicle Schema', () => {
       data: {
         vehicleId: `VEH-TEST-${Date.now()}`,
         unitNumber: 'UNIT-001',
+        fuelCapacityGallons: 150,
+        equipmentType: 'DRY_VAN',
         tenantId: testTenantId,
         make: 'FREIGHTLINER',
         model: 'CASCADIA',
@@ -68,6 +70,8 @@ describe('Vehicle Schema', () => {
       data: {
         vehicleId: `VEH-TEST-${Date.now()}`,
         unitNumber: 'UNIT-002',
+        fuelCapacityGallons: 150,
+        equipmentType: 'DRY_VAN',
         tenantId: testTenantId,
         vin: '3AKJHPDV2KSKA4482',
         eldTelematicsMetadata: {

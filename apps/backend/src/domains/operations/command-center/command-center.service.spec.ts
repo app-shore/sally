@@ -17,6 +17,13 @@ describe('CommandCenterService', () => {
       count: jest.fn().mockResolvedValue(0),
       findMany: jest.fn().mockResolvedValue([]),
     },
+    driver: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    load: {
+      findMany: jest.fn().mockResolvedValue([]),
+      count: jest.fn().mockResolvedValue(0),
+    },
     shiftNote: {
       findMany: jest.fn().mockResolvedValue([]),
       create: jest.fn(),
@@ -60,38 +67,27 @@ describe('CommandCenterService', () => {
       expect(result.kpis).toHaveProperty('avg_response_time_minutes');
     });
 
-    it('should return 8-11 active routes', async () => {
+    it('should return empty active routes when no route plans exist', async () => {
       const result = await service.getOverview(1);
 
-      expect(result.active_routes.length).toBeGreaterThanOrEqual(8);
-      expect(result.active_routes.length).toBeLessThanOrEqual(11);
+      expect(result.active_routes).toEqual([]);
     });
 
-    it('should sort routes by urgency (late first)', async () => {
+    it('should return empty driver HOS strip when no active routes', async () => {
       const result = await service.getOverview(1);
-      const statuses = result.active_routes.map((r) => r.eta_status);
 
-      // Find first on_time route index
-      const firstOnTime = statuses.indexOf('on_time');
-      // Find last late/at_risk route index
-      const lastUrgent = Math.max(
-        statuses.lastIndexOf('late'),
-        statuses.lastIndexOf('at_risk'),
-      );
-
-      // If both exist, urgent routes should come before on_time
-      if (firstOnTime !== -1 && lastUrgent !== -1) {
-        expect(lastUrgent).toBeLessThan(firstOnTime);
-      }
+      expect(result.driver_hos_strip).toEqual([]);
     });
 
-    it('should return driver HOS strip sorted by hours remaining', async () => {
-      const result = await service.getOverview(1);
+    it('should query real drivers and loads from DB', async () => {
+      await service.getOverview(1);
 
-      for (let i = 1; i < result.driver_hos_strip.length; i++) {
-        expect(result.driver_hos_strip[i].drive_hours_remaining)
-          .toBeGreaterThanOrEqual(result.driver_hos_strip[i - 1].drive_hours_remaining);
-      }
+      expect(mockPrismaService.driver.findMany).toHaveBeenCalledWith({
+        where: { tenantId: 1, isActive: true },
+      });
+      expect(mockPrismaService.load.count).toHaveBeenCalledWith({
+        where: { tenantId: 1, status: 'UNASSIGNED' },
+      });
     });
 
     it('should use cache on second call', async () => {

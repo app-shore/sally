@@ -1,4 +1,6 @@
-export default {
+const isPublic = process.env.NEXT_PUBLIC_DOCS_MODE === 'public'
+
+const meta: Record<string, any> = {
   "index": {
     "title": "Home",
     "type": "page",
@@ -26,11 +28,13 @@ export default {
   },
   "developer-guide": {
     "title": "Developer Guide",
-    "type": "page"
+    "type": "page",
+    ...(isPublic ? { "display": "hidden" } : {})
   },
   "contributing": {
     "title": "Contributing",
-    "type": "page"
+    "type": "page",
+    ...(isPublic ? { "display": "hidden" } : {})
   },
   "resources": {
     "title": "Resources",
@@ -41,3 +45,5 @@ export default {
     "type": "page"
   }
 }
+
+export default meta

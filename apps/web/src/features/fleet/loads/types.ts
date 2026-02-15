@@ -30,6 +30,9 @@ export interface Load {
   special_requirements?: string;
   customer_name: string;
   customer_id?: number;
+  reference_number?: string;
+  rate_cents?: number;
+  pieces?: number;
   intake_source: string;
   tracking_token?: string;
   driver_id?: number;
@@ -52,6 +55,9 @@ export interface LoadListItem {
   weight_lbs: number;
   commodity_type: string;
   equipment_type?: string;
+  reference_number?: string;
+  rate_cents?: number;
+  pieces?: number;
   intake_source?: string;
   external_load_id?: string;
   external_source?: string;
@@ -69,17 +75,22 @@ export interface LoadStopCreate {
   address?: string;
   city?: string;
   state?: string;
+  zip_code?: string;
 }
 
 export interface LoadCreate {
-  load_number: string;
+  load_number?: string;
   weight_lbs: number;
   commodity_type: string;
   equipment_type?: string;
   special_requirements?: string;
   customer_name: string;
   customer_id?: number;
+  reference_number?: string;
+  rate_cents?: number;
+  pieces?: number;
   intake_source?: string;
+  intake_metadata?: Record<string, unknown>;
   status?: string;
   stops: LoadStopCreate[];
 }

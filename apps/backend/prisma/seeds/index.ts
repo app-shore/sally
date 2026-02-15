@@ -19,8 +19,8 @@ dotenv.config({ path: '.env.local' });
 // ---------------------------------------------------------------------------
 
 const PROFILES: Record<string, string[]> = {
-  base: ['01-super-admin', '02-feature-flags', '03-truck-stops'],
-  demo: ['01-super-admin', '02-feature-flags', '03-truck-stops', '04-sample-alerts', '05-sample-notifications'],
+  base: ['01-super-admin', '02-feature-flags', '03-truck-stops', '06-reference-data'],
+  demo: ['01-super-admin', '02-feature-flags', '03-truck-stops', '04-sample-alerts', '05-sample-notifications', '06-reference-data'],
 };
 
 // ---------------------------------------------------------------------------

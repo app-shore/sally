@@ -49,10 +49,16 @@ export class VehiclesController extends BaseTenantController {
       id: vehicle.id,
       vehicle_id: vehicle.vehicleId,
       unit_number: vehicle.unitNumber,
+      vin: vehicle.vin,
+      equipment_type: vehicle.equipmentType,
+      status: vehicle.status,
       make: vehicle.make,
       model: vehicle.model,
       year: vehicle.year,
-      vin: vehicle.vin,
+      license_plate: vehicle.licensePlate,
+      license_plate_state: vehicle.licensePlateState,
+      has_sleeper_berth: vehicle.hasSleeperBerth,
+      gross_weight_lbs: vehicle.grossWeightLbs,
       fuel_capacity_gallons: vehicle.fuelCapacityGallons,
       current_fuel_gallons: vehicle.currentFuelGallons,
       mpg: vehicle.mpg,
@@ -75,35 +81,48 @@ export class VehiclesController extends BaseTenantController {
 
     const vehicle = await this.vehiclesService.create(tenantDbId, {
       unit_number: createVehicleDto.unit_number,
+      vin: createVehicleDto.vin,
+      equipment_type: createVehicleDto.equipment_type,
+      fuel_capacity_gallons: createVehicleDto.fuel_capacity_gallons,
+      mpg: createVehicleDto.mpg,
+      status: createVehicleDto.status,
       make: createVehicleDto.make,
       model: createVehicleDto.model,
       year: createVehicleDto.year,
-      vin: createVehicleDto.vin,
-      fuel_capacity_gallons: createVehicleDto.fuel_capacity_gallons,
+      license_plate: createVehicleDto.license_plate,
+      license_plate_state: createVehicleDto.license_plate_state,
+      has_sleeper_berth: createVehicleDto.has_sleeper_berth,
+      gross_weight_lbs: createVehicleDto.gross_weight_lbs,
       current_fuel_gallons: createVehicleDto.current_fuel_gallons,
-      mpg: createVehicleDto.mpg,
     });
 
     return {
       id: vehicle.id,
       vehicle_id: vehicle.vehicleId,
       unit_number: vehicle.unitNumber,
+      vin: vehicle.vin,
+      equipment_type: vehicle.equipmentType,
+      status: vehicle.status,
       make: vehicle.make,
       model: vehicle.model,
       year: vehicle.year,
-      vin: vehicle.vin,
+      license_plate: vehicle.licensePlate,
+      license_plate_state: vehicle.licensePlateState,
+      has_sleeper_berth: vehicle.hasSleeperBerth,
+      gross_weight_lbs: vehicle.grossWeightLbs,
       fuel_capacity_gallons: vehicle.fuelCapacityGallons,
       current_fuel_gallons: vehicle.currentFuelGallons,
       mpg: vehicle.mpg,
-      is_active: vehicle.isActive,
-      created_at: vehicle.createdAt,
+      external_vehicle_id: vehicle.externalVehicleId,
+      external_source: vehicle.externalSource,
+      last_synced_at: vehicle.lastSyncedAt?.toISOString(),
+      created_at: vehicle.createdAt.toISOString(),
+      updated_at: vehicle.updatedAt.toISOString(),
     };
   }
 
   @Put(':vehicle_id')
   @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.DISPATCHER)
-  @UseGuards(ExternalSourceGuard)
-  @ExternalSourceCheck('vehicle')
   @ApiOperation({ summary: 'Update vehicle' })
   @ApiParam({ name: 'vehicle_id', description: 'Vehicle ID' })
   async updateVehicle(
@@ -115,27 +134,43 @@ export class VehiclesController extends BaseTenantController {
 
     const vehicle = await this.vehiclesService.update(vehicleId, tenantDbId, {
       unit_number: updateVehicleDto.unit_number,
+      vin: updateVehicleDto.vin,
+      equipment_type: updateVehicleDto.equipment_type,
+      fuel_capacity_gallons: updateVehicleDto.fuel_capacity_gallons,
+      mpg: updateVehicleDto.mpg,
+      status: updateVehicleDto.status,
       make: updateVehicleDto.make,
       model: updateVehicleDto.model,
       year: updateVehicleDto.year,
-      vin: updateVehicleDto.vin,
-      fuel_capacity_gallons: updateVehicleDto.fuel_capacity_gallons,
+      license_plate: updateVehicleDto.license_plate,
+      license_plate_state: updateVehicleDto.license_plate_state,
+      has_sleeper_berth: updateVehicleDto.has_sleeper_berth,
+      gross_weight_lbs: updateVehicleDto.gross_weight_lbs,
       current_fuel_gallons: updateVehicleDto.current_fuel_gallons,
-      mpg: updateVehicleDto.mpg,
     });
 
     return {
       id: vehicle.id,
       vehicle_id: vehicle.vehicleId,
       unit_number: vehicle.unitNumber,
+      vin: vehicle.vin,
+      equipment_type: vehicle.equipmentType,
+      status: vehicle.status,
       make: vehicle.make,
       model: vehicle.model,
       year: vehicle.year,
-      vin: vehicle.vin,
+      license_plate: vehicle.licensePlate,
+      license_plate_state: vehicle.licensePlateState,
+      has_sleeper_berth: vehicle.hasSleeperBerth,
+      gross_weight_lbs: vehicle.grossWeightLbs,
       fuel_capacity_gallons: vehicle.fuelCapacityGallons,
       current_fuel_gallons: vehicle.currentFuelGallons,
       mpg: vehicle.mpg,
-      updated_at: vehicle.updatedAt,
+      external_vehicle_id: vehicle.externalVehicleId,
+      external_source: vehicle.externalSource,
+      last_synced_at: vehicle.lastSyncedAt?.toISOString(),
+      created_at: vehicle.createdAt.toISOString(),
+      updated_at: vehicle.updatedAt.toISOString(),
     };
   }
 

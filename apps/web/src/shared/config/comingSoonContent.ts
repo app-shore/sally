@@ -18,19 +18,6 @@ export const comingSoonContent: Record<string, Omit<ComingSoonBannerProps, 'cate
     ],
   },
 
-  live_tracking_enabled: {
-    title: 'Live Route Tracking',
-    description:
-      'Real-time monitoring of active routes with automated progress tracking, ETA updates, and proactive alerts when intervention is needed.',
-    features: [
-      'Real-time route progress with visual timeline and current location',
-      'Automatic ETA updates based on actual driving progress',
-      'Proactive alerts for HOS violations, delays, and critical events',
-      'Stop-by-stop status tracking with arrival/departure times',
-      'Continuous monitoring of 14 trigger types running every 60 seconds',
-    ],
-  },
-
   command_center_enabled: {
     title: 'Dispatcher Command Center',
     description:
@@ -135,28 +122,28 @@ export const comingSoonContent: Record<string, Omit<ComingSoonBannerProps, 'cate
     ],
   },
 
-  invoicing_enabled: {
-    title: 'Load Invoicing',
+  billing_enabled: {
+    title: 'Billing',
     description:
-      'Create, send, and track invoices for completed loads. Automatically calculate rates from load data and get paid faster with professional invoice templates.',
+      'Create, send, and track invoices for completed loads. Automatically calculate rates from load data and get paid faster with professional invoices.',
     features: [
       'One-click invoice generation from completed loads with automatic rate calculation',
-      'Professional invoice templates with your company branding and terms',
+      'Line item management with accessorials, detention, and lumper charges',
       'Invoice status tracking: draft, sent, paid, overdue with aging reports',
       'Bulk invoicing for multiple loads to the same customer',
       'QuickBooks sync to eliminate double-entry and keep your books current',
     ],
   },
 
-  driver_settlements_enabled: {
-    title: 'Driver Settlements',
+  driver_pay_enabled: {
+    title: 'Driver Pay',
     description:
-      'Calculate and manage driver pay with support for per-mile, percentage, and flat rate structures. Generate settlement statements and sync to accounting.',
+      'Calculate and manage driver pay with support for per-mile, percentage, flat rate, and hybrid structures. Generate settlement statements and sync to accounting.',
     features: [
       'Flexible pay structures: per-mile, percentage of load, flat rate, or hybrid',
       'Automatic settlement calculation from completed routes and loads',
       'Deduction management: advances, fuel cards, insurance, equipment leases',
-      'Settlement statement generation with detailed breakdown for drivers',
+      'Settlement statement generation with detailed pay breakdown',
       'QuickBooks sync for seamless payroll and expense tracking',
     ],
   },
@@ -171,6 +158,18 @@ export const comingSoonContent: Record<string, Omit<ComingSoonBannerProps, 'cate
       'Settlement sync: driver pay and deductions flow directly to QuickBooks payroll',
       'Customer and vendor mapping between SALLY and QuickBooks',
       'Reconciliation dashboard showing sync status and any discrepancies',
+    ],
+  },
+  analytics_enabled: {
+    title: 'Business Analytics',
+    description:
+      'Comprehensive business intelligence dashboard giving you full visibility into revenue, fleet utilization, on-time performance, and operational costs across your entire operation.',
+    features: [
+      'Revenue analytics: revenue per mile, per load, and per driver with trend tracking',
+      'Fleet utilization: truck idle time, deadhead percentage, and capacity optimization',
+      'On-time delivery performance with breakdown by lane, customer, and driver',
+      'Cost analysis: fuel cost per mile, cost per load, and expense trending',
+      'Customizable date ranges with daily, weekly, and monthly roll-ups',
     ],
   },
 };

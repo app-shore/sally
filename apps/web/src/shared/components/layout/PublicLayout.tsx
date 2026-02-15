@@ -2,12 +2,28 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Menu, X, LogIn, LogOut, ArrowRight, UserPlus } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { Menu, X, LogIn, LogOut, ArrowRight, UserPlus, ExternalLink, Settings } from 'lucide-react';
 import { useAuthStore } from '@/features/auth';
 import { Button } from '@/shared/components/ui/button';
+import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 import { ThemeToggle } from './ThemeToggle';
 import { getDefaultRouteForRole } from '@/shared/lib/navigation';
+
+const navItems = [
+  { label: 'Home', href: '/', external: false },
+  { label: 'Product', href: '/product', external: false },
+  { label: 'Developers', href: process.env.NEXT_PUBLIC_DOCS_URL || 'http://localhost:3001', external: true },
+  { label: 'Pricing', href: '/pricing', external: false },
+];
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -20,6 +36,7 @@ interface PublicLayoutProps {
 export function PublicLayout({ children }: PublicLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, user, signOut } = useAuthStore();
 
   const handleLogout = async () => {
@@ -54,20 +71,41 @@ export function PublicLayout({ children }: PublicLayoutProps) {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-2">
+            {/* Nav Links */}
+            <nav className="flex items-center gap-1 mr-4">
+              {navItems.map((item) => {
+                const isActive = !item.external && pathname === item.href;
+                if (item.external) {
+                  return (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md"
+                    >
+                      {item.label}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  );
+                }
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                      isActive
+                        ? 'text-foreground font-medium'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
             <ThemeToggle />
 
-            {/* User info if authenticated */}
-            {isAuthenticated && user && (
-              <div className="text-sm text-muted-foreground mr-4">
-                <span className="font-medium">
-                  {user.firstName} {user.lastName}
-                </span>
-                <span className="mx-2">·</span>
-                <span className="text-xs">{user.tenantName}</span>
-              </div>
-            )}
-
-            {/* Login/Logout */}
+            {/* Login/Register or Profile Menu */}
             {!isAuthenticated ? (
               <>
                 <Link href="/register">
@@ -84,35 +122,108 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 </Link>
               </>
             ) : (
-              <>
+              <div className="flex items-center gap-2">
+                {/* Go to App button - always visible */}
                 <Link href={getDefaultRouteForRole(user?.role)}>
                   <Button size="sm">
                     Go to App
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </Link>
-                <Button variant="ghost" size="sm" onClick={handleLogout} className="ml-2">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </>
+
+                {/* Profile dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 rounded-full hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600">
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback className="bg-black dark:bg-white text-white dark:text-black text-sm">
+                          {user ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase() : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium">
+                          {user ? `${user.firstName} ${user.lastName}` : 'User'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{user?.email}</p>
+                        {user?.tenantName && (
+                          <p className="text-xs text-muted-foreground">{user.tenantName}</p>
+                        )}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push(getDefaultRouteForRole(user?.role))}>
+                      <ArrowRight className="mr-2 h-4 w-4" />
+                      <span>Go to App</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/settings/general')}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             )}
           </div>
 
           {/* Mobile Menu Button */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-md hover:bg-muted transition-colors"
+            className="md:hidden"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          </Button>
         </div>
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-background">
             <div className="flex flex-col p-2 space-y-1">
+              {/* Nav links on mobile */}
+              <nav className="flex flex-col space-y-1 pb-2 border-b border-border mb-2">
+                {navItems.map((item) => {
+                  const isActive = !item.external && pathname === item.href;
+                  if (item.external) {
+                    return (
+                      <a
+                        key={item.label}
+                        href={item.href}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {item.label}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    );
+                  }
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                        isActive
+                          ? 'text-foreground font-medium bg-muted'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+
               {/* Theme toggle on mobile */}
               <div className="flex items-center justify-between px-4 py-3">
                 <span className="text-sm font-medium text-muted-foreground">
@@ -148,20 +259,45 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 </>
               ) : (
                 <>
+                  {/* User info on mobile */}
+                  <div className="flex items-center gap-3 px-4 py-3 border-b border-border mb-2">
+                    <Avatar className="h-9 w-9">
+                      <AvatarFallback className="bg-black dark:bg-white text-white dark:text-black text-sm">
+                        {user ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase() : 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {user ? `${user.firstName} ${user.lastName}` : 'User'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </div>
                   <Link href={getDefaultRouteForRole(user?.role)} className="w-full">
                     <Button
                       size="sm"
                       className="w-full"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
+                      <ArrowRight className="h-4 w-4 mr-2" />
                       Go to App
-                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                  <Link href="/settings/general" className="w-full">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Settings
                     </Button>
                   </Link>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full justify-start"
+                    className="w-full justify-start text-red-600 dark:text-red-400"
                     onClick={() => {
                       handleLogout();
                       setIsMobileMenuOpen(false);

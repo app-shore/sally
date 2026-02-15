@@ -131,7 +131,7 @@ export function AcceptInvitationForm() {
       // Step 4: Redirect to appropriate dashboard based on role
       const redirectMap: Record<string, string> = {
         ADMIN: '/admin/team',
-        DISPATCHER: '/dispatcher/overview',
+        DISPATCHER: '/dispatcher/command-center',
         DRIVER: '/driver/dashboard',
       };
 

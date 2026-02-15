@@ -14,12 +14,15 @@ export class LoadsService {
    */
   async create(data: {
     tenant_id: number;
-    load_number: string;
+    load_number?: string;
     weight_lbs: number;
     commodity_type: string;
     special_requirements?: string;
     customer_name: string;
     equipment_type?: string;
+    reference_number?: string;
+    rate_cents?: number;
+    pieces?: number;
     intake_source?: string;
     intake_metadata?: any;
     customer_id?: number;
@@ -35,20 +38,39 @@ export class LoadsService {
       address?: string;
       city?: string;
       state?: string;
+      zip_code?: string;
     }>;
   }) {
-    const loadId = `LOAD-${data.load_number}`;
+    // Auto-generate load number if not provided
+    let loadNumber = data.load_number;
+    if (!loadNumber) {
+      const today = new Date();
+      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const countToday = await this.prisma.load.count({
+        where: {
+          tenantId: data.tenant_id,
+          createdAt: { gte: startOfDay },
+        },
+      });
+      const seq = String(countToday + 1).padStart(3, '0');
+      loadNumber = `LD-${dateStr}-${seq}`;
+    }
+    const loadId = `LOAD-${loadNumber}`;
 
     const load = await this.prisma.load.create({
       data: {
         loadId,
-        loadNumber: data.load_number,
+        loadNumber,
         status: data.status || 'pending',
         weightLbs: data.weight_lbs,
         commodityType: data.commodity_type,
         specialRequirements: data.special_requirements || null,
         customerName: data.customer_name,
         equipmentType: data.equipment_type || null,
+        referenceNumber: data.reference_number || null,
+        rateCents: data.rate_cents ?? null,
+        pieces: data.pieces ?? null,
         intakeSource: data.intake_source || 'manual',
         intakeMetadata: data.intake_metadata || null,
         customerId: data.customer_id || null,
@@ -73,6 +95,7 @@ export class LoadsService {
             address: stopData.address || null,
             city: stopData.city || null,
             state: stopData.state || null,
+            zipCode: stopData.zip_code || null,
             locationType: 'customer',
             isActive: true,
             tenantId: data.tenant_id,
@@ -157,6 +180,9 @@ export class LoadsService {
       weight_lbs: load.weightLbs,
       commodity_type: load.commodityType,
       equipment_type: load.equipmentType,
+      reference_number: load.referenceNumber,
+      rate_cents: load.rateCents,
+      pieces: load.pieces,
       intake_source: load.intakeSource,
       external_load_id: load.externalLoadId,
       external_source: load.externalSource,
@@ -465,6 +491,9 @@ export class LoadsService {
         specialRequirements: original.specialRequirements,
         customerName: original.customerName,
         equipmentType: original.equipmentType,
+        referenceNumber: original.referenceNumber,
+        rateCents: original.rateCents,
+        pieces: original.pieces,
         intakeSource: 'manual',
         customerId: original.customerId,
         tenantId,
@@ -576,6 +605,9 @@ export class LoadsService {
       special_requirements: load.specialRequirements,
       customer_name: load.customerName,
       equipment_type: load.equipmentType,
+      reference_number: load.referenceNumber,
+      rate_cents: load.rateCents,
+      pieces: load.pieces,
       intake_source: load.intakeSource,
       tracking_token: load.trackingToken,
       customer_id: load.customerId,

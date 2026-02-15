@@ -106,7 +106,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Content area with sidebar */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Below header */}
+        {/* Sidebar */}
         <AppSidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
@@ -114,14 +114,13 @@ export function AppLayout({ children }: AppLayoutProps) {
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
 
-        {/* Main content - Adjust margin based on sidebar state */}
+        {/* Main content */}
         <main
           className={cn(
             'flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300',
             sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
           )}
         >
-          {/* Remove max-w-7xl constraint - let pages control their own width */}
           <div className="p-4 md:p-8">
             {children}
           </div>

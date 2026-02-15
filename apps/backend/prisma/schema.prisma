@@ -92,6 +92,10 @@ model Tenant {
   shiftNotes            ShiftNote[]
   conversations         Conversation[]
   vehicleTelematics     VehicleTelematics[]
+  invoices              Invoice[]
+  settlements           Settlement[]
+  payments              Payment[]
+  driverPayStructures   DriverPayStructure[]
 
   @@index([tenantId])
   @@index([subdomain])
@@ -290,6 +294,12 @@ enum SyncStatus {
   MANUAL_ENTRY
 }
 
+enum CdlClass {
+  A
+  B
+  C
+}
+
 model Driver {
   id                    Int           @id @default(autoincrement())
   driverId              String        @unique @map("driver_id") @db.VarChar(50)
@@ -302,6 +312,8 @@ model Driver {
   licenseState          String?       @map("license_state") @db.VarChar(2)
   phone                 String?       @db.VarChar(20)
   email                 String?       @db.VarChar(255)
+  cdlClass              CdlClass?     @map("cdl_class")
+  endorsements          String[]      @default([])
 
   // Status management
   status                DriverStatus  @default(PENDING_ACTIVATION)
@@ -351,6 +363,14 @@ model Driver {
   cycleDaysData           Json?     @map("cycle_days_data")
   lastRestartAt           DateTime? @map("last_restart_at") @db.Timestamptz
   homeTerminalTimezone    String    @default("America/New_York") @map("home_terminal_timezone") @db.VarChar(50)
+  homeTerminalCity        String?   @map("home_terminal_city") @db.VarChar(100)
+  homeTerminalState       String?   @map("home_terminal_state") @db.VarChar(2)
+
+  hireDate                DateTime? @map("hire_date") @db.Date
+  medicalCardExpiry       DateTime? @map("medical_card_expiry") @db.Date
+  emergencyContactName    String?   @map("emergency_contact_name") @db.VarChar(255)
+  emergencyContactPhone   String?   @map("emergency_contact_phone") @db.VarChar(20)
+  notes                   String?   @db.Text
 
   createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz
@@ -361,6 +381,8 @@ model Driver {
   loads                 Load[]
   driverPreferences     DriverPreferences?
   invitations           UserInvitation[]
+  payStructure          DriverPayStructure?
+  settlements           Settlement[]
 
   @@unique([driverId, tenantId])
   @@index([tenantId])
@@ -373,11 +395,90 @@ model Driver {
   @@map("drivers")
 }
 
+model ReferenceData {
+  id        Int      @id @default(autoincrement())
+  category  String   @db.VarChar(50)
+  code      String   @db.VarChar(50)
+  label     String   @db.VarChar(100)
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([category, code])
+  @@index([category, isActive])
+  @@map("reference_data")
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  ASSIGNED
+  IN_SHOP
+  OUT_OF_SERVICE
+}
+
+enum EquipmentType {
+  DRY_VAN
+  FLATBED
+  REEFER
+  STEP_DECK
+  POWER_ONLY
+  OTHER
+}
+
+// === Money Module Enums ===
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  VIEWED
+  PARTIAL
+  PAID
+  OVERDUE
+  VOID
+  FACTORED
+}
+
+enum SettlementStatus {
+  DRAFT
+  APPROVED
+  PAID
+  VOID
+}
+
+enum PayStructureType {
+  PER_MILE
+  PERCENTAGE
+  FLAT_RATE
+  HYBRID
+}
+
+enum DeductionType {
+  FUEL_ADVANCE
+  CASH_ADVANCE
+  INSURANCE
+  EQUIPMENT_LEASE
+  ESCROW
+  OTHER
+}
+
+enum LineItemType {
+  LINEHAUL
+  FUEL_SURCHARGE
+  DETENTION_PICKUP
+  DETENTION_DELIVERY
+  LAYOVER
+  LUMPER
+  TONU
+  ACCESSORIAL
+  ADJUSTMENT
+}
+
 model Vehicle {
   id                    Int          @id @default(autoincrement())
   vehicleId             String       @map("vehicle_id") @db.VarChar(50)
   unitNumber            String       @db.VarChar(50) @map("unit_number")
-  fuelCapacityGallons   Float?       @map("fuel_capacity_gallons")
+  fuelCapacityGallons   Float        @map("fuel_capacity_gallons")
   currentFuelGallons    Float?       @map("current_fuel_gallons")
   mpg                   Float?
   isActive              Boolean      @default(true) @map("is_active")
@@ -393,14 +494,18 @@ model Vehicle {
   make                  String?      @db.VarChar(50)
   model                 String?      @db.VarChar(50)
   year                  Int?
-  vin                   String?      @db.VarChar(50)
+  vin                   String       @db.VarChar(17)
   licensePlate          String?      @map("license_plate") @db.VarChar(20)
+  licensePlateState     String?      @map("license_plate_state") @db.VarChar(2)
 
   // ELD Telematics Metadata (JSONB - vendor agnostic)
   eldTelematicsMetadata Json?        @map("eld_telematics_metadata")
 
   hasSleeperBerth         Boolean   @default(true) @map("has_sleeper_berth")
   grossWeightLbs          Float?    @map("gross_weight_lbs")
+
+  status                VehicleStatus @default(AVAILABLE)
+  equipmentType         EquipmentType @map("equipment_type")
 
   tenant                Tenant       @relation(fields: [tenantId], references: [id])
   tenantId              Int          @map("tenant_id")
@@ -411,6 +516,7 @@ model Vehicle {
 
   @@unique([vehicleId, tenantId])
   @@unique([externalVehicleId, tenantId])
+  @@unique([vin, tenantId])
   @@index([tenantId])
   @@index([vin])
   @@index([licensePlate])
@@ -622,6 +728,7 @@ model Customer {
   loads             Load[]
   users             User[]
   invitations       UserInvitation[]
+  invoices          Invoice[]
 
   @@index([tenantId])
   @@map("customers")
@@ -636,9 +743,20 @@ model Load {
   commodityType         String       @map("commodity_type") @db.VarChar(100)
   specialRequirements   String?      @map("special_requirements") @db.Text
   customerName          String       @map("customer_name") @db.VarChar(200)
+
+  // Customer reference / PO number
+  referenceNumber       String?      @map("reference_number") @db.VarChar(100)
+
+  // Rate / revenue for this load (stored in cents)
+  rateCents             Int?         @map("rate_cents")
+
+  // Pieces / pallets count
+  pieces                Int?
+
   isActive              Boolean      @default(true) @map("is_active")
   createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  deliveredAt           DateTime?    @map("delivered_at") @db.Timestamptz
 
   // Equipment type (dry_van, reefer, flatbed, step_deck)
   equipmentType         String?      @map("equipment_type") @db.VarChar(50)
@@ -675,6 +793,8 @@ model Load {
 
   stops                 LoadStop[]
   routePlanLoads        RoutePlanLoad[]
+  invoices              Invoice[]
+  settlementLineItems   SettlementLineItem[]
 
   @@unique([externalLoadId])
   @@map("loads")
@@ -866,6 +986,7 @@ enum IntegrationType {
   FUEL_PRICE
   WEATHER
   TELEMATICS
+  ACCOUNTING
 }
 
 enum IntegrationVendor {
@@ -878,6 +999,7 @@ enum IntegrationVendor {
   GASBUDDY_FUEL
   FUELFINDER_FUEL
   OPENWEATHER
+  QUICKBOOKS
 }
 
 enum IntegrationStatus {
@@ -1293,4 +1415,199 @@ model VehicleTelematics {
   @@index([tenantId])
   @@index([timestamp])
   @@map("vehicle_telematics")
+}
+
+// === Money Module: Invoicing ===
+
+model Invoice {
+  id              Int             @id @default(autoincrement())
+  invoiceId       String          @unique @map("invoice_id") @db.VarChar(50)
+  invoiceNumber   String          @map("invoice_number") @db.VarChar(50)
+  status          InvoiceStatus   @default(DRAFT)
+
+  customerId      Int             @map("customer_id")
+  customer        Customer        @relation(fields: [customerId], references: [id])
+
+  loadId          Int             @map("load_id")
+  load            Load            @relation(fields: [loadId], references: [id])
+
+  subtotalCents   Int             @map("subtotal_cents")
+  adjustmentCents Int             @default(0) @map("adjustment_cents")
+  totalCents      Int             @map("total_cents")
+  paidCents       Int             @default(0) @map("paid_cents")
+  balanceCents    Int             @map("balance_cents")
+
+  issueDate       DateTime        @map("issue_date") @db.Date
+  dueDate         DateTime        @map("due_date") @db.Date
+  paidDate        DateTime?       @map("paid_date") @db.Date
+
+  paymentTermsDays Int            @default(30) @map("payment_terms_days")
+
+  factoringCompany String?        @map("factoring_company") @db.VarChar(200)
+  factoredAt       DateTime?      @map("factored_at") @db.Timestamptz
+
+  qbInvoiceId     String?         @map("qb_invoice_id") @db.VarChar(100)
+  qbSyncedAt      DateTime?       @map("qb_synced_at") @db.Timestamptz
+  qbSyncError     String?         @map("qb_sync_error") @db.Text
+
+  notes           String?         @db.Text
+  internalNotes   String?         @map("internal_notes") @db.Text
+
+  tenantId        Int             @map("tenant_id")
+  tenant          Tenant          @relation(fields: [tenantId], references: [id])
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+  createdBy       Int?            @map("created_by")
+
+  lineItems       InvoiceLineItem[]
+  payments        Payment[]
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([loadId])
+  @@index([status])
+  @@index([dueDate])
+  @@unique([tenantId, invoiceNumber])
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id              Int             @id @default(autoincrement())
+  invoiceId       Int             @map("invoice_id")
+  invoice         Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  type            LineItemType
+  description     String          @db.VarChar(500)
+  quantity        Float           @default(1)
+  unitPriceCents  Int             @map("unit_price_cents")
+  totalCents      Int             @map("total_cents")
+  sequenceOrder   Int             @default(0) @map("sequence_order")
+
+  @@index([invoiceId])
+  @@map("invoice_line_items")
+}
+
+model Payment {
+  id              Int             @id @default(autoincrement())
+  paymentId       String          @unique @map("payment_id") @db.VarChar(50)
+
+  invoiceId       Int             @map("invoice_id")
+  invoice         Invoice         @relation(fields: [invoiceId], references: [id])
+
+  amountCents     Int             @map("amount_cents")
+  paymentMethod   String?         @map("payment_method") @db.VarChar(50)
+  referenceNumber String?         @map("reference_number") @db.VarChar(100)
+  paymentDate     DateTime        @map("payment_date") @db.Date
+  notes           String?         @db.Text
+
+  tenantId        Int             @map("tenant_id")
+  tenant          Tenant          @relation(fields: [tenantId], references: [id])
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  createdBy       Int?            @map("created_by")
+
+  @@index([invoiceId])
+  @@index([tenantId])
+  @@map("payments")
+}
+
+// === Money Module: Settlements ===
+
+model DriverPayStructure {
+  id              Int                @id @default(autoincrement())
+  driverId        Int                @unique @map("driver_id")
+  driver          Driver             @relation(fields: [driverId], references: [id])
+
+  type            PayStructureType
+  ratePerMileCents Int?             @map("rate_per_mile_cents")
+  percentage      Float?
+  flatRateCents   Int?               @map("flat_rate_cents")
+  hybridBaseCents Int?               @map("hybrid_base_cents")
+  hybridPercent   Float?             @map("hybrid_percent")
+
+  effectiveDate   DateTime           @map("effective_date") @db.Date
+  notes           String?            @db.Text
+
+  tenantId        Int                @map("tenant_id")
+  tenant          Tenant             @relation(fields: [tenantId], references: [id])
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@map("driver_pay_structures")
+}
+
+model Settlement {
+  id              Int                @id @default(autoincrement())
+  settlementId    String             @unique @map("settlement_id") @db.VarChar(50)
+  settlementNumber String            @map("settlement_number") @db.VarChar(50)
+  status          SettlementStatus   @default(DRAFT)
+
+  driverId        Int                @map("driver_id")
+  driver          Driver             @relation(fields: [driverId], references: [id])
+
+  periodStart     DateTime           @map("period_start") @db.Date
+  periodEnd       DateTime           @map("period_end") @db.Date
+
+  grossPayCents   Int                @map("gross_pay_cents")
+  deductionsCents Int                @default(0) @map("deductions_cents")
+  netPayCents     Int                @map("net_pay_cents")
+
+  qbBillId        String?            @map("qb_bill_id") @db.VarChar(100)
+  qbSyncedAt      DateTime?          @map("qb_synced_at") @db.Timestamptz
+  qbSyncError     String?            @map("qb_sync_error") @db.Text
+
+  notes           String?            @db.Text
+
+  approvedBy      Int?               @map("approved_by")
+  approvedAt      DateTime?          @map("approved_at") @db.Timestamptz
+  paidAt          DateTime?          @map("paid_at") @db.Timestamptz
+
+  tenantId        Int                @map("tenant_id")
+  tenant          Tenant             @relation(fields: [tenantId], references: [id])
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+  createdBy       Int?               @map("created_by")
+
+  lineItems       SettlementLineItem[]
+  deductions      SettlementDeduction[]
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([status])
+  @@index([periodStart, periodEnd])
+  @@unique([tenantId, settlementNumber])
+  @@map("settlements")
+}
+
+model SettlementLineItem {
+  id              Int                @id @default(autoincrement())
+  settlementId    Int                @map("settlement_id")
+  settlement      Settlement         @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+
+  loadId          Int                @map("load_id")
+  load            Load               @relation(fields: [loadId], references: [id])
+
+  description     String             @db.VarChar(500)
+  miles           Float?
+  loadRevenueCents Int?              @map("load_revenue_cents")
+  payAmountCents  Int                @map("pay_amount_cents")
+  payStructureType PayStructureType  @map("pay_structure_type")
+
+  @@index([settlementId])
+  @@index([loadId])
+  @@map("settlement_line_items")
+}
+
+model SettlementDeduction {
+  id              Int                @id @default(autoincrement())
+  settlementId    Int                @map("settlement_id")
+  settlement      Settlement         @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+
+  type            DeductionType
+  description     String             @db.VarChar(500)
+  amountCents     Int                @map("amount_cents")
+
+  @@index([settlementId])
+  @@map("settlement_deductions")
 }
