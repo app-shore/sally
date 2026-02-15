@@ -90,6 +90,7 @@ export interface LoadCreate {
   rate_cents?: number;
   pieces?: number;
   intake_source?: string;
+  intake_metadata?: Record<string, unknown>;
   status?: string;
   stops: LoadStopCreate[];
 }

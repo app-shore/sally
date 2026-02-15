@@ -15,6 +15,8 @@ export type {
   LoadStopCreate,
 } from './types';
 
+export type { RateconData, ParseRateconResponse } from './types/ratecon';
+
 // Hooks
 export {
   useLoads,
