@@ -4,255 +4,502 @@
  * All mock entity data lives here. Every adapter and service that needs mock data
  * imports from this file instead of maintaining its own inline data.
  *
- * DRIVERS and VEHICLES: Can be auto-synced from Samsara API via:
+ * DRIVERS and VEHICLES: Auto-generated from Samsara API via:
  *   pnpm run sync-mock
  *
  * LOADS: Hand-crafted Boston/NY corridor loads (edit manually).
  *
- * When SAMSARA_API_TOKEN is configured, running sync-mock will overwrite
- * this file with real Samsara driver/vehicle data while preserving loads.
+ * Last synced: 2026-02-15T06:59:04.846Z
  */
 
 import type { DriverData, VehicleData, LoadData } from '../../domains/integrations/adapters/tms/tms-adapter.interface';
 
 // ---------------------------------------------------------------------------
-// Mock TMS Drivers (10 drivers)
+// Mock TMS Drivers (synced from Samsara — 19 drivers)
 //
-// These use phone numbers, license numbers, and names that can be matched
-// by ELD sync when Samsara data is synced.
+// These use the same phone numbers, license numbers, and names as real
+// Samsara drivers so ELD sync can match them correctly.
 // ---------------------------------------------------------------------------
 
 export const MOCK_TMS_DRIVERS: DriverData[] = [
   {
     driver_id: 'TMS-DRV-001',
-    first_name: 'Mike',
-    last_name: 'Johnson',
-    phone: '555-0101',
-    email: 'mike.johnson@carrier.com',
-    license_number: 'TX-CDL-20198',
-    license_state: 'TX',
+    first_name: 'Heideckel',
+    last_name: 'Toribo ( Oscar)',
+    phone: '9788856169',
+    email: 'heideckel.oscar)@carrier.com',
+    license_number: 'NHL14227039',
+    license_state: 'NH',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 53207939
   },
   {
     driver_id: 'TMS-DRV-002',
-    first_name: 'Sarah',
-    last_name: 'Chen',
-    phone: '555-0102',
-    email: 'sarah.chen@carrier.com',
-    license_number: 'IL-CDL-31045',
-    license_state: 'IL',
+    first_name: 'Deepak',
+    last_name: 'NFN',
+    phone: '3477654208',
+    email: 'deepak.nfn@carrier.com',
+    license_number: '149147333',
+    license_state: 'NY',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 53208817
   },
   {
     driver_id: 'TMS-DRV-003',
     first_name: 'James',
-    last_name: 'Williams',
-    phone: '555-0103',
-    email: 'james.williams@carrier.com',
-    license_number: 'GA-CDL-42587',
-    license_state: 'GA',
+    last_name: 'Austin',
+    phone: '3393644162',
+    email: 'james.austin@carrier.com',
+    license_number: 'S62067934',
+    license_state: 'MA',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 53211426
   },
   {
     driver_id: 'TMS-DRV-004',
-    first_name: 'Maria',
-    last_name: 'Garcia',
-    phone: '555-0104',
-    email: 'maria.garcia@carrier.com',
-    license_number: 'CA-CDL-53219',
-    license_state: 'CA',
+    first_name: 'Eric',
+    last_name: 'Driver',
+    phone: '9786050448',
+    email: 'eric@carrier.com',
+    license_number: 'S10910231',
+    license_state: 'MA',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 53250543
   },
   {
     driver_id: 'TMS-DRV-005',
-    first_name: 'Robert',
-    last_name: 'Davis',
-    phone: '555-0105',
-    email: 'robert.davis@carrier.com',
-    license_number: 'FL-CDL-64873',
-    license_state: 'FL',
+    first_name: 'NUNEZ',
+    last_name: 'ROBERT',
+    phone: '19783059716',
+    email: 'nunez.robert@carrier.com',
+    license_number: 'S06599536',
+    license_state: 'MA',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 53708172
   },
   {
     driver_id: 'TMS-DRV-006',
-    first_name: 'Emily',
-    last_name: 'Wilson',
-    phone: '555-0106',
-    email: 'emily.wilson@carrier.com',
-    license_number: 'OH-CDL-75634',
-    license_state: 'OH',
+    first_name: 'Camaron',
+    last_name: 'Donald Edeard',
+    phone: '16178325411',
+    email: 'camaron.edeard@carrier.com',
+    license_number: 'S55592723',
+    license_state: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 53759537
   },
   {
     driver_id: 'TMS-DRV-007',
-    first_name: 'David',
-    last_name: 'Martinez',
-    phone: '555-0107',
-    email: 'david.martinez@carrier.com',
-    license_number: 'TN-CDL-86492',
-    license_state: 'TN',
+    first_name: 'Antoine',
+    last_name: 'R',
+    phone: '9082205786',
+    email: 'antoine.r@carrier.com',
+    license_number: 'NHL11816663',
+    license_state: 'NH',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 53761629
   },
   {
     driver_id: 'TMS-DRV-008',
-    first_name: 'Lisa',
-    last_name: 'Anderson',
-    phone: '555-0108',
-    email: 'lisa.anderson@carrier.com',
-    license_number: 'PA-CDL-97358',
-    license_state: 'PA',
+    first_name: 'Manveer',
+    last_name: 'Driver',
+    phone: '4752069690',
+    email: 'manveer@carrier.com',
+    license_number: '199414960',
+    license_state: 'MA',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 53878141
   },
   {
     driver_id: 'TMS-DRV-009',
-    first_name: 'Thomas',
-    last_name: 'Brown',
-    phone: '555-0109',
-    email: 'thomas.brown@carrier.com',
-    license_number: 'NC-CDL-08216',
-    license_state: 'NC',
+    first_name: 'Ahamed',
+    last_name: 'Mohamed Faizal',
+    phone: '',
+    email: 'ahamed.faizal@carrier.com',
+    license_number: 'S67168726',
+    license_state: 'MA',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 53958253
   },
   {
     driver_id: 'TMS-DRV-010',
-    first_name: 'Jennifer',
-    last_name: 'Taylor',
-    phone: '555-0110',
-    email: 'jennifer.taylor@carrier.com',
-    license_number: 'MO-CDL-19074',
-    license_state: 'MO',
+    first_name: 'Hector',
+    last_name: 'Joel Batista',
+    phone: '9783139100',
+    email: 'hector.batista@carrier.com',
+    license_number: 'SA0180947',
+    license_state: 'MA',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 54172938
   },
+  {
+    driver_id: 'TMS-DRV-011',
+    first_name: 'David',
+    last_name: 'Arden',
+    phone: '2038415054',
+    email: 'david.arden@carrier.com',
+    license_number: '108736005',
+    license_state: 'CT',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 54290438
+  },
+  {
+    driver_id: 'TMS-DRV-012',
+    first_name: 'Dhozhi',
+    last_name: 'Rei',
+    phone: '7815210573',
+    email: 'dhozhi.rei@carrier.com',
+    license_number: 'SA8640372',
+    license_state: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 54561137
+  },
+  {
+    driver_id: 'TMS-DRV-013',
+    first_name: 'Winder',
+    last_name: 'Joshua James, JR',
+    phone: '',
+    email: 'winder.jr@carrier.com',
+    license_number: '129251687',
+    license_state: 'CT',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 54624756
+  },
+  {
+    driver_id: 'TMS-DRV-014',
+    first_name: 'JAY',
+    last_name: 'Driver',
+    phone: '3392081659',
+    email: 'jay@carrier.com',
+    license_number: '123',
+    license_state: 'MA',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 54980150
+  },
+  {
+    driver_id: 'TMS-DRV-015',
+    first_name: 'Anand',
+    last_name: 'Rituraj',
+    phone: '',
+    email: 'anand.rituraj@carrier.com',
+    license_number: '',
+    license_state: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 55058900
+  },
+  {
+    driver_id: 'TMS-DRV-016',
+    first_name: 'Brinder',
+    last_name: 'Singh',
+    phone: '19296230454',
+    email: 'brinder.singh@carrier.com',
+    license_number: '440586911',
+    license_state: 'NY',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 55163240
+  },
+  {
+    driver_id: 'TMS-DRV-017',
+    first_name: 'Michael',
+    last_name: 'Driver',
+    phone: '14753844854',
+    email: 'michael@carrier.com',
+    license_number: '178339822',
+    license_state: 'CT',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 55257455
+  },
+  {
+    driver_id: 'TMS-DRV-018',
+    first_name: 'Fresly',
+    last_name: 'Driver',
+    phone: '',
+    email: 'fresly@carrier.com',
+    license_number: '',
+    license_state: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 55369119
+  },
+  {
+    driver_id: 'TMS-DRV-019',
+    first_name: 'Dinero',
+    last_name: 'Driver',
+    phone: '',
+    email: 'dinero@carrier.com',
+    license_number: '',
+    license_state: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 55430354
+  }
 ];
 
 // ---------------------------------------------------------------------------
-// Mock TMS Vehicles (10 vehicles)
+// Mock TMS Vehicles (synced from Samsara — 20 vehicles)
 //
-// These use VINs and license plates that can be matched by ELD sync
-// when Samsara data is synced.
+// These use the same VINs and license plates as real Samsara vehicles
+// so ELD sync can match them correctly.
 // ---------------------------------------------------------------------------
 
 export const MOCK_TMS_VEHICLES: VehicleData[] = [
   {
     vehicle_id: 'TMS-VEH-001',
     unit_number: 'TRK-001',
-    make: 'Freightliner',
-    model: 'Cascadia',
-    year: 2023,
-    vin: '1FUJHHDR8NLNN0001',
-    license_plate: 'TX-CDL-001',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2018,
+    vin: '1FUJGHDV9JLJY8062',
+    license_plate: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 281474996387574
   },
   {
     vehicle_id: 'TMS-VEH-002',
     unit_number: 'TRK-002',
-    make: 'Kenworth',
-    model: 'T680',
-    year: 2022,
-    vin: '1XKYD49X6NJ100002',
-    license_plate: 'IL-CDL-002',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2019,
+    vin: '3AKJHPDV2KSKA4482',
+    license_plate: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 281474996387575
   },
   {
     vehicle_id: 'TMS-VEH-003',
     unit_number: 'TRK-003',
-    make: 'Peterbilt',
-    model: '579',
-    year: 2023,
-    vin: '1XPBD49X7ND400003',
-    license_plate: 'GA-CDL-003',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2019,
+    vin: '3AKJHPDV8KSKF9518',
+    license_plate: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 281474996387576
   },
   {
     vehicle_id: 'TMS-VEH-004',
     unit_number: 'TRK-004',
-    make: 'Volvo',
-    model: 'VNL 860',
-    year: 2022,
-    vin: '4V4NC9EH9NN200004',
-    license_plate: 'CA-CDL-004',
+    make: 'VOLVO TRUCK',
+    model: 'VNL',
+    year: 2016,
+    vin: '4V4NC9EHXGN946995',
+    license_plate: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 281474996387577
   },
   {
     vehicle_id: 'TMS-VEH-005',
     unit_number: 'TRK-005',
-    make: 'International',
-    model: 'LT Series',
-    year: 2023,
-    vin: '3HSDJAPR5NN100005',
-    license_plate: 'FL-CDL-005',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2018,
+    vin: '1FUJGHDV8JLJY8070',
+    license_plate: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 281474996387578
   },
   {
     vehicle_id: 'TMS-VEH-006',
     unit_number: 'TRK-006',
-    make: 'Mack',
-    model: 'Anthem',
-    year: 2022,
-    vin: '1M1AN07Y5NM000006',
-    license_plate: 'OH-CDL-006',
+    make: 'VOLVO TRUCK',
+    model: 'VNL',
+    year: 2018,
+    vin: '4V4NC9EH9JN996004',
+    license_plate: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 281474996387579
   },
   {
     vehicle_id: 'TMS-VEH-007',
     unit_number: 'TRK-007',
-    make: 'Freightliner',
-    model: 'Cascadia',
-    year: 2023,
-    vin: '1FUJHHDR0NLNN0007',
-    license_plate: 'TN-CDL-007',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2020,
+    vin: '3AKJHPDV6LSLG8996',
+    license_plate: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 281474996387580
   },
   {
     vehicle_id: 'TMS-VEH-008',
     unit_number: 'TRK-008',
-    make: 'Kenworth',
-    model: 'W990',
-    year: 2022,
-    vin: '1XKYD49X8NJ100008',
-    license_plate: 'PA-CDL-008',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2013,
+    vin: '3AKJGLDV3DSFF7928',
+    license_plate: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 281474996387581
   },
   {
     vehicle_id: 'TMS-VEH-009',
     unit_number: 'TRK-009',
-    make: 'Peterbilt',
-    model: '389',
-    year: 2023,
-    vin: '1XPBD49X9ND400009',
-    license_plate: 'NC-CDL-009',
+    make: 'VOLVO TRUCK',
+    model: 'VNL',
+    year: 2017,
+    vin: '4V4NC9EH2HN978972',
+    license_plate: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 281474996387582
   },
   {
     vehicle_id: 'TMS-VEH-010',
     unit_number: 'TRK-010',
-    make: 'Volvo',
-    model: 'VNR 640',
-    year: 2022,
-    vin: '4V4NC9EH0NN200010',
-    license_plate: 'MO-CDL-010',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2018,
+    vin: '1FUJGHDV7JLJY8061',
+    license_plate: '',
     status: 'ACTIVE' as const,
     data_source: 'mock_tms',
+    // Samsara ID: 281474996387584
   },
+  {
+    vehicle_id: 'TMS-VEH-011',
+    unit_number: 'TRK-011',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2020,
+    vin: '3AKJHPDV1LSLF0275',
+    license_plate: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 281474996387585
+  },
+  {
+    vehicle_id: 'TMS-VEH-012',
+    unit_number: 'TRK-012',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2019,
+    vin: '3AKJHHDR3KSKD1196',
+    license_plate: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 281474996387586
+  },
+  {
+    vehicle_id: 'TMS-VEH-013',
+    unit_number: 'TRK-013',
+    make: 'VOLVO TRUCK',
+    model: 'VNL',
+    year: 2017,
+    vin: '4V4NC9EH0HN979036',
+    license_plate: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 281474996387600
+  },
+  {
+    vehicle_id: 'TMS-VEH-014',
+    unit_number: 'TRK-014',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2018,
+    vin: '1FUJGLDV3JLJY8030',
+    license_plate: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 281474996387601
+  },
+  {
+    vehicle_id: 'TMS-VEH-015',
+    unit_number: 'TRK-015',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2018,
+    vin: '1FUJGHDV8JLJY8070',
+    license_plate: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 281474996685865
+  },
+  {
+    vehicle_id: 'TMS-VEH-016',
+    unit_number: 'TRK-016',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2018,
+    vin: '1FUJGLDV8JLJY8024',
+    license_plate: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 281474998591916
+  },
+  {
+    vehicle_id: 'TMS-VEH-017',
+    unit_number: 'TRK-017',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2018,
+    vin: '1FUJGHDVXJLJY8071',
+    license_plate: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 281474998647326
+  },
+  {
+    vehicle_id: 'TMS-VEH-018',
+    unit_number: 'TRK-018',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2018,
+    vin: '1FUJGLDV1JLKC7015',
+    license_plate: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 281474998739425
+  },
+  {
+    vehicle_id: 'TMS-VEH-019',
+    unit_number: 'TRK-019',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2018,
+    vin: '1FUJGLDV2JLKC6973',
+    license_plate: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 281475000143401
+  },
+  {
+    vehicle_id: 'TMS-VEH-020',
+    unit_number: 'TRK-020',
+    make: 'FREIGHTLINER',
+    model: 'CASCADIA',
+    year: 2018,
+    vin: '1FUJGLDV8JLKC6976',
+    license_plate: '',
+    status: 'ACTIVE' as const,
+    data_source: 'mock_tms',
+    // Samsara ID: 281475000143402
+  }
 ];
 
 // ---------------------------------------------------------------------------
